@@ -1,6 +1,7 @@
 from pickle import EMPTY_DICT
 from data.aanvraag_info import AanvraagDocumentInfo, Bedrijf
 from database.SQL import SQLbase, SQLdelete, SQLcreate, SQLselect, SQLupdate
+from database.crud import CRUDbase
 from database.sqlexpr import Ops, SQLexpression as SQE
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
@@ -26,16 +27,16 @@ class AanvraagTableDefinition(TableDefinition):
         super().__init__('AANVRAGEN', autoid = True)
         self.add_column('filename', dbc.TEXT)
         self.add_column('title', dbc.TEXT)
-        self.add_column('grade', dbc.INTEGER)
         self.add_column('stud_nr', dbc.TEXT)
-        self.add_column('bedrijf_id', dbc.TEXT)
+        self.add_column('bedrijf_id', dbc.INTEGER)
+        self.add_column('grade', dbc.INTEGER)
 
 class FileTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('FILES')
         self.add_column('filename', dbc.TEXT, primary=True)
         self.add_column('timestamp', dbc.TEXT)
-        self.add_column('filetype', dbc.TEXT)
+        self.add_column('filetype', dbc.INTEGER)
 
 class AAPSchema(Schema):
     def __init__(self):
@@ -49,55 +50,6 @@ class AAPSchema(Schema):
         self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('filename', 'FILES', 'filename', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-
-class CRUD:
-    def __init__(self, database: Database, table: TableDefinition):
-        self.database = database
-        self.table = table
-    def create(self, **kwargs):
-        self.database.create_record(self.table, **kwargs)
-    def read(self, **kwargs):
-        return self.database.read_record(self.table, **kwargs)
-    def update(self, **kwargs):
-        self.database.update_record(self.table, **kwargs)
-    def delete(self, **kwargs):
-        self.database.delete_record(self.table, **kwargs)
-class CRUD_bedrijven(CRUD):
-    def __init__(self, database: Database):
-        super().__init__(database, BedrijfTableDefinition())
-    def create(self, bedrijf: Bedrijf):
-        super().create(columns=['name'], values=[bedrijf.bedrijfsnaam])
-    def read(self, id: int)->Bedrijf:
-        result = super().read(where=SQE('id', Ops.EQ, id))
-        if result:
-            return Bedrijf(id, result[0])
-        else:
-            return None
-    def update(self, bedrijf: Bedrijf):
-        super().update(columns=['name'], values=[bedrijf.bedrijfsnaam], where=SQE('id', Ops.EQ, bedrijf.id))
-    def delete(self, bedrijf: Bedrijf):
-        super().delete(where=SQE('id', Ops.EQ, bedrijf.id))
-
-# class CRUD_files(CRUD):
-#     def __init__(self, database: Database):
-#         super().__init__(database, FileTableDefinition())
-#     def create(self, bedrijf: Bedrijf):
-#         super().create(columns=['name'], values=[bedrijf.bedrijfsnaam])
-#     def read_bedrijf(self, id: int)->Bedrijf:
-#         result = super().read(where=SQE('id', Ops.EQ, id))
-#         if result:
-#             return Bedrijf(id, result[0])
-#         else:
-#             return None
-#     def update_bedrijf(self, bedrijf: Bedrijf):
-#         super().update(columns=['name'], values=[bedrijf.bedrijfsnaam], where=SQE('id', Ops.EQ, bedrijf.id))
-#     def delete_bedrijf(self, bedrijf: Bedrijf):
-#         super().delete(where=SQE('id', Ops.EQ, bedrijf.id))
-
-# class CRUD_files(CRUD):
-#     def __init__(self, database: Database):
-#         super().__init__(database, FileTableDefinition())
-
 
 class AAPDatabase(Database):
     def __init__(self, filename):

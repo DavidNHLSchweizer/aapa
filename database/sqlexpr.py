@@ -38,11 +38,12 @@ class Ops(Enum):
             case _: 
                 return '???'
 
-class SQLCFlags(Enum):
-    BRACKETS = auto(),
-    NOBRACKETS = auto(),
-    BRACKETS_OPERATOR = auto(),
-    NOBRACKETS_OPERATOR = auto()
+# class SQLCFlags(Enum):
+#     BRACKETS = auto(),
+#     NOBRACKETS = auto(),
+#     BRACKETS_OPERATOR = auto(),
+#     NOBRACKETS_OPERATOR = auto(),
+#     NO_COLUMN_REF = auto()
 
 class SQLexpression:
     def __init__(self, part1, operator:Ops, part2, **flags):
@@ -54,6 +55,10 @@ class SQLexpression:
         self.brackets = True
         self.apply = None
         self.column_ref_pattern = re.compile(r'.+\..+')
+#TODO: uitzoeken waarom dit gedoe met column_ref niet goed werkt 
+# daardoor kan je nl niet string parameters met een punt hebben, 
+# dit is alleen een hack om dat weg te toveren        
+        self.ignore_column_ref = False
         for flag in flags:
             match(flag.lower()):
                 case 'brackets':
@@ -62,6 +67,8 @@ class SQLexpression:
                     self.brackets = not flags[flag]
                 case 'apply':
                     self.apply = flags[flag]
+                case 'no_column_ref':
+                    self.ignore_column_ref = flags[flag]
         self._prepare()
     def _apply(self, str):
         if self.apply:
@@ -89,6 +96,11 @@ class SQLexpression:
             return self._bracket_apply(f'{self.part1} {self.operator} {self._string(self.part2)}')
     def _is_column_ref(self, str):        
         return self.column_ref_pattern.match(str)
+    @staticmethod
+    def _is_string_parameter(s: str):
+        result = s and s[0] == "'" and s[-1] == "'"
+        print(f'{s} {result}' )        
+        return s and s[0] == "'" and s[-1] == "'"
     def _prepare(self):
         self.parametrized = ''
         self.parameters = []
@@ -100,7 +112,7 @@ class SQLexpression:
         if isinstance(self.part2,SQLexpression):
             part2 = self.part2.parametrized
             self.parameters.extend(self.part2.parameters)
-        elif isinstance(self.part2,str) and self._is_column_ref(self.part2):
+        elif isinstance(self.part2,str) and (not self.ignore_column_ref) and self._is_column_ref(self.part2):
             part2 = self.part2
         elif isinstance(self.part2,list):
             part2 = f'({",".join(["?" for _ in self.part2])})'

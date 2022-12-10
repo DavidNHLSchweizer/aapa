@@ -24,6 +24,8 @@ class SQLbase(ABC):
     def __init__(self, table_def: TableDefinition, **args):
         self.table_def = table_def
         SQLFlags().execute(self._getParseFlags(), self, **args)
+    def __str__(self):
+        return f'{self.Query}\nparams: {self.Parameters}'
     @abstractmethod
     def _getParseFlags(self):
         pass

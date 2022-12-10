@@ -23,6 +23,7 @@ def one_line(value: str)->str:
 class Database:
     _logging_initialized = False
     def __init__(self, filename: str):
+        self.raise_error = True
         self.connection = self.open_database(filename)
         self._init_logging(filename)
         self.log_info(f'connection ({filename}) opened...')
@@ -30,10 +31,9 @@ class Database:
         self.enable_foreign_keys()
     @classmethod
     def create_from_schema(cls, schema: Schema, filename: str):
-        print(cls, filename)
         result = cls(filename)
-        print(result.__class__)
         result.__clear()
+        
         for table in schema.tables():
             print(f'creating table {table}')
             result.create_table(table)
@@ -41,18 +41,22 @@ class Database:
     def __clear(self):
         try:
             schema = Schema.read_from_database(self)
+            self.disable_foreign_keys()
             for table in schema.tables():
                 self.drop_table(table)
             self.commit()
         finally:
+            self.enable_foreign_keys()
             pass
     def log_info(self, str):
         logging.info(one_line(str))
     def log_error(self, str):
         logging.error(str)
-    def __del__(self):
+    def close(self):
+        self.commit()
         self.connection.close()
         self.log_info('connection closed...')
+
     def _init_logging(self, filename):        
         if Database._logging_initialized: 
             return
@@ -70,12 +74,14 @@ class Database:
             return conn
         except sql3.Error as e:
             self.log_error('***ERROR***: '+str(e))
+            if self.raise_error:
+                raise e
             return None
     def _execute_sql_command(self, string, parameters=None, return_values=False):
         try:
             c = self.connection.cursor()
             if parameters:
-                self.log_info(f'{string} {parameters}')
+                self.log_info(f'{string} + {parameters}')
                 c.execute('' + string + '', parameters)
             else:
                 self.log_info(string)
@@ -84,6 +90,8 @@ class Database:
                 return c.fetchall()
         except sql3.Error as e:
             self.log_error('***ERROR***: '+str(e))
+            if self.raise_error:
+                raise e
         return None
     def execute_sql_command(self, sql:SQLbase):        
         self._execute_sql_command(sql.Query, sql.Parameters)
@@ -100,7 +108,6 @@ class Database:
         self.execute_sql_command(sql)
     def create_record(self, tabledef, **args):
         sql = SQLinsert(tabledef, **args)
-        print(sql)
         self.execute_sql_command(sql)
     def read_record(self, tabledef, **args):
         sql = SQLselect(tabledef, **args)
@@ -138,7 +145,8 @@ class Schema:
             for key in foreign_keys_from_pragma:
                 (key_id, key_seq, foreign_table_name, local_column_name, foreign_column_name, on_update, on_delete, match) = key
                 table.add_foreign_key(local_column_name, foreign_table_name, foreign_column_name, onupdate=on_update, ondelete=on_delete)
-            return table        
+            return table  
+
         result = Schema()
         schema_table_def = SchemaTableDef()
         sql = SQLselect(schema_table_def, columns=['name'], where=SQE('type', Ops.EQ, 'table'))

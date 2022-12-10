@@ -5,10 +5,11 @@ from database.tabledef import TableDefinition
 class DatabaseDumper:
     def __init__(self, database: Database):
         self.database = database         
-    def DumpTables(self):
+    def DumpTables(self, tables=[]):
         schema = Schema.read_from_database(self.database)
         for table in schema.tables():
-            self.DumpTable(table)
+            if tables == [] or table.table_name in tables:
+                self.DumpTable(table)
     def DumpTable(self, table: TableDefinition):
         print(table)
         sql = SQLselect(table)
