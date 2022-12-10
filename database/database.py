@@ -1,11 +1,12 @@
+from __future__ import annotations
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 import sqlite3 as sql3
 
 import database.dbConst as dbc
-from database.tabledef import TableDefinition, TableFlags, ColumnDefinition, ColumnFlags
-from database.SQL import SQLbase, SQLcreate, SQLdrop, SQLinsert, SQLcreateIndex, SQLselect, SQLupdate
+from database.tabledef import TableDefinition
+from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
 
 class SchemaTableDef(TableDefinition):
@@ -21,12 +22,30 @@ def one_line(value: str)->str:
     return value.replace('\n', ' ')
 class Database:
     _logging_initialized = False
-    def __init__(self, filename):
-        self._init_logging(filename)
+    def __init__(self, filename: str):
         self.connection = self.open_database(filename)
+        self._init_logging(filename)
         self.log_info(f'connection ({filename}) opened...')
         self.connection.row_factory = sql3.Row
         self.enable_foreign_keys()
+    @classmethod
+    def create_from_schema(cls, schema: Schema, filename: str):
+        print(cls, filename)
+        result = cls(filename)
+        print(result.__class__)
+        result.__clear()
+        for table in schema.tables():
+            print(f'creating table {table}')
+            result.create_table(table)
+        return result
+    def __clear(self):
+        try:
+            schema = Schema.read_from_database(self)
+            for table in schema.tables():
+                self.drop_table(table)
+            self.commit()
+        finally:
+            pass
     def log_info(self, str):
         logging.info(one_line(str))
     def log_error(self, str):
@@ -79,8 +98,18 @@ class Database:
     def drop_table(self, tabledef):
         sql = SQLdrop(tabledef)
         self.execute_sql_command(sql)
-    def insert_record(self, tabledef, **args):
+    def create_record(self, tabledef, **args):
         sql = SQLinsert(tabledef, **args)
+        print(sql)
+        self.execute_sql_command(sql)
+    def read_record(self, tabledef, **args):
+        sql = SQLselect(tabledef, **args)
+        return self.execute_select(sql)
+    def update_record(self, tabledef, **args):
+        sql = SQLupdate(tabledef, **args)
+        self.execute_sql_command(sql)
+    def delete_record(self, tabledef, **args):
+        sql = SQLdelete(tabledef, **args)
         self.execute_sql_command(sql)
 
 class Schema:
@@ -92,7 +121,8 @@ class Schema:
         return self.__tables.get(table_name, None)
     def tables(self):
         return self.__tables.values()
-    def read_from_database(self, database: Database):
+    @classmethod
+    def read_from_database(cls, database: Database):
         def create_table_definition(table_name, columns_from_pragma, foreign_keys_from_pragma):
             table = TableDefinition(table_name)
             for column in columns_from_pragma:
@@ -109,11 +139,12 @@ class Schema:
                 (key_id, key_seq, foreign_table_name, local_column_name, foreign_column_name, on_update, on_delete, match) = key
                 table.add_foreign_key(local_column_name, foreign_table_name, foreign_column_name, onupdate=on_update, ondelete=on_delete)
             return table        
+        result = Schema()
         schema_table_def = SchemaTableDef()
         sql = SQLselect(schema_table_def, columns=['name'], where=SQE('type', Ops.EQ, 'table'))
-        result = []
         for table in database._execute_sql_command(sql.Query, parameters=sql.Parameters, return_values=True):
             columns = database._execute_sql_command(f'pragma table_info({table["name"]})', return_values=True)
             foreign_keys = database._execute_sql_command(f'pragma foreign_key_list({table["name"]})', return_values=True)            
-            self.add_table(create_table_definition(table["name"], columns, foreign_keys))
+            result.add_table(create_table_definition(table["name"], columns, foreign_keys))
         return result    
+

@@ -73,7 +73,6 @@ class SQLcreate(SQLbase):
             result = result + f',PRIMARY KEY({",".join([column.name for column in self.columns if column.is_primary()])})'
         if self.table_def.has_foreign_keys():
             result  = result + ',' + ','.join([f'FOREIGN KEY({key.column_name}) REFERENCES {key.ref_table}({key.ref_column}){key.action_str()}' for key in self.table_def.foreign_keys])
-            print(result)
 #            result  = result + ',' + ','.join([str(key) for key in self.table_def.foreign_keys])
 #        return f'FOREIGN KEY: {self.column_name} references {self.ref_table}.{self.ref_column}' + ondelete_str + onupdate_str
 
@@ -159,6 +158,13 @@ class SQLupdate(SQLbase):
     def _getParseFlags(self):
         return [SQLFlags.COLUMNS, SQLFlags.WHERE, SQLFlags.VALUES]
     def _getQuery(self):
+
+        # if _is_default_values(self.columns, self.arg_columns):
+        #     result = f'INSERT INTO {self.table_name} DEFAULT VALUES;'
+        # else:
+        #     result = f'INSERT INTO {self.table_name} (' + ','.join([column for column in self.arg_columns]) + ')' + \
+        #               ' VALUES(' + ','.join(['?' for _ in self.arg_columns]) + ');'
+
         result = f'UPDATE {self.table_name} SET ' + ','.join([f'{column}=?' for column in self.arg_columns])
         if self.where_expression:
             result = result + '\nWHERE ' + self.where_expression.parametrized

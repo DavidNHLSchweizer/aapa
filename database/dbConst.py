@@ -1,5 +1,7 @@
 ID = 'ID'
 
+EMPTY_ID = -1
+
 TEXT = 'text'
 INTEGER = 'integer'
 REAL = 'real'

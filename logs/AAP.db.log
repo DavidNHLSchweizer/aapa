@@ -1,0 +1,472 @@
+2022-12-09 14:59:53- logging started...
+2022-12-09 14:59:53- connection (AAP.db) opened...
+2022-12-09 14:59:53- pragma foreign_keys=ON
+2022-12-09 14:59:53- connection closed...
+2022-12-09 15:01:13- logging started...
+2022-12-09 15:01:13- connection (AAP.db) opened...
+2022-12-09 15:01:13- pragma foreign_keys=ON
+2022-12-09 15:01:13- connection closed...
+2022-12-09 15:01:55- logging started...
+2022-12-09 15:01:55- connection (AAP.db) opened...
+2022-12-09 15:01:55- pragma foreign_keys=ON
+2022-12-09 15:01:55- connection closed...
+2022-12-09 15:05:06- logging started...
+2022-12-09 15:05:06- connection (AAP.db) opened...
+2022-12-09 15:05:06- pragma foreign_keys=ON
+2022-12-09 15:05:06- connection closed...
+2022-12-09 15:05:54- logging started...
+2022-12-09 15:05:54- connection (AAP.db) opened...
+2022-12-09 15:05:54- pragma foreign_keys=ON
+2022-12-09 15:05:54- connection closed...
+2022-12-09 15:08:00- logging started...
+2022-12-09 15:08:00- connection (AAP.db) opened...
+2022-12-09 15:08:00- pragma foreign_keys=ON
+2022-12-09 15:08:00- connection closed...
+2022-12-09 15:08:18- logging started...
+2022-12-09 15:08:18- connection (AAP.db) opened...
+2022-12-09 15:08:18- pragma foreign_keys=ON
+2022-12-09 15:08:18- connection closed...
+2022-12-09 15:09:12- logging started...
+2022-12-09 15:09:12- connection (AAP.db) opened...
+2022-12-09 15:09:12- pragma foreign_keys=ON
+2022-12-09 15:09:12- connection closed...
+2022-12-09 15:10:07- logging started...
+2022-12-09 15:10:07- connection (AAP.db) opened...
+2022-12-09 15:10:07- pragma foreign_keys=ON
+2022-12-09 15:10:07- connection closed...
+2022-12-09 15:10:15- logging started...
+2022-12-09 15:10:15- connection (AAP.db) opened...
+2022-12-09 15:10:15- pragma foreign_keys=ON
+2022-12-09 15:10:15- connection closed...
+2022-12-09 15:10:58- logging started...
+2022-12-09 15:10:58- connection (AAP.db) opened...
+2022-12-09 15:10:58- pragma foreign_keys=ON
+2022-12-09 15:10:58- connection closed...
+2022-12-09 15:11:56- logging started...
+2022-12-09 15:11:56- connection (AAP.db) opened...
+2022-12-09 15:11:56- pragma foreign_keys=ON
+2022-12-09 15:11:56- connection closed...
+2022-12-09 15:14:39- logging started...
+2022-12-09 15:14:39- connection (AAP.db) opened...
+2022-12-09 15:14:39- pragma foreign_keys=ON
+2022-12-09 15:14:39- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:14:39- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:14:39- Committing
+2022-12-09 15:14:39- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-09 15:14:39- CREATE TABLE IF NOT EXISTS BEDRIJVEN (ID integer PRIMARY KEY,name text);
+2022-12-09 15:14:39- CREATE TABLE IF NOT EXISTS AANVRAGEN (ID integer PRIMARY KEY,filename text,title text,grade integer,stud_nr text,bedrijf_id text,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(filename) REFERENCES FILES(filename) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-09 15:14:39- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype text);
+2022-12-09 15:14:39- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:14:39- INSERT INTO BEDRIJVEN (name) VALUES(?); ['cheapo']
+2022-12-09 15:14:39- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:14:39- INSERT INTO BEDRIJVEN (name) VALUES(?); ['campina']
+2022-12-09 15:14:39- Committing
+2022-12-09 15:14:39- Committing
+2022-12-09 15:14:39- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:14:39- pragma table_info(STUDENTEN)
+2022-12-09 15:14:39- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:14:39- pragma table_info(BEDRIJVEN)
+2022-12-09 15:14:39- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:14:39- pragma table_info(AANVRAGEN)
+2022-12-09 15:14:39- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:14:39- pragma table_info(FILES)
+2022-12-09 15:14:39- pragma foreign_key_list(FILES)
+2022-12-09 15:14:39- SELECT * FROM STUDENTEN;
+2022-12-09 15:14:39- SELECT * FROM BEDRIJVEN;
+2022-12-09 15:14:39- SELECT * FROM AANVRAGEN;
+2022-12-09 15:14:39- SELECT * FROM FILES;
+2022-12-09 15:14:39- connection closed...
+2022-12-09 15:15:22- logging started...
+2022-12-09 15:15:22- connection (AAP.db) opened...
+2022-12-09 15:15:22- pragma foreign_keys=ON
+2022-12-09 15:15:22- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:15:22- pragma table_info(STUDENTEN)
+2022-12-09 15:15:22- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:15:22- pragma table_info(BEDRIJVEN)
+2022-12-09 15:15:22- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:15:22- pragma table_info(AANVRAGEN)
+2022-12-09 15:15:22- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:15:22- pragma table_info(FILES)
+2022-12-09 15:15:22- pragma foreign_key_list(FILES)
+2022-12-09 15:15:22- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:15:22- pragma table_info(STUDENTEN)
+2022-12-09 15:15:22- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:15:22- pragma table_info(BEDRIJVEN)
+2022-12-09 15:15:22- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:15:22- pragma table_info(AANVRAGEN)
+2022-12-09 15:15:22- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:15:22- pragma table_info(FILES)
+2022-12-09 15:15:22- pragma foreign_key_list(FILES)
+2022-12-09 15:15:22- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-09 15:15:22- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-09 15:15:22- ***ERROR***: no such table: main.STUDENTEN
+2022-12-09 15:15:22- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-09 15:15:22- DROP TABLE IF EXISTS FILES;
+2022-12-09 15:15:22- Committing
+2022-12-09 15:15:23- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-09 15:15:23- CREATE TABLE IF NOT EXISTS BEDRIJVEN (ID integer PRIMARY KEY,name text);
+2022-12-09 15:15:23- CREATE TABLE IF NOT EXISTS AANVRAGEN (ID integer PRIMARY KEY,filename text,title text,grade integer,stud_nr text,bedrijf_id text,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(filename) REFERENCES FILES(filename) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-09 15:15:23- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype text);
+2022-12-09 15:15:23- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:15:23- INSERT INTO BEDRIJVEN (name) VALUES(?); ['cheapo']
+2022-12-09 15:15:23- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:15:23- INSERT INTO BEDRIJVEN (name) VALUES(?); ['campina']
+2022-12-09 15:15:23- Committing
+2022-12-09 15:15:23- UPDATE BEDRIJVEN SET ;
+2022-12-09 15:15:23- ***ERROR***: near ";": syntax error
+2022-12-09 15:15:23- Committing
+2022-12-09 15:15:23- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:15:23- pragma table_info(BEDRIJVEN)
+2022-12-09 15:15:23- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:15:23- pragma table_info(STUDENTEN)
+2022-12-09 15:15:23- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:15:23- pragma table_info(AANVRAGEN)
+2022-12-09 15:15:23- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:15:23- pragma table_info(FILES)
+2022-12-09 15:15:23- pragma foreign_key_list(FILES)
+2022-12-09 15:15:23- SELECT * FROM BEDRIJVEN;
+2022-12-09 15:15:23- SELECT * FROM STUDENTEN;
+2022-12-09 15:15:23- SELECT * FROM AANVRAGEN;
+2022-12-09 15:15:23- SELECT * FROM FILES;
+2022-12-09 15:15:23- connection closed...
+2022-12-09 15:18:48- logging started...
+2022-12-09 15:18:48- connection (AAP.db) opened...
+2022-12-09 15:18:48- pragma foreign_keys=ON
+2022-12-09 15:18:48- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:18:48- pragma table_info(BEDRIJVEN)
+2022-12-09 15:18:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:18:48- pragma table_info(STUDENTEN)
+2022-12-09 15:18:48- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:18:48- pragma table_info(AANVRAGEN)
+2022-12-09 15:18:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:18:48- pragma table_info(FILES)
+2022-12-09 15:18:48- pragma foreign_key_list(FILES)
+2022-12-09 15:18:48- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:18:48- pragma table_info(BEDRIJVEN)
+2022-12-09 15:18:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:18:48- pragma table_info(STUDENTEN)
+2022-12-09 15:18:48- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:18:48- pragma table_info(AANVRAGEN)
+2022-12-09 15:18:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:18:48- pragma table_info(FILES)
+2022-12-09 15:18:48- pragma foreign_key_list(FILES)
+2022-12-09 15:18:48- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-09 15:18:48- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-09 15:18:48- ***ERROR***: no such table: main.BEDRIJVEN
+2022-12-09 15:18:48- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-09 15:18:48- DROP TABLE IF EXISTS FILES;
+2022-12-09 15:18:48- Committing
+2022-12-09 15:18:48- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-09 15:18:48- CREATE TABLE IF NOT EXISTS BEDRIJVEN (ID integer PRIMARY KEY,name text);
+2022-12-09 15:18:48- CREATE TABLE IF NOT EXISTS AANVRAGEN (ID integer PRIMARY KEY,filename text,title text,grade integer,stud_nr text,bedrijf_id text,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(filename) REFERENCES FILES(filename) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-09 15:18:48- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype text);
+2022-12-09 15:18:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:18:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['cheapo']
+2022-12-09 15:18:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:18:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['campina']
+2022-12-09 15:18:48- Committing
+2022-12-09 15:18:48- UPDATE BEDRIJVEN SET ;
+2022-12-09 15:18:48- ***ERROR***: near ";": syntax error
+2022-12-09 15:18:48- Committing
+2022-12-09 15:18:48- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:18:48- pragma table_info(STUDENTEN)
+2022-12-09 15:18:48- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:18:48- pragma table_info(BEDRIJVEN)
+2022-12-09 15:18:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:18:48- pragma table_info(AANVRAGEN)
+2022-12-09 15:18:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:18:48- pragma table_info(FILES)
+2022-12-09 15:18:48- pragma foreign_key_list(FILES)
+2022-12-09 15:18:48- SELECT * FROM STUDENTEN;
+2022-12-09 15:18:48- SELECT * FROM BEDRIJVEN;
+2022-12-09 15:18:48- SELECT * FROM AANVRAGEN;
+2022-12-09 15:18:48- SELECT * FROM FILES;
+2022-12-09 15:18:48- connection closed...
+2022-12-09 15:19:04- logging started...
+2022-12-09 15:19:04- connection (AAP.db) opened...
+2022-12-09 15:19:04- pragma foreign_keys=ON
+2022-12-09 15:19:04- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:19:04- pragma table_info(STUDENTEN)
+2022-12-09 15:19:04- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:19:04- pragma table_info(BEDRIJVEN)
+2022-12-09 15:19:04- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:19:04- pragma table_info(AANVRAGEN)
+2022-12-09 15:19:04- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:19:04- pragma table_info(FILES)
+2022-12-09 15:19:04- pragma foreign_key_list(FILES)
+2022-12-09 15:19:04- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:19:04- pragma table_info(STUDENTEN)
+2022-12-09 15:19:04- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:19:04- pragma table_info(BEDRIJVEN)
+2022-12-09 15:19:04- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:19:04- pragma table_info(AANVRAGEN)
+2022-12-09 15:19:04- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:19:04- pragma table_info(FILES)
+2022-12-09 15:19:04- pragma foreign_key_list(FILES)
+2022-12-09 15:19:04- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-09 15:19:04- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-09 15:19:04- ***ERROR***: no such table: main.STUDENTEN
+2022-12-09 15:19:04- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-09 15:19:04- DROP TABLE IF EXISTS FILES;
+2022-12-09 15:19:04- Committing
+2022-12-09 15:19:04- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-09 15:19:04- CREATE TABLE IF NOT EXISTS BEDRIJVEN (ID integer PRIMARY KEY,name text);
+2022-12-09 15:19:04- CREATE TABLE IF NOT EXISTS AANVRAGEN (ID integer PRIMARY KEY,filename text,title text,grade integer,stud_nr text,bedrijf_id text,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(filename) REFERENCES FILES(filename) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-09 15:19:04- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype text);
+2022-12-09 15:19:04- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:19:04- INSERT INTO BEDRIJVEN (name) VALUES(?); ['cheapo']
+2022-12-09 15:19:04- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:19:04- INSERT INTO BEDRIJVEN (name) VALUES(?); ['campina']
+2022-12-09 15:19:04- Committing
+2022-12-09 15:19:04- UPDATE BEDRIJVEN SET ;
+2022-12-09 15:19:04- ***ERROR***: near ";": syntax error
+2022-12-09 15:19:04- Committing
+2022-12-09 15:19:04- connection closed...
+2022-12-09 15:19:48- logging started...
+2022-12-09 15:19:48- connection (AAP.db) opened...
+2022-12-09 15:19:48- pragma foreign_keys=ON
+2022-12-09 15:19:48- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:19:48- pragma table_info(BEDRIJVEN)
+2022-12-09 15:19:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:19:48- pragma table_info(STUDENTEN)
+2022-12-09 15:19:48- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:19:48- pragma table_info(AANVRAGEN)
+2022-12-09 15:19:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:19:48- pragma table_info(FILES)
+2022-12-09 15:19:48- pragma foreign_key_list(FILES)
+2022-12-09 15:19:48- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:19:48- pragma table_info(BEDRIJVEN)
+2022-12-09 15:19:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:19:48- pragma table_info(STUDENTEN)
+2022-12-09 15:19:48- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:19:48- pragma table_info(AANVRAGEN)
+2022-12-09 15:19:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:19:48- pragma table_info(FILES)
+2022-12-09 15:19:48- pragma foreign_key_list(FILES)
+2022-12-09 15:19:48- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-09 15:19:48- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-09 15:19:48- ***ERROR***: no such table: main.BEDRIJVEN
+2022-12-09 15:19:48- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-09 15:19:48- DROP TABLE IF EXISTS FILES;
+2022-12-09 15:19:48- Committing
+2022-12-09 15:19:48- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-09 15:19:48- CREATE TABLE IF NOT EXISTS BEDRIJVEN (ID integer PRIMARY KEY,name text);
+2022-12-09 15:19:48- CREATE TABLE IF NOT EXISTS AANVRAGEN (ID integer PRIMARY KEY,filename text,title text,grade integer,stud_nr text,bedrijf_id text,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(filename) REFERENCES FILES(filename) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-09 15:19:48- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype text);
+2022-12-09 15:19:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:19:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['cheapo']
+2022-12-09 15:19:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:19:48- INSERT INTO BEDRIJVEN (name) VALUES(?); ['campina']
+2022-12-09 15:19:48- Committing
+2022-12-09 15:19:48- UPDATE BEDRIJVEN SET ;
+2022-12-09 15:19:48- ***ERROR***: near ";": syntax error
+2022-12-09 15:19:48- Committing
+2022-12-09 15:19:48- connection closed...
+2022-12-09 15:21:27- logging started...
+2022-12-09 15:21:27- connection (AAP.db) opened...
+2022-12-09 15:21:27- pragma foreign_keys=ON
+2022-12-09 15:28:55- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:28:56- pragma table_info(STUDENTEN)
+2022-12-09 15:29:14- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:29:14- pragma table_info(BEDRIJVEN)
+2022-12-09 15:29:14- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:29:14- pragma table_info(AANVRAGEN)
+2022-12-09 15:29:14- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:29:14- pragma table_info(FILES)
+2022-12-09 15:29:14- pragma foreign_key_list(FILES)
+2022-12-09 15:29:14- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-09 15:29:14- pragma table_info(STUDENTEN)
+2022-12-09 15:29:14- pragma foreign_key_list(STUDENTEN)
+2022-12-09 15:29:14- pragma table_info(BEDRIJVEN)
+2022-12-09 15:29:14- pragma foreign_key_list(BEDRIJVEN)
+2022-12-09 15:29:14- pragma table_info(AANVRAGEN)
+2022-12-09 15:29:14- pragma foreign_key_list(AANVRAGEN)
+2022-12-09 15:29:14- pragma table_info(FILES)
+2022-12-09 15:29:14- pragma foreign_key_list(FILES)
+2022-12-09 15:29:14- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-09 15:29:14- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-09 15:29:14- ***ERROR***: no such table: main.STUDENTEN
+2022-12-09 15:29:14- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-09 15:29:14- DROP TABLE IF EXISTS FILES;
+2022-12-09 15:29:14- Committing
+2022-12-09 15:29:14- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-09 15:29:14- CREATE TABLE IF NOT EXISTS BEDRIJVEN (ID integer PRIMARY KEY,name text);
+2022-12-09 15:29:14- CREATE TABLE IF NOT EXISTS AANVRAGEN (ID integer PRIMARY KEY,filename text,title text,grade integer,stud_nr text,bedrijf_id text,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(filename) REFERENCES FILES(filename) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-09 15:29:14- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype text);
+2022-12-09 15:29:22- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:29:22- INSERT INTO BEDRIJVEN (name) VALUES(?); ['cheapo']
+2022-12-09 15:29:22- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-09 15:29:22- INSERT INTO BEDRIJVEN (name) VALUES(?); ['campina']
+2022-12-09 15:29:22- Committing
+2022-12-10 10:57:32- logging started...
+2022-12-10 10:57:32- connection (AAP.DB) opened...
+2022-12-10 10:57:32- pragma foreign_keys=ON
+2022-12-10 10:57:32- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 10:57:32- pragma table_info(BEDRIJVEN)
+2022-12-10 10:57:32- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 10:57:32- pragma table_info(STUDENTEN)
+2022-12-10 10:57:32- pragma foreign_key_list(STUDENTEN)
+2022-12-10 10:57:32- pragma table_info(AANVRAGEN)
+2022-12-10 10:57:32- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 10:57:32- pragma table_info(FILES)
+2022-12-10 10:57:32- pragma foreign_key_list(FILES)
+2022-12-10 10:57:32- UPDATE BEDRIJVEN SET ;
+2022-12-10 10:57:32- ***ERROR***: near ";": syntax error
+2022-12-10 10:57:32- Committing
+2022-12-10 10:57:32- connection closed...
+2022-12-10 10:57:47- logging started...
+2022-12-10 10:57:47- connection (AAP.DB) opened...
+2022-12-10 10:57:47- pragma foreign_keys=ON
+2022-12-10 10:57:47- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 10:57:47- pragma table_info(BEDRIJVEN)
+2022-12-10 10:57:47- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 10:57:47- pragma table_info(STUDENTEN)
+2022-12-10 10:57:47- pragma foreign_key_list(STUDENTEN)
+2022-12-10 10:57:47- pragma table_info(AANVRAGEN)
+2022-12-10 10:57:47- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 10:57:47- pragma table_info(FILES)
+2022-12-10 10:57:47- pragma foreign_key_list(FILES)
+2022-12-10 10:57:47- UPDATE BEDRIJVEN SET ;
+2022-12-10 10:57:47- ***ERROR***: near ";": syntax error
+2022-12-10 10:57:47- Committing
+2022-12-10 10:57:47- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 10:57:47- pragma table_info(BEDRIJVEN)
+2022-12-10 10:57:47- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 10:57:47- pragma table_info(STUDENTEN)
+2022-12-10 10:57:47- pragma foreign_key_list(STUDENTEN)
+2022-12-10 10:57:47- pragma table_info(AANVRAGEN)
+2022-12-10 10:57:47- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 10:57:47- pragma table_info(FILES)
+2022-12-10 10:57:47- pragma foreign_key_list(FILES)
+2022-12-10 10:57:47- SELECT * FROM BEDRIJVEN;
+2022-12-10 10:57:47- SELECT * FROM STUDENTEN;
+2022-12-10 10:57:47- SELECT * FROM AANVRAGEN;
+2022-12-10 10:57:47- SELECT * FROM FILES;
+2022-12-10 10:57:47- connection closed...
+2022-12-10 11:03:28- logging started...
+2022-12-10 11:03:28- connection (AAP.DB) opened...
+2022-12-10 11:03:28- pragma foreign_keys=ON
+2022-12-10 11:03:28- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:03:28- pragma table_info(BEDRIJVEN)
+2022-12-10 11:03:28- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:03:28- pragma table_info(STUDENTEN)
+2022-12-10 11:03:28- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:03:28- pragma table_info(AANVRAGEN)
+2022-12-10 11:03:28- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:03:28- pragma table_info(FILES)
+2022-12-10 11:03:28- pragma foreign_key_list(FILES)
+2022-12-10 11:03:28- UPDATE BEDRIJVEN SET ;
+2022-12-10 11:03:28- ***ERROR***: near ";": syntax error
+2022-12-10 11:03:28- Committing
+2022-12-10 11:03:28- connection closed...
+2022-12-10 11:03:51- logging started...
+2022-12-10 11:03:51- connection (AAP.DB) opened...
+2022-12-10 11:03:51- pragma foreign_keys=ON
+2022-12-10 11:03:51- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:03:51- pragma table_info(BEDRIJVEN)
+2022-12-10 11:03:51- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:03:51- pragma table_info(STUDENTEN)
+2022-12-10 11:03:51- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:03:51- pragma table_info(AANVRAGEN)
+2022-12-10 11:03:51- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:03:51- pragma table_info(FILES)
+2022-12-10 11:03:51- pragma foreign_key_list(FILES)
+2022-12-10 11:03:51- UPDATE BEDRIJVEN SET ;
+2022-12-10 11:03:51- ***ERROR***: near ";": syntax error
+2022-12-10 11:03:51- Committing
+2022-12-10 11:03:51- connection closed...
+2022-12-10 11:05:38- logging started...
+2022-12-10 11:05:38- connection (AAP.DB) opened...
+2022-12-10 11:05:38- pragma foreign_keys=ON
+2022-12-10 11:05:38- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:05:38- pragma table_info(BEDRIJVEN)
+2022-12-10 11:05:38- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:05:38- pragma table_info(STUDENTEN)
+2022-12-10 11:05:38- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:05:38- pragma table_info(AANVRAGEN)
+2022-12-10 11:05:38- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:05:38- pragma table_info(FILES)
+2022-12-10 11:05:38- pragma foreign_key_list(FILES)
+2022-12-10 11:05:38- UPDATE BEDRIJVEN SET name=? WHERE (id = ?); ['Bloody Mary', 3]
+2022-12-10 11:05:38- Committing
+2022-12-10 11:05:38- connection closed...
+2022-12-10 11:05:50- logging started...
+2022-12-10 11:05:50- connection (AAP.DB) opened...
+2022-12-10 11:05:50- pragma foreign_keys=ON
+2022-12-10 11:05:50- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:05:50- pragma table_info(BEDRIJVEN)
+2022-12-10 11:05:50- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:05:50- pragma table_info(STUDENTEN)
+2022-12-10 11:05:50- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:05:50- pragma table_info(AANVRAGEN)
+2022-12-10 11:05:50- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:05:50- pragma table_info(FILES)
+2022-12-10 11:05:50- pragma foreign_key_list(FILES)
+2022-12-10 11:05:50- UPDATE BEDRIJVEN SET name=? WHERE (id = ?); ['Bloody Mary', 3]
+2022-12-10 11:05:50- Committing
+2022-12-10 11:05:50- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:05:50- pragma table_info(BEDRIJVEN)
+2022-12-10 11:05:50- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:05:50- pragma table_info(STUDENTEN)
+2022-12-10 11:05:50- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:05:50- pragma table_info(AANVRAGEN)
+2022-12-10 11:05:50- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:05:50- pragma table_info(FILES)
+2022-12-10 11:05:50- pragma foreign_key_list(FILES)
+2022-12-10 11:05:50- SELECT * FROM BEDRIJVEN;
+2022-12-10 11:05:50- SELECT * FROM STUDENTEN;
+2022-12-10 11:05:50- SELECT * FROM AANVRAGEN;
+2022-12-10 11:05:50- SELECT * FROM FILES;
+2022-12-10 11:05:50- connection closed...
+2022-12-10 11:06:19- logging started...
+2022-12-10 11:06:19- connection (AAP.db) opened...
+2022-12-10 11:06:19- pragma foreign_keys=ON
+2022-12-10 11:06:19- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:06:19- pragma table_info(BEDRIJVEN)
+2022-12-10 11:06:19- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:06:19- pragma table_info(STUDENTEN)
+2022-12-10 11:06:19- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:06:19- pragma table_info(AANVRAGEN)
+2022-12-10 11:06:19- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:06:19- pragma table_info(FILES)
+2022-12-10 11:06:19- pragma foreign_key_list(FILES)
+2022-12-10 11:06:19- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:06:19- pragma table_info(BEDRIJVEN)
+2022-12-10 11:06:19- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:06:19- pragma table_info(STUDENTEN)
+2022-12-10 11:06:19- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:06:19- pragma table_info(AANVRAGEN)
+2022-12-10 11:06:19- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:06:19- pragma table_info(FILES)
+2022-12-10 11:06:19- pragma foreign_key_list(FILES)
+2022-12-10 11:06:19- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-10 11:06:19- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-10 11:06:19- ***ERROR***: no such table: main.BEDRIJVEN
+2022-12-10 11:06:19- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-10 11:06:19- DROP TABLE IF EXISTS FILES;
+2022-12-10 11:06:19- Committing
+2022-12-10 11:06:19- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-10 11:06:19- CREATE TABLE IF NOT EXISTS BEDRIJVEN (ID integer PRIMARY KEY,name text);
+2022-12-10 11:06:19- CREATE TABLE IF NOT EXISTS AANVRAGEN (ID integer PRIMARY KEY,filename text,title text,grade integer,stud_nr text,bedrijf_id text,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(filename) REFERENCES FILES(filename) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-10 11:06:19- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype text);
+2022-12-10 11:06:19- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-10 11:06:19- INSERT INTO BEDRIJVEN (name) VALUES(?); ['cheapo']
+2022-12-10 11:06:19- INSERT INTO BEDRIJVEN (name) VALUES(?); ['promo']
+2022-12-10 11:06:19- INSERT INTO BEDRIJVEN (name) VALUES(?); ['campina']
+2022-12-10 11:06:19- Committing
+2022-12-10 11:06:19- UPDATE BEDRIJVEN SET name=? WHERE (id = ?); ['Bloody Mary', 3]
+2022-12-10 11:06:19- Committing
+2022-12-10 11:06:19- SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-10 11:06:19- pragma table_info(STUDENTEN)
+2022-12-10 11:06:19- pragma foreign_key_list(STUDENTEN)
+2022-12-10 11:06:19- pragma table_info(BEDRIJVEN)
+2022-12-10 11:06:19- pragma foreign_key_list(BEDRIJVEN)
+2022-12-10 11:06:19- pragma table_info(AANVRAGEN)
+2022-12-10 11:06:19- pragma foreign_key_list(AANVRAGEN)
+2022-12-10 11:06:19- pragma table_info(FILES)
+2022-12-10 11:06:19- pragma foreign_key_list(FILES)
+2022-12-10 11:06:19- SELECT * FROM STUDENTEN;
+2022-12-10 11:06:19- SELECT * FROM BEDRIJVEN;
+2022-12-10 11:06:19- SELECT * FROM AANVRAGEN;
+2022-12-10 11:06:19- SELECT * FROM FILES;
+2022-12-10 11:06:19- connection closed...

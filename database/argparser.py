@@ -6,7 +6,7 @@ class ArgParser:
             value = default
         for arg in args:
             key = arg.lower()
-            if isinstance(default, list):
+            if isinstance(default, list):                
                 if key == Key + 's':
                     value.extend(args[arg])
                 elif key == Key:

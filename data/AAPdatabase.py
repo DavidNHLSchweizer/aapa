@@ -1,4 +1,6 @@
-from database.SQL import SQLbase, SQLdelete, SQLinsert, SQLselect
+from pickle import EMPTY_DICT
+from data.aanvraag_info import AanvraagDocumentInfo, Bedrijf
+from database.SQL import SQLbase, SQLdelete, SQLcreate, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
@@ -10,50 +12,30 @@ class StudentTableDefinition(TableDefinition):
         super().__init__('STUDENTEN')
         self.add_column('stud_nr', dbc.TEXT, primary=True)
         self.add_column('full_name', dbc.TEXT)
+        self.add_column('first_name', dbc.TEXT)
         self.add_column('email', dbc.TEXT)
         self.add_column('tel_nr', dbc.TEXT)
 
 class BedrijfTableDefinition(TableDefinition):
+    def __init__(self):
         super().__init__('BEDRIJVEN', autoid=True)
+        self.add_column('name', dbc.TEXT)
 
 class AanvraagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN', autoid = True)
         self.add_column('filename', dbc.TEXT)
+        self.add_column('title', dbc.TEXT)
+        self.add_column('grade', dbc.INTEGER)
+        self.add_column('stud_nr', dbc.TEXT)
+        self.add_column('bedrijf_id', dbc.TEXT)
+
+class FileTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('FILES')
+        self.add_column('filename', dbc.TEXT, primary=True)
         self.add_column('timestamp', dbc.TEXT)
-        # self.add_column(
-
-# class ToetsEenheidTableDefinition(TableDefinition):
-#     def __init__(self):
-#         super().__init__('TOETSEENHEDEN')
-#         self.add_column('code', dbc.TEXT, primary=True)         
-#         self.add_column('naam', dbc.TEXT)
-#         self.add_column('te_behalen', dbc.INTEGER)
-
-# class ToetsTableDefinition(TableDefinition):
-#     def __init__(self):
-#         super().__init__('TOETSEN')
-#         self.add_column('code', dbc.TEXT, primary=True)         
-#         self.add_column('naam', dbc.TEXT)
-#         self.add_column('cesuur', dbc.REAL)
-
-# class PakketModuleTableDefinition(TableDefinition):
-#     def __init__(self):
-#         super().__init__('PAKKET_MODULES')
-#         self.add_column('pakket_naam', dbc.TEXT, primary=True, notnull=True)
-#         self.add_column('module_code', dbc.TEXT, primary=True, notnull=True)
-        
-# class ModuleToetseenheidTableDefinition(TableDefinition):
-#     def __init__(self):
-#         super().__init__('MODULE_TOETSEENHEDEN')
-#         self.add_column('module_code', dbc.TEXT, primary=True, notnull=True)
-#         self.add_column('toetseenheid_code', dbc.TEXT, primary=True, notnull=True)
-
-# class ToetseenheidToetsenTableDefinition(TableDefinition):
-#     def __init__(self):
-#         super().__init__('TOETSEENHEID_TOETSEN')
-#         self.add_column('toetseenheid_code', dbc.TEXT, primary=True, notnull=True)
-#         self.add_column('toets_code', dbc.TEXT, primary=True, notnull=True)
+        self.add_column('filetype', dbc.TEXT)
 
 class AAPSchema(Schema):
     def __init__(self):
@@ -61,30 +43,81 @@ class AAPSchema(Schema):
         self.add_table(StudentTableDefinition())
         self.add_table(BedrijfTableDefinition())
         self.add_table(AanvraagTableDefinition())
-        # self.add_table(ToetsTableDefinition())
-        # self.add_table(PakketModuleTableDefinition())
-        # self.add_table(ModuleToetseenheidTableDefinition())
-        # self.add_table(ToetseenheidToetsenTableDefinition())
+        self.add_table(FileTableDefinition())
         self.__define_foreign_keys()
     def __define_foreign_keys(self):
-        pass
-        # self.table('PAKKET_MODULES').add_foreign_key('pakket_naam', 'PAKKETTEN', 'pakket_naam', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('PAKKET_MODULES').add_foreign_key('module_code', 'MODULES', 'code', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('MODULE_TOETSEENHEDEN').add_foreign_key('module_code', 'MODULES', 'code', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('MODULE_TOETSEENHEDEN').add_foreign_key('toetseenheid_code', 'TOETSEENHEDEN', 'code', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('TOETSEENHEID_TOETSEN').add_foreign_key('toetseenheid_code', 'TOETSEENHEDEN', 'code', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('TOETSEENHEID_TOETSEN').add_foreign_key('toets_code', 'TOETSEN', 'code', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('AANVRAGEN').add_foreign_key('filename', 'FILES', 'filename', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class P2EPakketDatabase(Database):
+class CRUD:
+    def __init__(self, database: Database, table: TableDefinition):
+        self.database = database
+        self.table = table
+    def create(self, **kwargs):
+        self.database.create_record(self.table, **kwargs)
+    def read(self, **kwargs):
+        return self.database.read_record(self.table, **kwargs)
+    def update(self, **kwargs):
+        self.database.update_record(self.table, **kwargs)
+    def delete(self, **kwargs):
+        self.database.delete_record(self.table, **kwargs)
+class CRUD_bedrijven(CRUD):
+    def __init__(self, database: Database):
+        super().__init__(database, BedrijfTableDefinition())
+    def create(self, bedrijf: Bedrijf):
+        super().create(columns=['name'], values=[bedrijf.bedrijfsnaam])
+    def read(self, id: int)->Bedrijf:
+        result = super().read(where=SQE('id', Ops.EQ, id))
+        if result:
+            return Bedrijf(id, result[0])
+        else:
+            return None
+    def update(self, bedrijf: Bedrijf):
+        super().update(columns=['name'], values=[bedrijf.bedrijfsnaam], where=SQE('id', Ops.EQ, bedrijf.id))
+    def delete(self, bedrijf: Bedrijf):
+        super().delete(where=SQE('id', Ops.EQ, bedrijf.id))
+
+# class CRUD_files(CRUD):
+#     def __init__(self, database: Database):
+#         super().__init__(database, FileTableDefinition())
+#     def create(self, bedrijf: Bedrijf):
+#         super().create(columns=['name'], values=[bedrijf.bedrijfsnaam])
+#     def read_bedrijf(self, id: int)->Bedrijf:
+#         result = super().read(where=SQE('id', Ops.EQ, id))
+#         if result:
+#             return Bedrijf(id, result[0])
+#         else:
+#             return None
+#     def update_bedrijf(self, bedrijf: Bedrijf):
+#         super().update(columns=['name'], values=[bedrijf.bedrijfsnaam], where=SQE('id', Ops.EQ, bedrijf.id))
+#     def delete_bedrijf(self, bedrijf: Bedrijf):
+#         super().delete(where=SQE('id', Ops.EQ, bedrijf.id))
+
+# class CRUD_files(CRUD):
+#     def __init__(self, database: Database):
+#         super().__init__(database, FileTableDefinition())
+
+
+class AAPDatabase(Database):
     def __init__(self, filename):
         super().__init__(filename)
         self.schema = Schema()
         self.schema.read_from_database(self)
+
+
     # def write_pakket(self, pakket: Pakket):
     #     self.execute_sql_command(SQLinsert(self.schema.table('PAKKETTEN'), columns=['pakket_naam'], values=[pakket.naam]))
     #     self.commit()
     #     for module in pakket.modules:
     #         self._write_module(module, pakket.naam)
+    # def read_pakket(self, pakket_naam: str)->Pakket:
+    #     self.log_info(f'read_pakket: {pakket_naam}')
+    #     if self.execute_select(SQLselect(self.schema.table('PAKKETTEN'), where=SQE('pakket_naam', Ops.EQ, pakket_naam))):
+    #         PB = PakketBuilder(pakket_naam)
+    #         self._read_modules(PB, pakket_naam)
+    #         return PB.pakket
+    #     return None
     # def _write_module(self, module: Module, pakket_naam: str):
     #     self.execute_sql_command(SQLinsert(self.schema.table('MODULES'), columns=['code', 'naam'], values=[module.code, module.naam]))
     #     self.execute_sql_command(SQLinsert(self.schema.table('PAKKET_MODULES'), columns=['pakket_naam', 'module_code'], values=[pakket_naam, module.code]))
