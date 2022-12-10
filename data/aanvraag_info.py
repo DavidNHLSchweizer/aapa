@@ -87,14 +87,20 @@ class StudentInfo:
         return self.student_name != '' and self.studnr != '' and is_valid_email(self.email) 
 
 class AanvraagDocumentInfo:
-    def __init__(self, student: StudentInfo, datum_str='', bedrijf: Bedrijf = None, titel=''):        
+    def __init__(self, fileinfo: FileInfo, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=0):        
         self._dateparser = DateParser()
-        self.datum_str = datum_str
+        self.fileinfo = fileinfo
         self.student = student
         self.bedrijf = bedrijf
+        print(datum_str)
+        self.datum_str = datum_str
         self.titel = titel
+        self.beoordeling = beoordeling        
     def __str__(self):
-        return f'{str(self.student)} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}"'
+        s = f'{str(self.student)} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}"'
+        if self.beoordeling > 0:
+            s = s + ' (voldoende)'
+        return s
     def __eq__(self, value: AanvraagDocumentInfo):
         self_date,_ = self._dateparser.parse_date(self.datum_str)
         value_date,_= self._dateparser.parse_date(self.datum_str)

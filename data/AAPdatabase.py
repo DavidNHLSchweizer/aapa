@@ -26,10 +26,11 @@ class AanvraagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN', autoid = True)
         self.add_column('filename', dbc.TEXT)
-        self.add_column('title', dbc.TEXT)
         self.add_column('stud_nr', dbc.TEXT)
         self.add_column('bedrijf_id', dbc.INTEGER)
-        self.add_column('grade', dbc.INTEGER)
+        self.add_column('datum_str', dbc.TEXT)
+        self.add_column('titel', dbc.TEXT)
+        self.add_column('beoordeling', dbc.INTEGER)
 
 class FileTableDefinition(TableDefinition):
     def __init__(self):
