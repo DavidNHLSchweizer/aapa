@@ -22,8 +22,9 @@ def one_line(value: str)->str:
     return value.replace('\n', ' ')
 class Database:
     _logging_initialized = False
-    def __init__(self, filename: str):
+    def __init__(self, filename: str, _reset_flag = False):
         self.raise_error = True
+        self._reset_flag = _reset_flag
         self.connection = self.open_database(filename)
         self._init_logging(filename)
         self.log_info(f'connection ({filename}) opened...')
@@ -31,9 +32,9 @@ class Database:
         self.enable_foreign_keys()
     @classmethod
     def create_from_schema(cls, schema: Schema, filename: str):
-        result = cls(filename)
-        result.__clear()
-        
+        result = cls(filename, _reset_flag = True)
+        result.__clear()        
+        result._reset_flag = False
         for table in schema.tables():
             print(f'creating table {table}')
             result.create_table(table)
@@ -81,7 +82,7 @@ class Database:
         try:
             c = self.connection.cursor()
             if parameters:
-                self.log_info(f'|{string}| + {parameters}')
+                self.log_info(f'{string} + {parameters}')
                 c.execute('' + string + '', parameters)
             else:
                 self.log_info(string)

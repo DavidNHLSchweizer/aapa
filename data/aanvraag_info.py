@@ -15,7 +15,7 @@ def is_valid_email(email: str)->bool:
 @dataclass
 class Bedrijf:        
     bedrijfsnaam: str = ''
-    id: int = EMPTY_ID
+    id: int = EMPTY_ID #key
     def __str__(self): 
         return f'{self.id}:{self.bedrijfsnaam}'
     def valid(self):
@@ -63,7 +63,7 @@ class FileInfo:
 class StudentInfo:
     def __init__(self, student_name='', studnr='', telno='', email=''):        
         self.student_name = student_name
-        self.studnr = studnr
+        self.studnr = studnr #key
         self.telno = telno
         self.email = email
     def __str__(self):
@@ -86,20 +86,39 @@ class StudentInfo:
     def valid(self):
         return self.student_name != '' and self.studnr != '' and is_valid_email(self.email) 
 
+class AanvraagStatus(Enum):
+    INITIAL         = 0
+    NEEDS_GRADING   = 1
+    GRADED          = 2
+    MAIL_READY      = 3
+    READY           = 4
+    def __str__(self):
+        STRS = {AanvraagStatus.INITIAL: 'ontvangen',  AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'verwerkt'}
+        return STRS[self]
+        
+class AanvraagBeoordeling(Enum):
+    TE_BEOORDELEN = 0
+    ONVOLDOENDE   = 1
+    VOLDOENDE     = 2
+    def __str__(self):
+        STRS = {AanvraagBeoordeling.TE_BEOORDELEN: '', AanvraagBeoordeling.ONVOLDOENDE: 'onvoldoende', AanvraagBeoordeling.VOLDOENDE: 'voldoende'}
+        return STRS[self]
+
 class AanvraagDocumentInfo:
-    def __init__(self, fileinfo: FileInfo, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=0):        
+    def __init__(self, fileinfo: FileInfo, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID):        
+        self.id = id
         self._dateparser = DateParser()
         self.fileinfo = fileinfo
         self.student = student
         self.bedrijf = bedrijf
-        print(datum_str)
         self.datum_str = datum_str
         self.titel = titel
-        self.beoordeling = beoordeling        
+        self.beoordeling:AanvraagBeoordeling=beoordeling
+        self.status:AanvraagStatus=status
     def __str__(self):
-        s = f'{str(self.student)} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}"'
-        if self.beoordeling > 0:
-            s = s + ' (voldoende)'
+        s = f'{str(self.student)} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'
+        if self.beoordeling != AanvraagBeoordeling.TE_BEOORDELEN:
+            s = s + f' ({str(self.beoordeling)})'
         return s
     def __eq__(self, value: AanvraagDocumentInfo):
         self_date,_ = self._dateparser.parse_date(self.datum_str)
