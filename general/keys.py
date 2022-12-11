@@ -43,7 +43,6 @@ _keys = Keys()
 def get_next_key(root='key')->int:
     return _keys.new_key(root)
 def reset_key(root, value: int):
-    print(f'resetting: {root} {value}')
     _keys.reset(root, value)
 
 

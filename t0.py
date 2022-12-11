@@ -38,6 +38,7 @@ def test_bedrijven(database: Database):
     b = bc.read(2)
     print('BEDRIJF 2: ', b)
     bc.delete(b.id)
+    bc.create(Bedrijf('beate uhse'))
     database.commit()
     DatabaseDumper(database).DumpTable('BEDRIJVEN')
 
