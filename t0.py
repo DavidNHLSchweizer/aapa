@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 import data.AAPdatabase as db
 import data.AAPcrud as dbc 
-from data.aanvraag_info import AanvraagBeoordeling, Bedrijf, FileInfo, FileType, StudentInfo, AanvraagDocumentInfo
+from data.aanvraag_info import AanvraagBeoordeling, Bedrijf, FileInfo, FileType, StudentInfo, AanvraagInfo
 from database.database import Database
 from database.dump import DatabaseDumper
 import random
@@ -97,7 +97,7 @@ def create_aanvragen(database: Database):
     bc = dbc.CRUD_bedrijven(database)
 
     def create(fileinfo, student, bedrijf, datum, titel, beoordeling: AanvraagBeoordeling=AanvraagBeoordeling.TE_BEOORDELEN):
-        aanvraag = AanvraagDocumentInfo(fileinfo, student, bedrijf, datum,  titel, beoordeling)
+        aanvraag = AanvraagInfo(fileinfo, student, bedrijf, datum,  titel, beoordeling)
         print(aanvraag)
         ac.create(aanvraag)
 

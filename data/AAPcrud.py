@@ -1,10 +1,8 @@
 from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition
-from data.aanvraag_info import AanvraagBeoordeling, AanvraagDocumentInfo, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo
-from database.SQL import SQLselect
+from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
-from database.tabledef import TableDefinition
 from general.keys import get_next_key
 
 class CRUD_bedrijven(CRUDbase):
@@ -100,27 +98,84 @@ class CRUD_aanvragen(CRUDbase):
     @staticmethod
     def __status_to_value(status: AanvraagStatus):
         return status.value
-    def __get_all_values(self, docInfo: AanvraagDocumentInfo, include_key = True):
+    def __get_all_values(self, docInfo: AanvraagInfo, include_key = True):
         result = [docInfo.id] if include_key else []
         result.extend([str(docInfo.fileinfo.filename),  docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
         return result
-    def create(self, docInfo: AanvraagDocumentInfo):
+    def create(self, docInfo: AanvraagInfo):
         docInfo.id = get_next_key(AanvraagTableDefinition.KEY_FOR_ID)
         super().create(columns=self.__get_all_columns(False), values=self.__get_all_values(docInfo, False))
-    def __build_aanvraag(self, row)->AanvraagDocumentInfo:
+    def __build_aanvraag(self, row)->AanvraagInfo:
         fileinfo = CRUD_files(self.database).read(row['filename'])
         student = CRUD_studenten(self.database).read(row['stud_nr'])
         bedrijf = CRUD_bedrijven(self.database).read(row['bedrijf_id'])
-        result =  AanvraagDocumentInfo(fileinfo, student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'])
+        result =  AanvraagInfo(fileinfo, student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'])
         return result
-    def read(self, id: int)->AanvraagDocumentInfo:
+    def read(self, id: int)->AanvraagInfo:
         if row:=super().read(where=SQE('id', Ops.EQ, id)):
             return self.__build_aanvraag(row)
         else:
             return None
-    def update(self, docInfo: AanvraagDocumentInfo):
+    def update(self, docInfo: AanvraagInfo):
         super().update(columns=self.__get_all_columns(False), 
                     values=self.__get_all_values(docInfo, False), where=SQE('id', Ops.EQ, docInfo.id))
     def delete(self, id: int):
         super().delete(where=SQE('id', Ops.EQ, id))
 
+
+class AAPStorage: 
+    #main interface with the database
+    def __init__(self, database: Database):
+        self.database = database
+        self.crud_files = CRUD_files(database)
+        self.crud_bedrijven = CRUD_bedrijven(database)
+        self.crud_studenten = CRUD_studenten(database)
+        self.crud_aanvragen = CRUD_aanvragen(database)
+
+    def create_bedrijf(self, bedrijf: Bedrijf):
+        self.crud_bedrijven.create(bedrijf)
+    def read_bedrijf(self, id: int)->Bedrijf:
+        return self.crud_bedrijven.read(id)
+    def update_bedrijf(self, bedrijf: Bedrijf):
+        self.crud_bedrijven.update(bedrijf)
+    def delete_bedrijf(self, id: int):
+        self.crud_bedrijven.delete(id)
+
+    def create_fileinfo(self, fileinfo: FileInfo):
+        self.crud_files.create(fileinfo)
+    def read_fileinfo(self, filename: str)->FileInfo:
+        return self.crud_files.read(filename)
+    def update_fileinfo(self, fileinfo: FileInfo):
+        self.crud_files.update(fileinfo)
+    def delete_fileinfo(self, filename: str):
+        self.crud_files.delete(filename)
+    
+    def create_student(self, student: StudentInfo):
+        self.crud_studenten.create(student)
+    def read_student(self, studnr: str)->StudentInfo:
+        return self.crud_studenten.read(studnr)
+    def update_student(self, student: StudentInfo):
+        self.crud_studenten.update(student)
+    def delete_student(self, studnr: str):
+        self.crud_studenten.delete(studnr)
+
+    def __create_aanvraag_references(self, aanvraag: AanvraagInfo):
+        if not self.read_bedrijf(aanvraag.bedrijf.id):
+            self.create_bedrijf(aanvraag.bedrijf)
+        if not self.read_fileinfo(aanvraag.fileinfo.filename):
+            self.create_fileinfo(aanvraag.fileinfo)
+        if not self.read_student(aanvraag.student.studnr):
+            self.create_student(aanvraag.student)
+    def create_aanvraag(self, aanvraag: AanvraagInfo):
+        self.__create_aanvraag_references(aanvraag)
+        self.crud_aanvragen.create(aanvraag)
+    def read_aanvraag(self, id: int)->AanvraagInfo:
+        return self.crud_aanvragen.read(id)
+    def update_aanvraag(self, aanvraag: AanvraagInfo):
+        self.crud_aanvragen.update(aanvraag)
+    def delete_aanvraag(self, id: int):
+        self.crud_aanvragen.delete(id)
+
+    def commit(self):
+        self.database.commit()
+    

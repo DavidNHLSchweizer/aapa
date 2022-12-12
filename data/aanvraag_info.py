@@ -104,7 +104,7 @@ class AanvraagBeoordeling(Enum):
         STRS = {AanvraagBeoordeling.TE_BEOORDELEN: '', AanvraagBeoordeling.ONVOLDOENDE: 'onvoldoende', AanvraagBeoordeling.VOLDOENDE: 'voldoende'}
         return STRS[self]
 
-class AanvraagDocumentInfo:
+class AanvraagInfo:
     def __init__(self, fileinfo: FileInfo, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID):        
         self.id = id
         self._dateparser = DateParser()
@@ -120,7 +120,7 @@ class AanvraagDocumentInfo:
         if self.beoordeling != AanvraagBeoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
-    def __eq__(self, value: AanvraagDocumentInfo):
+    def __eq__(self, value: AanvraagInfo):
         self_date,_ = self._dateparser.parse_date(self.datum_str)
         value_date,_= self._dateparser.parse_date(self.datum_str)
         if self_date  != value_date:
@@ -156,28 +156,28 @@ class AanvraagDocumentInfo:
         if self.__versie and self.__versie.find('/') >= 0:
             self.__versie = self.__versie.replace('/','').strip()
 
-class AanvraagInfo:
-    def __init__(self, docInfo: AanvraagDocumentInfo, timestamp = datetime.datetime.now(), passed = False, sequence=1):
-        self.docInfo = docInfo
-        self.timestamp = timestamp
-        self.passed = passed
-        self.key = f'{self.docInfo.studnr}|{sequence}'
-    def modify(self, **kwdargs):
-        for kwd,value in kwdargs.items():
-            setattr(self, kwd, value)
-    def __str__(self):
-        result = f'{str(self.docInfo)} [{self.timestamp}] ({self.key})'
-        if self.passed:
-            result = result + ' (voldoende)'
-        return result
-    def __eq__(self, value: AanvraagInfo)->bool:
-        if self.timestamp != value.timestamp:
-            return False
-        if self.passed != value.passed:
-            return False
-        if not (self.docInfo == value.docInfo):
-            return False
-        return True      
-    def valid(self):
-        return self.docInfo.valid() and isinstance(self.timestamp, datetime.datetime)
+# class AanvraagInfo:
+#     def __init__(self, docInfo: AanvraagDocumentInfo, timestamp = datetime.datetime.now(), passed = False, sequence=1):
+#         self.docInfo = docInfo
+#         self.timestamp = timestamp
+#         self.passed = passed
+#         self.key = f'{self.docInfo.studnr}|{sequence}'
+#     def modify(self, **kwdargs):
+#         for kwd,value in kwdargs.items():
+#             setattr(self, kwd, value)
+#     def __str__(self):
+#         result = f'{str(self.docInfo)} [{self.timestamp}] ({self.key})'
+#         if self.passed:
+#             result = result + ' (voldoende)'
+#         return result
+#     def __eq__(self, value: AanvraagInfo)->bool:
+#         if self.timestamp != value.timestamp:
+#             return False
+#         if self.passed != value.passed:
+#             return False
+#         if not (self.docInfo == value.docInfo):
+#             return False
+#         return True      
+#     def valid(self):
+#         return self.docInfo.valid() and isinstance(self.timestamp, datetime.datetime)
 

@@ -1,5 +1,5 @@
 from pickle import EMPTY_DICT
-from data.aanvraag_info import AanvraagDocumentInfo, Bedrijf
+from data.aanvraag_info import AanvraagInfo, Bedrijf
 from database.SQL import SQLbase, SQLdelete, SQLcreate, SQLselect, SQLupdate
 from database.crud import CRUDbase
 from database.sqlexpr import Ops, SQLexpression as SQE
