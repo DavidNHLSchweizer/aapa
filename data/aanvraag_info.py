@@ -20,6 +20,10 @@ class Bedrijf:
         return f'{self.id}:{self.bedrijfsnaam}'
     def valid(self):
         return self.bedrijfsnaam != ''
+    def __eq__(self, value: Bedrijf) -> bool:        
+        if  self.bedrijfsnaam != value.bedrijfsnaam:
+            return False
+        return True
 
 class FileType(Enum):
     UNKNOWN      = -1
@@ -36,11 +40,17 @@ class FileType(Enum):
                     }
         return STR_DICT.get(self, '!unknown')
 
+AUTOTIMESTAMP = 0
 class FileInfo:
+    def _get_timestamp(filename: str)-> datetime.datetime:
+        return datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime)
     DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
-    def __init__(self, filename: str, timestamp: datetime.datetime, filetype: FileType):
-        self.filename = filename
-        self.timestamp = timestamp
+    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, filetype: FileType=FileType.UNKNOWN):
+        self.filename = str(filename) # to remove the WindowsPath label if needed
+        if timestamp == AUTOTIMESTAMP:
+            self.timestamp = FileInfo._get_timestamp(filename)
+        else:
+            self.timestamp = timestamp
         self.filetype = filetype
     def __str__(self): 
         return f'{self.filename}: {str(self.filetype)} [{FileInfo.timestamp_to_str(self.timestamp)}]'    
@@ -49,8 +59,9 @@ class FileInfo:
         return self._timestamp
     @timestamp.setter
     def timestamp(self, value):
-        self._timestamp = self.__rounded_timestamp(value)
-    def __rounded_timestamp(self, value):
+        self._timestamp = FileInfo.__rounded_timestamp(value)
+    @staticmethod
+    def __rounded_timestamp(value):
         #remove possible milliseconds so that the string can be read uniformly from the database if needed
         return FileInfo.str_to_timestamp(FileInfo.timestamp_to_str(value))
     @staticmethod
@@ -59,6 +70,14 @@ class FileInfo:
     @staticmethod
     def str_to_timestamp(value):
         return datetime.datetime.strptime(value, FileInfo.DATETIME_FORMAT)
+    def __eq__(self, value: FileInfo):
+        if  self.filename != value.filename:
+            return False
+        if  self.timestamp != value.timestamp:            
+            return False
+        if  self.filetype != value.filetype:
+            return False
+        return True
 
 class StudentInfo:
     def __init__(self, student_name='', studnr='', telno='', email=''):        
@@ -105,7 +124,7 @@ class AanvraagBeoordeling(Enum):
         return STRS[self]
 
 class AanvraagInfo:
-    def __init__(self, fileinfo: FileInfo, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID):        
+    def __init__(self, fileinfo: FileInfo, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, versie =1):        
         self.id = id
         self._dateparser = DateParser()
         self.fileinfo = fileinfo
@@ -113,36 +132,38 @@ class AanvraagInfo:
         self.bedrijf = bedrijf
         self.datum_str = datum_str
         self.titel = titel
+        self.versie = versie
         self.beoordeling:AanvraagBeoordeling=beoordeling
         self.status:AanvraagStatus=status
     def __str__(self):
-        s = f'{str(self.student)} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'
+        versie_str = '' if self.versie == 1 else f'({self.versie})'
+        s = f'{str(self.student)} - {self.datum_str}: {self.bedrijf.bedrijfsnaam}{versie_str} - "{self.titel}" [{str(self.status)}]'
         if self.beoordeling != AanvraagBeoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
     def __eq__(self, value: AanvraagInfo):
         self_date,_ = self._dateparser.parse_date(self.datum_str)
         value_date,_= self._dateparser.parse_date(self.datum_str)
-        if self_date  != value_date:
+        if  self.datum_str != value.datum_str:
             return False
-        if  self.datum != value.datum:
+        if  self.titel != value.titel:
             return False
-        if  self.versie != value.versie:
-            return False
+        # if  self.versie != value.versie:
+        #     return False
         if  self.student != value.student:
             return False
         if  self.bedrijf != value.bedrijf:
             return False
-        if  self.titel != value.titel:
+        if  self.fileinfo != value.fileinfo:
             return False
         return True
     def valid(self):
-        return self.student.valid() and self.bedrijf.valid()
+        return self.student.valid() and self.bedrijf.valid() and self.fileinfo.filetype == FileType.AANVRAAG_PDF
     @property
     def datum(self): 
         return self.__datum
     @property
-    def versie(self):
+    def student_versie(self):
         return self.__versie
     @property 
     def datum_str(self):
@@ -155,29 +176,3 @@ class AanvraagInfo:
         self.__datum,self.__versie = self._dateparser.parse_date(self.datum_str)
         if self.__versie and self.__versie.find('/') >= 0:
             self.__versie = self.__versie.replace('/','').strip()
-
-# class AanvraagInfo:
-#     def __init__(self, docInfo: AanvraagDocumentInfo, timestamp = datetime.datetime.now(), passed = False, sequence=1):
-#         self.docInfo = docInfo
-#         self.timestamp = timestamp
-#         self.passed = passed
-#         self.key = f'{self.docInfo.studnr}|{sequence}'
-#     def modify(self, **kwdargs):
-#         for kwd,value in kwdargs.items():
-#             setattr(self, kwd, value)
-#     def __str__(self):
-#         result = f'{str(self.docInfo)} [{self.timestamp}] ({self.key})'
-#         if self.passed:
-#             result = result + ' (voldoende)'
-#         return result
-#     def __eq__(self, value: AanvraagInfo)->bool:
-#         if self.timestamp != value.timestamp:
-#             return False
-#         if self.passed != value.passed:
-#             return False
-#         if not (self.docInfo == value.docInfo):
-#             return False
-#         return True      
-#     def valid(self):
-#         return self.docInfo.valid() and isinstance(self.timestamp, datetime.datetime)
-

@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 import data.AAPdatabase as db
-import data.AAPcrud as dbc 
+import storage as dbc 
 from data.aanvraag_info import AanvraagBeoordeling, Bedrijf, FileInfo, FileType, StudentInfo, AanvraagInfo
 from database.database import Database
 from database.dump import DatabaseDumper

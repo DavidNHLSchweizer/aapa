@@ -2,10 +2,12 @@ from datetime import datetime
 from pathlib import Path
 import sys
 import data.AAPdatabase as db
-from data.AAPcrud import AAPStorage
+from storage import AAPStorage
 from data.aanvraag_info import AanvraagBeoordeling, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo, AanvraagInfo
 from database.database import Database
 from database.dump import DatabaseDumper
+from files.import_data import import_aanvraag
+from files.report_data import AanvraagDataXLSReporter, report_aanvragen_XLS
 
 
 DBNAME =  'AAP.DB'
@@ -20,6 +22,8 @@ def create_database(name, recreate = False)->Database:
 
 def dbDumpTable(storage: AAPStorage, table: str):
     DatabaseDumper(storage.database).DumpTable(table)
+def dbDumpTables(storage: AAPStorage, tables: list[str]):
+    DatabaseDumper(storage.database).DumpTables(tables)
 
 BEDRIJVEN = ['promo','cheapo','promo Drom','campina','vreesland','fail',]
 def create_bedrijven(storage: AAPStorage):
@@ -142,6 +146,9 @@ def create_all(storage:AAPStorage):
     create_bedrijven(storage)
     create_files(storage)
     create_aanvragen(storage)
+    
+
+jimi = r'C:\repos\aap\testdata\2. Beoordeling afstudeeropdracht (1).pdf'
 
 recreate = len(sys.argv) > 1  and sys.argv[1].lower() == '/r'
 database = create_database(DBNAME, recreate)
@@ -150,11 +157,16 @@ if recreate:
     create_all(storage)
 DatabaseDumper(database).DumpTables([])
 if not recreate:
-    test_bedrijven(storage)
+    # test_bedrijven(storage)
+    # test_files(storage)
+    # test_studenten(storage)
     test_aanvragen(storage)    
-    test_files(storage)
-    test_studenten(storage)
-
-
+    # for aanvraag in storage.read_aanvragen(lambda a: a.status==AanvraagStatus.INITIAL):
+    #     print(aanvraag)
+    import_aanvraag(jimi, storage)
+    import_aanvraag(jimi, storage)
+    report_aanvragen_XLS(storage, 'texy.xlsx')#, lambda a: a.status == AanvraagStatus.GRADED)
+    dbDumpTables(storage, ['FILES', 'AANVRAGEN'])
 database.close()
+
 

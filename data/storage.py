@@ -1,5 +1,6 @@
-from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition
-from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo
+from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentBedrijfAanvraagTableDefinition, StudentTableDefinition
+from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo
+from database.SQL import SQLselect
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
@@ -77,7 +78,7 @@ class CRUD_studenten(CRUDbase):
         super().create(columns=self.__get_all_columns(), values=self.__get_all_values(studInfo))   
     def read(self, studnr: str)->StudentInfo:
         if row:=super().read(where=SQE('stud_nr', Ops.EQ, studnr)):
-            return StudentInfo(student_name=row['full_name'], studnr=studnr, telno=row['tel_nr'], email=row['email'])
+            return StudentInfo(student_name=row['full_name'], studnr=studnr, telno=row['tel_nr'], email=row['email']) 
         else:
             return None
     def update(self, studInfo: StudentInfo):
@@ -85,12 +86,33 @@ class CRUD_studenten(CRUDbase):
     def delete(self, studnr: str):
         super().delete(where=SQE('stud_nr', Ops.EQ, studnr))
 
+class CRUD_StudentBedrijfAanvragen(CRUDbase):
+    def __init__(self, database: Database):
+        super().__init__(database, StudentBedrijfAanvraagTableDefinition())
+    def __get_all_columns(self, include_key = True):        
+        result = ['stud_nr', 'bedrijf_id', 'aanvraag_id'] if include_key else []        
+        return result
+    def __get_all_values(self, aanvraag: AanvraagInfo, include_key = True):
+        result = [aanvraag.student.studnr, aanvraag.bedrijf.id, aanvraag.id] if include_key else []
+        return result
+    def create(self, aanvraag: AanvraagInfo):
+        super().create(columns=self.__get_all_columns(), values=self.__get_all_values(aanvraag))   
+    def read(self, studnr: str, bedrijf_id: int, aanvraag_id: int)->list:# returns list of the values or None, nothing else in the recoard
+        if super().read(where=SQE(SQE(SQE('stud_nr', Ops.EQ, studnr), Ops.AND, SQE('bedrijf_id', Ops.EQ, bedrijf_id), Ops.AND, SQE('aanvraag_id', Ops.EQ, aanvraag_id)))):
+            return [studnr, bedrijf_id, aanvraag_id]
+        else:
+            return None
+    def update(self, aanvraag: AanvraagInfo):
+        raise Exception(f'StudentBedrijfAanvragen koppeltabel is read-only {studInfo.studnr} - {bedrijf.id} - {aanvraag.id}')
+    def delete(self, studnr: str, bedrijf_id: int, aanvraag_id: int):
+        super().delete(where=SQE(SQE(SQE('stud_nr', Ops.EQ, studnr), Ops.AND, SQE('bedrijf_id', Ops.EQ, bedrijf_id), Ops.AND, SQE('aanvraag_id', Ops.EQ, aanvraag_id))))
+
 class CRUD_aanvragen(CRUDbase):
     def __init__(self, database: Database):
         super().__init__(database, AanvraagTableDefinition())
     def __get_all_columns(self, include_key = True):
         result = ['id'] if include_key else []
-        result.extend(['filename', 'stud_nr', 'bedrijf_id', 'datum_str', 'titel', 'beoordeling', 'status'])
+        result.extend(['filename', 'stud_nr', 'bedrijf_id', 'datum_str', 'titel', 'versie', 'beoordeling', 'status'])
         return result
     @staticmethod
     def __beoordeling_to_value(beoordeling: AanvraagBeoordeling):
@@ -100,7 +122,7 @@ class CRUD_aanvragen(CRUDbase):
         return status.value
     def __get_all_values(self, docInfo: AanvraagInfo, include_key = True):
         result = [docInfo.id] if include_key else []
-        result.extend([str(docInfo.fileinfo.filename),  docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
+        result.extend([str(docInfo.fileinfo.filename),  docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, docInfo.versie, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
         return result
     def create(self, docInfo: AanvraagInfo):
         docInfo.id = get_next_key(AanvraagTableDefinition.KEY_FOR_ID)
@@ -109,7 +131,7 @@ class CRUD_aanvragen(CRUDbase):
         fileinfo = CRUD_files(self.database).read(row['filename'])
         student = CRUD_studenten(self.database).read(row['stud_nr'])
         bedrijf = CRUD_bedrijven(self.database).read(row['bedrijf_id'])
-        result =  AanvraagInfo(fileinfo, student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'])
+        result =  AanvraagInfo(fileinfo, student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'], versie = row['versie'])
         return result
     def read(self, id: int)->AanvraagInfo:
         if row:=super().read(where=SQE('id', Ops.EQ, id)):
@@ -131,9 +153,13 @@ class AAPStorage:
         self.crud_bedrijven = CRUD_bedrijven(database)
         self.crud_studenten = CRUD_studenten(database)
         self.crud_aanvragen = CRUD_aanvragen(database)
+        self.crud_student_bedrijf_aanvragen = CRUD_StudentBedrijfAanvragen(database)
 
     def create_bedrijf(self, bedrijf: Bedrijf):
-        self.crud_bedrijven.create(bedrijf)
+        if row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [bedrijf.bedrijfsnaam], True):
+            bedrijf.id = row[0]['id']
+        else:
+            self.crud_bedrijven.create(bedrijf)
     def read_bedrijf(self, id: int)->Bedrijf:
         return self.crud_bedrijven.read(id)
     def update_bedrijf(self, bedrijf: Bedrijf):
@@ -160,22 +186,43 @@ class AAPStorage:
         self.crud_studenten.delete(studnr)
 
     def __create_aanvraag_references(self, aanvraag: AanvraagInfo):
-        if not self.read_bedrijf(aanvraag.bedrijf.id):
+        if (not self.read_bedrijf(aanvraag.bedrijf.id)) and (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.bedrijfsnaam], True)):
+            aanvraag.bedrijf.id = row[0]['id']
+        else:
             self.create_bedrijf(aanvraag.bedrijf)
         if not self.read_fileinfo(aanvraag.fileinfo.filename):
             self.create_fileinfo(aanvraag.fileinfo)
-        if not self.read_student(aanvraag.student.studnr):
+        if not (student := self.read_student(aanvraag.student.studnr)):
             self.create_student(aanvraag.student)
+    def __count_student_bedrijf_aanvragen(self, aanvraag: AanvraagInfo):
+        if (row := self.database._execute_sql_command('select count(aanvraag_id) from STUDENTBEDRIJFAANVRAGEN where stud_nr=? and bedrijf_id=?',
+                                    [aanvraag.student.studnr, aanvraag.bedrijf.id], True)):
+            print(list(row[0]))
+            return row[0][0]
+        else:
+            return 0
     def create_aanvraag(self, aanvraag: AanvraagInfo):
+        print(aanvraag)
         self.__create_aanvraag_references(aanvraag)
+        aanvraag.versie = self.__count_student_bedrijf_aanvragen(aanvraag) + 1
+        print('VErsie: ', aanvraag.versie)
         self.crud_aanvragen.create(aanvraag)
+        self.crud_student_bedrijf_aanvragen.create(aanvraag)
     def read_aanvraag(self, id: int)->AanvraagInfo:
         return self.crud_aanvragen.read(id)
     def update_aanvraag(self, aanvraag: AanvraagInfo):
         self.crud_aanvragen.update(aanvraag)
     def delete_aanvraag(self, id: int):
         self.crud_aanvragen.delete(id)
-
+    def read_aanvragen(self, filter_func = None)->list[AanvraagInfo]:
+        if row:= self.database._execute_sql_command('select id from AANVRAGEN', [], True):
+            result = [self.read_aanvraag(r['id']) for r in row]
+        else:
+            result = []
+        if result and filter_func:
+            return list(filter(filter_func, result))
+        else:
+            return result
     def commit(self):
         self.database.commit()
     

@@ -36,7 +36,6 @@ class Database:
         result.__clear()        
         result._reset_flag = False
         for table in schema.tables():
-            print(f'creating table {table}')
             result.create_table(table)
         return result
     def __clear(self):
