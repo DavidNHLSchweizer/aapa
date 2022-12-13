@@ -21771,3 +21771,1598 @@ Waarschijnlijk niet een aanvraagformulier
 2022-12-13 14:47:59- SELECT * FROM FILES;
 2022-12-13 14:47:59- Committing
 2022-12-13 14:47:59- connection closed...
+2022-12-13 21:17:46- logging started...
+2022-12-13 21:17:46- connection (AAP.DB) opened...
+2022-12-13 21:17:46- pragma foreign_keys=ON
+2022-12-13 21:17:46- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:17:46- pragma table_info(STUDENTEN)
+2022-12-13 21:17:46- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:17:46- pragma table_info(BEDRIJVEN)
+2022-12-13 21:17:46- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:17:46- pragma table_info(AANVRAGEN)
+2022-12-13 21:17:46- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:17:46- pragma table_info(FILES)
+2022-12-13 21:17:46- pragma foreign_key_list(FILES)
+2022-12-13 21:17:46- select max(ID) from BEDRIJVEN;
+2022-12-13 21:17:46- select max(ID) from AANVRAGEN;
+2022-12-13 21:17:46- select id from AANVRAGEN
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3417904']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [2]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3517488']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [2]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [3]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4575741']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [3]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [4]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3417904']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [5]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4729684']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [4]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [6]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3517488']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [2]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [7]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3480487']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [5]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [8]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4575741']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [3]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [9]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4687426']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [6]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [10]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [7]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [11]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3417904']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [12]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4729684']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [8]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [13]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4538404']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [9]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [14]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4684044']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [10]
+2022-12-13 21:17:46- SELECT * FROM AANVRAGEN WHERE (id = ?); + [15]
+2022-12-13 21:17:46- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4523296']
+2022-12-13 21:17:46- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [11]
+2022-12-13 21:39:47- logging started...
+2022-12-13 21:39:47- connection (AAP.DB) opened...
+2022-12-13 21:39:47- pragma foreign_keys=ON
+2022-12-13 21:39:47- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:39:47- pragma table_info(STUDENTEN)
+2022-12-13 21:39:47- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:39:47- pragma table_info(BEDRIJVEN)
+2022-12-13 21:39:47- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:39:47- pragma table_info(AANVRAGEN)
+2022-12-13 21:39:47- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:39:47- pragma table_info(FILES)
+2022-12-13 21:39:47- pragma foreign_key_list(FILES)
+2022-12-13 21:39:47- select max(ID) from BEDRIJVEN;
+2022-12-13 21:39:47- select max(ID) from AANVRAGEN;
+2022-12-13 21:39:47- select id from AANVRAGEN
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3417904']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [2]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3517488']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [2]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [3]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4575741']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [3]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [4]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3417904']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [5]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4729684']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [4]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [6]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3517488']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [2]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [7]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3480487']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [5]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [8]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4575741']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [3]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [9]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4687426']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [6]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [10]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [7]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [11]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3417904']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [12]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4729684']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [8]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [13]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4538404']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [9]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [14]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4684044']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [10]
+2022-12-13 21:39:47- SELECT * FROM AANVRAGEN WHERE (id = ?); + [15]
+2022-12-13 21:39:47- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['4523296']
+2022-12-13 21:39:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [11]
+2022-12-13 21:39:47- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 21:39:47- ***ERROR***: no such column: aanvraag_id
+2022-12-13 21:39:59- logging started...
+2022-12-13 21:39:59- connection (AAP.DB) opened...
+2022-12-13 21:39:59- pragma foreign_keys=ON
+2022-12-13 21:39:59- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:39:59- pragma table_info(STUDENTEN)
+2022-12-13 21:39:59- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:39:59- pragma table_info(BEDRIJVEN)
+2022-12-13 21:39:59- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:39:59- pragma table_info(AANVRAGEN)
+2022-12-13 21:39:59- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:39:59- pragma table_info(FILES)
+2022-12-13 21:39:59- pragma foreign_key_list(FILES)
+2022-12-13 21:39:59- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:39:59- pragma table_info(STUDENTEN)
+2022-12-13 21:39:59- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:39:59- pragma table_info(BEDRIJVEN)
+2022-12-13 21:39:59- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:39:59- pragma table_info(AANVRAGEN)
+2022-12-13 21:39:59- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:39:59- pragma table_info(FILES)
+2022-12-13 21:39:59- pragma foreign_key_list(FILES)
+2022-12-13 21:39:59- pragma foreign_keys=OFF
+2022-12-13 21:39:59- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-13 21:39:59- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-13 21:39:59- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-13 21:39:59- DROP TABLE IF EXISTS FILES;
+2022-12-13 21:39:59- Committing
+2022-12-13 21:39:59- pragma foreign_keys=ON
+2022-12-13 21:39:59- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text,aanvragen integer);
+2022-12-13 21:39:59- CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-13 21:39:59- CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,filename text,stud_nr text,bedrijf_id integer,datum_str text,titel text,versie integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-13 21:39:59- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-13 21:39:59- select id from AANVRAGEN
+2022-12-13 21:41:08- logging started...
+2022-12-13 21:41:08- connection (AAP.DB) opened...
+2022-12-13 21:41:08- pragma foreign_keys=ON
+2022-12-13 21:41:08- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:41:08- pragma table_info(STUDENTEN)
+2022-12-13 21:41:08- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:41:08- pragma table_info(BEDRIJVEN)
+2022-12-13 21:41:08- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:41:08- pragma table_info(AANVRAGEN)
+2022-12-13 21:41:08- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:41:08- pragma table_info(FILES)
+2022-12-13 21:41:08- pragma foreign_key_list(FILES)
+2022-12-13 21:41:08- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:41:08- pragma table_info(STUDENTEN)
+2022-12-13 21:41:08- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:41:08- pragma table_info(BEDRIJVEN)
+2022-12-13 21:41:08- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:41:08- pragma table_info(AANVRAGEN)
+2022-12-13 21:41:08- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:41:08- pragma table_info(FILES)
+2022-12-13 21:41:08- pragma foreign_key_list(FILES)
+2022-12-13 21:41:08- pragma foreign_keys=OFF
+2022-12-13 21:41:08- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-13 21:41:08- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-13 21:41:08- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-13 21:41:09- DROP TABLE IF EXISTS FILES;
+2022-12-13 21:41:09- Committing
+2022-12-13 21:41:09- pragma foreign_keys=ON
+2022-12-13 21:41:09- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text,aanvragen integer);
+2022-12-13 21:41:09- CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-13 21:41:09- CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,filename text,stud_nr text,bedrijf_id integer,datum_str text,titel text,versie integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-13 21:41:09- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:41:09- pragma table_info(STUDENTEN)
+2022-12-13 21:41:09- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:41:09- pragma table_info(BEDRIJVEN)
+2022-12-13 21:41:09- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:41:09- pragma table_info(AANVRAGEN)
+2022-12-13 21:41:09- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:41:09- pragma table_info(FILES)
+2022-12-13 21:41:09- pragma foreign_key_list(FILES)
+2022-12-13 21:41:09- SELECT * FROM STUDENTEN;
+2022-12-13 21:41:09- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:41:09- SELECT * FROM AANVRAGEN;
+2022-12-13 21:41:09- SELECT * FROM FILES;
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- Start importing from C:\repos\aap\week47...
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- ...Import ready
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- Committing
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- Start importing from C:\repos\aap\week48...
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- ...Import ready
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- Committing
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- Start importing from C:\repos\aap\week49...
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- ...Import ready
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- Committing
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- Start importing from C:\repos\aap\week50...
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- select max(id) from AANVRAGEN
+2022-12-13 21:41:09- ...Import ready
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- Committing
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- select id from AANVRAGEN
+2022-12-13 21:41:09- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:41:09- pragma table_info(STUDENTEN)
+2022-12-13 21:41:09- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:41:09- pragma table_info(BEDRIJVEN)
+2022-12-13 21:41:09- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:41:09- pragma table_info(AANVRAGEN)
+2022-12-13 21:41:09- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:41:09- pragma table_info(FILES)
+2022-12-13 21:41:09- pragma foreign_key_list(FILES)
+2022-12-13 21:41:09- SELECT * FROM STUDENTEN;
+2022-12-13 21:41:09- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:41:09- SELECT * FROM AANVRAGEN;
+2022-12-13 21:41:09- SELECT * FROM FILES;
+2022-12-13 21:41:09- Committing
+2022-12-13 21:41:09- connection closed...
+2022-12-13 21:43:21- logging started...
+2022-12-13 21:43:21- connection (AAP.DB) opened...
+2022-12-13 21:43:21- pragma foreign_keys=ON
+2022-12-13 21:43:21- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:43:21- pragma table_info(STUDENTEN)
+2022-12-13 21:43:21- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:43:21- pragma table_info(BEDRIJVEN)
+2022-12-13 21:43:21- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:43:21- pragma table_info(AANVRAGEN)
+2022-12-13 21:43:21- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:43:21- pragma table_info(FILES)
+2022-12-13 21:43:21- pragma foreign_key_list(FILES)
+2022-12-13 21:43:21- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:43:21- pragma table_info(STUDENTEN)
+2022-12-13 21:43:21- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:43:21- pragma table_info(BEDRIJVEN)
+2022-12-13 21:43:21- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:43:21- pragma table_info(AANVRAGEN)
+2022-12-13 21:43:21- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:43:21- pragma table_info(FILES)
+2022-12-13 21:43:21- pragma foreign_key_list(FILES)
+2022-12-13 21:43:21- pragma foreign_keys=OFF
+2022-12-13 21:43:21- DROP TABLE IF EXISTS STUDENTEN;
+2022-12-13 21:43:21- DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-13 21:43:21- DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-13 21:43:21- DROP TABLE IF EXISTS FILES;
+2022-12-13 21:43:21- Committing
+2022-12-13 21:43:21- pragma foreign_keys=ON
+2022-12-13 21:43:21- CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text,aanvragen integer);
+2022-12-13 21:43:21- CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-13 21:43:21- CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,filename text,stud_nr text,bedrijf_id integer,datum_str text,titel text,versie integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-13 21:43:21- CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-13 21:43:21- select id from AANVRAGEN
+2022-12-13 21:43:21- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:43:21- pragma table_info(STUDENTEN)
+2022-12-13 21:43:21- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:43:21- pragma table_info(BEDRIJVEN)
+2022-12-13 21:43:21- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:43:21- pragma table_info(AANVRAGEN)
+2022-12-13 21:43:21- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:43:21- pragma table_info(FILES)
+2022-12-13 21:43:21- pragma foreign_key_list(FILES)
+2022-12-13 21:43:21- SELECT * FROM STUDENTEN;
+2022-12-13 21:43:21- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:43:21- SELECT * FROM AANVRAGEN;
+2022-12-13 21:43:21- SELECT * FROM FILES;
+2022-12-13 21:43:21- select max(id) from AANVRAGEN
+2022-12-13 21:43:21- Start importing from C:\repos\aapa\week47...
+2022-12-13 21:43:21- select id from AANVRAGEN
+2022-12-13 21:43:21- *** IMPORTING C:\repos\aapa\week47\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-13 21:43:25- Error importing C:\repos\aapa\week47\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf: expected string or bytes-like object
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:43:25- *** IMPORTING C:\repos\aapa\week47\2. Beoordeling afstudeeropdracht[67].pdf
+2022-12-13 21:43:29- Error importing C:\repos\aapa\week47\2. Beoordeling afstudeeropdracht[67].pdf: expected string or bytes-like object
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:43:29- *** IMPORTING C:\repos\aapa\week47\Afstudeeropdracht joop.pdf
+2022-12-13 21:43:33- Error importing C:\repos\aapa\week47\Afstudeeropdracht joop.pdf: expected string or bytes-like object
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:43:33- select max(id) from AANVRAGEN
+2022-12-13 21:43:33- ...Import ready
+2022-12-13 21:43:33- select id from AANVRAGEN
+2022-12-13 21:43:33- Committing
+2022-12-13 21:43:33- select max(id) from AANVRAGEN
+2022-12-13 21:43:33- Start importing from C:\repos\aapa\week48...
+2022-12-13 21:43:33- select id from AANVRAGEN
+2022-12-13 21:43:33- *** IMPORTING C:\repos\aapa\week48\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-13 21:43:36- Error importing C:\repos\aapa\week48\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf: expected string or bytes-like object
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:43:36- *** IMPORTING C:\repos\aapa\week48\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf
+2022-12-13 21:43:39- Error importing C:\repos\aapa\week48\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf: expected string or bytes-like object
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:43:39- *** IMPORTING C:\repos\aapa\week48\2. Beoordeling afstudeeropdracht v2.pdf
+2022-12-13 21:44:06- logging started...
+2022-12-13 21:44:06- connection (AAP.DB) opened...
+2022-12-13 21:44:06- pragma foreign_keys=ON
+2022-12-13 21:44:06- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:44:06- pragma table_info(STUDENTEN)
+2022-12-13 21:44:06- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:44:06- pragma table_info(BEDRIJVEN)
+2022-12-13 21:44:06- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:44:06- pragma table_info(AANVRAGEN)
+2022-12-13 21:44:06- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:44:06- pragma table_info(FILES)
+2022-12-13 21:44:06- pragma foreign_key_list(FILES)
+2022-12-13 21:44:06- select max(ID) from BEDRIJVEN;
+2022-12-13 21:44:06- select max(ID) from AANVRAGEN;
+2022-12-13 21:44:06- select id from AANVRAGEN
+2022-12-13 21:44:06- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:44:06- pragma table_info(STUDENTEN)
+2022-12-13 21:44:06- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:44:06- pragma table_info(BEDRIJVEN)
+2022-12-13 21:44:06- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:44:06- pragma table_info(AANVRAGEN)
+2022-12-13 21:44:06- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:44:06- pragma table_info(FILES)
+2022-12-13 21:44:06- pragma foreign_key_list(FILES)
+2022-12-13 21:44:06- SELECT * FROM STUDENTEN;
+2022-12-13 21:44:06- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:44:06- SELECT * FROM AANVRAGEN;
+2022-12-13 21:44:06- SELECT * FROM FILES;
+2022-12-13 21:44:06- select id from AANVRAGEN
+2022-12-13 21:44:06- select id from AANVRAGEN
+2022-12-13 21:44:06- select id from AANVRAGEN
+2022-12-13 21:44:06- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:44:06- pragma table_info(STUDENTEN)
+2022-12-13 21:44:06- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:44:06- pragma table_info(BEDRIJVEN)
+2022-12-13 21:44:06- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:44:06- pragma table_info(AANVRAGEN)
+2022-12-13 21:44:06- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:44:06- pragma table_info(FILES)
+2022-12-13 21:44:06- pragma foreign_key_list(FILES)
+2022-12-13 21:44:06- SELECT * FROM STUDENTEN;
+2022-12-13 21:44:06- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:44:06- SELECT * FROM AANVRAGEN;
+2022-12-13 21:44:06- SELECT * FROM FILES;
+2022-12-13 21:44:06- Committing
+2022-12-13 21:44:06- connection closed...
+2022-12-13 21:44:17- logging started...
+2022-12-13 21:44:17- connection (AAP.DB) opened...
+2022-12-13 21:44:17- pragma foreign_keys=ON
+2022-12-13 21:44:17- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:44:17- pragma table_info(STUDENTEN)
+2022-12-13 21:44:17- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:44:17- pragma table_info(BEDRIJVEN)
+2022-12-13 21:44:17- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:44:17- pragma table_info(AANVRAGEN)
+2022-12-13 21:44:17- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:44:17- pragma table_info(FILES)
+2022-12-13 21:44:17- pragma foreign_key_list(FILES)
+2022-12-13 21:44:17- select max(ID) from BEDRIJVEN;
+2022-12-13 21:44:17- select max(ID) from AANVRAGEN;
+2022-12-13 21:44:17- select id from AANVRAGEN
+2022-12-13 21:44:17- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:44:17- pragma table_info(STUDENTEN)
+2022-12-13 21:44:17- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:44:17- pragma table_info(BEDRIJVEN)
+2022-12-13 21:44:17- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:44:17- pragma table_info(AANVRAGEN)
+2022-12-13 21:44:17- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:44:17- pragma table_info(FILES)
+2022-12-13 21:44:17- pragma foreign_key_list(FILES)
+2022-12-13 21:44:17- SELECT * FROM STUDENTEN;
+2022-12-13 21:44:17- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:44:17- SELECT * FROM AANVRAGEN;
+2022-12-13 21:44:17- SELECT * FROM FILES;
+2022-12-13 21:44:17- select max(id) from AANVRAGEN
+2022-12-13 21:44:17- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:44:17- select id from AANVRAGEN
+2022-12-13 21:44:17- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:44:20- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: expected string or bytes-like object
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:44:20- select max(id) from AANVRAGEN
+2022-12-13 21:44:20- ...Import ready
+2022-12-13 21:44:20- select id from AANVRAGEN
+2022-12-13 21:44:20- Committing
+2022-12-13 21:44:20- select id from AANVRAGEN
+2022-12-13 21:44:21- select id from AANVRAGEN
+2022-12-13 21:44:21- select id from AANVRAGEN
+2022-12-13 21:44:21- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:44:21- pragma table_info(STUDENTEN)
+2022-12-13 21:44:21- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:44:21- pragma table_info(BEDRIJVEN)
+2022-12-13 21:44:21- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:44:21- pragma table_info(AANVRAGEN)
+2022-12-13 21:44:21- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:44:21- pragma table_info(FILES)
+2022-12-13 21:44:21- pragma foreign_key_list(FILES)
+2022-12-13 21:44:21- SELECT * FROM STUDENTEN;
+2022-12-13 21:44:21- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:44:21- SELECT * FROM AANVRAGEN;
+2022-12-13 21:44:21- SELECT * FROM FILES;
+2022-12-13 21:44:21- Committing
+2022-12-13 21:44:21- connection closed...
+2022-12-13 21:48:37- logging started...
+2022-12-13 21:48:37- connection (AAP.DB) opened...
+2022-12-13 21:48:37- pragma foreign_keys=ON
+2022-12-13 21:48:37- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:48:37- pragma table_info(STUDENTEN)
+2022-12-13 21:48:37- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:48:37- pragma table_info(BEDRIJVEN)
+2022-12-13 21:48:37- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:48:37- pragma table_info(AANVRAGEN)
+2022-12-13 21:48:37- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:48:37- pragma table_info(FILES)
+2022-12-13 21:48:37- pragma foreign_key_list(FILES)
+2022-12-13 21:48:37- select max(ID) from BEDRIJVEN;
+2022-12-13 21:48:37- select max(ID) from AANVRAGEN;
+2022-12-13 21:48:37- select id from AANVRAGEN
+2022-12-13 21:48:37- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:48:37- pragma table_info(STUDENTEN)
+2022-12-13 21:48:37- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:48:37- pragma table_info(BEDRIJVEN)
+2022-12-13 21:48:37- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:48:37- pragma table_info(AANVRAGEN)
+2022-12-13 21:48:37- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:48:37- pragma table_info(FILES)
+2022-12-13 21:48:37- pragma foreign_key_list(FILES)
+2022-12-13 21:48:37- SELECT * FROM STUDENTEN;
+2022-12-13 21:48:37- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:48:37- SELECT * FROM AANVRAGEN;
+2022-12-13 21:48:37- SELECT * FROM FILES;
+2022-12-13 21:48:37- select max(id) from AANVRAGEN
+2022-12-13 21:48:37- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:48:37- select id from AANVRAGEN
+2022-12-13 21:48:37- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:48:37- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: _AanvraagData.__init__() got an unexpected keyword argument 'pdf_file'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:48:37- select max(id) from AANVRAGEN
+2022-12-13 21:48:37- ...Import ready
+2022-12-13 21:48:37- select id from AANVRAGEN
+2022-12-13 21:48:37- Committing
+2022-12-13 21:48:37- select id from AANVRAGEN
+2022-12-13 21:48:37- select id from AANVRAGEN
+2022-12-13 21:48:37- select id from AANVRAGEN
+2022-12-13 21:48:37- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:48:37- pragma table_info(STUDENTEN)
+2022-12-13 21:48:37- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:48:37- pragma table_info(BEDRIJVEN)
+2022-12-13 21:48:37- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:48:37- pragma table_info(AANVRAGEN)
+2022-12-13 21:48:37- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:48:37- pragma table_info(FILES)
+2022-12-13 21:48:37- pragma foreign_key_list(FILES)
+2022-12-13 21:48:37- SELECT * FROM STUDENTEN;
+2022-12-13 21:48:37- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:48:37- SELECT * FROM AANVRAGEN;
+2022-12-13 21:48:37- SELECT * FROM FILES;
+2022-12-13 21:48:37- Committing
+2022-12-13 21:48:37- connection closed...
+2022-12-13 21:49:04- logging started...
+2022-12-13 21:49:04- connection (AAP.DB) opened...
+2022-12-13 21:49:04- pragma foreign_keys=ON
+2022-12-13 21:49:04- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:49:04- pragma table_info(STUDENTEN)
+2022-12-13 21:49:04- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:49:04- pragma table_info(BEDRIJVEN)
+2022-12-13 21:49:04- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:49:04- pragma table_info(AANVRAGEN)
+2022-12-13 21:49:04- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:49:04- pragma table_info(FILES)
+2022-12-13 21:49:04- pragma foreign_key_list(FILES)
+2022-12-13 21:49:04- select max(ID) from BEDRIJVEN;
+2022-12-13 21:49:04- select max(ID) from AANVRAGEN;
+2022-12-13 21:49:04- select id from AANVRAGEN
+2022-12-13 21:49:04- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:49:04- pragma table_info(STUDENTEN)
+2022-12-13 21:49:04- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:49:04- pragma table_info(BEDRIJVEN)
+2022-12-13 21:49:04- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:49:04- pragma table_info(AANVRAGEN)
+2022-12-13 21:49:04- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:49:04- pragma table_info(FILES)
+2022-12-13 21:49:04- pragma foreign_key_list(FILES)
+2022-12-13 21:49:04- SELECT * FROM STUDENTEN;
+2022-12-13 21:49:04- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:49:04- SELECT * FROM AANVRAGEN;
+2022-12-13 21:49:04- SELECT * FROM FILES;
+2022-12-13 21:49:04- select max(id) from AANVRAGEN
+2022-12-13 21:49:04- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:49:04- select id from AANVRAGEN
+2022-12-13 21:49:04- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:49:07- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: AAPStorage.__create_aanvraag_references() takes 2 positional arguments but 3 were given
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:49:07- select max(id) from AANVRAGEN
+2022-12-13 21:49:07- ...Import ready
+2022-12-13 21:49:07- select id from AANVRAGEN
+2022-12-13 21:49:07- Committing
+2022-12-13 21:49:07- select id from AANVRAGEN
+2022-12-13 21:49:07- select id from AANVRAGEN
+2022-12-13 21:49:07- select id from AANVRAGEN
+2022-12-13 21:49:07- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:49:07- pragma table_info(STUDENTEN)
+2022-12-13 21:49:08- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:49:08- pragma table_info(BEDRIJVEN)
+2022-12-13 21:49:08- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:49:08- pragma table_info(AANVRAGEN)
+2022-12-13 21:49:08- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:49:08- pragma table_info(FILES)
+2022-12-13 21:49:08- pragma foreign_key_list(FILES)
+2022-12-13 21:49:08- SELECT * FROM STUDENTEN;
+2022-12-13 21:49:08- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:49:08- SELECT * FROM AANVRAGEN;
+2022-12-13 21:49:08- SELECT * FROM FILES;
+2022-12-13 21:49:08- Committing
+2022-12-13 21:49:08- connection closed...
+2022-12-13 21:49:58- logging started...
+2022-12-13 21:49:58- connection (AAP.DB) opened...
+2022-12-13 21:49:58- pragma foreign_keys=ON
+2022-12-13 21:49:58- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:49:58- pragma table_info(STUDENTEN)
+2022-12-13 21:49:58- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:49:58- pragma table_info(BEDRIJVEN)
+2022-12-13 21:49:58- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:49:58- pragma table_info(AANVRAGEN)
+2022-12-13 21:49:58- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:49:58- pragma table_info(FILES)
+2022-12-13 21:49:58- pragma foreign_key_list(FILES)
+2022-12-13 21:49:58- select max(ID) from BEDRIJVEN;
+2022-12-13 21:49:58- select max(ID) from AANVRAGEN;
+2022-12-13 21:49:58- select id from AANVRAGEN
+2022-12-13 21:49:58- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:49:58- pragma table_info(STUDENTEN)
+2022-12-13 21:49:58- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:49:58- pragma table_info(BEDRIJVEN)
+2022-12-13 21:49:58- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:49:58- pragma table_info(AANVRAGEN)
+2022-12-13 21:49:58- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:49:58- pragma table_info(FILES)
+2022-12-13 21:49:58- pragma foreign_key_list(FILES)
+2022-12-13 21:49:58- SELECT * FROM STUDENTEN;
+2022-12-13 21:49:58- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:49:58- SELECT * FROM AANVRAGEN;
+2022-12-13 21:49:58- SELECT * FROM FILES;
+2022-12-13 21:49:58- select max(id) from AANVRAGEN
+2022-12-13 21:49:58- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:49:58- select id from AANVRAGEN
+2022-12-13 21:49:58- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:50:01- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 21:50:01- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:50:01- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:50:01- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:50:01- select max(id) from AANVRAGEN
+2022-12-13 21:50:01- ...Import ready
+2022-12-13 21:50:01- select id from AANVRAGEN
+2022-12-13 21:50:01- Committing
+2022-12-13 21:50:01- select id from AANVRAGEN
+2022-12-13 21:50:01- select id from AANVRAGEN
+2022-12-13 21:50:01- select id from AANVRAGEN
+2022-12-13 21:50:01- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:50:01- pragma table_info(STUDENTEN)
+2022-12-13 21:50:01- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:50:01- pragma table_info(BEDRIJVEN)
+2022-12-13 21:50:01- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:50:01- pragma table_info(AANVRAGEN)
+2022-12-13 21:50:01- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:50:01- pragma table_info(FILES)
+2022-12-13 21:50:01- pragma foreign_key_list(FILES)
+2022-12-13 21:50:01- SELECT * FROM STUDENTEN;
+2022-12-13 21:50:01- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:50:01- SELECT * FROM AANVRAGEN;
+2022-12-13 21:50:01- SELECT * FROM FILES;
+2022-12-13 21:50:01- Committing
+2022-12-13 21:50:01- connection closed...
+2022-12-13 21:51:03- logging started...
+2022-12-13 21:51:03- connection (AAP.DB) opened...
+2022-12-13 21:51:03- pragma foreign_keys=ON
+2022-12-13 21:51:03- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:51:03- pragma table_info(STUDENTEN)
+2022-12-13 21:51:03- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:51:03- pragma table_info(BEDRIJVEN)
+2022-12-13 21:51:03- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:51:03- pragma table_info(AANVRAGEN)
+2022-12-13 21:51:03- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:51:03- pragma table_info(FILES)
+2022-12-13 21:51:03- pragma foreign_key_list(FILES)
+2022-12-13 21:51:03- select max(ID) from BEDRIJVEN;
+2022-12-13 21:51:03- select max(ID) from AANVRAGEN;
+2022-12-13 21:51:03- select id from AANVRAGEN
+2022-12-13 21:51:03- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:51:03- pragma table_info(STUDENTEN)
+2022-12-13 21:51:03- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:51:03- pragma table_info(BEDRIJVEN)
+2022-12-13 21:51:03- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:51:03- pragma table_info(AANVRAGEN)
+2022-12-13 21:51:03- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:51:03- pragma table_info(FILES)
+2022-12-13 21:51:03- pragma foreign_key_list(FILES)
+2022-12-13 21:51:03- SELECT * FROM STUDENTEN;
+2022-12-13 21:51:03- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:51:03- SELECT * FROM AANVRAGEN;
+2022-12-13 21:51:03- SELECT * FROM FILES;
+2022-12-13 21:51:03- select max(id) from AANVRAGEN
+2022-12-13 21:51:03- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:51:03- select id from AANVRAGEN
+2022-12-13 21:51:03- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:51:07- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 21:51:07- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:51:07- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:51:07- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:51:07- select max(id) from AANVRAGEN
+2022-12-13 21:51:07- ...Import ready
+2022-12-13 21:51:07- select id from AANVRAGEN
+2022-12-13 21:51:07- Committing
+2022-12-13 21:51:07- select id from AANVRAGEN
+2022-12-13 21:51:07- select id from AANVRAGEN
+2022-12-13 21:51:07- select id from AANVRAGEN
+2022-12-13 21:51:07- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:51:07- pragma table_info(STUDENTEN)
+2022-12-13 21:51:07- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:51:07- pragma table_info(BEDRIJVEN)
+2022-12-13 21:51:07- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:51:07- pragma table_info(AANVRAGEN)
+2022-12-13 21:51:07- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:51:07- pragma table_info(FILES)
+2022-12-13 21:51:07- pragma foreign_key_list(FILES)
+2022-12-13 21:51:07- SELECT * FROM STUDENTEN;
+2022-12-13 21:51:07- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:51:07- SELECT * FROM AANVRAGEN;
+2022-12-13 21:51:07- SELECT * FROM FILES;
+2022-12-13 21:51:07- Committing
+2022-12-13 21:51:07- connection closed...
+2022-12-13 21:51:35- logging started...
+2022-12-13 21:51:35- connection (AAP.DB) opened...
+2022-12-13 21:51:35- pragma foreign_keys=ON
+2022-12-13 21:51:35- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:51:35- pragma table_info(STUDENTEN)
+2022-12-13 21:51:35- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:51:35- pragma table_info(BEDRIJVEN)
+2022-12-13 21:51:35- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:51:35- pragma table_info(AANVRAGEN)
+2022-12-13 21:51:35- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:51:35- pragma table_info(FILES)
+2022-12-13 21:51:35- pragma foreign_key_list(FILES)
+2022-12-13 21:51:35- select max(ID) from BEDRIJVEN;
+2022-12-13 21:51:35- select max(ID) from AANVRAGEN;
+2022-12-13 21:51:35- select id from AANVRAGEN
+2022-12-13 21:51:35- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:51:35- pragma table_info(STUDENTEN)
+2022-12-13 21:51:35- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:51:35- pragma table_info(BEDRIJVEN)
+2022-12-13 21:51:35- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:51:35- pragma table_info(AANVRAGEN)
+2022-12-13 21:51:35- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:51:35- pragma table_info(FILES)
+2022-12-13 21:51:35- pragma foreign_key_list(FILES)
+2022-12-13 21:51:35- SELECT * FROM STUDENTEN;
+2022-12-13 21:51:35- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:51:35- SELECT * FROM AANVRAGEN;
+2022-12-13 21:51:35- SELECT * FROM FILES;
+2022-12-13 21:51:35- select max(id) from AANVRAGEN
+2022-12-13 21:51:35- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:51:35- select id from AANVRAGEN
+2022-12-13 21:51:35- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:51:38- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 21:51:38- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:51:38- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:51:38- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:51:38- select max(id) from AANVRAGEN
+2022-12-13 21:51:38- ...Import ready
+2022-12-13 21:51:38- select id from AANVRAGEN
+2022-12-13 21:51:38- Committing
+2022-12-13 21:51:38- select id from AANVRAGEN
+2022-12-13 21:51:39- select id from AANVRAGEN
+2022-12-13 21:51:39- select id from AANVRAGEN
+2022-12-13 21:51:39- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:51:39- pragma table_info(STUDENTEN)
+2022-12-13 21:51:39- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:51:39- pragma table_info(BEDRIJVEN)
+2022-12-13 21:51:39- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:51:39- pragma table_info(AANVRAGEN)
+2022-12-13 21:51:39- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:51:39- pragma table_info(FILES)
+2022-12-13 21:51:39- pragma foreign_key_list(FILES)
+2022-12-13 21:51:39- SELECT * FROM STUDENTEN;
+2022-12-13 21:51:39- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:51:39- SELECT * FROM AANVRAGEN;
+2022-12-13 21:51:39- SELECT * FROM FILES;
+2022-12-13 21:51:39- Committing
+2022-12-13 21:51:39- connection closed...
+2022-12-13 21:52:34- logging started...
+2022-12-13 21:52:34- connection (AAP.DB) opened...
+2022-12-13 21:52:34- pragma foreign_keys=ON
+2022-12-13 21:52:34- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:52:34- pragma table_info(STUDENTEN)
+2022-12-13 21:52:34- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:52:34- pragma table_info(BEDRIJVEN)
+2022-12-13 21:52:34- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:52:34- pragma table_info(AANVRAGEN)
+2022-12-13 21:52:34- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:52:34- pragma table_info(FILES)
+2022-12-13 21:52:34- pragma foreign_key_list(FILES)
+2022-12-13 21:52:34- select max(ID) from BEDRIJVEN;
+2022-12-13 21:52:34- select max(ID) from AANVRAGEN;
+2022-12-13 21:52:34- select id from AANVRAGEN
+2022-12-13 21:52:34- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:52:34- pragma table_info(STUDENTEN)
+2022-12-13 21:52:34- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:52:34- pragma table_info(BEDRIJVEN)
+2022-12-13 21:52:34- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:52:34- pragma table_info(AANVRAGEN)
+2022-12-13 21:52:34- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:52:34- pragma table_info(FILES)
+2022-12-13 21:52:34- pragma foreign_key_list(FILES)
+2022-12-13 21:52:34- SELECT * FROM STUDENTEN;
+2022-12-13 21:52:34- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:52:34- SELECT * FROM AANVRAGEN;
+2022-12-13 21:52:34- SELECT * FROM FILES;
+2022-12-13 21:52:34- select max(id) from AANVRAGEN
+2022-12-13 21:52:34- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:52:34- select id from AANVRAGEN
+2022-12-13 21:52:34- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:52:37- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 21:52:37- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:52:37- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:52:37- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:52:37- select max(id) from AANVRAGEN
+2022-12-13 21:52:37- ...Import ready
+2022-12-13 21:52:37- select id from AANVRAGEN
+2022-12-13 21:52:37- Committing
+2022-12-13 21:52:37- select id from AANVRAGEN
+2022-12-13 21:52:37- select id from AANVRAGEN
+2022-12-13 21:52:37- select id from AANVRAGEN
+2022-12-13 21:52:37- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:52:37- pragma table_info(STUDENTEN)
+2022-12-13 21:52:37- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:52:37- pragma table_info(BEDRIJVEN)
+2022-12-13 21:52:37- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:52:37- pragma table_info(AANVRAGEN)
+2022-12-13 21:52:37- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:52:37- pragma table_info(FILES)
+2022-12-13 21:52:37- pragma foreign_key_list(FILES)
+2022-12-13 21:52:37- SELECT * FROM STUDENTEN;
+2022-12-13 21:52:37- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:52:37- SELECT * FROM AANVRAGEN;
+2022-12-13 21:52:37- SELECT * FROM FILES;
+2022-12-13 21:52:37- Committing
+2022-12-13 21:52:37- connection closed...
+2022-12-13 21:53:58- logging started...
+2022-12-13 21:53:58- connection (AAP.DB) opened...
+2022-12-13 21:53:58- pragma foreign_keys=ON
+2022-12-13 21:53:58- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:53:58- pragma table_info(STUDENTEN)
+2022-12-13 21:53:58- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:53:58- pragma table_info(BEDRIJVEN)
+2022-12-13 21:53:58- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:53:58- pragma table_info(AANVRAGEN)
+2022-12-13 21:53:58- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:53:58- pragma table_info(FILES)
+2022-12-13 21:53:58- pragma foreign_key_list(FILES)
+2022-12-13 21:53:58- select max(ID) from BEDRIJVEN;
+2022-12-13 21:53:58- select max(ID) from AANVRAGEN;
+2022-12-13 21:53:58- select id from AANVRAGEN
+2022-12-13 21:53:58- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:53:58- pragma table_info(STUDENTEN)
+2022-12-13 21:53:58- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:53:58- pragma table_info(BEDRIJVEN)
+2022-12-13 21:53:58- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:53:58- pragma table_info(AANVRAGEN)
+2022-12-13 21:53:58- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:53:58- pragma table_info(FILES)
+2022-12-13 21:53:58- pragma foreign_key_list(FILES)
+2022-12-13 21:53:58- SELECT * FROM STUDENTEN;
+2022-12-13 21:53:58- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:53:58- SELECT * FROM AANVRAGEN;
+2022-12-13 21:53:58- SELECT * FROM FILES;
+2022-12-13 21:53:58- select max(id) from AANVRAGEN
+2022-12-13 21:53:58- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:53:58- select id from AANVRAGEN
+2022-12-13 21:53:58- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:54:02- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 21:54:02- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:54:02- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:54:02- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 21:54:02- select max(id) from AANVRAGEN
+2022-12-13 21:54:02- ...Import ready
+2022-12-13 21:54:02- select id from AANVRAGEN
+2022-12-13 21:54:02- Committing
+2022-12-13 21:54:02- select id from AANVRAGEN
+2022-12-13 21:54:02- select id from AANVRAGEN
+2022-12-13 21:54:02- select id from AANVRAGEN
+2022-12-13 21:54:02- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:54:02- pragma table_info(STUDENTEN)
+2022-12-13 21:54:02- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:54:02- pragma table_info(BEDRIJVEN)
+2022-12-13 21:54:02- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:54:02- pragma table_info(AANVRAGEN)
+2022-12-13 21:54:02- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:54:02- pragma table_info(FILES)
+2022-12-13 21:54:02- pragma foreign_key_list(FILES)
+2022-12-13 21:54:02- SELECT * FROM STUDENTEN;
+2022-12-13 21:54:02- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:54:02- SELECT * FROM AANVRAGEN;
+2022-12-13 21:54:02- SELECT * FROM FILES;
+2022-12-13 21:54:02- Committing
+2022-12-13 21:54:02- connection closed...
+2022-12-13 21:55:11- logging started...
+2022-12-13 21:55:11- connection (AAP.DB) opened...
+2022-12-13 21:55:11- pragma foreign_keys=ON
+2022-12-13 21:55:11- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:55:11- pragma table_info(STUDENTEN)
+2022-12-13 21:55:11- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:55:11- pragma table_info(BEDRIJVEN)
+2022-12-13 21:55:11- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:55:11- pragma table_info(AANVRAGEN)
+2022-12-13 21:55:11- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:55:11- pragma table_info(FILES)
+2022-12-13 21:55:11- pragma foreign_key_list(FILES)
+2022-12-13 21:55:11- select max(ID) from BEDRIJVEN;
+2022-12-13 21:55:11- select max(ID) from AANVRAGEN;
+2022-12-13 21:55:11- select id from AANVRAGEN
+2022-12-13 21:55:11- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:55:11- pragma table_info(STUDENTEN)
+2022-12-13 21:55:11- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:55:11- pragma table_info(BEDRIJVEN)
+2022-12-13 21:55:11- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:55:11- pragma table_info(AANVRAGEN)
+2022-12-13 21:55:11- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:55:11- pragma table_info(FILES)
+2022-12-13 21:55:11- pragma foreign_key_list(FILES)
+2022-12-13 21:55:11- SELECT * FROM STUDENTEN;
+2022-12-13 21:55:11- SELECT * FROM BEDRIJVEN;
+2022-12-13 21:55:11- SELECT * FROM AANVRAGEN;
+2022-12-13 21:55:11- SELECT * FROM FILES;
+2022-12-13 21:55:11- select max(id) from AANVRAGEN
+2022-12-13 21:55:11- Start importing from C:\repos\aapa\week49...
+2022-12-13 21:55:11- select id from AANVRAGEN
+2022-12-13 21:55:11- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 21:55:15- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 21:55:15- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:55:15- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 21:59:36- logging started...
+2022-12-13 21:59:36- connection (AAP.DB) opened...
+2022-12-13 21:59:36- pragma foreign_keys=ON
+2022-12-13 21:59:36- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 21:59:36- pragma table_info(STUDENTEN)
+2022-12-13 21:59:36- pragma foreign_key_list(STUDENTEN)
+2022-12-13 21:59:36- pragma table_info(BEDRIJVEN)
+2022-12-13 21:59:36- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 21:59:36- pragma table_info(AANVRAGEN)
+2022-12-13 21:59:36- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 21:59:36- pragma table_info(FILES)
+2022-12-13 21:59:36- pragma foreign_key_list(FILES)
+2022-12-13 21:59:36- select max(ID) from BEDRIJVEN;
+2022-12-13 22:01:29- select max(ID) from AANVRAGEN;
+2022-12-13 22:01:49- select id from AANVRAGEN
+2022-12-13 22:01:49- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:01:49- pragma table_info(STUDENTEN)
+2022-12-13 22:01:49- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:01:49- pragma table_info(BEDRIJVEN)
+2022-12-13 22:01:49- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:01:49- pragma table_info(AANVRAGEN)
+2022-12-13 22:01:49- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:01:49- pragma table_info(FILES)
+2022-12-13 22:01:49- pragma foreign_key_list(FILES)
+2022-12-13 22:01:49- SELECT * FROM STUDENTEN;
+2022-12-13 22:01:49- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:01:49- SELECT * FROM AANVRAGEN;
+2022-12-13 22:01:49- SELECT * FROM FILES;
+2022-12-13 22:01:49- select max(id) from AANVRAGEN
+2022-12-13 22:01:49- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:01:49- select id from AANVRAGEN
+2022-12-13 22:01:49- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:01:52- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:01:52- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:01:52- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:04:03- logging started...
+2022-12-13 22:04:03- connection (AAP.DB) opened...
+2022-12-13 22:04:03- pragma foreign_keys=ON
+2022-12-13 22:04:03- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:04:03- pragma table_info(STUDENTEN)
+2022-12-13 22:04:03- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:04:03- pragma table_info(BEDRIJVEN)
+2022-12-13 22:04:03- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:04:03- pragma table_info(AANVRAGEN)
+2022-12-13 22:04:03- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:04:03- pragma table_info(FILES)
+2022-12-13 22:04:03- pragma foreign_key_list(FILES)
+2022-12-13 22:04:03- select max(ID) from BEDRIJVEN;
+2022-12-13 22:08:28- select max(ID) from AANVRAGEN;
+2022-12-13 22:10:05- logging started...
+2022-12-13 22:10:05- connection (AAP.DB) opened...
+2022-12-13 22:10:05- pragma foreign_keys=ON
+2022-12-13 22:10:05- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:10:05- pragma table_info(STUDENTEN)
+2022-12-13 22:10:05- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:10:05- pragma table_info(BEDRIJVEN)
+2022-12-13 22:10:05- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:10:05- pragma table_info(AANVRAGEN)
+2022-12-13 22:10:05- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:10:05- pragma table_info(FILES)
+2022-12-13 22:10:05- pragma foreign_key_list(FILES)
+2022-12-13 22:10:05- select max(ID) from BEDRIJVEN;
+2022-12-13 22:12:35- logging started...
+2022-12-13 22:12:35- connection (AAP.DB) opened...
+2022-12-13 22:12:35- pragma foreign_keys=ON
+2022-12-13 22:12:35- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:12:35- pragma table_info(STUDENTEN)
+2022-12-13 22:12:35- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:12:35- pragma table_info(BEDRIJVEN)
+2022-12-13 22:12:35- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:12:35- pragma table_info(AANVRAGEN)
+2022-12-13 22:12:35- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:12:35- pragma table_info(FILES)
+2022-12-13 22:12:35- pragma foreign_key_list(FILES)
+2022-12-13 22:12:35- select max(ID) from BEDRIJVEN;
+2022-12-13 22:12:35- select max(ID) from AANVRAGEN;
+2022-12-13 22:12:35- select id from AANVRAGEN
+2022-12-13 22:12:35- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:12:35- pragma table_info(STUDENTEN)
+2022-12-13 22:12:35- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:12:35- pragma table_info(BEDRIJVEN)
+2022-12-13 22:12:35- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:12:35- pragma table_info(AANVRAGEN)
+2022-12-13 22:12:35- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:12:35- pragma table_info(FILES)
+2022-12-13 22:12:35- pragma foreign_key_list(FILES)
+2022-12-13 22:12:35- SELECT * FROM STUDENTEN;
+2022-12-13 22:12:35- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:12:35- SELECT * FROM AANVRAGEN;
+2022-12-13 22:12:35- SELECT * FROM FILES;
+2022-12-13 22:12:35- select max(id) from AANVRAGEN
+2022-12-13 22:12:35- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:12:35- select id from AANVRAGEN
+2022-12-13 22:12:35- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:12:38- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:12:38- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:12:38- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:12:38- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 22:12:38- select max(id) from AANVRAGEN
+2022-12-13 22:12:38- ...Import ready
+2022-12-13 22:12:38- select id from AANVRAGEN
+2022-12-13 22:12:38- Committing
+2022-12-13 22:12:38- select id from AANVRAGEN
+2022-12-13 22:12:39- select id from AANVRAGEN
+2022-12-13 22:12:39- select id from AANVRAGEN
+2022-12-13 22:12:39- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:12:39- pragma table_info(STUDENTEN)
+2022-12-13 22:12:39- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:12:39- pragma table_info(BEDRIJVEN)
+2022-12-13 22:12:39- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:12:39- pragma table_info(AANVRAGEN)
+2022-12-13 22:12:39- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:12:39- pragma table_info(FILES)
+2022-12-13 22:12:39- pragma foreign_key_list(FILES)
+2022-12-13 22:12:39- SELECT * FROM STUDENTEN;
+2022-12-13 22:12:39- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:12:39- SELECT * FROM AANVRAGEN;
+2022-12-13 22:12:39- SELECT * FROM FILES;
+2022-12-13 22:12:39- Committing
+2022-12-13 22:12:39- connection closed...
+2022-12-13 22:14:44- logging started...
+2022-12-13 22:14:44- connection (AAP.DB) opened...
+2022-12-13 22:14:44- pragma foreign_keys=ON
+2022-12-13 22:14:44- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:14:44- pragma table_info(STUDENTEN)
+2022-12-13 22:14:44- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:14:44- pragma table_info(BEDRIJVEN)
+2022-12-13 22:14:44- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:14:44- pragma table_info(AANVRAGEN)
+2022-12-13 22:14:44- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:14:44- pragma table_info(FILES)
+2022-12-13 22:14:44- pragma foreign_key_list(FILES)
+2022-12-13 22:14:44- select max(ID) from BEDRIJVEN;
+2022-12-13 22:14:44- select max(ID) from AANVRAGEN;
+2022-12-13 22:14:44- select id from AANVRAGEN
+2022-12-13 22:14:44- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:14:44- pragma table_info(STUDENTEN)
+2022-12-13 22:14:44- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:14:44- pragma table_info(BEDRIJVEN)
+2022-12-13 22:14:44- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:14:44- pragma table_info(AANVRAGEN)
+2022-12-13 22:14:44- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:14:44- pragma table_info(FILES)
+2022-12-13 22:14:44- pragma foreign_key_list(FILES)
+2022-12-13 22:14:44- SELECT * FROM STUDENTEN;
+2022-12-13 22:14:44- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:14:44- SELECT * FROM AANVRAGEN;
+2022-12-13 22:14:44- SELECT * FROM FILES;
+2022-12-13 22:14:44- select max(id) from AANVRAGEN
+2022-12-13 22:14:44- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:14:44- select id from AANVRAGEN
+2022-12-13 22:14:44- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:14:47- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:14:47- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:14:47- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:14:47- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 22:14:47- select max(id) from AANVRAGEN
+2022-12-13 22:14:47- ...Import ready
+2022-12-13 22:14:47- select id from AANVRAGEN
+2022-12-13 22:14:47- Committing
+2022-12-13 22:14:47- select id from AANVRAGEN
+2022-12-13 22:14:48- select id from AANVRAGEN
+2022-12-13 22:14:48- select id from AANVRAGEN
+2022-12-13 22:14:48- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:14:48- pragma table_info(STUDENTEN)
+2022-12-13 22:14:48- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:14:48- pragma table_info(BEDRIJVEN)
+2022-12-13 22:14:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:14:48- pragma table_info(AANVRAGEN)
+2022-12-13 22:14:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:14:48- pragma table_info(FILES)
+2022-12-13 22:14:48- pragma foreign_key_list(FILES)
+2022-12-13 22:14:48- SELECT * FROM STUDENTEN;
+2022-12-13 22:14:48- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:14:48- SELECT * FROM AANVRAGEN;
+2022-12-13 22:14:48- SELECT * FROM FILES;
+2022-12-13 22:14:48- Committing
+2022-12-13 22:14:48- connection closed...
+2022-12-13 22:15:48- logging started...
+2022-12-13 22:15:48- connection (AAP.DB) opened...
+2022-12-13 22:15:48- pragma foreign_keys=ON
+2022-12-13 22:15:48- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:15:48- pragma table_info(STUDENTEN)
+2022-12-13 22:15:48- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:15:48- pragma table_info(BEDRIJVEN)
+2022-12-13 22:15:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:15:48- pragma table_info(AANVRAGEN)
+2022-12-13 22:15:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:15:48- pragma table_info(FILES)
+2022-12-13 22:15:48- pragma foreign_key_list(FILES)
+2022-12-13 22:15:48- select max(ID) from BEDRIJVEN;
+2022-12-13 22:15:48- select max(ID) from AANVRAGEN;
+2022-12-13 22:15:48- select id from AANVRAGEN
+2022-12-13 22:15:48- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:15:48- pragma table_info(STUDENTEN)
+2022-12-13 22:15:48- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:15:48- pragma table_info(BEDRIJVEN)
+2022-12-13 22:15:48- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:15:48- pragma table_info(AANVRAGEN)
+2022-12-13 22:15:48- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:15:48- pragma table_info(FILES)
+2022-12-13 22:15:48- pragma foreign_key_list(FILES)
+2022-12-13 22:15:48- SELECT * FROM STUDENTEN;
+2022-12-13 22:15:48- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:15:48- SELECT * FROM AANVRAGEN;
+2022-12-13 22:15:48- SELECT * FROM FILES;
+2022-12-13 22:15:48- select max(id) from AANVRAGEN
+2022-12-13 22:15:48- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:15:48- select id from AANVRAGEN
+2022-12-13 22:15:48- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:15:51- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:15:51- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:15:51- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:15:51- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 22:15:51- select max(id) from AANVRAGEN
+2022-12-13 22:15:51- ...Import ready
+2022-12-13 22:15:51- select id from AANVRAGEN
+2022-12-13 22:15:51- Committing
+2022-12-13 22:15:51- select id from AANVRAGEN
+2022-12-13 22:15:52- select id from AANVRAGEN
+2022-12-13 22:15:52- select id from AANVRAGEN
+2022-12-13 22:15:52- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:15:52- pragma table_info(STUDENTEN)
+2022-12-13 22:15:52- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:15:52- pragma table_info(BEDRIJVEN)
+2022-12-13 22:15:52- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:15:52- pragma table_info(AANVRAGEN)
+2022-12-13 22:15:52- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:15:52- pragma table_info(FILES)
+2022-12-13 22:15:52- pragma foreign_key_list(FILES)
+2022-12-13 22:15:52- SELECT * FROM STUDENTEN;
+2022-12-13 22:15:52- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:15:52- SELECT * FROM AANVRAGEN;
+2022-12-13 22:15:52- SELECT * FROM FILES;
+2022-12-13 22:15:52- Committing
+2022-12-13 22:15:52- connection closed...
+2022-12-13 22:16:13- logging started...
+2022-12-13 22:16:13- connection (AAP.DB) opened...
+2022-12-13 22:16:13- pragma foreign_keys=ON
+2022-12-13 22:16:13- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:13- pragma table_info(STUDENTEN)
+2022-12-13 22:16:13- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:13- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:13- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:13- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:13- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:13- pragma table_info(FILES)
+2022-12-13 22:16:13- pragma foreign_key_list(FILES)
+2022-12-13 22:16:13- select max(ID) from BEDRIJVEN;
+2022-12-13 22:16:13- select max(ID) from AANVRAGEN;
+2022-12-13 22:16:13- select id from AANVRAGEN
+2022-12-13 22:16:13- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:13- pragma table_info(STUDENTEN)
+2022-12-13 22:16:13- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:13- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:13- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:13- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:13- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:13- pragma table_info(FILES)
+2022-12-13 22:16:13- pragma foreign_key_list(FILES)
+2022-12-13 22:16:13- SELECT * FROM STUDENTEN;
+2022-12-13 22:16:13- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:16:13- SELECT * FROM AANVRAGEN;
+2022-12-13 22:16:13- SELECT * FROM FILES;
+2022-12-13 22:16:13- select max(id) from AANVRAGEN
+2022-12-13 22:16:13- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:16:13- select id from AANVRAGEN
+2022-12-13 22:16:13- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:16:16- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:16:16- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:16:16- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:16:16- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 22:16:16- select max(id) from AANVRAGEN
+2022-12-13 22:16:16- ...Import ready
+2022-12-13 22:16:16- select id from AANVRAGEN
+2022-12-13 22:16:16- Committing
+2022-12-13 22:16:16- select id from AANVRAGEN
+2022-12-13 22:16:16- select id from AANVRAGEN
+2022-12-13 22:16:16- select id from AANVRAGEN
+2022-12-13 22:16:16- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:16- pragma table_info(STUDENTEN)
+2022-12-13 22:16:16- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:16- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:16- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:16- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:16- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:16- pragma table_info(FILES)
+2022-12-13 22:16:16- pragma foreign_key_list(FILES)
+2022-12-13 22:16:16- SELECT * FROM STUDENTEN;
+2022-12-13 22:16:16- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:16:16- SELECT * FROM AANVRAGEN;
+2022-12-13 22:16:16- SELECT * FROM FILES;
+2022-12-13 22:16:16- Committing
+2022-12-13 22:16:16- connection closed...
+2022-12-13 22:16:31- logging started...
+2022-12-13 22:16:31- connection (AAP.DB) opened...
+2022-12-13 22:16:31- pragma foreign_keys=ON
+2022-12-13 22:16:31- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:31- pragma table_info(STUDENTEN)
+2022-12-13 22:16:31- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:31- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:31- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:31- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:31- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:31- pragma table_info(FILES)
+2022-12-13 22:16:31- pragma foreign_key_list(FILES)
+2022-12-13 22:16:31- select max(ID) from BEDRIJVEN;
+2022-12-13 22:16:31- select max(ID) from AANVRAGEN;
+2022-12-13 22:16:31- select id from AANVRAGEN
+2022-12-13 22:16:31- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:31- pragma table_info(STUDENTEN)
+2022-12-13 22:16:31- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:31- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:31- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:31- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:31- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:31- pragma table_info(FILES)
+2022-12-13 22:16:31- pragma foreign_key_list(FILES)
+2022-12-13 22:16:31- SELECT * FROM STUDENTEN;
+2022-12-13 22:16:31- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:16:31- SELECT * FROM AANVRAGEN;
+2022-12-13 22:16:31- SELECT * FROM FILES;
+2022-12-13 22:16:31- select max(id) from AANVRAGEN
+2022-12-13 22:16:31- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:16:31- select id from AANVRAGEN
+2022-12-13 22:16:31- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:16:34- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:16:34- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:16:34- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:16:34- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 22:16:34- select max(id) from AANVRAGEN
+2022-12-13 22:16:34- ...Import ready
+2022-12-13 22:16:34- select id from AANVRAGEN
+2022-12-13 22:16:34- Committing
+2022-12-13 22:16:34- select id from AANVRAGEN
+2022-12-13 22:16:35- select id from AANVRAGEN
+2022-12-13 22:16:35- select id from AANVRAGEN
+2022-12-13 22:16:35- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:35- pragma table_info(STUDENTEN)
+2022-12-13 22:16:35- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:35- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:35- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:35- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:35- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:35- pragma table_info(FILES)
+2022-12-13 22:16:35- pragma foreign_key_list(FILES)
+2022-12-13 22:16:35- SELECT * FROM STUDENTEN;
+2022-12-13 22:16:35- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:16:35- SELECT * FROM AANVRAGEN;
+2022-12-13 22:16:35- SELECT * FROM FILES;
+2022-12-13 22:16:35- Committing
+2022-12-13 22:16:35- connection closed...
+2022-12-13 22:16:51- logging started...
+2022-12-13 22:16:51- connection (AAP.DB) opened...
+2022-12-13 22:16:51- pragma foreign_keys=ON
+2022-12-13 22:16:51- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:51- pragma table_info(STUDENTEN)
+2022-12-13 22:16:51- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:51- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:51- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:51- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:51- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:51- pragma table_info(FILES)
+2022-12-13 22:16:51- pragma foreign_key_list(FILES)
+2022-12-13 22:16:51- select max(ID) from BEDRIJVEN;
+2022-12-13 22:16:51- select max(ID) from AANVRAGEN;
+2022-12-13 22:16:51- select id from AANVRAGEN
+2022-12-13 22:16:51- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:51- pragma table_info(STUDENTEN)
+2022-12-13 22:16:51- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:51- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:51- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:51- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:51- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:51- pragma table_info(FILES)
+2022-12-13 22:16:51- pragma foreign_key_list(FILES)
+2022-12-13 22:16:51- SELECT * FROM STUDENTEN;
+2022-12-13 22:16:51- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:16:51- SELECT * FROM AANVRAGEN;
+2022-12-13 22:16:51- SELECT * FROM FILES;
+2022-12-13 22:16:51- select max(id) from AANVRAGEN
+2022-12-13 22:16:51- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:16:51- select id from AANVRAGEN
+2022-12-13 22:16:51- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:16:54- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:16:54- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:16:54- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:16:54- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 22:16:54- select max(id) from AANVRAGEN
+2022-12-13 22:16:54- ...Import ready
+2022-12-13 22:16:54- select id from AANVRAGEN
+2022-12-13 22:16:54- Committing
+2022-12-13 22:16:54- select id from AANVRAGEN
+2022-12-13 22:16:54- select id from AANVRAGEN
+2022-12-13 22:16:54- select id from AANVRAGEN
+2022-12-13 22:16:54- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:16:54- pragma table_info(STUDENTEN)
+2022-12-13 22:16:54- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:16:54- pragma table_info(BEDRIJVEN)
+2022-12-13 22:16:54- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:16:54- pragma table_info(AANVRAGEN)
+2022-12-13 22:16:54- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:16:54- pragma table_info(FILES)
+2022-12-13 22:16:54- pragma foreign_key_list(FILES)
+2022-12-13 22:16:54- SELECT * FROM STUDENTEN;
+2022-12-13 22:16:54- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:16:54- SELECT * FROM AANVRAGEN;
+2022-12-13 22:16:54- SELECT * FROM FILES;
+2022-12-13 22:16:54- Committing
+2022-12-13 22:16:54- connection closed...
+2022-12-13 22:17:12- logging started...
+2022-12-13 22:17:12- connection (AAP.DB) opened...
+2022-12-13 22:17:12- pragma foreign_keys=ON
+2022-12-13 22:17:12- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:17:12- pragma table_info(STUDENTEN)
+2022-12-13 22:17:12- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:17:12- pragma table_info(BEDRIJVEN)
+2022-12-13 22:17:12- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:17:12- pragma table_info(AANVRAGEN)
+2022-12-13 22:17:12- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:17:12- pragma table_info(FILES)
+2022-12-13 22:17:12- pragma foreign_key_list(FILES)
+2022-12-13 22:17:12- select max(ID) from BEDRIJVEN;
+2022-12-13 22:17:12- select max(ID) from AANVRAGEN;
+2022-12-13 22:17:12- select id from AANVRAGEN
+2022-12-13 22:17:12- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:17:12- pragma table_info(STUDENTEN)
+2022-12-13 22:17:12- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:17:12- pragma table_info(BEDRIJVEN)
+2022-12-13 22:17:12- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:17:12- pragma table_info(AANVRAGEN)
+2022-12-13 22:17:12- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:17:12- pragma table_info(FILES)
+2022-12-13 22:17:12- pragma foreign_key_list(FILES)
+2022-12-13 22:17:12- SELECT * FROM STUDENTEN;
+2022-12-13 22:17:12- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:17:12- SELECT * FROM AANVRAGEN;
+2022-12-13 22:17:12- SELECT * FROM FILES;
+2022-12-13 22:17:12- select max(id) from AANVRAGEN
+2022-12-13 22:17:12- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:17:12- select id from AANVRAGEN
+2022-12-13 22:17:12- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:17:15- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:17:15- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:17:15- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:17:15- Error importing C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf: unsupported operand type(s) for +=: 'NoneType' and 'int'
+Waarschijnlijk niet een aanvraagformulier
+2022-12-13 22:17:15- select max(id) from AANVRAGEN
+2022-12-13 22:17:15- ...Import ready
+2022-12-13 22:17:15- select id from AANVRAGEN
+2022-12-13 22:17:15- Committing
+2022-12-13 22:17:15- select id from AANVRAGEN
+2022-12-13 22:17:15- select id from AANVRAGEN
+2022-12-13 22:17:15- select id from AANVRAGEN
+2022-12-13 22:17:15- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:17:15- pragma table_info(STUDENTEN)
+2022-12-13 22:17:15- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:17:15- pragma table_info(BEDRIJVEN)
+2022-12-13 22:17:15- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:17:15- pragma table_info(AANVRAGEN)
+2022-12-13 22:17:15- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:17:15- pragma table_info(FILES)
+2022-12-13 22:17:15- pragma foreign_key_list(FILES)
+2022-12-13 22:17:15- SELECT * FROM STUDENTEN;
+2022-12-13 22:17:15- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:17:15- SELECT * FROM AANVRAGEN;
+2022-12-13 22:17:15- SELECT * FROM FILES;
+2022-12-13 22:17:15- Committing
+2022-12-13 22:17:15- connection closed...
+2022-12-13 22:22:00- logging started...
+2022-12-13 22:22:00- connection (AAP.DB) opened...
+2022-12-13 22:22:00- pragma foreign_keys=ON
+2022-12-13 22:22:00- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:22:00- pragma table_info(STUDENTEN)
+2022-12-13 22:22:00- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:22:00- pragma table_info(BEDRIJVEN)
+2022-12-13 22:22:00- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:22:00- pragma table_info(AANVRAGEN)
+2022-12-13 22:22:00- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:22:00- pragma table_info(FILES)
+2022-12-13 22:22:00- pragma foreign_key_list(FILES)
+2022-12-13 22:22:00- select max(ID) from BEDRIJVEN;
+2022-12-13 22:22:00- select max(ID) from AANVRAGEN;
+2022-12-13 22:22:00- select id from AANVRAGEN
+2022-12-13 22:22:00- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:22:00- pragma table_info(STUDENTEN)
+2022-12-13 22:22:00- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:22:00- pragma table_info(BEDRIJVEN)
+2022-12-13 22:22:00- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:22:00- pragma table_info(AANVRAGEN)
+2022-12-13 22:22:00- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:22:00- pragma table_info(FILES)
+2022-12-13 22:22:00- pragma foreign_key_list(FILES)
+2022-12-13 22:22:00- SELECT * FROM STUDENTEN;
+2022-12-13 22:22:00- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:22:00- SELECT * FROM AANVRAGEN;
+2022-12-13 22:22:01- SELECT * FROM FILES;
+2022-12-13 22:22:01- select max(id) from AANVRAGEN
+2022-12-13 22:22:01- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:22:01- select id from AANVRAGEN
+2022-12-13 22:22:01- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:22:04- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [-1]
+2022-12-13 22:22:04- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:22:04- select * from BEDRIJVEN where (name=?) + ['ChipSoft BV']
+2022-12-13 22:22:04- INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); + [1, 'ChipSoft BV']
+2022-12-13 22:22:04- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:22:04- INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); + ['3556785', 'Jimi van Oosten', 'Jimi', 'jimivanoosten@hotmail.com', '0639206022']
+2022-12-13 22:22:04- select count(id) from AANVRAGEN where stud_nr=? + ['3556785']
+2022-12-13 22:22:04- INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,versie,beoordeling,status) VALUES(?,?,?,?,?,?,?); + ['3556785', 1, '2022/10/31', 'Objectdetectie in HiX', 1, 0, 0]
+2022-12-13 22:22:04- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:22:04- INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf', '06-12-2022 13:49:55', 0, 1]
+2022-12-13 22:22:04- Jimi van Oosten(3556785) - 2022/10/31: ChipSoft BV - "Objectdetectie in HiX" [ontvangen]
+2022-12-13 22:22:04- Committing
+2022-12-13 22:22:04- select max(id) from AANVRAGEN
+2022-12-13 22:22:04- ...Import ready
+2022-12-13 22:22:04- select id from AANVRAGEN
+2022-12-13 22:22:04- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:22:04- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:22:04- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:22:04- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:22:04- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:23:34- logging started...
+2022-12-13 22:23:34- connection (AAP.DB) opened...
+2022-12-13 22:23:34- pragma foreign_keys=ON
+2022-12-13 22:23:34- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:23:34- pragma table_info(STUDENTEN)
+2022-12-13 22:23:34- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:23:34- pragma table_info(BEDRIJVEN)
+2022-12-13 22:23:34- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:23:34- pragma table_info(AANVRAGEN)
+2022-12-13 22:23:34- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:23:34- pragma table_info(FILES)
+2022-12-13 22:23:34- pragma foreign_key_list(FILES)
+2022-12-13 22:23:34- select max(ID) from BEDRIJVEN;
+2022-12-13 22:23:34- select max(ID) from AANVRAGEN;
+2022-12-13 22:23:34- select id from AANVRAGEN
+2022-12-13 22:23:34- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:23:34- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:23:34- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:23:34- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:23:34- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:24:41- logging started...
+2022-12-13 22:24:41- connection (AAP.DB) opened...
+2022-12-13 22:24:41- pragma foreign_keys=ON
+2022-12-13 22:24:41- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:24:41- pragma table_info(STUDENTEN)
+2022-12-13 22:24:41- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:24:41- pragma table_info(BEDRIJVEN)
+2022-12-13 22:24:41- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:24:41- pragma table_info(AANVRAGEN)
+2022-12-13 22:24:41- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:24:41- pragma table_info(FILES)
+2022-12-13 22:24:41- pragma foreign_key_list(FILES)
+2022-12-13 22:24:41- select max(ID) from BEDRIJVEN;
+2022-12-13 22:24:41- select max(ID) from AANVRAGEN;
+2022-12-13 22:24:41- select id from AANVRAGEN
+2022-12-13 22:24:41- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:24:41- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:24:41- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:24:41- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:24:41- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:24:41- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:24:41- pragma table_info(STUDENTEN)
+2022-12-13 22:24:41- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:24:41- pragma table_info(BEDRIJVEN)
+2022-12-13 22:24:41- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:24:41- pragma table_info(AANVRAGEN)
+2022-12-13 22:24:41- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:24:41- pragma table_info(FILES)
+2022-12-13 22:24:41- pragma foreign_key_list(FILES)
+2022-12-13 22:24:41- SELECT * FROM STUDENTEN;
+2022-12-13 22:24:41- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:24:41- SELECT * FROM AANVRAGEN;
+2022-12-13 22:24:41- SELECT * FROM FILES;
+2022-12-13 22:24:41- select max(id) from AANVRAGEN
+2022-12-13 22:24:41- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:24:41- select id from AANVRAGEN
+2022-12-13 22:24:41- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:24:41- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:24:41- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:24:41- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:24:41- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:24:41- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:24:44- Duplicate file: C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf.
+Already imported Jimi van Oosten(3556785) - 2022/10/31: ChipSoft BV - "Objectdetectie in HiX" [ontvangen]
+2022-12-13 22:24:44- select max(id) from AANVRAGEN
+2022-12-13 22:24:44- ...Import ready
+2022-12-13 22:24:44- select id from AANVRAGEN
+2022-12-13 22:24:44- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:24:44- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:24:44- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:24:44- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:24:44- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:24:44- Committing
+2022-12-13 22:24:44- select id from AANVRAGEN
+2022-12-13 22:24:44- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:24:44- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:24:44- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:24:44- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:24:44- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:34:01- logging started...
+2022-12-13 22:34:01- connection (AAP.DB) opened...
+2022-12-13 22:34:01- pragma foreign_keys=ON
+2022-12-13 22:34:01- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:34:01- pragma table_info(STUDENTEN)
+2022-12-13 22:34:01- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:34:01- pragma table_info(BEDRIJVEN)
+2022-12-13 22:34:01- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:34:01- pragma table_info(AANVRAGEN)
+2022-12-13 22:34:01- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:34:01- pragma table_info(FILES)
+2022-12-13 22:34:01- pragma foreign_key_list(FILES)
+2022-12-13 22:34:01- select max(ID) from BEDRIJVEN;
+2022-12-13 22:34:01- select max(ID) from AANVRAGEN;
+2022-12-13 22:34:01- select id from AANVRAGEN
+2022-12-13 22:34:01- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:34:01- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:34:01- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:34:01- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:34:01- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:35:52- logging started...
+2022-12-13 22:35:52- connection (AAP.DB) opened...
+2022-12-13 22:35:52- pragma foreign_keys=ON
+2022-12-13 22:35:52- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:35:52- pragma table_info(STUDENTEN)
+2022-12-13 22:35:52- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:35:52- pragma table_info(BEDRIJVEN)
+2022-12-13 22:35:52- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:35:52- pragma table_info(AANVRAGEN)
+2022-12-13 22:35:52- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:35:52- pragma table_info(FILES)
+2022-12-13 22:35:52- pragma foreign_key_list(FILES)
+2022-12-13 22:35:52- select max(ID) from BEDRIJVEN;
+2022-12-13 22:35:52- select max(ID) from AANVRAGEN;
+2022-12-13 22:35:52- select id from AANVRAGEN
+2022-12-13 22:35:52- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:35:52- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:35:52- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:35:52- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:35:52- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:36:22- logging started...
+2022-12-13 22:36:22- connection (AAP.DB) opened...
+2022-12-13 22:36:22- pragma foreign_keys=ON
+2022-12-13 22:36:22- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:36:22- pragma table_info(STUDENTEN)
+2022-12-13 22:36:22- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:36:22- pragma table_info(BEDRIJVEN)
+2022-12-13 22:36:22- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:36:22- pragma table_info(AANVRAGEN)
+2022-12-13 22:36:22- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:36:22- pragma table_info(FILES)
+2022-12-13 22:36:22- pragma foreign_key_list(FILES)
+2022-12-13 22:36:22- select max(ID) from BEDRIJVEN;
+2022-12-13 22:36:22- select max(ID) from AANVRAGEN;
+2022-12-13 22:36:22- select id from AANVRAGEN
+2022-12-13 22:36:22- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:36:22- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:36:22- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:36:22- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:36:22- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:36:22- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:36:22- pragma table_info(STUDENTEN)
+2022-12-13 22:36:22- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:36:22- pragma table_info(BEDRIJVEN)
+2022-12-13 22:36:22- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:36:22- pragma table_info(AANVRAGEN)
+2022-12-13 22:36:22- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:36:22- pragma table_info(FILES)
+2022-12-13 22:36:22- pragma foreign_key_list(FILES)
+2022-12-13 22:36:22- SELECT * FROM STUDENTEN;
+2022-12-13 22:36:22- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:36:22- SELECT * FROM AANVRAGEN;
+2022-12-13 22:36:22- SELECT * FROM FILES;
+2022-12-13 22:36:22- select max(id) from AANVRAGEN
+2022-12-13 22:36:22- Start importing from C:\repos\aapa\week49...
+2022-12-13 22:36:22- select id from AANVRAGEN
+2022-12-13 22:36:22- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:36:22- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:36:22- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:36:22- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:36:22- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:36:22- *** IMPORTING C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-13 22:36:25- Duplicate file: C:\repos\aapa\week49\2. Beoordeling afstudeeropdracht (1).pdf.
+Already imported Jimi van Oosten(3556785) - 2022/10/31: ChipSoft BV - "Objectdetectie in HiX" [ontvangen]
+2022-12-13 22:36:25- select max(id) from AANVRAGEN
+2022-12-13 22:36:25- ...Import ready
+2022-12-13 22:36:25- select id from AANVRAGEN
+2022-12-13 22:36:25- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:36:25- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:36:25- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:36:25- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:36:25- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:36:25- Committing
+2022-12-13 22:36:25- select id from AANVRAGEN
+2022-12-13 22:36:25- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:36:25- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:36:25- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:36:25- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:36:25- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:36:26- select id from AANVRAGEN
+2022-12-13 22:36:26- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:36:26- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:36:26- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:36:26- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:36:26- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:36:26- select id from AANVRAGEN
+2022-12-13 22:36:26- SELECT * FROM AANVRAGEN WHERE (id = ?); + [1]
+2022-12-13 22:36:26- SELECT * FROM STUDENTEN WHERE (stud_nr = ?); + ['3556785']
+2022-12-13 22:36:26- SELECT * FROM BEDRIJVEN WHERE (id = ?); + [1]
+2022-12-13 22:36:26- select filename from FILES where aanvraag_id=? and filetype=? + [1, 0]
+2022-12-13 22:36:26- SELECT * FROM FILES WHERE (filename = ?); + ['C:\\repos\\aapa\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-13 22:36:26- SELECT name FROM sqlite_schema WHERE (type = ?); + ['table']
+2022-12-13 22:36:26- pragma table_info(STUDENTEN)
+2022-12-13 22:36:26- pragma foreign_key_list(STUDENTEN)
+2022-12-13 22:36:26- pragma table_info(BEDRIJVEN)
+2022-12-13 22:36:26- pragma foreign_key_list(BEDRIJVEN)
+2022-12-13 22:36:26- pragma table_info(AANVRAGEN)
+2022-12-13 22:36:26- pragma foreign_key_list(AANVRAGEN)
+2022-12-13 22:36:26- pragma table_info(FILES)
+2022-12-13 22:36:26- pragma foreign_key_list(FILES)
+2022-12-13 22:36:26- SELECT * FROM STUDENTEN;
+2022-12-13 22:36:26- SELECT * FROM BEDRIJVEN;
+2022-12-13 22:36:26- SELECT * FROM AANVRAGEN;
+2022-12-13 22:36:26- SELECT * FROM FILES;
+2022-12-13 22:36:26- Committing
+2022-12-13 22:36:26- connection closed...

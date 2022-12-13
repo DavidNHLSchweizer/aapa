@@ -1,6 +1,6 @@
 import pandas as pd
 from data.aanvraag_processor import AanvraagProcessor
-from data.aanvraag_info import AanvraagInfo
+from data.aanvraag_info import AanvraagInfo, FileInfo
 from data.storage import AAPStorage
 from general.fileutil import writable_filename
 
@@ -19,11 +19,11 @@ class AanvraagDataXLS:
     def __init_xls(self, xls_filename):
         pd.DataFrame(columns=COLMAP.keys()).to_excel(xls_filename, index=False)
         return pd.ExcelWriter(self.xls_filename, engine='openpyxl', mode='a') 
-    def report(self, aanvragen: list[AanvraagInfo]):
+    def report(self, aanvragen: list[AanvraagInfo], source_dict: dict):
         for aanvraag in aanvragen:
-            self.sheet.append(self.__to_sheet_row(aanvraag))
-    def __to_sheet_row(self, aanvraag: AanvraagInfo):
-        return [aanvraag.fileinfo.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
+            self.sheet.append(self.__to_sheet_row(aanvraag, source_dict.get(aanvraag.id)))
+    def __to_sheet_row(self, aanvraag: AanvraagInfo, fileinfo: FileInfo):
+        return [fileinfo.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
                 aanvraag.datum_str, str(aanvraag.versie), aanvraag.bedrijf.bedrijfsnaam, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
     def number_rows(self):
         return self.sheet.max_row
@@ -34,7 +34,7 @@ class AanvraagDataXLS:
 class AanvraagDataXLSReporter(AanvraagProcessor):
     def process(self, xls_filename: str, filter_func=None):
         reporter = AanvraagDataXLS(xls_filename)
-        reporter.report(self.filtered_aanvragen(filter_func))
+        reporter.report(self.filtered_aanvragen(filter_func), self.source_dict)
         reporter.close()
 
 class AanvraagDataConsoleReporter(AanvraagProcessor):

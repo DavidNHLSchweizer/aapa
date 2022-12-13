@@ -41,13 +41,14 @@ class FileInfo:
     def _get_timestamp(filename: str)-> datetime.datetime:
         return datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime)
     DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
-    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, filetype: FileType=FileType.UNKNOWN):
+    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file() and timestamp == AUTOTIMESTAMP:
             self.timestamp = FileInfo._get_timestamp(filename)
         else:
             self.timestamp = timestamp
         self.filetype = filetype
+        self.aanvraag_id = aanvraag_id
     def __str__(self): 
         return f'{self.filename}: {str(self.filetype)} [{FileInfo.timestamp_to_str(self.timestamp)}]'    
     @property    
@@ -72,6 +73,8 @@ class FileInfo:
         if  self.timestamp != value.timestamp:            
             return False
         if  self.filetype != value.filetype:
+            return False
+        if  self.aanvraag_id != value.aanvraag_id:
             return False
         return True
 
@@ -120,10 +123,9 @@ class AanvraagBeoordeling(Enum):
         return STRS[self]
 
 class AanvraagInfo:
-    def __init__(self, fileinfo: FileInfo, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, versie =1):        
+    def __init__(self, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, versie =1):        
         self.id = id
         self._dateparser = DateParser()
-        self.fileinfo = fileinfo
         self.student = student
         self.bedrijf = bedrijf
         self.datum_str = datum_str
@@ -146,11 +148,9 @@ class AanvraagInfo:
             return False
         if  self.bedrijf != value.bedrijf:
             return False
-        if  self.fileinfo != value.fileinfo:
-            return False
         return True
     def valid(self):
-        return self.student.valid() and self.bedrijf.valid() and self.fileinfo.filetype == FileType.AANVRAAG_PDF
+        return self.student.valid() and self.bedrijf.valid() 
     @property
     def datum(self): 
         return self.__datum

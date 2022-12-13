@@ -25,7 +25,6 @@ def get_file_timestamp(timestamp:datetime.datetime, filename: str)->datetime.dat
 
 @dataclass
 class _AanvraagData:
-    pdf_file:str = ''
     datum_str = ''
     student = ''
     studnr = ''
@@ -41,16 +40,15 @@ class AanvraagReaderFromPDF:
     def __str__(self):
         return f'file:"{self.filename}" aanvraag: "{str(self.aanvraag)}"'
     def read_pdf(self, pdf_file: str)->AanvraagInfo:
-        aanvraag_data = _AanvraagData(pdf_file=pdf_file)
+        aanvraag_data = _AanvraagData()
         tables = tabula.read_pdf(pdf_file,pages='all')
         self._parse_main_data(tables[0], aanvraag_data)
         self._parse_title(tables[2], aanvraag_data)
         return self.__convert_data(aanvraag_data)
     def __convert_data(self, aanvraag_data: _AanvraagData)->AanvraagInfo:
-        fileinfo = FileInfo(aanvraag_data.pdf_file, AUTOTIMESTAMP, FileType.AANVRAAG_PDF)
         bedrijf = Bedrijf(aanvraag_data.bedrijf)
         student = StudentInfo(aanvraag_data.student, aanvraag_data.studnr, aanvraag_data.telno, aanvraag_data.email)
-        return AanvraagInfo(fileinfo, student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
+        return AanvraagInfo(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
     def __convert_fields(self, fields_dict:dict, translation_table, aanvraag_data: _AanvraagData):
         for field in translation_table:            
             setattr(aanvraag_data, translation_table[field], fields_dict.get(field, 'NOT FOUND'))
@@ -111,7 +109,7 @@ class AanvraagDataImporter(AanvraagProcessor):
             if not aanvraag.valid():
                 logError(f'Aanvraag not valid: {aanvraag}')
                 return None
-            self.storage.create_aanvraag(aanvraag) 
+            self.storage.create_aanvraag(aanvraag, FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)) 
             self.aanvragen.append(aanvraag)
             logPrint(aanvraag)
             return aanvraag
