@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from time import sleep
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
@@ -13,7 +14,7 @@ class BeoordelingenMailMerger(MailMerger):
         return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.versie}.docx'
     def __merge_document(self, aanvraag: AanvraagInfo):
         output_filename = self.__get_output_filename(aanvraag)
-        full_name = self.process(output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=aanvraag.versie)
+        full_name = self.process(output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.versie))
         self.storage.create_fileinfo(FileInfo(full_name, filetype=FileType.OORDEEL_DOCX))
     def merge_documents(self, aanvragen: list[AanvraagInfo])->int:
         result = 0

@@ -40,13 +40,6 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
 
-class StudentBedrijfAanvraagTableDefinition(TableDefinition):
-    def __init__(self):
-        super().__init__('STUDENTBEDRIJFAANVRAGEN')
-        self.add_column('stud_nr', dbc.TEXT, primary = True)
-        self.add_column('bedrijf_id', dbc.INTEGER, primary = True)
-        self.add_column('aanvraag_id', dbc.INTEGER, primary = True)
-
 class FileTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('FILES')
@@ -60,16 +53,12 @@ class AAPSchema(Schema):
         self.add_table(StudentTableDefinition())
         self.add_table(BedrijfTableDefinition())
         self.add_table(AanvraagTableDefinition())
-        self.add_table(StudentBedrijfAanvraagTableDefinition())
         self.add_table(FileTableDefinition())
         self.__define_foreign_keys()
     def __define_foreign_keys(self):
         self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('filename', 'FILES', 'filename', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('STUDENTBEDRIJFAANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('STUDENTBEDRIJFAANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('STUDENTBEDRIJFAANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False):

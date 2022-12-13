@@ -1,6 +1,5 @@
-from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentBedrijfAanvraagTableDefinition, StudentTableDefinition
+from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition
 from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo
-from database.SQL import SQLselect
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
@@ -86,27 +85,6 @@ class CRUD_studenten(CRUDbase):
     def delete(self, studnr: str):
         super().delete(where=SQE('stud_nr', Ops.EQ, studnr))
 
-class CRUD_StudentBedrijfAanvragen(CRUDbase):
-    def __init__(self, database: Database):
-        super().__init__(database, StudentBedrijfAanvraagTableDefinition())
-    def __get_all_columns(self, include_key = True):        
-        result = ['stud_nr', 'bedrijf_id', 'aanvraag_id'] if include_key else []        
-        return result
-    def __get_all_values(self, aanvraag: AanvraagInfo, include_key = True):
-        result = [aanvraag.student.studnr, aanvraag.bedrijf.id, aanvraag.id] if include_key else []
-        return result
-    def create(self, aanvraag: AanvraagInfo):
-        super().create(columns=self.__get_all_columns(), values=self.__get_all_values(aanvraag))   
-    def read(self, studnr: str, bedrijf_id: int, aanvraag_id: int)->list:# returns list of the values or None, nothing else in the recoard
-        if super().read(where=SQE(SQE(SQE('stud_nr', Ops.EQ, studnr), Ops.AND, SQE('bedrijf_id', Ops.EQ, bedrijf_id), Ops.AND, SQE('aanvraag_id', Ops.EQ, aanvraag_id)))):
-            return [studnr, bedrijf_id, aanvraag_id]
-        else:
-            return None
-    def update(self, aanvraag: AanvraagInfo):
-        raise Exception(f'StudentBedrijfAanvragen koppeltabel is read-only {studInfo.studnr} - {bedrijf.id} - {aanvraag.id}')
-    def delete(self, studnr: str, bedrijf_id: int, aanvraag_id: int):
-        super().delete(where=SQE(SQE(SQE('stud_nr', Ops.EQ, studnr), Ops.AND, SQE('bedrijf_id', Ops.EQ, bedrijf_id), Ops.AND, SQE('aanvraag_id', Ops.EQ, aanvraag_id))))
-
 class CRUD_aanvragen(CRUDbase):
     def __init__(self, database: Database):
         super().__init__(database, AanvraagTableDefinition())
@@ -153,7 +131,7 @@ class AAPStorage:
         self.crud_bedrijven = CRUD_bedrijven(database)
         self.crud_studenten = CRUD_studenten(database)
         self.crud_aanvragen = CRUD_aanvragen(database)
-        self.crud_student_bedrijf_aanvragen = CRUD_StudentBedrijfAanvragen(database)
+        # self.crud_student_bedrijf_aanvragen = CRUD_StudentBedrijfAanvragen(database)
 
     def create_bedrijf(self, bedrijf: Bedrijf):
         if row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [bedrijf.bedrijfsnaam], True):
@@ -194,20 +172,15 @@ class AAPStorage:
             self.create_fileinfo(aanvraag.fileinfo)
         if not (student := self.read_student(aanvraag.student.studnr)):
             self.create_student(aanvraag.student)
-    def __count_student_bedrijf_aanvragen(self, aanvraag: AanvraagInfo):
-        if (row := self.database._execute_sql_command('select count(aanvraag_id) from STUDENTBEDRIJFAANVRAGEN where stud_nr=? and bedrijf_id=?',
-                                    [aanvraag.student.studnr, aanvraag.bedrijf.id], True)):
-            print(list(row[0]))
+    def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
+        if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.studnr], True)):
             return row[0][0]
         else:
             return 0
     def create_aanvraag(self, aanvraag: AanvraagInfo):
-        print(aanvraag)
         self.__create_aanvraag_references(aanvraag)
-        aanvraag.versie = self.__count_student_bedrijf_aanvragen(aanvraag) + 1
-        print('VErsie: ', aanvraag.versie)
+        aanvraag.versie = self.__count_student_aanvragen(aanvraag) + 1
         self.crud_aanvragen.create(aanvraag)
-        self.crud_student_bedrijf_aanvragen.create(aanvraag)
     def read_aanvraag(self, id: int)->AanvraagInfo:
         return self.crud_aanvragen.read(id)
     def update_aanvraag(self, aanvraag: AanvraagInfo):
@@ -223,6 +196,11 @@ class AAPStorage:
             return list(filter(filter_func, result))
         else:
             return result
+    def max_aanvraag_id(self):
+        if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
+            return row[0][0]           
+        else:
+            return 0        
     def commit(self):
         self.database.commit()
     

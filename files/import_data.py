@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import datetime
 import datetime
-import logging
 import re
 from pathlib import Path
 import pandas as pd
@@ -10,6 +9,7 @@ from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
 from general.log import logError, logPrint, logWarn
+from general.valid_email import is_valid_email, try_extract_email
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
@@ -100,6 +100,17 @@ class AanvraagDataImporter(AanvraagProcessor):
             if self.is_duplicate(aanvraag):            
                 logWarn(f'Duplicate file: {filename}.\nAlready imported {str(aanvraag)}')
                 return None
+            if not is_valid_email(aanvraag.student.email):
+                new_email = try_extract_email(aanvraag.student.email, True)
+                if new_email:
+                    logWarn(f'Aanvraag email not valid ({aanvraag.student.email}), corrected to {new_email}.')
+                    aanvraag.student.email = new_email
+                else:
+                    logError(f'Aanvraag email not valid: {aanvraag.student.email}')
+                    return None
+            if not aanvraag.valid():
+                logError(f'Aanvraag not valid: {aanvraag}')
+                return None
             self.storage.create_aanvraag(aanvraag) 
             self.aanvragen.append(aanvraag)
             logPrint(aanvraag)
@@ -119,10 +130,13 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
     except Exception as E:
         logError(f'Error importing {filename}: {E}\n{ERRCOMMENT}')        
 
-def import_directory(directory: str, storage: AAPStorage):
+def import_directory(directory: str, storage: AAPStorage)->tuple[int,int]:
+    min_id = storage.max_aanvraag_id() + 1
     logPrint(f'Start importing from {directory}...')
     importer = AanvraagDataImporter(storage)
     for file in Path(directory).glob('*.pdf'):
         _import_aanvraag(file, importer)
+    max_id = storage.max_aanvraag_id()    
     logPrint(f'...Import ready')
+    return (min_id, max_id)
         

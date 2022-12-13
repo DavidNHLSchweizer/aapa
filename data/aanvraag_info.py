@@ -3,14 +3,10 @@ from dataclasses import dataclass
 import datetime
 from enum import Enum
 from pathlib import Path
-import re
 from database.dbConst import EMPTY_ID
 from general.date_parser import DateParser
+from general.valid_email import is_valid_email
 
-
-def is_valid_email(email: str)->bool:
-    email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-    return re.compile(email_regex).match(email) is not None
 
 @dataclass
 class Bedrijf:        
@@ -47,7 +43,7 @@ class FileInfo:
     DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
     def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, filetype: FileType=FileType.UNKNOWN):
         self.filename = str(filename) # to remove the WindowsPath label if needed
-        if timestamp == AUTOTIMESTAMP:
+        if Path(filename).is_file() and timestamp == AUTOTIMESTAMP:
             self.timestamp = FileInfo._get_timestamp(filename)
         else:
             self.timestamp = timestamp
@@ -137,19 +133,15 @@ class AanvraagInfo:
         self.status:AanvraagStatus=status
     def __str__(self):
         versie_str = '' if self.versie == 1 else f'({self.versie})'
-        s = f'{str(self.student)} - {self.datum_str}: {self.bedrijf.bedrijfsnaam}{versie_str} - "{self.titel}" [{str(self.status)}]'
+        s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'
         if self.beoordeling != AanvraagBeoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
     def __eq__(self, value: AanvraagInfo):
-        self_date,_ = self._dateparser.parse_date(self.datum_str)
-        value_date,_= self._dateparser.parse_date(self.datum_str)
         if  self.datum_str != value.datum_str:
             return False
         if  self.titel != value.titel:
             return False
-        # if  self.versie != value.versie:
-        #     return False
         if  self.student != value.student:
             return False
         if  self.bedrijf != value.bedrijf:
