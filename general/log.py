@@ -1,7 +1,10 @@
 import logging
 
-def logPrint(msg: str):
+def logInfo(msg: str):
     logging.info(msg)
+
+def logPrint(msg: str):
+    logInfo(msg)
     print(msg)
 
 def logWarn(msg: str):

@@ -8,7 +8,7 @@ import tabula
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
-from general.log import logError, logPrint, logWarn
+from general.log import logError, logPrint, logWarn, logInfo
 from general.valid_email import is_valid_email, try_extract_email
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
@@ -88,6 +88,7 @@ class AanvraagReaderFromPDF:
 
 class AanvraagDataImporter(AanvraagProcessor):
     def process(self, filename: str)->AanvraagInfo:
+        logPrint(f'Lezen {filename}')
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
             if self.is_duplicate(fileinfo):            
@@ -104,8 +105,11 @@ class AanvraagDataImporter(AanvraagProcessor):
             if not aanvraag.valid():
                 logError(f'Aanvraag is ongeldig: {aanvraag}')
                 return None            
+            logInfo(f'--- Start storing imported data from PDF {filename}')
             self.storage.create_aanvraag(aanvraag, fileinfo) 
             self.aanvragen.append(aanvraag)
+            self.storage.commit()
+            logInfo(f'--- Succes storing imported data from PDF {filename}')
             logPrint(aanvraag)
             return aanvraag
         return None
@@ -114,10 +118,8 @@ class AanvraagDataImporter(AanvraagProcessor):
         
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
     try:
-        logPrint(f'*** IMPORTEREN {filename}')
-        if importer.process(filename):            
-            importer.storage.commit()
-    except Exception as E:
+        importer.process(filename)
+    except PDFReaderException as E:
         logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
 
 def import_directory(directory: str, storage: AAPStorage)->tuple[int,int]:

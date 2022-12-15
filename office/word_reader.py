@@ -24,6 +24,7 @@ class WordReader:
     def open_document(self, doc_path):
         if self.document:
             self.close()
+        print(doc_path)
         self.word.Documents.Open(doc_path, ReadOnly=-1)
         self._document = self.word.ActiveDocument
         self.doc_path = doc_path
