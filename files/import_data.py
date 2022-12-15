@@ -91,18 +91,18 @@ class AanvraagDataImporter(AanvraagProcessor):
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
             if self.is_duplicate(fileinfo):            
-                logWarn(f'Duplicate file: {filename}.\nAlready imported {str(aanvraag)}')
+                logWarn(f'Duplikaat: {filename}.\nal in database: {str(aanvraag)}')
                 return None
             if not is_valid_email(aanvraag.student.email):
                 new_email = try_extract_email(aanvraag.student.email, True)
                 if new_email:
-                    logWarn(f'Aanvraag email not valid ({aanvraag.student.email}), corrected to {new_email}.')
+                    logWarn(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
                     aanvraag.student.email = new_email
                 else:
-                    logError(f'Aanvraag email not valid: {aanvraag.student.email}')
+                    logError(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
                     return None
             if not aanvraag.valid():
-                logError(f'Aanvraag not valid: {aanvraag}')
+                logError(f'Aanvraag is ongeldig: {aanvraag}')
                 return None            
             self.storage.create_aanvraag(aanvraag, fileinfo) 
             self.aanvragen.append(aanvraag)
@@ -114,19 +114,19 @@ class AanvraagDataImporter(AanvraagProcessor):
         
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
     try:
-        logPrint(f'*** IMPORTING {filename}')
+        logPrint(f'*** IMPORTEREN {filename}')
         if importer.process(filename):            
             importer.storage.commit()
     except Exception as E:
-        logError(f'Error importing {filename}: {E}\n{ERRCOMMENT}')        
+        logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
 
 def import_directory(directory: str, storage: AAPStorage)->tuple[int,int]:
     min_id = storage.max_aanvraag_id() + 1
-    logPrint(f'Start importing from {directory}...')
+    logPrint(f'Start import van map  {directory}...')
     importer = AanvraagDataImporter(storage)
     for file in Path(directory).glob('*.pdf'):
         _import_aanvraag(file, importer)
     max_id = storage.max_aanvraag_id()    
-    logPrint(f'...Import ready')
+    logPrint(f'...Import afgerond')
     return (min_id, max_id)
         

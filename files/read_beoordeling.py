@@ -74,7 +74,7 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
         try:
             self.reader.open_document(docpath)
             grade = self.reader.read_data()
-            print(f'{aanvraag}: {grade}')
+            logPrint(f'{aanvraag}: {grade}')
             self.__process_grade(aanvraag, docpath, grade)
         except WordReaderException as E:
             logError(E)
@@ -89,10 +89,8 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
             if self.file_is_modified(aanvraag, docpath):
                 self.process_file(aanvraag, docpath)
 
-        # self.merger.merge_documents(self.filtered_aanvragen(filter_func))
-
 def read_beoordelingen_files(storage: AAPStorage, filter_func = None):
-    logPrint('--- Verwerken beoordeelde bestanden...')
+    logPrint('--- Verwerken beoordeelde formulieren...')
     BP=BeoordelingenReaderProcessor(storage)
     BP.process(filter_func)
-    logPrint('--- Einde verwerken beoordeelde bestanden.')
+    logPrint('--- Einde verwerken beoordeelde formulieren.')

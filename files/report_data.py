@@ -28,7 +28,7 @@ class AanvraagDataXLS:
     def number_rows(self):
         return self.sheet.max_row
     def close(self):
-        print(f'Wrote report ({self.number_rows()-1} aanvragen) to {self.xls_filename}.')
+        print(f'Rapport  ({self.number_rows()-1} aanvragen) geschreven naar {self.xls_filename}.')
         self.writer.close()
 
 class AanvraagDataXLSReporter(AanvraagProcessor):

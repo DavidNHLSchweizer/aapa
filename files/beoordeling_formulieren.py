@@ -5,6 +5,7 @@ from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from files.mail_merge import MailMerger
+from general.log import logPrint
 
 class BeoordelingenMailMerger(MailMerger):
     def __init__(self, storage: AAPStorage, template_doc: str, output_directory: str):
@@ -36,5 +37,7 @@ class BeoordelingenFileCreator(AanvraagProcessor):
         self.merger.merge_documents(self.filtered_aanvragen(filter_func))
 
 def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None):
+    logPrint('--- Maken beoordelingsformulieren...')
     file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
     file_creator.process(filter_func)
+    logPrint('--- Einde maken beoordelingsformulieren.')
