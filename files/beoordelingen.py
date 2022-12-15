@@ -15,7 +15,7 @@ class BeoordelingenMailMerger(MailMerger):
     def __merge_document(self, aanvraag: AanvraagInfo):
         output_filename = self.__get_output_filename(aanvraag)
         full_name = self.process(output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr))
-        self.storage.create_fileinfo(FileInfo(full_name, filetype=FileType.OORDEEL_DOCX, aanvraag_id=aanvraag.id))
+        self.storage.create_fileinfo(FileInfo(full_name, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
     def merge_documents(self, aanvragen: list[AanvraagInfo])->int:
         result = 0
         if len(aanvragen) > 0 and not self.output_directory.is_dir():

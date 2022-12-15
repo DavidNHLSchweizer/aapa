@@ -1,12 +1,14 @@
 from pathlib import Path
 import win32com.client as win32, pywintypes
 
-def path_with_suffix(filename, suffix):
-    path = Path(filename)
-    return path.parent.joinpath(f'{path.stem}{suffix}')
+from general.fileutil import path_with_suffix
+from general.log import logPrint
+
+class WordReaderException(Exception):pass
 
 wdFormatFilteredHTML = 10
 wdFormatPDF = 17
+wdDoNotSaveChanges = 0
 class WordReader:
     def __init__(self, doc_path=None):
         self.word= win32.Dispatch('word.application')
@@ -24,19 +26,21 @@ class WordReader:
             self.close()
         self.word.Documents.Open(doc_path, ReadOnly=-1)
         self._document = self.word.ActiveDocument
-    def _save_as(self, file_format, suffix):
+        self.doc_path = doc_path
+    def _save_as(self, file_format, suffix):        
         save_name = str(path_with_suffix(self.doc_path, suffix))
         self.document.SaveAs(save_name, FileFormat=file_format)
         return save_name
     def save_as_pdf(self):
-        self._save_as(wdFormatPDF, '.pdf')
+        return self._save_as(wdFormatPDF, '.pdf')
     def save_as_htm(self):
-        self._save_as(wdFormatFilteredHTML, '.htm')
+        return self._save_as(wdFormatFilteredHTML, '.htm')
     def close(self):
         try:
             if self.document:
-                self.document.Close()
+                self.document.Close(SaveChanges=wdDoNotSaveChanges)
             self._document = None
+            self.doc_path = ''
         except pywintypes.com_error as E:
             pass 
         # the COM system sometimes seems to close itself when not necessary, 
