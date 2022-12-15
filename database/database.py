@@ -8,6 +8,7 @@ import database.dbConst as dbc
 from database.tabledef import TableDefinition
 from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
+from general.log import logInfo
 
 class SchemaTableDef(TableDefinition):
     def __init__(self):
@@ -35,8 +36,10 @@ class Database:
         result = cls(filename, _reset_flag = True)
         result.__clear()        
         result._reset_flag = False
+        logInfo('Start reading and creating schema')
         for table in schema.tables():
             result.create_table(table)
+        logInfo('End reading and creating schema')
         return result
     def __clear(self):
         try:

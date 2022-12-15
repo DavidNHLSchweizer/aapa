@@ -23,12 +23,12 @@ class AanvraagDataXLS:
         for aanvraag in aanvragen:
             self.sheet.append(self.__to_sheet_row(aanvraag))
     def __to_sheet_row(self, aanvraag: AanvraagInfo):
-        return [aanvraag.fileinfo.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
-                aanvraag.datum_str, str(aanvraag.versie), aanvraag.bedrijf.bedrijfsnaam, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
+        return [aanvraag.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
+                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.bedrijfsnaam, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
     def number_rows(self):
         return self.sheet.max_row
     def close(self):
-        print(f'Wrote report ({self.number_rows()-1} aanvragen) to {self.xls_filename}.')
+        print(f'Rapport  ({self.number_rows()-1} aanvragen) geschreven naar {self.xls_filename}.')
         self.writer.close()
 
 class AanvraagDataXLSReporter(AanvraagProcessor):

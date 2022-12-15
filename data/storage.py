@@ -1,5 +1,5 @@
 from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition
-from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo
+from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
@@ -34,33 +34,33 @@ class CRUD_files(CRUDbase):
         super().__init__(database, FileTableDefinition())
     def __get_all_columns(self, include_key = True):
         result = ['filename'] if include_key else []        
-        result.extend(['timestamp', 'filetype'] )
+        result.extend(['timestamp', 'filetype', 'aanvraag_id'] )
         return result
     def __get_all_values(self, fileinfo: FileInfo, include_key = True):
         result = [str(fileinfo.filename)] if include_key else []        
-        result.extend([CRUD_files.__timestamp_to_value(fileinfo.timestamp), CRUD_files.__filetype_to_value(fileinfo.filetype)])
+        result.extend([CRUD_files._timestamp_to_value(fileinfo.timestamp), CRUD_files._filetype_to_value(fileinfo.filetype), fileinfo.aanvraag_id])
         return result
     def create(self, fileinfo: FileInfo):
         super().create(columns=self.__get_all_columns(), values=self.__get_all_values(fileinfo))   
     @staticmethod
-    def __filename_to_value(filename: str):
+    def _filename_to_value(filename: str):
         return f'{filename}'
     @staticmethod
-    def __timestamp_to_value(timestamp):
+    def _timestamp_to_value(timestamp):
         return FileInfo.timestamp_to_str(timestamp)
     @staticmethod
-    def __filetype_to_value(filetype: FileType):
+    def _filetype_to_value(filetype: FileType):
         return filetype.value
     def read(self, filename: str)->FileInfo:
-        if row:=super().read(where=SQE('filename', Ops.EQ, CRUD_files.__filename_to_value(filename), no_column_ref = True)):
-            return FileInfo(filename, FileInfo.str_to_timestamp(row['timestamp']), FileType(row['filetype']))
+        if row:=super().read(where=SQE('filename', Ops.EQ, CRUD_files._filename_to_value(filename), no_column_ref = True)):
+            return FileInfo(filename, timestamp=FileInfo.str_to_timestamp(row['timestamp']), filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id'])
         else:
             return None
     def update(self, fileinfo: FileInfo):
         super().update(columns=self.__get_all_columns(False), values=self.__get_all_values(fileinfo, False), 
-            where=SQE('filename', Ops.EQ, CRUD_files.__filename_to_value(fileinfo.filename), no_column_ref=True))
+            where=SQE('filename', Ops.EQ, CRUD_files._filename_to_value(fileinfo.filename), no_column_ref=True))
     def delete(self, filename: str):
-        super().delete(where=SQE('filename', Ops.EQ, CRUD_files.__filename_to_value(filename), no_column_ref=True))
+        super().delete(where=SQE('filename', Ops.EQ, CRUD_files._filename_to_value(filename), no_column_ref=True))
 
 class CRUD_studenten(CRUDbase):
     def __init__(self, database: Database):
@@ -90,7 +90,7 @@ class CRUD_aanvragen(CRUDbase):
         super().__init__(database, AanvraagTableDefinition())
     def __get_all_columns(self, include_key = True):
         result = ['id'] if include_key else []
-        result.extend(['filename', 'stud_nr', 'bedrijf_id', 'datum_str', 'titel', 'versie', 'beoordeling', 'status'])
+        result.extend(['stud_nr', 'bedrijf_id', 'datum_str', 'titel', 'aanvraag_nr', 'beoordeling', 'status'])
         return result
     @staticmethod
     def __beoordeling_to_value(beoordeling: AanvraagBeoordeling):
@@ -100,16 +100,15 @@ class CRUD_aanvragen(CRUDbase):
         return status.value
     def __get_all_values(self, docInfo: AanvraagInfo, include_key = True):
         result = [docInfo.id] if include_key else []
-        result.extend([str(docInfo.fileinfo.filename),  docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, docInfo.versie, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
+        result.extend([docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, docInfo.aanvraag_nr, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
         return result
     def create(self, docInfo: AanvraagInfo):
         docInfo.id = get_next_key(AanvraagTableDefinition.KEY_FOR_ID)
         super().create(columns=self.__get_all_columns(False), values=self.__get_all_values(docInfo, False))
     def __build_aanvraag(self, row)->AanvraagInfo:
-        fileinfo = CRUD_files(self.database).read(row['filename'])
         student = CRUD_studenten(self.database).read(row['stud_nr'])
         bedrijf = CRUD_bedrijven(self.database).read(row['bedrijf_id'])
-        result =  AanvraagInfo(fileinfo, student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'], versie = row['versie'])
+        result =  AanvraagInfo(student, bedrijf=bedrijf, datum_str=row['datum_str'], titel=row['titel'],beoordeling=AanvraagBeoordeling(row['beoordeling']), status=AanvraagStatus(row['status']), id=row['id'], aanvraag_nr=row['aanvraag_nr'])
         return result
     def read(self, id: int)->AanvraagInfo:
         if row:=super().read(where=SQE('id', Ops.EQ, id)):
@@ -131,7 +130,6 @@ class AAPStorage:
         self.crud_bedrijven = CRUD_bedrijven(database)
         self.crud_studenten = CRUD_studenten(database)
         self.crud_aanvragen = CRUD_aanvragen(database)
-        # self.crud_student_bedrijf_aanvragen = CRUD_StudentBedrijfAanvragen(database)
 
     def create_bedrijf(self, bedrijf: Bedrijf):
         if row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [bedrijf.bedrijfsnaam], True):
@@ -168,21 +166,29 @@ class AAPStorage:
             aanvraag.bedrijf.id = row[0]['id']
         else:
             self.create_bedrijf(aanvraag.bedrijf)
-        if not self.read_fileinfo(aanvraag.fileinfo.filename):
-            self.create_fileinfo(aanvraag.fileinfo)
         if not (student := self.read_student(aanvraag.student.studnr)):
             self.create_student(aanvraag.student)
+    def __create_sourcefile(self, aanvraag_id,  source_file: FileInfo):
+        source_file.aanvraag_id = aanvraag_id
+        if (self.read_fileinfo(source_file.filename)):
+            self.update_fileinfo(source_file)
+        else:
+            self.create_fileinfo(source_file)
     def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
         if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.studnr], True)):
             return row[0][0]
         else:
             return 0
-    def create_aanvraag(self, aanvraag: AanvraagInfo):
+    def create_aanvraag(self, aanvraag: AanvraagInfo, source_file: FileInfo):
         self.__create_aanvraag_references(aanvraag)
-        aanvraag.versie = self.__count_student_aanvragen(aanvraag) + 1
+        aanvraag.files.set_info(source_file)
+        aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
         self.crud_aanvragen.create(aanvraag)
+        self.__create_sourcefile(aanvraag.id, source_file)
     def read_aanvraag(self, id: int)->AanvraagInfo:
-        return self.crud_aanvragen.read(id)
+        aanvraag = self.crud_aanvragen.read(id)
+        aanvraag.files = self.find_fileinfos(aanvraag.id)
+        return aanvraag
     def update_aanvraag(self, aanvraag: AanvraagInfo):
         self.crud_aanvragen.update(aanvraag)
     def delete_aanvraag(self, id: int):
@@ -196,6 +202,21 @@ class AAPStorage:
             return list(filter(filter_func, result))
         else:
             return result
+    def find_fileinfo(self, aanvraag_id: int, filetype: FileType)->FileInfo:
+        if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
+                [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
+            return self.crud_files.read(row[0]['filename'])
+        return None
+    def find_fileinfos(self, aanvraag_id: int)->FileInfos:
+        result = FileInfos(aanvraag_id)
+        for ft in FileType:
+            if ft == FileType.UNKNOWN:
+                continue
+            if (fileinfo:=self.find_fileinfo(aanvraag_id, ft)):
+                result.set_info(fileinfo)
+            else:
+                result.reset_info(ft)
+        return result        
     def max_aanvraag_id(self):
         if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
             return row[0][0]           
