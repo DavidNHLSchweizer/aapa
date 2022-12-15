@@ -13,10 +13,12 @@ class WordReader:
         self.word.visible = 0
         self.doc_path = doc_path
         self._document = None
-        @property 
-        def document(self):
-            return self._document
-        self._document = self.open_document(str(doc_path)) if doc_path else None
+    @property 
+    def document(self):
+        return self._document
+    # @document.setter
+    # def document(self, value):
+    #     self._document = self.open_document(str(doc_path)) if doc_path else None
     def open_document(self, doc_path):
         if self.document:
             self.close()
