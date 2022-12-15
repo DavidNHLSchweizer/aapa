@@ -11,11 +11,11 @@ class BeoordelingenMailMerger(MailMerger):
         super().__init__(template_doc, output_directory)
         self.storage = storage
     def __get_output_filename(self, info: AanvraagInfo):
-        return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.versie}.docx'
+        return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
     def __merge_document(self, aanvraag: AanvraagInfo):
         output_filename = self.__get_output_filename(aanvraag)
-        full_name = self.process(output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.versie))
-        self.storage.create_fileinfo(FileInfo(full_name, filetype=FileType.OORDEEL_DOCX))
+        full_name = self.process(output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr))
+        self.storage.create_fileinfo(FileInfo(full_name, filetype=FileType.OORDEEL_DOCX, aanvraag_id=aanvraag.id))
     def merge_documents(self, aanvragen: list[AanvraagInfo])->int:
         result = 0
         if len(aanvragen) > 0 and not self.output_directory.is_dir():

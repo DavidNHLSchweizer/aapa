@@ -17,7 +17,6 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('first_name', dbc.TEXT)
         self.add_column('email', dbc.TEXT)
         self.add_column('tel_nr', dbc.TEXT)
-        self.add_column('aanvragen', dbc.INTEGER)
 
 class BedrijfTableDefinition(TableDefinition):
     KEY_FOR_ID = 'Bedrijf' # key in general.keys used to generate IDs
@@ -35,7 +34,7 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('bedrijf_id', dbc.INTEGER)
         self.add_column('datum_str', dbc.TEXT)
         self.add_column('titel', dbc.TEXT)
-        self.add_column('versie', dbc.INTEGER)
+        self.add_column('aanvraag_nr', dbc.INTEGER)
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
 
@@ -58,7 +57,6 @@ class AAPSchema(Schema):
     def __define_foreign_keys(self):
         self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('AANVRAGEN').add_foreign_key('filename', 'FILES', 'filename', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('FILES').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 class AAPDatabase(Database):

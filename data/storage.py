@@ -90,7 +90,7 @@ class CRUD_aanvragen(CRUDbase):
         super().__init__(database, AanvraagTableDefinition())
     def __get_all_columns(self, include_key = True):
         result = ['id'] if include_key else []
-        result.extend(['stud_nr', 'bedrijf_id', 'datum_str', 'titel', 'versie', 'beoordeling', 'status'])
+        result.extend(['stud_nr', 'bedrijf_id', 'datum_str', 'titel', 'aanvraag_nr', 'beoordeling', 'status'])
         return result
     @staticmethod
     def __beoordeling_to_value(beoordeling: AanvraagBeoordeling):
@@ -100,7 +100,7 @@ class CRUD_aanvragen(CRUDbase):
         return status.value
     def __get_all_values(self, docInfo: AanvraagInfo, include_key = True):
         result = [docInfo.id] if include_key else []
-        result.extend([docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, docInfo.versie, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
+        result.extend([docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, docInfo.aanvraag_nr, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
         return result
     def create(self, docInfo: AanvraagInfo):
         docInfo.id = get_next_key(AanvraagTableDefinition.KEY_FOR_ID)
@@ -108,7 +108,7 @@ class CRUD_aanvragen(CRUDbase):
     def __build_aanvraag(self, row)->AanvraagInfo:
         student = CRUD_studenten(self.database).read(row['stud_nr'])
         bedrijf = CRUD_bedrijven(self.database).read(row['bedrijf_id'])
-        result =  AanvraagInfo(student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'], versie = row['versie'])
+        result =  AanvraagInfo(student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'], aanvraag_nr = row['aanvraag_nr'])
         return result
     def read(self, id: int)->AanvraagInfo:
         if row:=super().read(where=SQE('id', Ops.EQ, id)):
@@ -181,11 +181,17 @@ class AAPStorage:
             return 0
     def create_aanvraag(self, aanvraag: AanvraagInfo, source_file: FileInfo):
         self.__create_aanvraag_references(aanvraag)
-        aanvraag.versie = self.__count_student_aanvragen(aanvraag) + 1
+        aanvraag.timestamp = source_file.timestamp
+        aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
         self.crud_aanvragen.create(aanvraag)
         self.__create_sourcefile(aanvraag.id, source_file)
     def read_aanvraag(self, id: int)->AanvraagInfo:
-        return self.crud_aanvragen.read(id)
+        aanvraag = self.crud_aanvragen.read(id)
+        print(f'aanvraag ({aanvraag.id}): {aanvraag}')
+        fileinfo = self.find_fileinfo(aanvraag.id, FileType.AANVRAAG_PDF)
+        print(fileinfo)
+        aanvraag.timestamp = fileinfo.timestamp
+        return aanvraag
     def update_aanvraag(self, aanvraag: AanvraagInfo):
         self.crud_aanvragen.update(aanvraag)
     def delete_aanvraag(self, id: int):

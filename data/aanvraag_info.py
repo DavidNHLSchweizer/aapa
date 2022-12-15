@@ -78,6 +78,7 @@ class FileInfo:
             return False
         return True
 
+class FileInfo
 class StudentInfo:
     def __init__(self, student_name='', studnr='', telno='', email=''):        
         self.student_name = student_name
@@ -123,18 +124,20 @@ class AanvraagBeoordeling(Enum):
         return STRS[self]
 
 class AanvraagInfo:
-    def __init__(self, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, versie =1):        
+    def __init__(self, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', timestamp:datetime.datetime=AUTOTIMESTAMP, beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, aanvraag_nr = 1):        
         self.id = id
         self._dateparser = DateParser()
         self.student = student
         self.bedrijf = bedrijf
         self.datum_str = datum_str
+        self.timestamp = timestamp
         self.titel = titel
-        self.versie = versie
+        self.aanvraag_nr = aanvraag_nr
         self.beoordeling:AanvraagBeoordeling=beoordeling
         self.status:AanvraagStatus=status
+
     def __str__(self):
-        versie_str = '' if self.versie == 1 else f'({self.versie})'
+        versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
         s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'
         if self.beoordeling != AanvraagBeoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
@@ -147,6 +150,8 @@ class AanvraagInfo:
         if  self.student != value.student:
             return False
         if  self.bedrijf != value.bedrijf:
+            return False
+        if  self.timestamp != value.timestamp:
             return False
         return True
     def valid(self):

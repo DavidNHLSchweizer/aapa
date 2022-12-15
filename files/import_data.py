@@ -108,8 +108,9 @@ class AanvraagDataImporter(AanvraagProcessor):
                     return None
             if not aanvraag.valid():
                 logError(f'Aanvraag not valid: {aanvraag}')
-                return None
+                return None            
             self.storage.create_aanvraag(aanvraag, FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)) 
+            print(f'aanvraag: {aanvraag.timestamp}  : {aanvraag}')
             self.aanvragen.append(aanvraag)
             logPrint(aanvraag)
             return aanvraag
