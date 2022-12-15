@@ -17,12 +17,6 @@ class PDFReaderException(Exception): pass
 def nrows(table: pd.DataFrame)->int:
     return table.shape[0]
 
-def get_file_timestamp(timestamp:datetime.datetime, filename: str)->datetime.datetime:
-    if timestamp:
-        return timestamp
-    else:
-        return datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime)
-
 @dataclass
 class _AanvraagData:
     datum_str = ''
@@ -95,7 +89,8 @@ class AanvraagReaderFromPDF:
 class AanvraagDataImporter(AanvraagProcessor):
     def process(self, filename: str)->AanvraagInfo:
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
-            if self.is_duplicate(aanvraag):            
+            fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
+            if self.is_duplicate(fileinfo):            
                 logWarn(f'Duplicate file: {filename}.\nAlready imported {str(aanvraag)}')
                 return None
             if not is_valid_email(aanvraag.student.email):
@@ -109,17 +104,13 @@ class AanvraagDataImporter(AanvraagProcessor):
             if not aanvraag.valid():
                 logError(f'Aanvraag not valid: {aanvraag}')
                 return None            
-            self.storage.create_aanvraag(aanvraag, FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)) 
-            print(f'aanvraag: {aanvraag.timestamp}  : {aanvraag}')
+            self.storage.create_aanvraag(aanvraag, fileinfo) 
             self.aanvragen.append(aanvraag)
             logPrint(aanvraag)
             return aanvraag
         return None
-    def is_duplicate(self, aanvraag: AanvraagInfo):
-        for a in self.aanvragen:
-            if a == aanvraag:
-                return True
-        return False
+    def is_duplicate(self, file: FileInfo):
+        return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.timestamp == file.timestamp
         
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
     try:

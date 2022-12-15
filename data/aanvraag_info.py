@@ -24,13 +24,12 @@ class Bedrijf:
 class FileType(Enum):
     UNKNOWN      = -1
     AANVRAAG_PDF = 0
-    EXPORT_XLSX  = 1
     OORDEEL_DOCX = 2
     OORDEEL_PDF  = 3
     MAIL_DOCX    = 4
     MAIL_HTM     = 5
     def __str__(self):
-        STR_DICT = {FileType.UNKNOWN: '?', FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)', FileType.EXPORT_XLSX: 'Excel file (summary)', 
+        STR_DICT = {FileType.UNKNOWN: '?', FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
                     FileType.OORDEEL_DOCX: 'Beoordeling (Word format)', FileType.OORDEEL_PDF: 'Beoordeling (Word format)', 
                     FileType.MAIL_DOCX: 'Mail message body (Word format)', FileType.MAIL_HTM: 'Mail message body (HTM format)'
                     }
@@ -60,13 +59,13 @@ class FileInfo:
     @staticmethod
     def __rounded_timestamp(value):
         #remove possible milliseconds so that the string can be read uniformly from the database if needed
-        return FileInfo.str_to_timestamp(FileInfo.timestamp_to_str(value))
+        return FileInfo.str_to_timestamp(FileInfo.timestamp_to_str(value)) if value != AUTOTIMESTAMP else AUTOTIMESTAMP
     @staticmethod
-    def timestamp_to_str(value):
-        return datetime.datetime.strftime(value, FileInfo.DATETIME_FORMAT)
+    def timestamp_to_str(value):        
+        return datetime.datetime.strftime(value, FileInfo.DATETIME_FORMAT) if value != AUTOTIMESTAMP else '' 
     @staticmethod
     def str_to_timestamp(value):
-        return datetime.datetime.strptime(value, FileInfo.DATETIME_FORMAT)
+        return datetime.datetime.strptime(value, FileInfo.DATETIME_FORMAT) if value else AUTOTIMESTAMP
     def __eq__(self, value: FileInfo):
         if  self.filename != value.filename:
             return False
@@ -78,7 +77,32 @@ class FileInfo:
             return False
         return True
 
-class FileInfo
+class FileInfos:
+    def __init__(self, aanvraag_id=EMPTY_ID):
+        self.aanvraag_id = aanvraag_id
+        self.__files = {ft:{'filename': '', 'timestamp':AUTOTIMESTAMP} for ft in FileType if ft != FileType.UNKNOWN}
+    def get_filename(self, ft: FileType)->str:
+        return self.__files[ft]['filename']
+    def set_filename(self, ft: FileType, value: str):
+        self.__files[ft]['filename'] = value
+    def get_timestamp(self, ft: FileType)->datetime.datetime:
+        return self.__files[ft]['timestamp']
+    def set_timestamp(self, ft: FileType, value:datetime.datetime):
+        self.__files[ft]['timestamp'] = value
+    def get_info(self, ft: FileType)->FileInfo:
+        return FileInfo(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
+    def set_info(self, fi: FileInfo):
+        if fi.filetype != FileType.UNKNOWN:
+            self.set_filename(fi.filetype, fi.filename)
+            self.set_timestamp(fi.filetype, fi.timestamp)
+    def reset_info(self, ft: FileType):
+        self.set_info(FileInfo('', AUTOTIMESTAMP, ft))
+    def reset(self):
+        for ft in FileType:
+            if ft != FileType.UNKNOWN:
+                self.reset_info(ft)
+
+
 class StudentInfo:
     def __init__(self, student_name='', studnr='', telno='', email=''):        
         self.student_name = student_name
@@ -124,18 +148,39 @@ class AanvraagBeoordeling(Enum):
         return STRS[self]
 
 class AanvraagInfo:
-    def __init__(self, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', timestamp:datetime.datetime=AUTOTIMESTAMP, beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, aanvraag_nr = 1):        
-        self.id = id
+    def __init__(self, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: FileInfo = None, beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, aanvraag_nr = 1):        
+        self._id = id
         self._dateparser = DateParser()
         self.student = student
         self.bedrijf = bedrijf
         self.datum_str = datum_str
-        self.timestamp = timestamp
+        self._files = FileInfos(id)
+        if source_info:
+            self._files.set_info(source_info)
+        else:
+            self._files.reset()
         self.titel = titel
         self.aanvraag_nr = aanvraag_nr
         self.beoordeling:AanvraagBeoordeling=beoordeling
         self.status:AanvraagStatus=status
-
+    @property
+    def id(self):
+        return self._id
+    @id.setter
+    def id(self, value):
+        self._id = value
+        self._files.aanvraag_id = value
+    @property
+    def files(self)->FileInfos:
+        return self._files
+    @files.setter
+    def files(self, files: FileInfos):
+        for ft in FileType:
+            if ft != FileType.UNKNOWN:
+                self.files.set_info(files.get_info(ft))
+    @property
+    def timestamp(self):
+        return self.files.get_timestamp(FileType.AANVRAAG_PDF)
     def __str__(self):
         versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
         s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'

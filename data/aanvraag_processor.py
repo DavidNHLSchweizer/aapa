@@ -1,6 +1,10 @@
 from data.aanvraag_info import AanvraagInfo, FileType
 from data.storage import AAPStorage
 
+def dumpaanvragen(aanvragen):
+    print('dumpi')
+    for aanvraag in aanvragen:
+        print(f'aanvraag: {aanvraag}   timestamp: {aanvraag.timestamp}  source: {aanvraag.files.get_info(FileType.AANVRAAG_PDF)}')
 class AanvraagProcessor:
     def __init__(self, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
         self.storage = storage

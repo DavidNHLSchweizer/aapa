@@ -1,6 +1,6 @@
 
 from pathlib import Path
-from aanvraag_info import AanvraagInfo, AanvraagStatus
+from aanvraag_info import AanvraagInfo, AanvraagStatus, FileType
 from aanvraag_processor import AanvraagProcessor
 from files.word_reader import WordReader
 from storage import AAPStorage
@@ -43,11 +43,8 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
         for aanvraag in self.filtered_aanvragen(filter_func):
             if aanvraag.status != AanvraagStatus.NEEDS_GRADING:
                 continue
-            docpath = self.__find_docpath(aanvraag, )
+            docpath = aanvraag.files.get_filename(FileType.OORDEEL_DOCX)
         self.merger.merge_documents(self.filtered_aanvragen(filter_func))
-    def __find_docpath(self, aanvraag):
-        file = self.storage.find_fileinfo()
-        OORDEEL_DOCX
-def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None):
-    file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
-    file_creator.process(filter_func)
+# def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None):
+    # file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
+    # file_creator.process(filter_func) 

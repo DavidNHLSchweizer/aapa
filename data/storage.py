@@ -1,5 +1,5 @@
 from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition
-from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileType, StudentInfo
+from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
@@ -53,7 +53,7 @@ class CRUD_files(CRUDbase):
         return filetype.value
     def read(self, filename: str)->FileInfo:
         if row:=super().read(where=SQE('filename', Ops.EQ, CRUD_files._filename_to_value(filename), no_column_ref = True)):
-            return FileInfo(filename, FileInfo.str_to_timestamp(row['timestamp']), FileType(row['filetype']), row['aanvraag_id'])
+            return FileInfo(filename, timestamp=FileInfo.str_to_timestamp(row['timestamp']), filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id'])
         else:
             return None
     def update(self, fileinfo: FileInfo):
@@ -108,7 +108,7 @@ class CRUD_aanvragen(CRUDbase):
     def __build_aanvraag(self, row)->AanvraagInfo:
         student = CRUD_studenten(self.database).read(row['stud_nr'])
         bedrijf = CRUD_bedrijven(self.database).read(row['bedrijf_id'])
-        result =  AanvraagInfo(student, bedrijf,  row['datum_str'], row['titel'], AanvraagBeoordeling(row['beoordeling']), AanvraagStatus(row['status']), id=row['id'], aanvraag_nr = row['aanvraag_nr'])
+        result =  AanvraagInfo(student, bedrijf=bedrijf, datum_str=row['datum_str'], titel=row['titel'],beoordeling=AanvraagBeoordeling(row['beoordeling']), status=AanvraagStatus(row['status']), id=row['id'], aanvraag_nr=row['aanvraag_nr'])
         return result
     def read(self, id: int)->AanvraagInfo:
         if row:=super().read(where=SQE('id', Ops.EQ, id)):
@@ -181,16 +181,13 @@ class AAPStorage:
             return 0
     def create_aanvraag(self, aanvraag: AanvraagInfo, source_file: FileInfo):
         self.__create_aanvraag_references(aanvraag)
-        aanvraag.timestamp = source_file.timestamp
+        aanvraag.files.set_info(source_file)
         aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
         self.crud_aanvragen.create(aanvraag)
         self.__create_sourcefile(aanvraag.id, source_file)
     def read_aanvraag(self, id: int)->AanvraagInfo:
         aanvraag = self.crud_aanvragen.read(id)
-        print(f'aanvraag ({aanvraag.id}): {aanvraag}')
-        fileinfo = self.find_fileinfo(aanvraag.id, FileType.AANVRAAG_PDF)
-        print(fileinfo)
-        aanvraag.timestamp = fileinfo.timestamp
+        aanvraag.files = self.find_fileinfos(aanvraag.id)
         return aanvraag
     def update_aanvraag(self, aanvraag: AanvraagInfo):
         self.crud_aanvragen.update(aanvraag)
@@ -210,6 +207,16 @@ class AAPStorage:
                 [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
             return self.crud_files.read(row[0]['filename'])
         return None
+    def find_fileinfos(self, aanvraag_id: int)->FileInfos:
+        result = FileInfos(aanvraag_id)
+        for ft in FileType:
+            if ft == FileType.UNKNOWN:
+                continue
+            if (fileinfo:=self.find_fileinfo(aanvraag_id, ft)):
+                result.set_info(fileinfo)
+            else:
+                result.reset_info(ft)
+        return result        
     def max_aanvraag_id(self):
         if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
             return row[0][0]           
