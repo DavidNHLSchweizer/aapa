@@ -2,6 +2,7 @@
 *.xlsx
 *.log
 *.docx
+*.htm
 !template*.docx
 ?.py
 ??.py

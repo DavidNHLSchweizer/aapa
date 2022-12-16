@@ -13,8 +13,8 @@ class AAPA:
     def __init__(self, recreate = False):
         self.database = initialize_database(recreate)
         self.storage  = initialize_storage(self.database)
-    def do_requests(self, input_directory: str, output_directory: str):
-        process_directory(input_directory, self.storage, output_directory)
+    def do_requests(self, input_directory: str, output_directory: str, recursive=False):
+        process_directory(input_directory, self.storage, output_directory, recursive)
     def do_graded_requests(self, output_directory: str):
         process_graded(self.storage, output_directory)
     @staticmethod
@@ -24,7 +24,7 @@ class AAPA:
 if __name__=='__main__':
     print(AAPA.banner())
 
-    data = [r'C:\repos\aapa\week47', r'C:\repos\aapa\week48', r'C:\repos\aapa\week49', r'C:\repos\aapa\week50']
+    data = r'C:\repos\aapa\testdata'
 
     def verifyRecreate():
         return tkimb.askyesno('Vraagje', 'Alle data wordt verwijderd. Is dat echt wat je wilt?', default = tkimb.NO, icon=tkimb.WARNING) 
@@ -32,7 +32,6 @@ if __name__=='__main__':
     recreate = len(sys.argv) > 1  and sys.argv[1].lower() == '/r' and verifyRecreate()
     aapa = AAPA(recreate)
     if recreate:
-        for d in data[0:4]:
-            aapa.do_requests(d, r'.\new_requests')
+        aapa.do_requests(data, r'.\new_requests', True)
     else:
         aapa.do_graded_requests(r'.\temp')
