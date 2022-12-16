@@ -84,7 +84,7 @@ class Database:
         try:
             c = self.connection.cursor()
             if parameters:
-                self.log_info(f'{string} + {parameters}')
+                self.log_info(f'{string} {parameters}')
                 c.execute('' + string + '', parameters)
             else:
                 self.log_info(string)
