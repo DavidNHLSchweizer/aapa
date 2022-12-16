@@ -1,24 +1,23 @@
 from pathlib import Path
 from time import sleep
 from data.aanvraag_processor import AanvraagProcessor
-from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from office.mail_merge import MailMerger
 from data.storage import AAPStorage
 from office.mail_sender import OutlookMail, OutlookMailDef
 from office.word_reader import WordReader, WordReaderException
 from general.log import logError, logInfo, logPrint
 
-test = r'C:\repos\aapa\temp\Mail Hindrik Sibma(4684044) (MplusKASSA)-1.docx'
 class FeedbackMailMerger(MailMerger):
-    def __init__(self, storage: AAPStorage, template_docs:dict, output_directory: str):
+    def __init__(self, storage: AAPStorage, template_docs:dict, default_maildef: OutlookMailDef, output_directory: str):
         super().__init__( output_directory)
         self.storage = storage
         self.template_docs = template_docs
+        self.default_maildef = default_maildef
     def __get_output_filename(self, info: AanvraagInfo):
         return f'Mail {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
     def __convert_to_htm(self, reader: WordReader, doc_path: str): 
             try:
-                # doc_path=test
                 reader.open_document(doc_path)
                 return reader.save_as_htm()
             except WordReaderException as W:
@@ -26,6 +25,29 @@ class FeedbackMailMerger(MailMerger):
     def __merge_document(self, aanvraag: AanvraagInfo)->str:
         output_filename = self.__get_output_filename(aanvraag)
         return self.process(self.template_docs[aanvraag.beoordeling], output_filename, voornaam=aanvraag.student.first_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam)
+    def __store_attachment_info(self, aanvraag: AanvraagInfo, doc_path, htm_path):
+        logInfo(f'--- Start storing data for feedback mail {aanvraag}')
+        aanvraag.status = AanvraagStatus.MAIL_READY
+        self.storage.update_aanvraag(aanvraag)
+        self.storage.create_fileinfo(FileInfo(doc_path, filetype=FileType.MAIL_DOCX, aanvraag_id=aanvraag.id))
+        #TODO: dit is niet echt nodig, de DOCX kan ook wel meteen weg
+        self.storage.create_fileinfo(FileInfo(htm_path, filetype=FileType.MAIL_HTM, aanvraag_id=aanvraag.id))
+        self.storage.commit()
+        logInfo(f'--- Succes storing data for feedback mail {aanvraag}')
+    def __create_attachment(self, aanvraag: AanvraagInfo, reader: WordReader)->str:
+        doc_path = self.__merge_document(aanvraag)
+        htm_path = self.__convert_to_htm(reader, str(doc_path))
+        logPrint(f'Document voor feedbackmail aangemaakt: {htm_path}.')
+        self.__store_attachment_info(aanvraag, doc_path, htm_path) 
+        return htm_path
+    def __create_mail(self, aanvraag: AanvraagInfo, htm_path: str, mailer: OutlookMail):
+        filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
+        with open(htm_path, mode='r') as htm_file:               
+            mail_data = self.default_maildef.copy()
+            mail_data.mailto=aanvraag.student.email+'.test.niet.verzenden'
+            mail_data.mailbody=htm_file.read()
+            mail_data.attachments=[filename]
+        mailer.draft_item(mail_data)
     def merge_documents(self, aanvragen: list[AanvraagInfo])->int:
         result = 0
         reader = WordReader()
@@ -36,35 +58,21 @@ class FeedbackMailMerger(MailMerger):
         for aanvraag in aanvragen:
             if aanvraag.status != AanvraagStatus.GRADED:
                 continue            
-            doc_path = self.__merge_document(aanvraag)
-            # print(f'{doc_path} ({doc_path.__class__})')
-            htm_path = self.__convert_to_htm(reader,str(doc_path))
-            logPrint(f'Document voor feedbackmail aangemaakt: {htm_path}.')
-            logInfo(f'--- Start storing data for feedback mail {aanvraag}')
-            aanvraag.status = AanvraagStatus.MAIL_READY
-            self.storage.update_aanvraag(aanvraag)
-            self.storage.create_fileinfo(FileInfo(doc_path, filetype=FileType.MAIL_DOCX, aanvraag_id=aanvraag.id))
-            self.storage.create_fileinfo(FileInfo(htm_path, filetype=FileType.MAIL_HTM, aanvraag_id=aanvraag.id))
-            self.storage.commit()
-            logInfo(f'--- Succes storing data for feedback mail {aanvraag}')
-            filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
-            with open(htm_path, mode='r') as htm_file:               
-                mail_data= OutlookMailDef(subject='Beoordeling aanvraag afstuderen', mailto=aanvraag.student.email+'.test.niet.verzenden', 
-                mailbody=htm_file.read(), bcc=['david.schweizer@nhlstenden.com'], attachments=[filename])
-            mailer.draft_item(mail_data)
+            htm_path = self.__create_attachment(aanvraag, reader)
+            self.__create_mail(aanvraag, htm_path, mailer)
             result += 1
         reader.close()
         return result
 
 class FeedbackMailsCreator(AanvraagProcessor):
-    def __init__(self, storage: AAPStorage, template_docs:dict, output_directory: Path, aanvragen: list[AanvraagInfo] = None):
+    def __init__(self, storage: AAPStorage, template_docs:dict, default_maildef: OutlookMailDef, output_directory: Path, aanvragen: list[AanvraagInfo] = None):
         super().__init__(storage, aanvragen)
-        self.merger = FeedbackMailMerger(storage, template_docs, output_directory)
+        self.merger = FeedbackMailMerger(storage, template_docs, default_maildef, output_directory)
     def process(self, filter_func = None):
         self.merger.merge_documents(self.filtered_aanvragen(filter_func))
 
-def create_feedback_mails(storage: AAPStorage, template_docs:dict, output_directory, filter_func = None):
-    logPrint('--- Klaarzetten feecback mails...')
-    file_creator = FeedbackMailsCreator(storage, template_docs, output_directory)
+def create_feedback_mails(storage: AAPStorage, templates: dict, default_maildef: OutlookMailDef, output_directory, filter_func = None):
+    logPrint('--- Klaarzetten feedback mails...')
+    file_creator = FeedbackMailsCreator(storage, templates, default_maildef, output_directory)
     file_creator.process(filter_func)
     logPrint('--- Einde klaarzetten feedback mails.')

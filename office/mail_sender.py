@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 from enum import Enum
 import win32com.client as win32
 
@@ -21,7 +21,9 @@ class OutlookMailDef:
         self.cc = cc
         self.bcc = bcc
         self.attachments = attachments
-
+    def copy(self)->OutlookMailDef:
+        return OutlookMailDef(self.subject, self.mailto, self.mailbody, self.mailType,self.cc, self.bcc, self.attachments)
+        
 olMailItem = 0
 olSave = 0
 class OutlookMail:
