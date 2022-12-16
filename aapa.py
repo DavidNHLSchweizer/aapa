@@ -4,7 +4,7 @@ from office.graded_requests import process_graded
 from general.config import config
 from process.database import initialize_database, initialize_storage
 from process.requests import process_directory
-
+from data.aanvraag_info import AanvraagBeoordeling
 def init_config():
     config.set_default('general', 'version','0.7')
 init_config()
@@ -31,6 +31,7 @@ if __name__=='__main__':
 
     recreate = len(sys.argv) > 1  and sys.argv[1].lower() == '/r' and verifyRecreate()
     aapa = AAPA(recreate)
+    
     if recreate:
         aapa.do_requests(data, r'.\new_requests', True)
     else:

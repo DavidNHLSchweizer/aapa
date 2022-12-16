@@ -145,8 +145,14 @@ class AanvraagBeoordeling(Enum):
     ONVOLDOENDE   = 1
     VOLDOENDE     = 2
     def __str__(self):
-        STRS = {AanvraagBeoordeling.TE_BEOORDELEN: '', AanvraagBeoordeling.ONVOLDOENDE: 'onvoldoende', AanvraagBeoordeling.VOLDOENDE: 'voldoende'}
-        return STRS[self]
+        return _AB_STRS[self]
+    @staticmethod
+    def from_str(string)->AanvraagBeoordeling:
+        for key,value in _AB_STRS.items():
+            if string == value:
+                return key
+        return None
+_AB_STRS = {AanvraagBeoordeling.TE_BEOORDELEN: '', AanvraagBeoordeling.ONVOLDOENDE: 'onvoldoende', AanvraagBeoordeling.VOLDOENDE: 'voldoende'}
 
 class AanvraagInfo:
     def __init__(self, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: FileInfo = None, beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, aanvraag_nr = 1):        
