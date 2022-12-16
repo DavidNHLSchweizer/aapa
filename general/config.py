@@ -22,6 +22,12 @@ class Config (Singleton):
             self.__sections[section_key] = {value_key: value}
         else:
             section[value_key] = value
+
+    def ini_write(self, filename):
+        with open(filename, mode='w') as ini:
+            for key in self.__sections.keys():
+                ini.write(f'[{key}]')
+            
     def write(self, fp): #TODO: do this  (and read, obviously) in a more readable fileformat, e.g. .INI 
                         # (challenge: make it work for lists, enum or dicts, 
                         # without knowing anything about the underlying data)

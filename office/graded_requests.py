@@ -7,7 +7,7 @@ from office.read_beoordeling import read_beoordelingen_files
 def init_config():
     config.set_default('mail', 'feedback_mail_templates', {AanvraagBeoordeling.ONVOLDOENDE: r'.\templates\template_afgekeurd.docx', AanvraagBeoordeling.VOLDOENDE:r'.\templates\template_goedgekeurd.docx' })
     config.set_default('mail', 'subject', 'Beoordeling aanvraag afstuderen')
-    config.set_default('mail', 'cc', ['afstuderenchoolofict@nhlstenden.com'])
+    config.set_default('mail', 'cc', ['afstuderenschoolofict@nhlstenden.com'])
     config.set_default('mail', 'bcc', ['david.schweizer@nhlstenden.com'])
 init_config()
 def __get_default_maildef():
