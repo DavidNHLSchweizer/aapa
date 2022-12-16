@@ -41,6 +41,7 @@ class FeedbackMailMerger(MailMerger):
             htm_path = self.__convert_to_htm(reader,str(doc_path))
             logPrint(f'Document voor feedbackmail aangemaakt: {htm_path}.')
             logInfo(f'--- Start storing data for feedback mail {aanvraag}')
+            aanvraag.status = AanvraagStatus.MAIL_READY
             self.storage.update_aanvraag(aanvraag)
             self.storage.create_fileinfo(FileInfo(doc_path, filetype=FileType.MAIL_DOCX, aanvraag_id=aanvraag.id))
             self.storage.create_fileinfo(FileInfo(htm_path, filetype=FileType.MAIL_HTM, aanvraag_id=aanvraag.id))

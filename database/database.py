@@ -8,7 +8,7 @@ import database.dbConst as dbc
 from database.tabledef import TableDefinition
 from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
-from general.log import logInfo
+from general.log import logError, logInfo
 
 class SchemaTableDef(TableDefinition):
     def __init__(self):
@@ -52,9 +52,9 @@ class Database:
             self.enable_foreign_keys()
             pass
     def log_info(self, str):
-        logging.info(one_line(str))
+        logInfo(f'DB:{one_line(str)}')
     def log_error(self, str):
-        logging.error(str)
+        logError(str)
     def close(self):
         self.commit()
         self.connection.close()
