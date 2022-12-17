@@ -2,6 +2,7 @@ from pathlib import Path
 from time import sleep
 from data.aanvraag_processor import AanvraagProcessor
 from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from general.fileutil import created_directory
 from office.mail_merge import MailMerger
 from data.storage import AAPStorage
 from office.mail_sender import OutlookMail, OutlookMailDef
@@ -73,6 +74,8 @@ class FeedbackMailsCreator(AanvraagProcessor):
 
 def create_feedback_mails(storage: AAPStorage, templates: dict, default_maildef: OutlookMailDef, output_directory, filter_func = None):
     logPrint('--- Klaarzetten feedback mails...')
+    if created_directory(output_directory):
+        logPrint(f'Map {output_directory} aangemaakt.')
     file_creator = FeedbackMailsCreator(storage, templates, default_maildef, output_directory)
     file_creator.process(filter_func)
     logPrint('--- Einde klaarzetten feedback mails.')

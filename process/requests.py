@@ -6,6 +6,7 @@ def init_config():
     config.set_default('requests', 'form_template',r'.\templates\template 0.7.docx')
 init_config()
 
-def process_directory(input_directory, storage, output_directory, recursive = False):
+def process_directory(input_directory, storage, output_directory, recursive = True):
     (min_id, max_id) = import_directory(input_directory, storage, recursive)
-    create_beoordelingen_files(storage, config.get('requests', 'form_template'), output_directory, lambda a: a.id >= min_id and a.id <= max_id)
+    if max_id > max_id:
+        create_beoordelingen_files(storage, config.get('requests', 'form_template'), output_directory, lambda a: a.id >= min_id and a.id <= max_id)

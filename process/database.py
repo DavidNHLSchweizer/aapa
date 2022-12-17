@@ -18,9 +18,8 @@ def __create_database(name, recreate = False)->Database:
         print(f'--- OPENEN DATABASE {name} ---')
         return  db.AAPDatabase(name)
 
-def initialize_database(recreate = False)->Database:
-    name = config.get('database', 'database_name')
-    return __create_database(name, recreate)
+def initialize_database(database_name, recreate = False)->Database:
+    return __create_database(database_name, recreate)
 
 def initialize_storage(database: Database)->AAPStorage:
     return AAPStorage(database)

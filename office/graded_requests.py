@@ -24,7 +24,6 @@ def template_dict_from_config(config_templates: dict):
         result[AanvraagBeoordeling.from_str(key)] = value
     return result
 
-
 def process_graded(storage, output_directory, filter_func = None):
     read_beoordelingen_files(storage, filter_func)
     create_feedback_mails(storage, template_dict_from_config(config.get('mail', 'feedback_mail_templates')), __get_default_maildef(), output_directory, filter_func)

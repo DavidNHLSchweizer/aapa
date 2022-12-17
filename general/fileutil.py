@@ -64,6 +64,12 @@ def test_directory_exists(directory: str):
         return p
     else:
         return None
+def created_directory(directory: str)->bool:
+    if not Path(directory).is_dir():
+        Path(directory).mkdir(parents=True)
+        return True
+    else:
+        return False
 
 def list_files(folder_name, patterns)->list[str]:
     result = []

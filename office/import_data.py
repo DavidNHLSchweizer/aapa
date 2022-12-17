@@ -122,10 +122,13 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
     except PDFReaderException as E:
         logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
 
-def import_directory(directory: str, storage: AAPStorage, recursive = False)->tuple[int,int]:
+def import_directory(directory: str, storage: AAPStorage, recursive = True)->tuple[int,int]:
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf' 
     min_id = storage.max_aanvraag_id() + 1
+    if not Path(directory).is_dir():
+        logWarn(f'Map {directory} bestaat niet. Afbreken.')
+        return (min_id,min_id)
     logPrint(f'Start import van map  {directory}...')
     importer = AanvraagDataImporter(storage)
     for file in Path(directory).glob(_get_pattern(recursive)):

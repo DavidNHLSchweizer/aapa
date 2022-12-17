@@ -69,9 +69,9 @@ class Config (Singleton):
 
 config = Config()
 
-config.set_default('general', 'default_directory',Path(sys.argv[0]).root)
-didi = config.get('general', 'default_directory')
-config.set_default('general', 'config_file','aapa_config.json')
+config.set_default('configuration', 'default_directory',Path(sys.argv[0]).root)
+didi = config.get('configuration', 'default_directory')
+config.set_default('configuration', 'config_file','aapa_config.json')
 
 def _get_config_file(directory, config_file):
     try:
