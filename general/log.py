@@ -1,5 +1,6 @@
 import logging
 
+
 def logInfo(msg: str):
     logging.info(msg)
 

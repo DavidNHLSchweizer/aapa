@@ -59,12 +59,11 @@ class Database:
         self.commit()
         self.connection.close()
         self.log_info('connection closed...')
-
     def _init_logging(self, filename):        
         if Database._logging_initialized: 
             return
         filename = Path(filename).parent.joinpath('logs').joinpath(Path(filename).name+'.log')
-        logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7)], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+        logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
         Database._logging_initialized = True
         self.log_info('logging started...')
     def enable_foreign_keys(self):

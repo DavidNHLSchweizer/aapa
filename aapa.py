@@ -59,11 +59,14 @@ class AAPA:
             config.set('configuration', config_name, result)
         else:
             result = config.get('configuration', config_name)
-        return Path(result).resolve()
+        if result:
+            return Path(result).resolve()
+        else:
+            return None
     def process(self):
-        if not self.noscan:
+        if not self.noscan and self.root:
             process_directory(self.root, self.storage, self.forms_directory)
-        if not self.nomail:
+        if not self.nomail and self.mail_directory:
             process_graded(self.storage, self.mail_directory)
         if self.cleanup:
             cleanup_files(self.storage)
