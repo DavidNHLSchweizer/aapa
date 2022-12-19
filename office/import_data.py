@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import datetime
-import datetime
 import re
 from pathlib import Path
 import pandas as pd
@@ -13,6 +12,7 @@ from general.valid_email import is_valid_email, try_extract_email
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
+NOTFOUND = 'NOT FOUND'
 
 def nrows(table: pd.DataFrame)->int:
     return table.shape[0]
@@ -45,7 +45,7 @@ class AanvraagReaderFromPDF:
         return AanvraagInfo(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
     def __convert_fields(self, fields_dict:dict, translation_table, aanvraag_data: _AanvraagData):
         for field in translation_table:            
-            setattr(aanvraag_data, translation_table[field], fields_dict.get(field, 'NOT FOUND'))
+            setattr(aanvraag_data, translation_table[field], fields_dict.get(field, NOTFOUND))
     def __parse_table(self, table: pd.DataFrame, start_row, end_row, translation_table, aanvraag_data: _AanvraagData):
         table_dict = {}
         if start_row >= nrows(table) or end_row >= nrows(table):
@@ -59,15 +59,27 @@ class AanvraagReaderFromPDF:
             if isinstance(table.values[row][0], str): #sometimes there is an empty cell that is parsed by tabula as a float NAN
                 table.values[row][0] = table.values[row][0].replace('\r', '')
     def _parse_main_data(self, table: pd.DataFrame, aanvraag_data: _AanvraagData):        
-        student_dict_fields = {'Datum/revisie': 'datum_str', 'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf'}
-        student_dict_len  = len(student_dict_fields) + 5 # een beetje langer ivm bedrijfsnaam
+        student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf'}
+        student_dict_len  = len(student_dict_fields) + 5 # een beetje langer ivm bedrijfsnaam        
         self.__rectify_table(table, 0, student_dict_len)
         self.__parse_table(table, 0, student_dict_len, student_dict_fields, aanvraag_data)
+        self.parse_datum_str(table, aanvraag_data)        
+    def parse_datum_str(self, table, aanvraag_data: _AanvraagData):
+        # supports older version of form as well
+        datum_dict_fields = [{'Datum/revisie': 'datum_str'}, {'Aanvraagdatum': 'datum_str'}]
+        for versie in datum_dict_fields:
+            self.__parse_table(table, 0, len(versie), versie, aanvraag_data)
+            if aanvraag_data.datum_str != NOTFOUND:
+                break
     def _parse_title(self, table: pd.DataFrame, aanvraag_data: _AanvraagData)->str:
-        #regex because some students somehow lose the '.' characters or renumber the paragraphs
-        start_paragraph  = '\d.*\(Voorlopige, maar beschrijvende\) Titel van de afstudeeropdracht'
-        end_paragraph    = '\d.*Wat is de aanleiding voor de opdracht\?'         
-        aanvraag_data.titel = ' '.join(self.__get_strings_from_table(table, start_paragraph, end_paragraph))
+        #regex because some students somehow lose the '.' characters or renumber the paragraphs, also older versions of the form have different paragraphs
+        regex_versies = [{'start':'\d.*\(Voorlopige, maar beschrijvende\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\?'},
+                         {'start':'\d.*Titel van de afstudeeropdracht', 'end': '\d.*Korte omschrijving van de opdracht.*'},                        
+                        ]
+        for versie in regex_versies:
+            aanvraag_data.titel = ' '.join(self.__get_strings_from_table(table, versie['start'], versie['end']))
+            if aanvraag_data.titel:
+                break
     def __get_strings_from_table(self, table:pd.DataFrame, start_paragraph_regex:str, end_paragraph_regex:str)->list[str]:
         def row_matches(table, row, pattern:re.Pattern):
             if isinstance(table.values[row][0], str):
@@ -117,8 +129,13 @@ class AanvraagDataImporter(AanvraagProcessor):
         return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.timestamp == file.timestamp
         
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
+    def is_already_imported(filename):
+        if (fileinfo := importer.known_file_info(filename)):
+            return FileInfo.get_timestamp(filename) == fileinfo.timestamp
+        return False
     try:
-        importer.process(filename)
+        if not is_already_imported(filename):    
+            importer.process(filename)
     except PDFReaderException as E:
         logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
 

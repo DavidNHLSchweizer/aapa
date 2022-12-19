@@ -3,6 +3,7 @@ import sys
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
+from general.log import logInfo
 from office.cleanup import cleanup_files
 from office.graded_requests import process_graded
 from general.config import config
@@ -41,19 +42,19 @@ class AAPA:
         self.database = initialize_database(database, recreate)
         self.storage  = initialize_storage(self.database)
     def __initialize_directories(self, options: AAPAoptions):
-        print(options)
+        logInfo(options)
         self.root = self.__get_directory(options.root, 'root','Root directory voor aanvragen', True)
         self.forms_directory = self.__get_directory(options.forms, 'forms', 'Directory voor beoordelingsformulieren')
         self.mail_directory = self.__get_directory(options.mail, 'mail', 'Directory voor mailbestanden')
-        print(self.root)
-        print(self.forms_directory)
-        print(self.mail_directory)
+        logInfo(f'root: {self.root}')
+        logInfo(f'forms: {self.forms_directory}')
+        logInfo(f'mails: {self.mail_directory}')
     def __get_directory(self, option_value, config_name, title, mustexist=False):
         if option_value is not None and not option_value:
             result = tkifd.askdirectory(mustexist=mustexist, title=title)
         else:
             result = option_value
-        if result:
+        if result and result != config.get('configuration', config_name):
             setattr(self, config_name, result)
             config.set('configuration', config_name, result)
         else:
@@ -78,3 +79,5 @@ class AAPA:
 if __name__=='__main__':
     print(AAPA.banner())
     AAPA(get_arguments()).process() 
+
+#TODO rootify everything (involve "system root")

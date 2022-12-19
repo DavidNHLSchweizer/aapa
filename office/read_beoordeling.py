@@ -51,7 +51,7 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
         pdf_file_name = self.reader.save_as_pdf()
         aanvraag.files.set_info(FileInfo(pdf_file_name, filetype=FileType.GRADED_PDF, aanvraag_id=aanvraag.id))
         logPrint(f'Feedback file aangemaakt: {pdf_file_name}.')
-    def __adapt_aanvraag(self, aanvraag: AanvraagInfo, docpath: str, grade:str):
+    def __adapt_aanvraag(self, aanvraag: AanvraagInfo, docpath: str, grade:str)->bool:
         match(grade.lower()):
             case 'voldoende':   aanvraag.beoordeling = AanvraagBeoordeling.VOLDOENDE
             case 'onvoldoende': aanvraag.beoordeling = AanvraagBeoordeling.ONVOLDOENDE
@@ -59,6 +59,7 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
                 aanvraag.beoordeling = AanvraagBeoordeling.TE_BEOORDELEN
                 raise WordReaderException(f'onverwachte beoordeling: "{grade}" in bestand {docpath}...\nKan {aanvraag} niet verwerken.')                
         aanvraag.status = AanvraagStatus.GRADED
+        return True
     def __adapt_files(self, aanvraag: AanvraagInfo, docpath: str):
         self.__reset_to_be_graded_file(aanvraag)
         self.__store_graded_file(aanvraag, docpath)
@@ -71,31 +72,40 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
         self.storage.create_fileinfo(aanvraag.files.get_info(FileType.GRADED_PDF))
         self.storage.commit()
         logInfo(f'--- End storing data for reading grade {aanvraag}')
-    def __process_grade(self, aanvraag: AanvraagInfo, docpath: str, grade:str):
-        self.__adapt_aanvraag(aanvraag, docpath, grade)
+    def __process_grade(self, aanvraag: AanvraagInfo, docpath: str, grade:str)->bool:
+        result = False
+        if self.__adapt_aanvraag(aanvraag, docpath, grade):
+            result = True
         self.__adapt_files(aanvraag, docpath)
         self.__storage_changes(aanvraag)
-    def process_file(self, aanvraag: AanvraagInfo, docpath: str):
+        return result
+    def process_file(self, aanvraag: AanvraagInfo, docpath: str)->bool:
+        result = False
         try:
             self.reader.open_document(docpath)
             grade = self.reader.read_data()
             logPrint(f'Verwerken {aanvraag}: {grade}')
-            self.__process_grade(aanvraag, docpath, grade)
+            result = self.__process_grade(aanvraag, docpath, grade)
         except WordReaderException as E:
             logError(E)
         finally:
             self.reader.close()
+        return result
 
-    def process(self, filter_func = None):
+    def process(self, filter_func = None)->int:
+        n_graded = 0
         for aanvraag in self.filtered_aanvragen(filter_func):
             if aanvraag.status != AanvraagStatus.NEEDS_GRADING:
                 continue            
             docpath = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
             if self.file_is_modified(aanvraag, docpath):
-                self.process_file(aanvraag, docpath)
+                if self.process_file(aanvraag, docpath):
+                    n_graded  += 1
+        return n_graded
 
 def read_beoordelingen_files(storage: AAPStorage, filter_func = None):
     logPrint('--- Verwerken beoordeelde formulieren...')
     BP=BeoordelingenReaderProcessor(storage)
-    BP.process(filter_func)
+    n_graded = BP.process(filter_func)
+    logPrint(f'### {n_graded} beooordeelde aanvragen verwerkt')
     logPrint('--- Einde verwerken beoordeelde formulieren.')

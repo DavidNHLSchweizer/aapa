@@ -52,13 +52,16 @@ def path_with_suffix(filename, suffix):
 def pathname_one_directory_up(path):
     return path.parent.parent.joinpath(path.stem)
 
-def test_file_exists(directory, filename: str): 
+def file_exists(filename: str)->bool: 
+    return Path(filename).is_file()
+
+def test_file_exists(directory, filename: str)->Path: 
     p = Path(directory).joinpath(filename)
     if p.is_file():
         return p
     else:
         return None
-def test_directory_exists(directory: str): 
+def test_directory_exists(directory: str)->Path: 
     p = Path(directory)
     if p.is_dir():
         return p

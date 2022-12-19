@@ -4,7 +4,7 @@ from time import sleep
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
-from general.fileutil import created_directory
+from general.fileutil import created_directory, file_exists
 from office.mail_merge import MailMerger
 from general.log import logInfo, logPrint
 
@@ -19,17 +19,31 @@ class BeoordelingenMailMerger(MailMerger):
         output_filename = self.__get_output_filename(aanvraag)
         return self.process(self.template_doc, output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr))
     def merge_documents(self, aanvragen: list[AanvraagInfo])->int:
+        def check_must_create_beoordeling(aanvraag: AanvraagInfo):
+            if aanvraag.status in [AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING]:
+                if (filename := aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)):
+                    return not file_exists(filename)
+                else:
+                    return True
+            else:
+                return False
         result = 0
         if len(aanvragen) > 0 and not self.output_directory.is_dir():
             self.output_directory.mkdir()
             logPrint(f'Map {self.output_directory} aangemaakt.')
         for aanvraag in aanvragen:
+            if not check_must_create_beoordeling(aanvraag):
+                continue
             doc_path = self.__merge_document(aanvraag)
             logPrint(f'Formulier aangemaakt: {doc_path}.')
             aanvraag.status = AanvraagStatus.NEEDS_GRADING
             logInfo(f'--- Start storing data for form {aanvraag}')
             self.storage.update_aanvraag(aanvraag)
-            self.storage.create_fileinfo(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
+            fileinfo = FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id)
+            if self.storage.find_fileinfo(aanvraag.id, FileType.TO_BE_GRADED_DOCX):
+                self.storage.update_fileinfo(fileinfo)
+            else:
+                self.storage.create_fileinfo(fileinfo)
             self.storage.commit()
             logInfo(f'--- Succes storing data for form {aanvraag}')
             result += 1
@@ -39,13 +53,14 @@ class BeoordelingenFileCreator(AanvraagProcessor):
     def __init__(self, storage: AAPStorage, template_doc: str, output_directory: Path, aanvragen: list[AanvraagInfo] = None):
         super().__init__(storage, aanvragen)
         self.merger = BeoordelingenMailMerger(storage, template_doc, output_directory)
-    def process(self, filter_func = None):
-        self.merger.merge_documents(self.filtered_aanvragen(filter_func))
+    def process(self, filter_func = None)->int:
+        return self.merger.merge_documents(self.filtered_aanvragen(filter_func))
 
-def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None):
+def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None)->int:
     logPrint('--- Maken beoordelingsformulieren...')
     if created_directory(output_directory):
         logPrint(f'Map {output_directory} aangemaakt.')
     file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
-    file_creator.process(filter_func)
+    result = file_creator.process(filter_func)
     logPrint('--- Einde maken beoordelingsformulieren.')
+    return result

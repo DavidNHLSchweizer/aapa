@@ -69,8 +69,7 @@ class Config (Singleton):
 
 config = Config()
 
-config.set_default('configuration', 'default_directory',Path(sys.argv[0]).root)
-didi = config.get('configuration', 'default_directory')
+config.set_default('configuration', 'default_directory', Path(sys.argv[0]).resolve().parent)
 config.set_default('configuration', 'config_file','aapa_config.json')
 
 def _get_config_file(directory, config_file):
@@ -81,8 +80,8 @@ def _get_config_file(directory, config_file):
 
 def _load_config():
     global config
-    default_dir  = config.get('general', 'default_directory')
-    config_file = config.get('general', 'config_file')
+    default_dir  = config.get('configuration', 'default_directory')
+    config_file = config.get('configuration', 'config_file')
     if config_file and test_file_exists(default_dir, config_file):
         with open(_get_config_file(default_dir, config_file), 'r') as file:
             config = config.read(file)
@@ -91,7 +90,7 @@ _load_config()
 @atexit.register
 def _save_config():    
     global config
-    config_file = _get_config_file(config.get('general', 'default_directory'), config.get('general', 'config_file'))
+    config_file = _get_config_file(config.get('configuration', 'default_directory'), config.get('configuration', 'config_file'))
     if config_file:
         with open(config_file, 'w', encoding='utf-8') as file:
             config.write(file)

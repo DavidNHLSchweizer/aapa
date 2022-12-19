@@ -1,0 +1,1365 @@
+2022-12-17 21:05:47- DB:logging started...
+2022-12-17 21:05:47- DB:connection (aapa.db) opened...
+2022-12-17 21:05:47- DB:pragma foreign_keys=ON
+2022-12-17 21:05:47- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:05:47- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:05:47- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:05:47- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:05:47- DB:pragma table_info(FILES)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:05:47- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:05:47- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:05:47- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:05:47- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:05:47- DB:pragma table_info(FILES)
+2022-12-17 21:05:47- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:05:47- DB:pragma foreign_keys=OFF
+2022-12-17 21:05:47- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:05:47- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:05:47- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:05:47- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:05:47- DB:Committing
+2022-12-17 21:05:47- DB:pragma foreign_keys=ON
+2022-12-17 21:05:47- Start reading and creating schema
+2022-12-17 21:05:47- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:05:47- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:05:47- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:05:47- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:05:47- End reading and creating schema
+2022-12-17 21:07:31- DB:logging started...
+2022-12-17 21:07:31- DB:connection (aapa.db) opened...
+2022-12-17 21:07:31- DB:pragma foreign_keys=ON
+2022-12-17 21:07:31- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:07:31- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:07:31- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:07:31- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:07:31- DB:pragma table_info(FILES)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:07:31- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:07:31- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:07:31- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:07:31- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:07:31- DB:pragma table_info(FILES)
+2022-12-17 21:07:31- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:07:31- DB:pragma foreign_keys=OFF
+2022-12-17 21:07:31- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:07:31- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:07:31- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:07:31- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:07:31- DB:Committing
+2022-12-17 21:07:31- DB:pragma foreign_keys=ON
+2022-12-17 21:07:31- Start reading and creating schema
+2022-12-17 21:07:31- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:07:31- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:07:31- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:07:31- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:07:31- End reading and creating schema
+2022-12-17 21:07:31- DB:select max(id) from AANVRAGEN
+2022-12-17 21:07:31- Start import van map  .\aanvragen...
+2022-12-17 21:07:31- Start reading aanvragen from database
+2022-12-17 21:07:31- DB:select id from AANVRAGEN
+2022-12-17 21:07:31- End reading aanvragen from database
+2022-12-17 21:07:31- DB:select max(id) from AANVRAGEN
+2022-12-17 21:07:31- ...Import afgerond
+2022-12-17 21:07:31- --- Maken beoordelingsformulieren...
+2022-12-17 21:07:31- Start reading aanvragen from database
+2022-12-17 21:07:31- DB:select id from AANVRAGEN
+2022-12-17 21:07:31- End reading aanvragen from database
+2022-12-17 21:10:12- DB:logging started...
+2022-12-17 21:10:12- DB:connection (aapa.db) opened...
+2022-12-17 21:10:12- DB:pragma foreign_keys=ON
+2022-12-17 21:10:12- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:10:12- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:10:12- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:10:12- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:10:12- DB:pragma table_info(FILES)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:10:12- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:10:12- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:10:12- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:10:12- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:10:12- DB:pragma table_info(FILES)
+2022-12-17 21:10:12- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:10:12- DB:pragma foreign_keys=OFF
+2022-12-17 21:10:12- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:10:12- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:10:12- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:10:12- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:10:12- DB:Committing
+2022-12-17 21:10:12- DB:pragma foreign_keys=ON
+2022-12-17 21:10:12- Start reading and creating schema
+2022-12-17 21:10:12- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:10:12- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:10:12- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:10:12- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:10:12- End reading and creating schema
+2022-12-17 21:10:12- DB:select max(id) from AANVRAGEN
+2022-12-17 21:10:12- Start import van map  .\aanvragen...
+2022-12-17 21:10:12- Start reading aanvragen from database
+2022-12-17 21:10:12- DB:select id from AANVRAGEN
+2022-12-17 21:10:12- End reading aanvragen from database
+2022-12-17 21:10:12- DB:select max(id) from AANVRAGEN
+2022-12-17 21:10:12- ...Import afgerond
+2022-12-17 21:10:12- --- Maken beoordelingsformulieren...
+2022-12-17 21:11:06- DB:logging started...
+2022-12-17 21:11:06- DB:connection (aapa.db) opened...
+2022-12-17 21:11:06- DB:pragma foreign_keys=ON
+2022-12-17 21:11:06- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:11:06- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:11:06- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:11:06- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:11:06- DB:pragma table_info(FILES)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:11:06- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:11:06- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:11:06- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:11:06- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:11:06- DB:pragma table_info(FILES)
+2022-12-17 21:11:06- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:11:06- DB:pragma foreign_keys=OFF
+2022-12-17 21:11:06- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:11:06- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:11:06- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:11:06- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:11:06- DB:Committing
+2022-12-17 21:11:06- DB:pragma foreign_keys=ON
+2022-12-17 21:11:06- Start reading and creating schema
+2022-12-17 21:11:06- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:11:06- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:11:06- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:11:06- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:11:06- End reading and creating schema
+2022-12-17 21:11:06- DB:select max(id) from AANVRAGEN
+2022-12-17 21:11:06- Start import van map  .\aanvragen...
+2022-12-17 21:11:06- Start reading aanvragen from database
+2022-12-17 21:11:06- DB:select id from AANVRAGEN
+2022-12-17 21:11:06- End reading aanvragen from database
+2022-12-17 21:11:06- DB:select max(id) from AANVRAGEN
+2022-12-17 21:11:06- ...Import afgerond
+2022-12-17 21:11:06- --- Maken beoordelingsformulieren...
+2022-12-17 21:14:43- DB:logging started...
+2022-12-17 21:14:43- DB:connection (aapa.db) opened...
+2022-12-17 21:14:43- DB:pragma foreign_keys=ON
+2022-12-17 21:14:43- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:14:43- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:14:43- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:14:43- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:14:43- DB:pragma table_info(FILES)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:14:43- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:14:43- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:14:43- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:14:43- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:14:43- DB:pragma table_info(FILES)
+2022-12-17 21:14:43- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:14:43- DB:pragma foreign_keys=OFF
+2022-12-17 21:14:43- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:14:43- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:14:43- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:14:43- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:14:43- DB:Committing
+2022-12-17 21:14:43- DB:pragma foreign_keys=ON
+2022-12-17 21:14:43- Start reading and creating schema
+2022-12-17 21:14:43- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:14:43- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:14:43- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:14:43- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:14:43- End reading and creating schema
+2022-12-17 21:14:43- DB:select max(id) from AANVRAGEN
+2022-12-17 21:14:43- Start import van map  .\aanvragen...
+2022-12-17 21:14:43- Start reading aanvragen from database
+2022-12-17 21:14:43- DB:select id from AANVRAGEN
+2022-12-17 21:14:43- End reading aanvragen from database
+2022-12-17 21:14:43- DB:select max(id) from AANVRAGEN
+2022-12-17 21:14:43- ...Import afgerond
+2022-12-17 21:14:43- --- Maken beoordelingsformulieren...
+2022-12-17 21:15:28- DB:logging started...
+2022-12-17 21:15:28- DB:connection (aapa.db) opened...
+2022-12-17 21:15:28- DB:pragma foreign_keys=ON
+2022-12-17 21:15:28- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:15:28- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:15:28- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:15:28- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:15:28- DB:pragma table_info(FILES)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:15:28- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:15:28- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:15:28- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:15:28- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:15:28- DB:pragma table_info(FILES)
+2022-12-17 21:15:28- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:15:28- DB:pragma foreign_keys=OFF
+2022-12-17 21:15:28- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:15:28- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:15:28- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:15:28- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:15:28- DB:Committing
+2022-12-17 21:15:28- DB:pragma foreign_keys=ON
+2022-12-17 21:15:28- Start reading and creating schema
+2022-12-17 21:15:28- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:15:28- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:15:28- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:15:28- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:15:28- End reading and creating schema
+2022-12-17 21:15:28- DB:select max(id) from AANVRAGEN
+2022-12-17 21:15:28- Start import van map  .\aanvragen...
+2022-12-17 21:15:28- Start reading aanvragen from database
+2022-12-17 21:15:28- DB:select id from AANVRAGEN
+2022-12-17 21:15:28- End reading aanvragen from database
+2022-12-17 21:15:28- DB:select max(id) from AANVRAGEN
+2022-12-17 21:15:28- ...Import afgerond
+2022-12-17 21:15:28- --- Maken beoordelingsformulieren...
+2022-12-17 21:18:39- DB:logging started...
+2022-12-17 21:18:39- DB:connection (aapa.db) opened...
+2022-12-17 21:18:39- DB:pragma foreign_keys=ON
+2022-12-17 21:18:39- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:18:39- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:18:39- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:18:39- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:18:39- DB:pragma table_info(FILES)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:18:39- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:18:39- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:18:39- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:18:39- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:18:39- DB:pragma table_info(FILES)
+2022-12-17 21:18:39- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:18:39- DB:pragma foreign_keys=OFF
+2022-12-17 21:18:39- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:18:39- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:18:39- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:18:39- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:18:39- DB:Committing
+2022-12-17 21:18:39- DB:pragma foreign_keys=ON
+2022-12-17 21:18:39- Start reading and creating schema
+2022-12-17 21:18:39- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:18:40- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:18:40- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:18:40- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:18:40- End reading and creating schema
+2022-12-17 21:18:40- DB:select max(id) from AANVRAGEN
+2022-12-17 21:18:40- Map .\aanvragen bestaat niet. Afbreken.
+2022-12-17 21:18:40- --- Maken beoordelingsformulieren...
+2022-12-17 21:19:50- DB:logging started...
+2022-12-17 21:19:50- DB:connection (aapa.db) opened...
+2022-12-17 21:19:50- DB:pragma foreign_keys=ON
+2022-12-17 21:19:50- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:19:50- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:19:50- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:19:50- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:19:50- DB:pragma table_info(FILES)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:19:50- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:19:50- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:19:50- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:19:50- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:19:50- DB:pragma table_info(FILES)
+2022-12-17 21:19:50- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:19:50- DB:pragma foreign_keys=OFF
+2022-12-17 21:19:50- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:19:50- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:19:50- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:19:50- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:19:50- DB:Committing
+2022-12-17 21:19:50- DB:pragma foreign_keys=ON
+2022-12-17 21:19:50- Start reading and creating schema
+2022-12-17 21:19:50- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:19:50- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:19:50- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:19:50- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:19:50- End reading and creating schema
+2022-12-17 21:19:50- DB:select max(id) from AANVRAGEN
+2022-12-17 21:19:50- Map .\aanvragen bestaat niet. Afbreken.
+2022-12-17 21:19:50- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:19:50- Start reading aanvragen from database
+2022-12-17 21:19:50- DB:select id from AANVRAGEN
+2022-12-17 21:19:50- End reading aanvragen from database
+2022-12-17 21:19:54- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:19:54- --- Klaarzetten feedback mails...
+2022-12-17 21:19:54- Start reading aanvragen from database
+2022-12-17 21:19:54- DB:select id from AANVRAGEN
+2022-12-17 21:19:54- End reading aanvragen from database
+2022-12-17 21:19:55- --- Einde klaarzetten feedback mails.
+2022-12-17 21:25:35- DB:logging started...
+2022-12-17 21:25:35- DB:connection (aapa.db) opened...
+2022-12-17 21:25:35- DB:pragma foreign_keys=ON
+2022-12-17 21:25:35- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:25:35- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:25:35- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:25:35- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:25:35- DB:pragma table_info(FILES)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:25:35- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:25:35- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:25:35- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:25:35- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:25:35- DB:pragma table_info(FILES)
+2022-12-17 21:25:35- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:25:35- DB:pragma foreign_keys=OFF
+2022-12-17 21:25:35- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-17 21:25:35- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-17 21:25:35- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-17 21:25:35- DB:DROP TABLE IF EXISTS FILES;
+2022-12-17 21:25:35- DB:Committing
+2022-12-17 21:25:35- DB:pragma foreign_keys=ON
+2022-12-17 21:25:35- Start reading and creating schema
+2022-12-17 21:25:35- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-17 21:25:35- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-17 21:25:35- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:25:35- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer,FOREIGN KEY(aanvraag_id) REFERENCES AANVRAGEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-17 21:25:35- End reading and creating schema
+2022-12-17 21:25:35- DB:select max(id) from AANVRAGEN
+2022-12-17 21:25:35- Map .\aanvragen bestaat niet. Afbreken.
+2022-12-17 21:25:35- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:25:35- Start reading aanvragen from database
+2022-12-17 21:25:35- DB:select id from AANVRAGEN
+2022-12-17 21:25:35- End reading aanvragen from database
+2022-12-17 21:25:35- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:25:35- --- Klaarzetten feedback mails...
+2022-12-17 21:25:35- Map .\aanvragen\mail aangemaakt.
+2022-12-17 21:25:35- Start reading aanvragen from database
+2022-12-17 21:25:35- DB:select id from AANVRAGEN
+2022-12-17 21:25:35- End reading aanvragen from database
+2022-12-17 21:25:38- --- Einde klaarzetten feedback mails.
+2022-12-17 21:26:10- DB:logging started...
+2022-12-17 21:26:10- DB:connection (aapa.db) opened...
+2022-12-17 21:26:10- DB:pragma foreign_keys=ON
+2022-12-17 21:26:10- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:26:10- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:26:10- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:26:10- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:26:10- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:26:10- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:26:10- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:26:10- DB:pragma table_info(FILES)
+2022-12-17 21:26:10- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:26:10- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:26:10- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:26:10- DB:select max(id) from AANVRAGEN
+2022-12-17 21:26:10- Start import van map  .\aanvragen...
+2022-12-17 21:26:10- Start reading aanvragen from database
+2022-12-17 21:26:10- DB:select id from AANVRAGEN
+2022-12-17 21:26:10- End reading aanvragen from database
+2022-12-17 21:26:10- DB:select max(id) from AANVRAGEN
+2022-12-17 21:26:10- ...Import afgerond
+2022-12-17 21:26:10- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:26:10- Start reading aanvragen from database
+2022-12-17 21:26:10- DB:select id from AANVRAGEN
+2022-12-17 21:26:10- End reading aanvragen from database
+2022-12-17 21:26:10- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:26:10- --- Klaarzetten feedback mails...
+2022-12-17 21:26:10- Start reading aanvragen from database
+2022-12-17 21:26:10- DB:select id from AANVRAGEN
+2022-12-17 21:26:10- End reading aanvragen from database
+2022-12-17 21:26:11- --- Einde klaarzetten feedback mails.
+2022-12-17 21:26:24- DB:logging started...
+2022-12-17 21:26:24- DB:connection (aapa.db) opened...
+2022-12-17 21:26:24- DB:pragma foreign_keys=ON
+2022-12-17 21:26:24- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:26:24- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:26:24- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:26:24- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:26:24- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:26:24- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:26:24- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:26:24- DB:pragma table_info(FILES)
+2022-12-17 21:26:24- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:26:24- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:26:24- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:26:24- DB:select max(id) from AANVRAGEN
+2022-12-17 21:26:24- Start import van map  .\aanvragen...
+2022-12-17 21:26:24- Start reading aanvragen from database
+2022-12-17 21:26:24- DB:select id from AANVRAGEN
+2022-12-17 21:26:24- End reading aanvragen from database
+2022-12-17 21:26:24- DB:select max(id) from AANVRAGEN
+2022-12-17 21:26:24- ...Import afgerond
+2022-12-17 21:26:24- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:26:24- Start reading aanvragen from database
+2022-12-17 21:26:24- DB:select id from AANVRAGEN
+2022-12-17 21:26:24- End reading aanvragen from database
+2022-12-17 21:26:24- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:26:24- --- Klaarzetten feedback mails...
+2022-12-17 21:26:24- Start reading aanvragen from database
+2022-12-17 21:26:24- DB:select id from AANVRAGEN
+2022-12-17 21:26:24- End reading aanvragen from database
+2022-12-17 21:26:25- --- Einde klaarzetten feedback mails.
+2022-12-17 21:28:08- DB:logging started...
+2022-12-17 21:28:08- DB:connection (aapa.db) opened...
+2022-12-17 21:28:08- DB:pragma foreign_keys=ON
+2022-12-17 21:28:08- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:28:08- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:28:08- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:28:08- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:28:08- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:28:08- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:28:08- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:28:08- DB:pragma table_info(FILES)
+2022-12-17 21:28:08- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:28:08- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:28:08- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:28:08- DB:select max(id) from AANVRAGEN
+2022-12-17 21:28:08- Start import van map  .\aanvragen...
+2022-12-17 21:28:08- Start reading aanvragen from database
+2022-12-17 21:28:08- DB:select id from AANVRAGEN
+2022-12-17 21:28:08- End reading aanvragen from database
+2022-12-17 21:28:08- DB:select max(id) from AANVRAGEN
+2022-12-17 21:28:08- ...Import afgerond
+2022-12-17 21:28:08- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:28:08- Start reading aanvragen from database
+2022-12-17 21:28:08- DB:select id from AANVRAGEN
+2022-12-17 21:28:08- End reading aanvragen from database
+2022-12-17 21:28:08- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:28:08- --- Klaarzetten feedback mails...
+2022-12-17 21:28:08- Start reading aanvragen from database
+2022-12-17 21:28:08- DB:select id from AANVRAGEN
+2022-12-17 21:28:08- End reading aanvragen from database
+2022-12-17 21:28:09- --- Einde klaarzetten feedback mails.
+2022-12-17 21:28:34- DB:logging started...
+2022-12-17 21:28:34- DB:connection (aapa.db) opened...
+2022-12-17 21:28:34- DB:pragma foreign_keys=ON
+2022-12-17 21:28:34- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:28:34- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:28:34- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:28:34- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:28:34- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:28:34- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:28:34- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:28:34- DB:pragma table_info(FILES)
+2022-12-17 21:28:34- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:28:34- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:28:34- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:28:34- DB:select max(id) from AANVRAGEN
+2022-12-17 21:28:34- Start import van map  .\aanvragen...
+2022-12-17 21:28:34- Start reading aanvragen from database
+2022-12-17 21:28:34- DB:select id from AANVRAGEN
+2022-12-17 21:28:34- End reading aanvragen from database
+2022-12-17 21:28:34- DB:select max(id) from AANVRAGEN
+2022-12-17 21:28:34- ...Import afgerond
+2022-12-17 21:28:34- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:28:34- Start reading aanvragen from database
+2022-12-17 21:28:34- DB:select id from AANVRAGEN
+2022-12-17 21:28:34- End reading aanvragen from database
+2022-12-17 21:28:34- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:28:34- --- Klaarzetten feedback mails...
+2022-12-17 21:28:34- Start reading aanvragen from database
+2022-12-17 21:28:34- DB:select id from AANVRAGEN
+2022-12-17 21:28:34- End reading aanvragen from database
+2022-12-17 21:28:35- --- Einde klaarzetten feedback mails.
+2022-12-17 21:28:51- DB:logging started...
+2022-12-17 21:28:51- DB:connection (aapa.db) opened...
+2022-12-17 21:28:51- DB:pragma foreign_keys=ON
+2022-12-17 21:28:51- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:28:51- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:28:51- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:28:51- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:28:51- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:28:51- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:28:51- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:28:51- DB:pragma table_info(FILES)
+2022-12-17 21:28:51- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:28:51- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:28:51- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:28:51- DB:select max(id) from AANVRAGEN
+2022-12-17 21:28:51- Start import van map  .\aanvragen...
+2022-12-17 21:28:51- Start reading aanvragen from database
+2022-12-17 21:28:51- DB:select id from AANVRAGEN
+2022-12-17 21:28:51- End reading aanvragen from database
+2022-12-17 21:28:51- DB:select max(id) from AANVRAGEN
+2022-12-17 21:28:51- ...Import afgerond
+2022-12-17 21:28:51- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:28:51- Start reading aanvragen from database
+2022-12-17 21:28:51- DB:select id from AANVRAGEN
+2022-12-17 21:28:51- End reading aanvragen from database
+2022-12-17 21:28:51- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:28:51- --- Klaarzetten feedback mails...
+2022-12-17 21:28:51- Start reading aanvragen from database
+2022-12-17 21:28:51- DB:select id from AANVRAGEN
+2022-12-17 21:28:51- End reading aanvragen from database
+2022-12-17 21:28:52- --- Einde klaarzetten feedback mails.
+2022-12-17 21:29:38- DB:logging started...
+2022-12-17 21:29:38- DB:connection (aapa.db) opened...
+2022-12-17 21:29:38- DB:pragma foreign_keys=ON
+2022-12-17 21:29:38- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:29:38- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:29:38- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:29:38- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:29:38- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:29:38- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:29:38- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:29:38- DB:pragma table_info(FILES)
+2022-12-17 21:29:38- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:29:38- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:29:38- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:29:38- DB:select max(id) from AANVRAGEN
+2022-12-17 21:29:38- Start import van map  .\aanvragen...
+2022-12-17 21:29:38- Start reading aanvragen from database
+2022-12-17 21:29:38- DB:select id from AANVRAGEN
+2022-12-17 21:29:38- End reading aanvragen from database
+2022-12-17 21:29:38- DB:select max(id) from AANVRAGEN
+2022-12-17 21:29:38- ...Import afgerond
+2022-12-17 21:29:38- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:29:38- Start reading aanvragen from database
+2022-12-17 21:29:38- DB:select id from AANVRAGEN
+2022-12-17 21:29:38- End reading aanvragen from database
+2022-12-17 21:29:38- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:29:38- --- Klaarzetten feedback mails...
+2022-12-17 21:29:38- Start reading aanvragen from database
+2022-12-17 21:29:38- DB:select id from AANVRAGEN
+2022-12-17 21:29:38- End reading aanvragen from database
+2022-12-17 21:29:39- --- Einde klaarzetten feedback mails.
+2022-12-17 21:30:16- DB:logging started...
+2022-12-17 21:30:16- DB:connection (aapa.db) opened...
+2022-12-17 21:30:16- DB:pragma foreign_keys=ON
+2022-12-17 21:30:16- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:30:16- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:30:16- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:30:16- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:30:16- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:30:16- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:30:16- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:30:16- DB:pragma table_info(FILES)
+2022-12-17 21:30:16- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:30:16- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:30:16- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:30:16- DB:select max(id) from AANVRAGEN
+2022-12-17 21:30:16- Start import van map  testdata...
+2022-12-17 21:30:16- Start reading aanvragen from database
+2022-12-17 21:30:16- DB:select id from AANVRAGEN
+2022-12-17 21:30:16- End reading aanvragen from database
+2022-12-17 21:30:16- DB:select max(id) from AANVRAGEN
+2022-12-17 21:30:16- ...Import afgerond
+2022-12-17 21:30:16- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:30:16- Start reading aanvragen from database
+2022-12-17 21:30:16- DB:select id from AANVRAGEN
+2022-12-17 21:30:16- End reading aanvragen from database
+2022-12-17 21:30:16- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:30:16- --- Klaarzetten feedback mails...
+2022-12-17 21:30:16- Start reading aanvragen from database
+2022-12-17 21:30:16- DB:select id from AANVRAGEN
+2022-12-17 21:30:16- End reading aanvragen from database
+2022-12-17 21:30:16- --- Einde klaarzetten feedback mails.
+2022-12-17 21:31:36- DB:logging started...
+2022-12-17 21:31:36- DB:connection (aapa.db) opened...
+2022-12-17 21:31:36- DB:pragma foreign_keys=ON
+2022-12-17 21:31:36- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:31:36- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:31:36- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:31:36- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:31:36- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:31:36- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:31:36- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:31:36- DB:pragma table_info(FILES)
+2022-12-17 21:31:36- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:31:36- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:31:36- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:31:47- DB:logging started...
+2022-12-17 21:31:47- DB:connection (aapa.db) opened...
+2022-12-17 21:31:47- DB:pragma foreign_keys=ON
+2022-12-17 21:31:47- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:31:47- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:31:47- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:31:47- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:31:47- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:31:47- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:31:47- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:31:47- DB:pragma table_info(FILES)
+2022-12-17 21:31:47- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:31:47- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:31:47- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:31:47- DB:select max(id) from AANVRAGEN
+2022-12-17 21:31:47- Start import van map  C:\repos\aapa\testdata...
+2022-12-17 21:31:47- Start reading aanvragen from database
+2022-12-17 21:31:47- DB:select id from AANVRAGEN
+2022-12-17 21:31:47- End reading aanvragen from database
+2022-12-17 21:31:47- DB:select max(id) from AANVRAGEN
+2022-12-17 21:31:47- ...Import afgerond
+2022-12-17 21:31:47- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:31:47- Start reading aanvragen from database
+2022-12-17 21:31:47- DB:select id from AANVRAGEN
+2022-12-17 21:31:47- End reading aanvragen from database
+2022-12-17 21:31:47- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:31:47- --- Klaarzetten feedback mails...
+2022-12-17 21:31:47- Start reading aanvragen from database
+2022-12-17 21:31:47- DB:select id from AANVRAGEN
+2022-12-17 21:31:47- End reading aanvragen from database
+2022-12-17 21:31:48- --- Einde klaarzetten feedback mails.
+2022-12-17 21:32:15- DB:logging started...
+2022-12-17 21:32:15- DB:connection (aapa.db) opened...
+2022-12-17 21:32:15- DB:pragma foreign_keys=ON
+2022-12-17 21:32:15- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:32:15- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:32:15- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:32:15- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:32:15- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:32:15- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:32:15- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:32:15- DB:pragma table_info(FILES)
+2022-12-17 21:32:15- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:32:15- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:32:15- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:32:15- DB:select max(id) from AANVRAGEN
+2022-12-17 21:32:15- Start import van map  C:\repos\aapa\testdata...
+2022-12-17 21:32:15- Start reading aanvragen from database
+2022-12-17 21:32:15- DB:select id from AANVRAGEN
+2022-12-17 21:32:15- End reading aanvragen from database
+2022-12-17 21:32:15- Lezen C:\repos\aapa\testdata\week47\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-17 21:32:19- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:32:19- --- Start storing imported data from PDF C:\repos\aapa\testdata\week47\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-17 21:32:19- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:19- DB:select * from BEDRIJVEN where (name=?) ['Compano B.V.']
+2022-12-17 21:32:19- DB:select * from BEDRIJVEN where (name=?) ['Compano B.V.']
+2022-12-17 21:32:19- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [1, 'Compano B.V.']
+2022-12-17 21:32:19- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:32:19- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['3417904', 'Robert Slomp', 'Robert', 'robert.slomp@student.nhlstenden.com', '+31 6 15665273']
+2022-12-17 21:32:19- DB:select count(id) from AANVRAGEN where stud_nr=? ['3417904']
+2022-12-17 21:32:19- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['3417904', 1, '21 november 2022 / v1', 'Het ontwerpen en ontwikkelen van een cross platform Digital Asset Management systeem voor Compano.', 1, 0, 0]
+2022-12-17 21:32:19- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:32:19- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf', '22-11-2022 06:00:44', 0, 1]
+2022-12-17 21:32:19- DB:Committing
+2022-12-17 21:32:19- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week47\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-17 21:32:19- Robert Slomp(3417904) - 21 november 2022 / v1: Compano B.V. - "Het ontwerpen en ontwikkelen van een cross platform Digital Asset Management systeem voor Compano." [ontvangen]
+2022-12-17 21:32:19- Lezen C:\repos\aapa\testdata\week47\2. Beoordeling afstudeeropdracht[67].pdf
+2022-12-17 21:32:23- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht[67].pdf']
+2022-12-17 21:32:23- --- Start storing imported data from PDF C:\repos\aapa\testdata\week47\2. Beoordeling afstudeeropdracht[67].pdf
+2022-12-17 21:32:23- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:23- DB:select * from BEDRIJVEN where (name=?) ['CIMSOLUTIONS']
+2022-12-17 21:32:23- DB:select * from BEDRIJVEN where (name=?) ['CIMSOLUTIONS']
+2022-12-17 21:32:23- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [2, 'CIMSOLUTIONS']
+2022-12-17 21:32:23- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:32:23- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['3517488', 'Kevin Chen', 'Kevin', 'Kevin.chen@student.nhlstenden.com', '050 – 520 1300']
+2022-12-17 21:32:23- DB:select count(id) from AANVRAGEN where stud_nr=? ['3517488']
+2022-12-17 21:32:23- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['3517488', 2, '11-21-2022', 'Detectiesysteem gebruik kantoorruimtes CIMSOLUTIONS', 1, 0, 0]
+2022-12-17 21:32:23- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht[67].pdf']
+2022-12-17 21:32:23- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht[67].pdf', '22-11-2022 06:00:44', 0, 2]
+2022-12-17 21:32:23- DB:Committing
+2022-12-17 21:32:23- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week47\2. Beoordeling afstudeeropdracht[67].pdf
+2022-12-17 21:32:23- Kevin Chen(3517488) - 11-21-2022: CIMSOLUTIONS - "Detectiesysteem gebruik kantoorruimtes CIMSOLUTIONS" [ontvangen]
+2022-12-17 21:32:23- Lezen C:\repos\aapa\testdata\week47\Afstudeeropdracht joop.pdf
+2022-12-17 21:32:27- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\Afstudeeropdracht joop.pdf']
+2022-12-17 21:32:27- --- Start storing imported data from PDF C:\repos\aapa\testdata\week47\Afstudeeropdracht joop.pdf
+2022-12-17 21:32:27- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:27- DB:select * from BEDRIJVEN where (name=?) ['De Haan Westerhoff']
+2022-12-17 21:32:27- DB:select * from BEDRIJVEN where (name=?) ['De Haan Westerhoff']
+2022-12-17 21:32:27- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [3, 'De Haan Westerhoff']
+2022-12-17 21:32:27- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:32:27- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4575741', 'Joop de Graaf', 'Joop', 'Joop.de.graaf@student.nhlstenden.com', '0629780039']
+2022-12-17 21:32:27- DB:select count(id) from AANVRAGEN where stud_nr=? ['4575741']
+2022-12-17 21:32:27- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4575741', 3, '08-11-2022', 'De positie van DHW in de zonweringsmarkt versterken en uitbouwen door het optimaliseren van de digitale bedrijfsprocessen op de afdeling planning.', 1, 0, 0]
+2022-12-17 21:32:27- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\Afstudeeropdracht joop.pdf']
+2022-12-17 21:32:27- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week47\\Afstudeeropdracht joop.pdf', '14-11-2022 09:51:13', 0, 3]
+2022-12-17 21:32:27- DB:Committing
+2022-12-17 21:32:27- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week47\Afstudeeropdracht joop.pdf
+2022-12-17 21:32:27- Joop de Graaf(4575741) - 08-11-2022: De Haan Westerhoff - "De positie van DHW in de zonweringsmarkt versterken en uitbouwen door het optimaliseren van de digitale bedrijfsprocessen op de afdeling planning." [ontvangen]
+2022-12-17 21:32:27- Lezen C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-17 21:32:31- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:32:31- --- Start storing imported data from PDF C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-17 21:32:31- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:31- DB:select * from BEDRIJVEN where (name=?) ['Compano B.V.']
+2022-12-17 21:32:31- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:32:31- DB:select count(id) from AANVRAGEN where stud_nr=? ['3417904']
+2022-12-17 21:32:31- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['3417904', 1, '21 november 2022 / v1', 'Het ontwerpen en ontwikkelen van een cross platform Digital Asset Management systeem voor Compano.', 2, 0, 0]
+2022-12-17 21:32:31- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:32:31- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf', '22-11-2022 06:00:44', 0, 4]
+2022-12-17 21:32:31- DB:Committing
+2022-12-17 21:32:31- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf
+2022-12-17 21:32:31- Robert Slomp(3417904)(2) - 21 november 2022 / v1: Compano B.V. - "Het ontwerpen en ontwikkelen van een cross platform Digital Asset Management systeem voor Compano." [ontvangen]
+2022-12-17 21:32:31- Lezen C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf
+2022-12-17 21:32:35- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf']
+2022-12-17 21:32:35- --- Start storing imported data from PDF C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf
+2022-12-17 21:32:35- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:35- DB:select * from BEDRIJVEN where (name=?) ['Compasity B.V.']
+2022-12-17 21:32:35- DB:select * from BEDRIJVEN where (name=?) ['Compasity B.V.']
+2022-12-17 21:32:35- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [4, 'Compasity B.V.']
+2022-12-17 21:32:35- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:32:35- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4729684', 'Gerrit de Heij', 'Gerrit', 'gerrit.de.heij@student.nhlstenden.com', '0650916973']
+2022-12-17 21:32:35- DB:select count(id) from AANVRAGEN where stud_nr=? ['4729684']
+2022-12-17 21:32:35- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4729684', 4, '28-11-2022 / Versie 1', 'Verzuimcoach app voor werkgevers', 1, 0, 0]
+2022-12-17 21:32:35- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf']
+2022-12-17 21:32:35- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf', '29-11-2022 08:45:10', 0, 5]
+2022-12-17 21:32:35- DB:Committing
+2022-12-17 21:32:35- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf
+2022-12-17 21:32:35- Gerrit de Heij(4729684) - 28-11-2022 / Versie 1: Compasity B.V. - "Verzuimcoach app voor werkgevers" [ontvangen]
+2022-12-17 21:32:35- Lezen C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht v2.pdf
+2022-12-17 21:32:39- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht v2.pdf']
+2022-12-17 21:32:39- --- Start storing imported data from PDF C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht v2.pdf
+2022-12-17 21:32:39- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:39- DB:select * from BEDRIJVEN where (name=?) ['CIMSOLUTIONS']
+2022-12-17 21:32:39- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:32:39- DB:select count(id) from AANVRAGEN where stud_nr=? ['3517488']
+2022-12-17 21:32:39- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['3517488', 2, '11-28-2022', 'Detectiesysteem gebruik kantoorruimtes CIMSOLUTIONS', 2, 0, 0]
+2022-12-17 21:32:39- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht v2.pdf']
+2022-12-17 21:32:39- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht v2.pdf', '29-11-2022 08:45:10', 0, 6]
+2022-12-17 21:32:39- DB:Committing
+2022-12-17 21:32:39- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week48\2. Beoordeling afstudeeropdracht v2.pdf
+2022-12-17 21:32:39- Kevin Chen(3517488)(2) - 11-28-2022: CIMSOLUTIONS - "Detectiesysteem gebruik kantoorruimtes CIMSOLUTIONS" [ontvangen]
+2022-12-17 21:32:39- Lezen C:\repos\aapa\testdata\week48\aanvraag-gw-v2.pdf
+2022-12-17 21:32:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\aanvraag-gw-v2.pdf']
+2022-12-17 21:32:43- --- Start storing imported data from PDF C:\repos\aapa\testdata\week48\aanvraag-gw-v2.pdf
+2022-12-17 21:32:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:43- DB:select * from BEDRIJVEN where (name=?) ['Yobbers']
+2022-12-17 21:32:43- DB:select * from BEDRIJVEN where (name=?) ['Yobbers']
+2022-12-17 21:32:43- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [5, 'Yobbers']
+2022-12-17 21:32:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3480487']
+2022-12-17 21:32:43- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['3480487', 'Nick van Urk', 'Nick', 'nickvanurk@hotmail.com', '0615295732']
+2022-12-17 21:32:43- DB:select count(id) from AANVRAGEN where stud_nr=? ['3480487']
+2022-12-17 21:32:43- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['3480487', 5, '26-11-2022', 'Yobbers Community App', 1, 0, 0]
+2022-12-17 21:32:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\aanvraag-gw-v2.pdf']
+2022-12-17 21:32:43- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week48\\aanvraag-gw-v2.pdf', '29-11-2022 08:45:10', 0, 7]
+2022-12-17 21:32:43- DB:Committing
+2022-12-17 21:32:43- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week48\aanvraag-gw-v2.pdf
+2022-12-17 21:32:43- Nick van Urk(3480487) - 26-11-2022: Yobbers - "Yobbers Community App" [ontvangen]
+2022-12-17 21:32:43- Lezen C:\repos\aapa\testdata\week48\Afstudeeropdracht[94].pdf
+2022-12-17 21:32:47- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Afstudeeropdracht[94].pdf']
+2022-12-17 21:32:47- --- Start storing imported data from PDF C:\repos\aapa\testdata\week48\Afstudeeropdracht[94].pdf
+2022-12-17 21:32:47- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:47- DB:select * from BEDRIJVEN where (name=?) ['De Haan Westerhoff']
+2022-12-17 21:32:47- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:32:47- DB:select count(id) from AANVRAGEN where stud_nr=? ['4575741']
+2022-12-17 21:32:47- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4575741', 3, '08-11-2022', 'Het optimaliseren van de digitale bedrijfsprocessen op de afdeling planning en de planningsdata beschikbaar maken voor de andere afdelingen van DHW.', 2, 0, 0]
+2022-12-17 21:32:47- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Afstudeeropdracht[94].pdf']
+2022-12-17 21:32:47- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week48\\Afstudeeropdracht[94].pdf', '23-11-2022 08:37:53', 0, 8]
+2022-12-17 21:32:47- DB:Committing
+2022-12-17 21:32:47- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week48\Afstudeeropdracht[94].pdf
+2022-12-17 21:32:47- Joop de Graaf(4575741)(2) - 08-11-2022: De Haan Westerhoff - "Het optimaliseren van de digitale bedrijfsprocessen op de afdeling planning en de planningsdata beschikbaar maken voor de andere afdelingen van DHW." [ontvangen]
+2022-12-17 21:32:47- Lezen C:\repos\aapa\testdata\week48\Stage Verzoek Poging 1.pdf
+2022-12-17 21:32:51- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Stage Verzoek Poging 1.pdf']
+2022-12-17 21:32:51- --- Start storing imported data from PDF C:\repos\aapa\testdata\week48\Stage Verzoek Poging 1.pdf
+2022-12-17 21:32:51- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:51- DB:select * from BEDRIJVEN where (name=?) ['Compano']
+2022-12-17 21:32:51- DB:select * from BEDRIJVEN where (name=?) ['Compano']
+2022-12-17 21:32:51- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [6, 'Compano']
+2022-12-17 21:32:51- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4687426']
+2022-12-17 21:32:51- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4687426', 'Kobus Hettinga', 'Kobus', 'kobus.hettinga@student.nhlstenden.com', '06 20917971']
+2022-12-17 21:32:51- DB:select count(id) from AANVRAGEN where stud_nr=? ['4687426']
+2022-12-17 21:32:51- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4687426', 6, '22/11/2022', 'Vernieuwde Compano API', 1, 0, 0]
+2022-12-17 21:32:51- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Stage Verzoek Poging 1.pdf']
+2022-12-17 21:32:51- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week48\\Stage Verzoek Poging 1.pdf', '23-11-2022 08:38:21', 0, 9]
+2022-12-17 21:32:51- DB:Committing
+2022-12-17 21:32:51- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week48\Stage Verzoek Poging 1.pdf
+2022-12-17 21:32:51- Kobus Hettinga(4687426) - 22/11/2022: Compano - "Vernieuwde Compano API" [ontvangen]
+2022-12-17 21:32:51- Lezen C:\repos\aapa\testdata\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-17 21:32:54- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-17 21:32:54- --- Start storing imported data from PDF C:\repos\aapa\testdata\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-17 21:32:54- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:54- DB:select * from BEDRIJVEN where (name=?) ['ChipSoft BV']
+2022-12-17 21:32:54- DB:select * from BEDRIJVEN where (name=?) ['ChipSoft BV']
+2022-12-17 21:32:54- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [7, 'ChipSoft BV']
+2022-12-17 21:32:54- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3556785']
+2022-12-17 21:32:54- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['3556785', 'Jimi van Oosten', 'Jimi', 'jimivanoosten@hotmail.com', '0639206022']
+2022-12-17 21:32:54- DB:select count(id) from AANVRAGEN where stud_nr=? ['3556785']
+2022-12-17 21:32:54- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['3556785', 7, '2022/10/31', 'Objectdetectie in HiX', 1, 0, 0]
+2022-12-17 21:32:54- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-17 21:32:54- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week49\\2. Beoordeling afstudeeropdracht (1).pdf', '06-12-2022 13:49:55', 0, 10]
+2022-12-17 21:32:54- DB:Committing
+2022-12-17 21:32:54- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week49\2. Beoordeling afstudeeropdracht (1).pdf
+2022-12-17 21:32:54- Jimi van Oosten(3556785) - 2022/10/31: ChipSoft BV - "Objectdetectie in HiX" [ontvangen]
+2022-12-17 21:32:54- Lezen C:\repos\aapa\testdata\week50\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf
+2022-12-17 21:32:58- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf']
+2022-12-17 21:32:58- --- Start storing imported data from PDF C:\repos\aapa\testdata\week50\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf
+2022-12-17 21:32:58- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:32:58- DB:select * from BEDRIJVEN where (name=?) ['Compano B.V.']
+2022-12-17 21:32:58- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:32:58- DB:select count(id) from AANVRAGEN where stud_nr=? ['3417904']
+2022-12-17 21:32:58- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['3417904', 1, '12 december 2022 / v2', 'Het ontwerpen en ontwikkelen van een Digital Asset Management systeem voor Compano.', 3, 0, 0]
+2022-12-17 21:32:58- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf']
+2022-12-17 21:32:58- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf', '13-12-2022 08:39:41', 0, 11]
+2022-12-17 21:32:58- DB:Committing
+2022-12-17 21:32:58- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week50\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf
+2022-12-17 21:32:58- Robert Slomp(3417904)(3) - 12 december 2022 / v2: Compano B.V. - "Het ontwerpen en ontwikkelen van een Digital Asset Management systeem voor Compano." [ontvangen]
+2022-12-17 21:32:58- Lezen C:\repos\aapa\testdata\week50\2. Beoordeling afstudeeropdracht - Speak.pdf
+2022-12-17 21:33:02- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Speak.pdf']
+2022-12-17 21:33:02- --- Start storing imported data from PDF C:\repos\aapa\testdata\week50\2. Beoordeling afstudeeropdracht - Speak.pdf
+2022-12-17 21:33:02- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:33:02- DB:select * from BEDRIJVEN where (name=?) ['Internetbureau Speak']
+2022-12-17 21:33:02- DB:select * from BEDRIJVEN where (name=?) ['Internetbureau Speak']
+2022-12-17 21:33:02- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [8, 'Internetbureau Speak']
+2022-12-17 21:33:02- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:33:02- DB:select count(id) from AANVRAGEN where stud_nr=? ['4729684']
+2022-12-17 21:33:02- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4729684', 8, '09-12-2022 / Versie 1', 'Opvangkostencalculator applicatie voor kinderopvangen', 2, 0, 0]
+2022-12-17 21:33:02- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Speak.pdf']
+2022-12-17 21:33:02- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Speak.pdf', '13-12-2022 08:39:41', 0, 12]
+2022-12-17 21:33:02- DB:Committing
+2022-12-17 21:33:02- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week50\2. Beoordeling afstudeeropdracht - Speak.pdf
+2022-12-17 21:33:02- Gerrit de Heij(4729684)(2) - 09-12-2022 / Versie 1: Internetbureau Speak - "Opvangkostencalculator applicatie voor kinderopvangen" [ontvangen]
+2022-12-17 21:33:02- Lezen C:\repos\aapa\testdata\week50\Afstudeeropdracht Bob Wezelman.pdf
+2022-12-17 21:33:04- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht Bob Wezelman.pdf']
+2022-12-17 21:33:04- --- Start storing imported data from PDF C:\repos\aapa\testdata\week50\Afstudeeropdracht Bob Wezelman.pdf
+2022-12-17 21:33:04- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:33:04- DB:select * from BEDRIJVEN where (name=?) ['Kobalt Digital']
+2022-12-17 21:33:04- DB:select * from BEDRIJVEN where (name=?) ['Kobalt Digital']
+2022-12-17 21:33:04- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [9, 'Kobalt Digital']
+2022-12-17 21:33:04- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4538404']
+2022-12-17 21:33:04- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4538404', 'Bob Wezelman', 'Bob', 'bob.wezelman@student.nhlstenden.com', '0627371386']
+2022-12-17 21:33:04- DB:select count(id) from AANVRAGEN where stud_nr=? ['4538404']
+2022-12-17 21:33:04- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4538404', 9, '13-12-22', 'Goods4Europe', 1, 0, 0]
+2022-12-17 21:33:04- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht Bob Wezelman.pdf']
+2022-12-17 21:33:04- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht Bob Wezelman.pdf', '13-12-2022 08:39:41', 0, 13]
+2022-12-17 21:33:04- DB:Committing
+2022-12-17 21:33:04- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week50\Afstudeeropdracht Bob Wezelman.pdf
+2022-12-17 21:33:04- Bob Wezelman(4538404) - 13-12-22: Kobalt Digital - "Goods4Europe" [ontvangen]
+2022-12-17 21:33:04- Lezen C:\repos\aapa\testdata\week50\Afstudeeropdracht.pdf
+2022-12-17 21:33:08- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht.pdf']
+2022-12-17 21:33:08- --- Start storing imported data from PDF C:\repos\aapa\testdata\week50\Afstudeeropdracht.pdf
+2022-12-17 21:33:08- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:33:08- DB:select * from BEDRIJVEN where (name=?) ['MplusKASSA']
+2022-12-17 21:33:08- DB:select * from BEDRIJVEN where (name=?) ['MplusKASSA']
+2022-12-17 21:33:08- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [10, 'MplusKASSA']
+2022-12-17 21:33:08- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4684044']
+2022-12-17 21:33:08- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4684044', 'Hindrik Sibma', 'Hindrik', 'hindrik.sibma@student.nhlstenden.com', '0615107329']
+2022-12-17 21:33:08- DB:select count(id) from AANVRAGEN where stud_nr=? ['4684044']
+2022-12-17 21:33:08- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4684044', 10, '30-11-2022', 'Print-layout library en editor', 1, 0, 0]
+2022-12-17 21:33:08- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht.pdf']
+2022-12-17 21:33:08- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht.pdf', '13-12-2022 11:50:22', 0, 14]
+2022-12-17 21:33:08- DB:Committing
+2022-12-17 21:33:08- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week50\Afstudeeropdracht.pdf
+2022-12-17 21:33:08- Hindrik Sibma(4684044) - 30-11-2022: MplusKASSA - "Print-layout library en editor" [ontvangen]
+2022-12-17 21:33:08- Lezen C:\repos\aapa\testdata\week50\Formulering afstudeeropdracht.pdf
+2022-12-17 21:33:10- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Formulering afstudeeropdracht.pdf']
+2022-12-17 21:33:10- Aanvraag email is ongeldig (steenhuisjasper1@gmail.com / jasper.steenhuis@student.nhlstenden.com), aangepast als jasper.steenhuis@student.nhlstenden.com.
+2022-12-17 21:33:10- --- Start storing imported data from PDF C:\repos\aapa\testdata\week50\Formulering afstudeeropdracht.pdf
+2022-12-17 21:33:10- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-17 21:33:10- DB:select * from BEDRIJVEN where (name=?) ['Harvest Digital']
+2022-12-17 21:33:10- DB:select * from BEDRIJVEN where (name=?) ['Harvest Digital']
+2022-12-17 21:33:10- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [11, 'Harvest Digital']
+2022-12-17 21:33:10- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4523296']
+2022-12-17 21:33:10- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4523296', 'Jasper Steenhuis', 'Jasper', 'jasper.steenhuis@student.nhlstenden.com', '31643444811']
+2022-12-17 21:33:10- DB:select count(id) from AANVRAGEN where stud_nr=? ['4523296']
+2022-12-17 21:33:10- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4523296', 11, '8 December 2022', 'Custom Mulesoft Connector for Exact Online', 1, 0, 0]
+2022-12-17 21:33:10- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Formulering afstudeeropdracht.pdf']
+2022-12-17 21:33:10- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\testdata\\week50\\Formulering afstudeeropdracht.pdf', '13-12-2022 08:39:41', 0, 15]
+2022-12-17 21:33:10- DB:Committing
+2022-12-17 21:33:11- --- Succes storing imported data from PDF C:\repos\aapa\testdata\week50\Formulering afstudeeropdracht.pdf
+2022-12-17 21:33:11- Jasper Steenhuis(4523296) - 8 December 2022: Harvest Digital - "Custom Mulesoft Connector for Exact Online" [ontvangen]
+2022-12-17 21:33:11- DB:select max(id) from AANVRAGEN
+2022-12-17 21:33:11- ...Import afgerond
+2022-12-17 21:33:11- --- Verwerken beoordeelde formulieren...
+2022-12-17 21:33:11- Start reading aanvragen from database
+2022-12-17 21:33:11- DB:select id from AANVRAGEN
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht[67].pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [3]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\Afstudeeropdracht joop.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [4]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [5]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [6]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht v2.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [7]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3480487']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [5]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\aanvraag-gw-v2.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [8]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Afstudeeropdracht[94].pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [9]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4687426']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [6]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Stage Verzoek Poging 1.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [10]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3556785']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [7]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [11]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [12]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [8]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Speak.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [13]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4538404']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [9]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht Bob Wezelman.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [14]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4684044']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [10]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [15]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4523296']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [11]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Formulering afstudeeropdracht.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 5]
+2022-12-17 21:33:11- End reading aanvragen from database
+2022-12-17 21:33:11- --- Einde verwerken beoordeelde formulieren.
+2022-12-17 21:33:11- --- Klaarzetten feedback mails...
+2022-12-17 21:33:11- Start reading aanvragen from database
+2022-12-17 21:33:11- DB:select id from AANVRAGEN
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht[67].pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [3]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\Afstudeeropdracht joop.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [4]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [5]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [6]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht v2.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [7]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3480487']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [5]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\aanvraag-gw-v2.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [8]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Afstudeeropdracht[94].pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [9]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4687426']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [6]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Stage Verzoek Poging 1.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [10]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3556785']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [7]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [11]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [12]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [8]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Speak.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [13]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4538404']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [9]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht Bob Wezelman.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [14]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4684044']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [10]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 5]
+2022-12-17 21:33:11- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [15]
+2022-12-17 21:33:11- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4523296']
+2022-12-17 21:33:11- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [11]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 0]
+2022-12-17 21:33:11- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Formulering afstudeeropdracht.pdf']
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 1]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 2]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 3]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 4]
+2022-12-17 21:33:11- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 5]
+2022-12-17 21:33:11- End reading aanvragen from database
+2022-12-17 21:33:12- --- Einde klaarzetten feedback mails.
+2022-12-17 21:35:09- DB:logging started...
+2022-12-17 21:35:09- DB:connection (aapa.db) opened...
+2022-12-17 21:35:09- DB:pragma foreign_keys=ON
+2022-12-17 21:35:09- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-17 21:35:09- DB:pragma table_info(STUDENTEN)
+2022-12-17 21:35:09- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-17 21:35:09- DB:pragma table_info(BEDRIJVEN)
+2022-12-17 21:35:09- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-17 21:35:09- DB:pragma table_info(AANVRAGEN)
+2022-12-17 21:35:09- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-17 21:35:09- DB:pragma table_info(FILES)
+2022-12-17 21:35:09- DB:pragma foreign_key_list(FILES)
+2022-12-17 21:35:09- DB:select max(ID) from BEDRIJVEN;
+2022-12-17 21:35:09- DB:select max(ID) from AANVRAGEN;
+2022-12-17 21:35:09- Start reading aanvragen from database
+2022-12-17 21:35:09- DB:select id from AANVRAGEN
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\2. Beoordeling afstudeeropdracht[67].pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [3]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week47\\Afstudeeropdracht joop.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [3, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [4]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221121.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [4, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [5]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht - Gerrit de Heij.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [5, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [6]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3517488']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\2. Beoordeling afstudeeropdracht v2.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [6, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [7]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3480487']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [5]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\aanvraag-gw-v2.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [7, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [8]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4575741']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Afstudeeropdracht[94].pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [8, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [9]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4687426']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [6]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week48\\Stage Verzoek Poging 1.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [9, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [10]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3556785']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [7]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week49\\2. Beoordeling afstudeeropdracht (1).pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [10, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [11]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['3417904']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Compano DAM - 20221212.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [11, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [12]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4729684']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [8]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\2. Beoordeling afstudeeropdracht - Speak.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [12, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [13]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4538404']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [9]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht Bob Wezelman.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [13, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [14]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4684044']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [10]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Afstudeeropdracht.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [14, 5]
+2022-12-17 21:35:09- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [15]
+2022-12-17 21:35:09- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4523296']
+2022-12-17 21:35:09- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [11]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 0]
+2022-12-17 21:35:09- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\testdata\\week50\\Formulering afstudeeropdracht.pdf']
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 1]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 2]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 3]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 4]
+2022-12-17 21:35:09- DB:select filename from FILES where aanvraag_id=? and filetype=? [15, 5]
+2022-12-17 21:35:09- End reading aanvragen from database

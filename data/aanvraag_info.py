@@ -38,13 +38,14 @@ class FileType(Enum):
 
 AUTOTIMESTAMP = 0
 class FileInfo:
-    def _get_timestamp(filename: str)-> datetime.datetime:
-        return datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime)
+    @staticmethod
+    def get_timestamp(filename: str)-> datetime.datetime:
+        return FileInfo.__rounded_timestamp(datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime))
     DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
     def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file() and timestamp == AUTOTIMESTAMP:
-            self.timestamp = FileInfo._get_timestamp(filename)
+            self.timestamp = FileInfo.get_timestamp(filename)
         else:
             self.timestamp = timestamp
         self.filetype = filetype

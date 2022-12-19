@@ -45,7 +45,7 @@ class FeedbackMailMerger(MailMerger):
         filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
         with open(htm_path, mode='r') as htm_file:               
             mail_data = self.default_maildef.copy()
-            mail_data.mailto=aanvraag.student.email+'.test.niet.verzenden'
+            mail_data.mailto=aanvraag.student.email
             mail_data.mailbody=htm_file.read()
             mail_data.attachments=[filename]
         mailer.draft_item(mail_data)
@@ -69,13 +69,14 @@ class FeedbackMailsCreator(AanvraagProcessor):
     def __init__(self, storage: AAPStorage, template_docs:dict, default_maildef: OutlookMailDef, output_directory: Path, aanvragen: list[AanvraagInfo] = None):
         super().__init__(storage, aanvragen)
         self.merger = FeedbackMailMerger(storage, template_docs, default_maildef, output_directory)
-    def process(self, filter_func = None):
-        self.merger.merge_documents(self.filtered_aanvragen(filter_func))
+    def process(self, filter_func = None)->int:
+        return self.merger.merge_documents(self.filtered_aanvragen(filter_func))
 
 def create_feedback_mails(storage: AAPStorage, templates: dict, default_maildef: OutlookMailDef, output_directory, filter_func = None):
     logPrint('--- Klaarzetten feedback mails...')
     if created_directory(output_directory):
         logPrint(f'Map {output_directory} aangemaakt.')
     file_creator = FeedbackMailsCreator(storage, templates, default_maildef, output_directory)
-    file_creator.process(filter_func)
+    n_mails = file_creator.process(filter_func)
+    logPrint(f'### {n_mails} mails klaargezet in Outlook Concepten/Drafts.')
     logPrint('--- Einde klaarzetten feedback mails.')
