@@ -150,19 +150,24 @@ class AanvraagDataImporter(AanvraagProcessor):
             logPrint(aanvraag)
             return aanvraag
         return None
+    def store_invalid(self, filename):
+        self.storage.create_fileinfo(FileInfo(filename, AUTOTIMESTAMP, FileType.INVALID_PDF))
+        self.storage.commit()
     def is_duplicate(self, file: FileInfo):
         return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.timestamp == file.timestamp
         
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
-    def is_already_imported(filename):
+    def is_already_processed(filename):
         if (fileinfo := importer.known_file_info(filename)):
-            return FileInfo.get_timestamp(filename) == fileinfo.timestamp
-        return False
+            if fileinfo.filetype in [FileType.AANVRAAG_PDF,FileType.INVALID_PDF]: return  FileInfo.get_timestamp(filename) == fileinfo.timestamp
+        else:
+            return False
     try:
-        if not is_already_imported(filename):    
+        if not is_already_processed(filename):    
             importer.process(filename)
     except PDFReaderException as E:
         logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
+        importer.store_invalid(filename)
 
 def import_directory(directory: str, storage: AAPStorage, recursive = True)->tuple[int,int]:
     def _get_pattern(recursive: bool):

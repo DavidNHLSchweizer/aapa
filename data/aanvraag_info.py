@@ -24,11 +24,12 @@ class Bedrijf:
 class FileType(Enum):
     UNKNOWN             = -1
     AANVRAAG_PDF        = 0
-    TO_BE_GRADED_DOCX   = 1
-    GRADED_DOCX         = 2
-    GRADED_PDF          = 3
-    MAIL_DOCX           = 4
-    MAIL_HTM            = 5
+    INVALID_PDF         = 1
+    TO_BE_GRADED_DOCX   = 2
+    GRADED_DOCX         = 3
+    GRADED_PDF          = 4
+    MAIL_DOCX           = 5
+    MAIL_HTM            = 6
     def __str__(self):
         STR_DICT = {FileType.UNKNOWN: '?', FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
                     FileType.TO_BE_GRADED_DOCX: 'Formulier beoordeling (Word format)', FileType.GRADED_DOCX: 'Ingevuld formulier beoordeling (Word format)', FileType.GRADED_PDF: 'Ingevuld formulier beoordeling (PDF format)', 
