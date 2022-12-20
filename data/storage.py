@@ -1,9 +1,37 @@
-from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition
+from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, VersionTableDefinition
 from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
+from general.versie import Versie
+from general.config import config
+
+class CRUD_versie(CRUDbase):
+    def __init__(self, database: Database):
+        super().__init__(database, VersionTableDefinition())
+        
+    def __get_all_columns(self, include_key = True):
+        result = ['db_versie'] if include_key else []
+        result.extend(['versie', 'datum'])
+        return result
+    def __get_all_values(self, versie: Versie, include_key = True):
+        result = [versie.db_versie] if include_key else []
+        result.extend([versie.versie, versie.datum])
+        return result
+    def create(self, versie: Versie):
+        versie.db_versie = config.get('versie', 'db_versie')
+        super().create(columns=self.__get_all_columns(), values=self.__get_all_values(versie))   
+    def read(self, db_versie: str)->Versie:
+        if row:=super().read(where=SQE('db_versie', Ops.EQ, db_versie)):
+            return Versie(db_versie=db_versie, versie=row['versie'],datum=row['datum'])
+        else:
+            return None
+    def update(self, versie: Versie):
+        super().update(columns=self.__get_all_columns(False), values=self.__get_all_values(versie, False), where=SQE('db_versie', Ops.EQ, versie.db_versie))
+    def delete(self, db_versie: str):
+        super().delete(where=SQE('db_versie', Ops.EQ, db_versie))
+    
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -126,6 +154,7 @@ class AAPStorage:
     #main interface with the database
     def __init__(self, database: Database):
         self.database = database
+        self.crud_versie = CRUD_versie(database)
         self.crud_files = CRUD_files(database)
         self.crud_bedrijven = CRUD_bedrijven(database)
         self.crud_studenten = CRUD_studenten(database)

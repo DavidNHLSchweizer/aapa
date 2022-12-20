@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import datetime
 import re
 from pathlib import Path
+import tkinter
 import numpy as np
 import pandas as pd
 import tabula
@@ -30,7 +31,6 @@ class _AanvraagData:
     bedrijf = ''
     titel = ''
 
-
 class AanvraagReaderFromPDF:
     def __init__(self, pdf_file: str):
         self.aanvraag = self.read_pdf(pdf_file)
@@ -40,6 +40,7 @@ class AanvraagReaderFromPDF:
     def read_pdf(self, pdf_file: str)->AanvraagInfo:
         aanvraag_data = _AanvraagData()
         try:
+            # tables = tabula.read_pdf(pdf_file,pages=list(range(1,4)),multiple_tables=True,area=[70,70,570,790])
             tables = tabula.read_pdf(pdf_file,pages=list(range(1,4)))
         except Exception as E:
             raise PDFReaderException(f"Verwacht meer pagina's in document: {E}")
@@ -47,8 +48,11 @@ class AanvraagReaderFromPDF:
             raise PDFReaderException(f'Verwacht 3 of meer tabellen in document ({len(tables)}')
         tables[0].fillna(value='', inplace=True) #found some nan some times, just remove those
         self._parse_main_data(tables[0], aanvraag_data)
+        # tables[1].fillna(value='', inplace=True) #found some nan some times, just remove those
+        #TODO Kevin Schiphof stukje tabel wordt niet gedetecteerd. Negeren voor nu.
+
         tables[2].fillna(value='', inplace=True) #found some nan some times, just remove those
-        self._parse_title(tables[2], aanvraag_data)
+        self.__parse_title(tables[2], aanvraag_data)
         return self.__convert_data(aanvraag_data)
     def __convert_data(self, aanvraag_data: _AanvraagData)->AanvraagInfo:
         bedrijf = Bedrijf(aanvraag_data.bedrijf)
@@ -76,32 +80,39 @@ class AanvraagReaderFromPDF:
         student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf'}
         student_dict_len  = len(student_dict_fields) + 5 # een beetje langer ivm bedrijfsnaam        
         self.__rectify_table(table, 0, student_dict_len)
+        self.__merge_table_columns(table, 1, 2) # also an extreme case (Keanu Attema)
         self.__parse_table(table, 0, student_dict_len, student_dict_fields, aanvraag_data)
         self.parse_datum_str(table, aanvraag_data)        
     def parse_datum_str(self, table, aanvraag_data: _AanvraagData):
         # supports older version of form as well
         L = self.__get_strings_from_table(table, None, 'Student', 1)        
         aanvraag_data.datum_str = '/'.join(filter(lambda l: l != '', L))               
-    def __merge_table_columns(self, table: pd.DataFrame):
+    def __merge_table_columns(self, table: pd.DataFrame, col1, col2):
         #normally this shouldnt be necessary, this covers an extreme case that was detected
         # [file: afstudeeropdracht SOgeti v9.pdf] where somehow tabula detected more than 1 column and inserted some NaNs.
         #this seems to correct that
-        if ncols(table) > 1:            
+        if ncols(table) > col2:            
             for row in range(0,nrows(table)):
-                s = str(table.values[row][0])
-                for col in range(1,ncols(table)):
+                s = str(table.values[row][col1])                
+                for col in range(col2,ncols(table)):
                      s += str(table.values[row][col])
-                table.values[row][0] = s
-    def _parse_title(self, table: pd.DataFrame, aanvraag_data: _AanvraagData)->str:
+                table.values[row][col1] = s
+    def __parse_title(self, table:pd.DataFrame, aanvraag_data: _AanvraagData)->str:
         #regex because some students somehow lose the '.' characters or renumber the paragraphs, also older versions of the form have different paragraphs
         regex_versies = [{'start':'\d.*\(Voorlopige, maar beschrijvende\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\?'},
                          {'start':'\d.*Titel van de afstudeeropdracht', 'end': '\d.*Korte omschrijving van de opdracht.*'},                        
                         ]
-        self.__merge_table_columns(table)
+        self.__merge_table_columns(table, 0, 1)
         for versie in regex_versies:
             aanvraag_data.titel = ' '.join(self.__get_strings_from_table(table, versie['start'], versie['end'], 0))
             if aanvraag_data.titel:
                 break
+
+    def _parse_title(self, tables: list[pd.DataFrame], aanvraag_data: _AanvraagData)->str:
+        for t in tables:
+            if result := self.__parse_title(t, aanvraag_data):
+                break
+        return result
     def __get_strings_from_table(self, table:pd.DataFrame, start_paragraph_regex:str, end_paragraph_regex:str, column: int)->list[str]:
         def row_matches(table, row, pattern:re.Pattern):
             if isinstance(table.values[row][0], str):
@@ -116,7 +127,7 @@ class AanvraagReaderFromPDF:
                 pattern = re.compile(regex)
                 while row < nrows(table) and not row_matches(table, row, pattern):
                     row+=1
-                return row + 1
+                return min(row + 1, nrows(table))
         row1 = find_pattern(start_paragraph_regex, 0)
         row2 = find_pattern(end_paragraph_regex, row1)
         result = []
@@ -124,6 +135,8 @@ class AanvraagReaderFromPDF:
             result.append(table.values[row][column])
         return result
 class AanvraagDataImporter(AanvraagProcessor):
+    def __ask_titel(self, aanvraag: AanvraagInfo)->str:
+        return tkinter.simpledialog.askstring(f'Titel', f'Titel voor {str(aanvraag)}') 
     def process(self, filename: str)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
@@ -141,7 +154,9 @@ class AanvraagDataImporter(AanvraagProcessor):
                     return None
             if not aanvraag.valid():
                 logError(f'Aanvraag is ongeldig: {aanvraag}')
-                return None            
+                return None    
+            if not aanvraag.titel:
+                aanvraag.titel=self.__ask_titel(aanvraag)
             logInfo(f'--- Start storing imported data from PDF {filename}')
             self.storage.create_aanvraag(aanvraag, fileinfo) 
             self.aanvragen.append(aanvraag)

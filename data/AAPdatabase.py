@@ -9,6 +9,13 @@ from database.database import Database, Schema
 import database.dbConst as dbc
 from general.keys import reset_key
 
+class VersionTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('VERSIE')
+        self.add_column('db_versie', dbc.TEXT, primary=True)
+        self.add_column('versie', dbc.TEXT)
+        self.add_column('datum', dbc.TEXT)
+
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('STUDENTEN')
@@ -49,6 +56,7 @@ class FileTableDefinition(TableDefinition):
 class AAPSchema(Schema):
     def __init__(self):
         super().__init__()
+        self.add_table(VersionTableDefinition())
         self.add_table(StudentTableDefinition())
         self.add_table(BedrijfTableDefinition())
         self.add_table(AanvraagTableDefinition())

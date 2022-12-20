@@ -11,10 +11,9 @@ from office.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.database import initialize_database, initialize_storage
 from process.requests import process_directory
 from data.aanvraag_info import AanvraagBeoordeling
-from general.args import AAPAoptions, get_arguments
+from general.args import AAPAoptions, Initialize, get_arguments
 
 def init_config():
-    config.set_default('general', 'version','0.7')
     config.set_default('configuration', 'database', 'aapa.db')
     config.set_default('configuration', 'root', r'.\aanvragen')
     config.set_default('configuration', 'forms', r'.\aanvragen\forms')
@@ -33,7 +32,8 @@ class AAPA:
         self.nomail  = options.nomail
         self.report    = options.report
     def __initialize_database(self, options: AAPAoptions):
-        recreate =  options.initialize and verifyRecreate()
+        recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
+        print(f'recreate!!!!{recreate}')
         if options.database:
             database = options.database
             config.set('configuration', 'database', database) 
