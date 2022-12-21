@@ -1,6 +1,7 @@
 import argparse
 from dataclasses import dataclass
 from enum import Enum
+from general.config import config
 
 def _get_arguments(banner: str):
     parser = argparse.ArgumentParser(description=banner)
@@ -59,16 +60,48 @@ class AAPAoptions:
             result = result + f'{str(self.initialize)}\n'
         if self.report is not None:
             result = result + f'report: {self.report}\n'
-        return result + f'verwijder bestanden: {self.clean}  niet scannen aanvragen: {self.noscan}  niet verwerken beoordeelde formulieren: {self.nomail}.'
+        return result + f'clean: {self.clean}  noscan: {self.noscan}  nomail: {self.nomail}.'
+
+def report_options(options: AAPAoptions)->str:
+    DEFAULT = "<default>:"
+    QUERY   = "<to be queried>"
+    def __report_str(item: str, attr, default):
+        default_str = f'{DEFAULT} ({default})'
+        return f'{item.upper()}: {str(attr) if attr else default_str}\n'
+    def _report_str(item: str, attr, default=DEFAULT):
+        if default != DEFAULT and attr == '':
+            return __report_str(item, attr, QUERY)
+        else:
+            return __report_str(item, attr, default)
+    result = ''
+    if not options:
+        return result
+    result += _report_str('root directory', options.root, config.get('configuration', 'root'))
+    result +=  _report_str('forms directory', options.forms, config.get('configuration', 'forms'))
+    result +=  _report_str('mail directory', options.mail, config.get('configuration', 'mail'))
+    result +=  _report_str('database', options.database, config.get('configuration', 'database'))
+    if options.initialize != Initialize.NO_INIT:
+        result +=  _report_str('initialize database', str(options.initialize))
+    if options.report:
+        result +=  _report_str('create report', str(options.report))
+    else:
+        result +=  _report_str('create report', 'None')
+    return result + f'clean: {options.clean}  noscan: {options.noscan}  nomail: {options.nomail}.'
 
 def get_arguments()->AAPAoptions:
-    args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
     def get_init(args):
         if args.init: return Initialize.INIT
         elif args.init_force: return Initialize.INIT_FORCE
         else: return Initialize.NO_INIT
-    return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, initialize=get_init(args), report=args.xlsx, clean=args.clean, noscan=args.noscan, nomail=args.nomail)
+    try:
+        args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
+        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, initialize=get_init(args), report=args.xlsx, clean=args.clean, noscan=args.noscan, nomail=args.nomail)
+    except IndexError as E:
+        print(f'Ongeldige opties aangegeven: {E}.')   
+        return None
 
 if __name__=="__main__":
-    options = get_arguments()
-    print(options)
+    if (options := get_arguments()):
+        print(str(options))
+        print(report_options(options))
+    

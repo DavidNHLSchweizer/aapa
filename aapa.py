@@ -11,7 +11,7 @@ from office.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.database import initialize_database, initialize_storage
 from process.requests import process_directory
 from data.aanvraag_info import AanvraagBeoordeling
-from general.args import AAPAoptions, Initialize, get_arguments
+from general.args import AAPAoptions, Initialize, get_arguments, report_options
 
 def init_config():
     config.set_default('configuration', 'database', 'aapa.db')
@@ -27,13 +27,13 @@ class AAPA:
     def __init__(self, options: AAPAoptions):
         self.__initialize_database(options)
         self.__initialize_directories(options)
+        logInfo(f'COMMAND LINE OPTIONS:\n{report_options(options)}')
         self.cleanup = options.clean
         self.noscan  = options.noscan
         self.nomail  = options.nomail
         self.report    = options.report
     def __initialize_database(self, options: AAPAoptions):
         recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
-        print(f'recreate!!!!{recreate}')
         if options.database:
             database = options.database
             config.set('configuration', 'database', database) 
@@ -41,14 +41,10 @@ class AAPA:
             database = config.get('configuration','database') 
         self.database = initialize_database(database, recreate)
         self.storage  = initialize_storage(self.database)
-    def __initialize_directories(self, options: AAPAoptions):
-        logInfo(options)
+    def __initialize_directories(self, options: AAPAoptions):        
         self.root = self.__get_directory(options.root, 'root','Root directory voor aanvragen', True)
         self.forms_directory = self.__get_directory(options.forms, 'forms', 'Directory voor beoordelingsformulieren')
         self.mail_directory = self.__get_directory(options.mail, 'mail', 'Directory voor mailbestanden')
-        logInfo(f'root: {self.root}')
-        logInfo(f'forms: {self.forms_directory}')
-        logInfo(f'mails: {self.mail_directory}')
     def __get_directory(self, option_value, config_name, title, mustexist=False):
         if option_value is not None and not option_value:
             result = tkifd.askdirectory(mustexist=mustexist, title=title)
@@ -75,9 +71,10 @@ class AAPA:
                 report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
             else:
                 report_aanvragen_console(self.storage)
+        logInfo('Ready.')
     @staticmethod
     def banner():
-        return f'AAPA-Afstudeer Aanvragen Proces Applicatie  versie {config.get("general", "version")}'
+        return f'AAPA-Afstudeer Aanvragen Proces Applicatie  versie {config.get("versie", "versie")}'
 
 if __name__=='__main__':
     print(AAPA.banner())

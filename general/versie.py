@@ -5,13 +5,16 @@ import datetime
 from time import strftime
 from general.config import config
 
+AAPAVERSION = '0.93'
 @dataclass
 class Versie:
-    db_versie: str = config.get('versie', 'db_versie')
     versie: str = config.get('versie', 'versie')
     datum: str = config.get('versie', 'datum')
     @staticmethod
-    def datetime_str(d):
+    def datetime_str(d=datetime.datetime.now()):
         return datetime.datetime.strftime(d, '%d-%m-%Y %H:%M:%S')
-
+def init_config():
+    config.set('versie', 'versie', AAPAVERSION)
+    config.set_default('versie', 'datum', Versie.datetime_str(datetime.datetime.now()))
+init_config()
 

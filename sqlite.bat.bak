@@ -1,4 +1,4 @@
-@echo off
+rem @echo off
 cd c:\repos\aapa
 set database=%1
 if "%database%" =="" set database=aapa.db

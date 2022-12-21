@@ -1,20 +1,43 @@
-from pickle import EMPTY_DICT
-from data.aanvraag_info import AanvraagInfo, Bedrijf
-from database.SQL import SQLbase, SQLdelete, SQLcreate, SQLselect, SQLupdate
-from database.crud import CRUDbase
-from database.sqlexpr import Ops, SQLexpression as SQE
+import datetime
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
-# from data.units import Module, Pakket, Toets, Toetseenheid
 import database.dbConst as dbc
 from general.keys import reset_key
+from general.config import config
+from general.log import logError, logInfo, logWarn
+from general.versie import Versie
+
+class AAPaException(Exception): pass
+
+DBVERSION = '1.11'
+class DBVersie(Versie):
+    def __init__(self, db_versie = DBVERSION, **kwargs):
+        super().__init__(**kwargs)
+        self.db_versie = db_versie
+
+def init_config():
+    config.set_default('database', 'database_name','aapa.DB')
+    config.set('database', 'db_versie', DBVERSION)
+init_config()
 
 class VersionTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('VERSIE')
-        self.add_column('db_versie', dbc.TEXT, primary=True)
+        super().__init__('VERSIE', autoid=True)
+        self.add_column('db_versie', dbc.TEXT)
         self.add_column('versie', dbc.TEXT)
         self.add_column('datum', dbc.TEXT)
+
+def read_version_info(database: Database)->DBVersie:
+    if row := database._execute_sql_command('select id, db_versie, versie, datum from versie order by id desc', [], True):
+        record = row[0]
+        return DBVersie(db_versie = record['db_versie'], versie=record['versie'], datum=record['datum'])
+    else:
+        return DBVersie(db_versie = config.get('database', 'versie'), versie=config.get('versie', 'versie'), datum=Versie.datetime_str())
+
+def create_version_info(database: Database, versie: DBVersie): 
+    database._execute_sql_command('insert into versie (db_versie, versie, datum) values (?,?,?)', [versie.db_versie, versie.versie, versie.datum])
+    database.commit()
+
 
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
@@ -81,6 +104,7 @@ class AAPDatabase(Database):
         self.schema.read_from_database(self)        
         if not self._reset_flag:
             self.reset_keys()
+            self.check_version(False)
     def reset_keys(self):
         reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
         reset_key(AanvraagTableDefinition.KEY_FOR_ID, self.__find_max_key('AANVRAGEN'))
@@ -90,4 +114,33 @@ class AAPDatabase(Database):
             return r0 
         else:
             return 0
+    @classmethod
+    def create_from_schema(cls, schema: Schema, filename: str):
+        result = super().create_from_schema(schema, filename)
+        result.check_version(True)
+        return result
+    def __version_error(self, db_versie, errorStr):
+        logError (errorStr)
+        raise AAPaException()
+    def check_version(self, recreate = False):
+        logInfo('--- Controle versies database en programma')
+        try:
+            if recreate:
+                create_version_info(self, DBVersie(db_versie=config.get('database', 'db_versie'), versie=config.get('versie', 'versie'), datum=Versie.datetime_str()))
+            else:
+                versie = read_version_info(self)
+                if  versie.db_versie != config.get('database', 'db_versie'):
+                    self.__version_error(versie.db_versie, f"Database version {versie.db_versie} does not match current program (expected {config.get('database', 'db_versie')}).")
+                elif versie.versie != config.get('versie', 'versie'):
+                    logWarn(f"Program version ({config.get('versie', 'versie')}) does not match version in database (expected {versie.versie}). Updating database en configuratie.")
+                    versie.versie = config.get('versie', 'versie')
+                    versie.datum = Versie.datetime_str()
+                    create_version_info(self, versie)
+                    config.set('versie', 'versie', versie.versie)
+                    config.set('versie', 'datum', versie.datum)
+            logInfo('--- Einde controle versies database en programma')
+        except AAPaException as E:
+            logError('This version of the program can not open this database. Use -init or migrate the data to the new database structure.')
+
+
         

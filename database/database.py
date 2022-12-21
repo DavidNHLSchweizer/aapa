@@ -3,7 +3,6 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 import sqlite3 as sql3
-
 import database.dbConst as dbc
 from database.tabledef import TableDefinition
 from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
@@ -148,7 +147,6 @@ class Schema:
                 (key_id, key_seq, foreign_table_name, local_column_name, foreign_column_name, on_update, on_delete, match) = key
                 table.add_foreign_key(local_column_name, foreign_table_name, foreign_column_name, onupdate=on_update, ondelete=on_delete)
             return table  
-
         result = Schema()
         schema_table_def = SchemaTableDef()
         sql = SQLselect(schema_table_def, columns=['name'], where=SQE('type', Ops.EQ, 'table'))
