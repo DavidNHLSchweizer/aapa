@@ -3,6 +3,7 @@
 *.log
 *.docx
 *.htm
+*.db
 !template*.docx
 ?.py
 ??.py
