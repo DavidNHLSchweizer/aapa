@@ -8,7 +8,7 @@ def init_config():
     config.set_default('mail', 'feedback_mail_templates', {str(AanvraagBeoordeling.ONVOLDOENDE): r'.\templates\template_afgekeurd.docx', str(AanvraagBeoordeling.VOLDOENDE):r'.\templates\template_goedgekeurd.docx' })
     config.set_default('mail', 'subject', 'Beoordeling aanvraag afstuderen')
     config.set_default('mail', 'cc', ['afstuderenschoolofict@nhlstenden.com'])
-    config.set_default('mail', 'bcc', ['david.schweizer@nhlstenden.com'])
+    config.set_default('mail', 'bcc', ['david.schweizer@nhlstenden.com', 'bas.van.hensbergen@nhlstenden.com', 'joris.lops@nhlstenden.com'])
 init_config()
 def __get_default_maildef():
     return OutlookMailDef(subject=config.get('mail', 'subject'), mailto='', mailbody='', cc=config.get('mail', 'cc'), bcc=config.get('mail', 'bcc'))
