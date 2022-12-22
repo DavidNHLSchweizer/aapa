@@ -6,10 +6,11 @@ from general.keys import reset_key
 from general.config import config
 from general.log import logError, logInfo, logWarn
 from general.versie import Versie
+from data.roots import add_root
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.12'
+DBVERSION = '1.13'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -42,7 +43,16 @@ class FileRootTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('FILEROOT', autoid=True)
         self.add_column('code', dbc.TEXT)
-        self.add_column('onedrive_path', dbc.TEXT)
+        self.add_column('root_path', dbc.TEXT)
+
+def create_roots(database: Database):
+    for root in config.get('roots', 'standard'):
+        add_root(root)
+def load_roots(database: Database):
+    if row := database._execute_sql_command('select code, root_path from fileroot', [], True): 
+        for record in row:
+            add_root() 
+heeft nog wat denktijd nodig. Wat sla je nu op?
 
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
@@ -124,6 +134,7 @@ class AAPDatabase(Database):
     def create_from_schema(cls, schema: Schema, filename: str):
         result = super().create_from_schema(schema, filename)
         result.check_version(True)
+
         return result
     def __version_error(self, db_versie, errorStr):
         logError (errorStr)
@@ -147,6 +158,14 @@ class AAPDatabase(Database):
             logInfo('--- Einde controle versies database en programma')
         except AAPaException as E:
             logError('This version of the program can not open this database. Use -init or migrate the data to the new database structure.')
+    def load_roots(self, recreate = False):
+        logInfo('--- Laden paden voor OneDrive')
+        if recreate:
+            create_roots(self)
+        else:
+            load_roots(self)
+        logInfo('--- Einde laden paden voor OneDrive')
+
 
 
         

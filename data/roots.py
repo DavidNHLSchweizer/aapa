@@ -1,12 +1,7 @@
 import winreg
 from general.keys import get_next_key
 from general.log import logError
-from general.config import config
 from general.singleton import Singleton
-
-def init_config():
-    config.set_default('fileroot', 'onedrive_roots',  ['OneDrive - NHL Stenden', 'NHL Stenden'])
-init_config()
 
 class PathRootConvertor:
     ROOTCODE = 'ROOT'
@@ -15,7 +10,7 @@ class PathRootConvertor:
         self.root_code = f":{PathRootConvertor.ROOTCODE}{get_next_key('PathRootConvertor')}:"
     @staticmethod
     def __contains(value: str, root: str)->bool:
-        return len(value) >= len(root) and value[:len(root)] == root
+        return len(value) >= len(root) and value[:len(root)].lower() == root.lower()
     @staticmethod
     def __substitute(value:str, substr1:str, substr2: str):
         if  PathRootConvertor.__contains(value, substr1):
@@ -66,8 +61,9 @@ def find_onedrive_path(resource_value: str)->str:
 class RootFiles(Singleton):
     def __init__(self):
         self.roots: list[PathRootConvertor] = []
-        for root in config.get('fileroot', 'onedrive_roots'):
-            self.roots.append(PathRootConvertor(find_onedrive_path(root)))
+    def add(self, root_path: str):
+        odp = find_onedrive_path(root_path)
+        self.roots.append(PathRootConvertor(odp if odp else root_path))
     def encode_root(self, path)->str:
         for root in self.roots:
             if root.contains_root(path):
@@ -84,10 +80,14 @@ def encode_path(path: str)-> str:
     return _rootfiles.encode_root(path)
 def decode_path(path: str)-> str:
     return _rootfiles.decode_root(path)
+def add_root(root_path: str):
+    _rootfiles.add(root_path)
 
 if __name__=='__main__':
     TESTCASES = [r'C:\repos\aapa', r'C:\Users\e3528\OneDrive - NHL Stenden\_afstuderen', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering']    
-
+    TESTROOTS = ['OneDrive - NHL Stenden', 'NHL Stenden']
+    for root in TESTROOTS:
+        add_root(root)
     for case in TESTCASES:
         p1 = encode_path(case)
         p2 = decode_path(case)
