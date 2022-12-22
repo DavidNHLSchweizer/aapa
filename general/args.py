@@ -22,6 +22,7 @@ def _get_arguments(banner: str):
     group.add_argument('-clean',  action='store_true', help='Verwijder overbodige bestanden van verwerkte aanvragen.')
     group.add_argument('-noscan', action='store_true', help='Scan niet op nieuwe aanvragen.')
     group.add_argument('-nomail', action='store_true', help='Beoordeelde bestanden worden niet verwerkt.')
+    group.add_argument('-noact', action='store_true', help='Combinatie van -nomail en -noscan.')
     return parser.parse_args()
 
 class Initialize(Enum):
@@ -95,7 +96,7 @@ def get_arguments()->AAPAoptions:
         else: return Initialize.NO_INIT
     try:
         args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
-        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, initialize=get_init(args), report=args.xlsx, clean=args.clean, noscan=args.noscan, nomail=args.nomail)
+        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, initialize=get_init(args), report=args.xlsx, clean=args.clean, noscan=args.noscan or args.noact, nomail=args.nomail or args.noact)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
         return None
