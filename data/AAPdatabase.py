@@ -9,7 +9,7 @@ from general.versie import Versie
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.11'
+DBVERSION = '1.12'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -38,6 +38,11 @@ def create_version_info(database: Database, versie: DBVersie):
     database._execute_sql_command('insert into versie (db_versie, versie, datum) values (?,?,?)', [versie.db_versie, versie.versie, versie.datum])
     database.commit()
 
+class FileRootTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('FILEROOT', autoid=True)
+        self.add_column('code', dbc.TEXT)
+        self.add_column('onedrive_path', dbc.TEXT)
 
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
@@ -80,6 +85,7 @@ class AAPSchema(Schema):
     def __init__(self):
         super().__init__()
         self.add_table(VersionTableDefinition())
+        self.add_table(FileRootTableDefinition())
         self.add_table(StudentTableDefinition())
         self.add_table(BedrijfTableDefinition())
         self.add_table(AanvraagTableDefinition())
