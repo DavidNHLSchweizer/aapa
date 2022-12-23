@@ -1,0 +1,438 @@
+2022-12-23 12:00:34- DB:logging started...
+2022-12-23 12:00:34- DB:connection (kutzooi.db) opened...
+2022-12-23 12:00:34- DB:pragma foreign_keys=ON
+2022-12-23 12:00:34- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-23 12:00:34- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-23 12:00:34- DB:pragma foreign_keys=OFF
+2022-12-23 12:00:34- DB:Committing
+2022-12-23 12:00:34- DB:pragma foreign_keys=ON
+2022-12-23 12:00:34- Start reading and creating schema
+2022-12-23 12:00:34- DB:CREATE TABLE IF NOT EXISTS VERSIE (ID integer PRIMARY KEY,db_versie text,versie text,datum text);
+2022-12-23 12:00:34- DB:CREATE TABLE IF NOT EXISTS FILEROOT (ID integer PRIMARY KEY,code text,root text);
+2022-12-23 12:00:34- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-23 12:00:34- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-23 12:00:34- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-23 12:00:34- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer);
+2022-12-23 12:00:34- End reading and creating schema
+2022-12-23 12:00:34- --- Controle versies database en programma
+2022-12-23 12:00:34- DB:insert into versie (db_versie, versie, datum) values (?,?,?) ['1.13', '0.93', '23-12-2022 12:00:33']
+2022-12-23 12:00:34- DB:Committing
+2022-12-23 12:00:34- --- Einde controle versies database en programma
+2022-12-23 12:00:34- COMMAND LINE OPTIONS:
+ROOT DIRECTORY: <default>: (temp)
+FORMS DIRECTORY: <default>: (temp\tempo)
+MAIL DIRECTORY: <default>: (.\aanvragen\mail)
+DATABASE: kutzooi.db
+INITIALIZE DATABASE: initialiseer database! (geen verificatievraag)
+CREATE REPORT: None
+clean: False  noscan: False  nomail: False.
+2022-12-23 12:00:34- DB:select max(id) from AANVRAGEN
+2022-12-23 12:00:34- Start import van map  C:\repos\aapa\temp...
+2022-12-23 12:00:34- Start reading aanvragen from database
+2022-12-23 12:00:34- DB:select id from AANVRAGEN
+2022-12-23 12:00:34- End reading aanvragen from database
+2022-12-23 12:00:34- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:00:34- Lezen C:\repos\aapa\temp\Aanvraag toelating afstuderen.pdf
+2022-12-23 12:00:37- Error from tabula-java:
+Exception in thread "main" java.lang.IndexOutOfBoundsException: Page number does not exist.
+	at technology.tabula.ObjectExtractor.extractPage(ObjectExtractor.java:19)
+	at technology.tabula.PageIterator.next(PageIterator.java:30)
+	at technology.tabula.CommandLineApp.extractFile(CommandLineApp.java:161)
+	at technology.tabula.CommandLineApp.extractFileTables(CommandLineApp.java:124)
+	at technology.tabula.CommandLineApp.extractTables(CommandLineApp.java:106)
+	at technology.tabula.CommandLineApp.main(CommandLineApp.java:76)
+
+
+2022-12-23 12:00:37- Fout bij importeren C:\repos\aapa\temp\Aanvraag toelating afstuderen.pdf: Verwacht meer pagina's in document: Command '['java', '-Dfile.encoding=UTF8', '-jar', 'C:\\Users\\e3528\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\tabula\\tabula-1.0.5-jar-with-dependencies.jar', '--pages', '1,2,3', '--guess', '--format', 'JSON', 'C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']' returned non-zero exit status 1.
+Waarschijnlijk niet een aanvraagformulier
+2022-12-23 12:00:37- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf', '11-01-2022 10:09:48', 1, -1]
+2022-12-23 12:00:37- DB:Committing
+2022-12-23 12:00:37- Lezen C:\repos\aapa\temp\afstudeeropdracht Sogeti.pdf
+2022-12-23 12:00:40- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:00:40- --- Start storing imported data from PDF C:\repos\aapa\temp\afstudeeropdracht Sogeti.pdf
+2022-12-23 12:00:40- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-23 12:00:40- DB:select * from BEDRIJVEN where (name=?) ['Sogeti']
+2022-12-23 12:00:40- DB:select * from BEDRIJVEN where (name=?) ['Sogeti']
+2022-12-23 12:00:40- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [1, 'Sogeti']
+2022-12-23 12:00:40- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:00:40- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4548485', 'Thomas Pap', 'Thomas', 'Thomas.pap@student.nhlstenden.com', '06-10551139']
+2022-12-23 12:00:40- DB:select count(id) from AANVRAGEN where stud_nr=? ['4548485']
+2022-12-23 12:00:40- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4548485', 1, '24-06-2022', 'Geautomatiseerde test case generatie voor de digital twin', 1, 0, 0]
+2022-12-23 12:00:40- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:00:40- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf', '24-06-2022 15:03:46', 0, 1]
+2022-12-23 12:00:40- DB:Committing
+2022-12-23 12:00:40- --- Succes storing imported data from PDF C:\repos\aapa\temp\afstudeeropdracht Sogeti.pdf
+2022-12-23 12:00:40- Thomas Pap(4548485) - 24-06-2022: Sogeti - "Geautomatiseerde test case generatie voor de digital twin" [ontvangen]
+2022-12-23 12:00:40- Lezen C:\repos\aapa\temp\Afstudeeropdracht_Jorn_Postma.pdf
+2022-12-23 12:00:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:00:43- --- Start storing imported data from PDF C:\repos\aapa\temp\Afstudeeropdracht_Jorn_Postma.pdf
+2022-12-23 12:00:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-23 12:00:43- DB:select * from BEDRIJVEN where (name=?) ['HDM Pipelines']
+2022-12-23 12:00:43- DB:select * from BEDRIJVEN where (name=?) ['HDM Pipelines']
+2022-12-23 12:00:43- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [2, 'HDM Pipelines']
+2022-12-23 12:00:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:00:43- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['S4672933', 'Jorn Postma', 'Jorn', 'Jornpostma@hotmail.com', '+31629900100']
+2022-12-23 12:00:43- DB:select count(id) from AANVRAGEN where stud_nr=? ['S4672933']
+2022-12-23 12:00:43- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['S4672933', 2, '19-12-2022', 'Een portaal voor het afhandelen van KLIC-meldingen', 1, 0, 0]
+2022-12-23 12:00:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:00:43- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf', '20-12-2022 05:51:25', 0, 2]
+2022-12-23 12:00:43- DB:Committing
+2022-12-23 12:00:43- --- Succes storing imported data from PDF C:\repos\aapa\temp\Afstudeeropdracht_Jorn_Postma.pdf
+2022-12-23 12:00:43- Jorn Postma(S4672933) - 19-12-2022: HDM Pipelines - "Een portaal voor het afhandelen van KLIC-meldingen" [ontvangen]
+2022-12-23 12:00:43- Lezen C:\repos\aapa\temp\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf
+2022-12-23 12:00:45- Fout bij importeren C:\repos\aapa\temp\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf: Fout in parse_table (0, 10): de tabel heeft 4 rijen.
+Waarschijnlijk niet een aanvraagformulier
+2022-12-23 12:00:45- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf', '23-12-2022 09:52:58', 1, -1]
+2022-12-23 12:00:45- DB:Committing
+2022-12-23 12:00:45- DB:select max(id) from AANVRAGEN
+2022-12-23 12:00:45- ...Import afgerond
+2022-12-23 12:00:45- ### 1 bestanden geimporteerd van C:\repos\aapa\temp.
+2022-12-23 12:00:45- --- Maken beoordelingsformulieren...
+2022-12-23 12:00:45- Start reading aanvragen from database
+2022-12-23 12:00:45- DB:select id from AANVRAGEN
+2022-12-23 12:00:45- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-23 12:00:45- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:00:45- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 6]
+2022-12-23 12:00:45- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-23 12:00:45- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:00:45- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 6]
+2022-12-23 12:00:45- End reading aanvragen from database
+2022-12-23 12:00:45- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf']
+2022-12-23 12:00:45- Formulier aangemaakt: C:\repos\aapa\temp\tempo\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx.
+2022-12-23 12:00:45- --- Start storing data for form Jorn Postma(S4672933) - 19-12-2022: HDM Pipelines - "Een portaal voor het afhandelen van KLIC-meldingen" [te beoordelen]
+2022-12-23 12:00:45- DB:UPDATE AANVRAGEN SET stud_nr=?,bedrijf_id=?,datum_str=?,titel=?,aanvraag_nr=?,beoordeling=?,status=? WHERE (id = ?); ['S4672933', 2, '19-12-2022', 'Een portaal voor het afhandelen van KLIC-meldingen', 1, 0, 1, 2]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:00:45- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx', '23-12-2022 12:00:45', 2, 2]
+2022-12-23 12:00:45- DB:Committing
+2022-12-23 12:00:45- --- Succes storing data for form Jorn Postma(S4672933) - 19-12-2022: HDM Pipelines - "Een portaal voor het afhandelen van KLIC-meldingen" [te beoordelen]
+2022-12-23 12:00:45- Formulier aangemaakt: C:\repos\aapa\temp\tempo\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx.
+2022-12-23 12:00:45- --- Start storing data for form Thomas Pap(4548485) - 24-06-2022: Sogeti - "Geautomatiseerde test case generatie voor de digital twin" [te beoordelen]
+2022-12-23 12:00:45- DB:UPDATE AANVRAGEN SET stud_nr=?,bedrijf_id=?,datum_str=?,titel=?,aanvraag_nr=?,beoordeling=?,status=? WHERE (id = ?); ['4548485', 1, '24-06-2022', 'Geautomatiseerde test case generatie voor de digital twin', 1, 0, 1, 1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:00:45- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx', '23-12-2022 12:00:45', 2, 1]
+2022-12-23 12:00:45- DB:Committing
+2022-12-23 12:00:45- --- Succes storing data for form Thomas Pap(4548485) - 24-06-2022: Sogeti - "Geautomatiseerde test case generatie voor de digital twin" [te beoordelen]
+2022-12-23 12:00:45- --- Einde maken beoordelingsformulieren.
+2022-12-23 12:00:45- ### 2 beoordelingsformulieren aangemaakt in C:\repos\aapa\temp\tempo
+2022-12-23 12:00:45- --- Verwerken beoordeelde formulieren...
+2022-12-23 12:00:45- Start reading aanvragen from database
+2022-12-23 12:00:45- DB:select id from AANVRAGEN
+2022-12-23 12:00:45- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-23 12:00:45- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:00:45- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 6]
+2022-12-23 12:00:45- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-23 12:00:45- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:00:45- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 6]
+2022-12-23 12:00:45- End reading aanvragen from database
+2022-12-23 12:00:45- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf']
+2022-12-23 12:00:45- ### 0 beooordeelde aanvragen verwerkt
+2022-12-23 12:00:45- --- Einde verwerken beoordeelde formulieren.
+2022-12-23 12:00:45- --- Klaarzetten feedback mails...
+2022-12-23 12:00:45- Start reading aanvragen from database
+2022-12-23 12:00:45- DB:select id from AANVRAGEN
+2022-12-23 12:00:45- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-23 12:00:45- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:00:45- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 6]
+2022-12-23 12:00:45- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-23 12:00:45- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:00:45- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx']
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-23 12:00:45- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 6]
+2022-12-23 12:00:45- End reading aanvragen from database
+2022-12-23 12:00:45- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']
+2022-12-23 12:00:45- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf']
+2022-12-23 12:00:45- ### 0 mails klaargezet in Outlook Concepten/Drafts.
+2022-12-23 12:00:45- --- Einde klaarzetten feedback mails.
+2022-12-23 12:00:45- Ready.
+2022-12-23 12:02:32- DB:logging started...
+2022-12-23 12:02:32- DB:connection (kutzooi.db) opened...
+2022-12-23 12:02:32- DB:pragma foreign_keys=ON
+2022-12-23 12:02:32- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-23 12:02:32- DB:pragma table_info(VERSIE)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(VERSIE)
+2022-12-23 12:02:32- DB:pragma table_info(FILEROOT)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(FILEROOT)
+2022-12-23 12:02:32- DB:pragma table_info(STUDENTEN)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-23 12:02:32- DB:pragma table_info(BEDRIJVEN)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-23 12:02:32- DB:pragma table_info(AANVRAGEN)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-23 12:02:32- DB:pragma table_info(FILES)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(FILES)
+2022-12-23 12:02:32- DB:SELECT name FROM sqlite_schema WHERE (type = ?); ['table']
+2022-12-23 12:02:32- DB:pragma table_info(VERSIE)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(VERSIE)
+2022-12-23 12:02:32- DB:pragma table_info(FILEROOT)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(FILEROOT)
+2022-12-23 12:02:32- DB:pragma table_info(STUDENTEN)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(STUDENTEN)
+2022-12-23 12:02:32- DB:pragma table_info(BEDRIJVEN)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(BEDRIJVEN)
+2022-12-23 12:02:32- DB:pragma table_info(AANVRAGEN)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(AANVRAGEN)
+2022-12-23 12:02:32- DB:pragma table_info(FILES)
+2022-12-23 12:02:32- DB:pragma foreign_key_list(FILES)
+2022-12-23 12:02:32- DB:pragma foreign_keys=OFF
+2022-12-23 12:02:32- DB:DROP TABLE IF EXISTS VERSIE;
+2022-12-23 12:02:32- DB:DROP TABLE IF EXISTS FILEROOT;
+2022-12-23 12:02:32- DB:DROP TABLE IF EXISTS STUDENTEN;
+2022-12-23 12:02:32- DB:DROP TABLE IF EXISTS BEDRIJVEN;
+2022-12-23 12:02:32- DB:DROP TABLE IF EXISTS AANVRAGEN;
+2022-12-23 12:02:32- DB:DROP TABLE IF EXISTS FILES;
+2022-12-23 12:02:32- DB:Committing
+2022-12-23 12:02:32- DB:pragma foreign_keys=ON
+2022-12-23 12:02:32- Start reading and creating schema
+2022-12-23 12:02:32- DB:CREATE TABLE IF NOT EXISTS VERSIE (ID integer PRIMARY KEY,db_versie text,versie text,datum text);
+2022-12-23 12:02:32- DB:CREATE TABLE IF NOT EXISTS FILEROOT (ID integer PRIMARY KEY,code text,root text);
+2022-12-23 12:02:32- DB:CREATE TABLE IF NOT EXISTS STUDENTEN (stud_nr text PRIMARY KEY,full_name text,first_name text,email text,tel_nr text);
+2022-12-23 12:02:32- DB:CREATE TABLE IF NOT EXISTS BEDRIJVEN (id integer PRIMARY KEY,name text);
+2022-12-23 12:02:32- DB:CREATE TABLE IF NOT EXISTS AANVRAGEN (id integer PRIMARY KEY,stud_nr text,bedrijf_id integer,datum_str text,titel text,aanvraag_nr integer,status integer,beoordeling integer,FOREIGN KEY(stud_nr) REFERENCES STUDENTEN(stud_nr) ON UPDATE CASCADE ON DELETE CASCADE,FOREIGN KEY(bedrijf_id) REFERENCES BEDRIJVEN(id) ON UPDATE CASCADE ON DELETE CASCADE);
+2022-12-23 12:02:32- DB:CREATE TABLE IF NOT EXISTS FILES (filename text PRIMARY KEY,timestamp text,filetype integer,aanvraag_id integer);
+2022-12-23 12:02:32- End reading and creating schema
+2022-12-23 12:02:32- --- Controle versies database en programma
+2022-12-23 12:02:32- DB:insert into versie (db_versie, versie, datum) values (?,?,?) ['1.13', '0.93', '23-12-2022 12:02:30']
+2022-12-23 12:02:32- DB:Committing
+2022-12-23 12:02:32- --- Einde controle versies database en programma
+2022-12-23 12:02:32- --- Laden paden voor OneDrive
+2022-12-23 12:02:32- DB:insert into fileroot (code, root) values (?,?); [':ROOT1:', 'OneDrive - NHL Stenden']
+2022-12-23 12:02:32- DB:Committing
+2022-12-23 12:02:32- DB:insert into fileroot (code, root) values (?,?); [':ROOT2:', 'NHL Stenden']
+2022-12-23 12:02:32- DB:Committing
+2022-12-23 12:02:32- --- Einde laden paden voor OneDrive
+2022-12-23 12:02:32- COMMAND LINE OPTIONS:
+ROOT DIRECTORY: <default>: (temp)
+FORMS DIRECTORY: <default>: (temp\tempo)
+MAIL DIRECTORY: <default>: (.\aanvragen\mail)
+DATABASE: kutzooi.db
+INITIALIZE DATABASE: initialiseer database! (geen verificatievraag)
+CREATE REPORT: None
+clean: False  noscan: False  nomail: False.
+2022-12-23 12:02:32- DB:select max(id) from AANVRAGEN
+2022-12-23 12:02:32- Start import van map  C:\repos\aapa\temp...
+2022-12-23 12:02:32- Start reading aanvragen from database
+2022-12-23 12:02:32- DB:select id from AANVRAGEN
+2022-12-23 12:02:32- End reading aanvragen from database
+2022-12-23 12:02:32- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:02:32- Lezen C:\repos\aapa\temp\Aanvraag toelating afstuderen.pdf
+2022-12-23 12:02:34- Error from tabula-java:
+Exception in thread "main" java.lang.IndexOutOfBoundsException: Page number does not exist.
+	at technology.tabula.ObjectExtractor.extractPage(ObjectExtractor.java:19)
+	at technology.tabula.PageIterator.next(PageIterator.java:30)
+	at technology.tabula.CommandLineApp.extractFile(CommandLineApp.java:161)
+	at technology.tabula.CommandLineApp.extractFileTables(CommandLineApp.java:124)
+	at technology.tabula.CommandLineApp.extractTables(CommandLineApp.java:106)
+	at technology.tabula.CommandLineApp.main(CommandLineApp.java:76)
+
+
+2022-12-23 12:02:34- Fout bij importeren C:\repos\aapa\temp\Aanvraag toelating afstuderen.pdf: Verwacht meer pagina's in document: Command '['java', '-Dfile.encoding=UTF8', '-jar', 'C:\\Users\\e3528\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\tabula\\tabula-1.0.5-jar-with-dependencies.jar', '--pages', '1,2,3', '--guess', '--format', 'JSON', 'C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']' returned non-zero exit status 1.
+Waarschijnlijk niet een aanvraagformulier
+2022-12-23 12:02:34- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf', '11-01-2022 10:09:48', 1, -1]
+2022-12-23 12:02:34- DB:Committing
+2022-12-23 12:02:34- Lezen C:\repos\aapa\temp\afstudeeropdracht Sogeti.pdf
+2022-12-23 12:02:37- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:02:37- --- Start storing imported data from PDF C:\repos\aapa\temp\afstudeeropdracht Sogeti.pdf
+2022-12-23 12:02:37- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-23 12:02:37- DB:select * from BEDRIJVEN where (name=?) ['Sogeti']
+2022-12-23 12:02:37- DB:select * from BEDRIJVEN where (name=?) ['Sogeti']
+2022-12-23 12:02:37- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [1, 'Sogeti']
+2022-12-23 12:02:37- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:02:37- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['4548485', 'Thomas Pap', 'Thomas', 'Thomas.pap@student.nhlstenden.com', '06-10551139']
+2022-12-23 12:02:37- DB:select count(id) from AANVRAGEN where stud_nr=? ['4548485']
+2022-12-23 12:02:37- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['4548485', 1, '24-06-2022', 'Geautomatiseerde test case generatie voor de digital twin', 1, 0, 0]
+2022-12-23 12:02:37- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:02:37- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf', '24-06-2022 15:03:46', 0, 1]
+2022-12-23 12:02:37- DB:Committing
+2022-12-23 12:02:37- --- Succes storing imported data from PDF C:\repos\aapa\temp\afstudeeropdracht Sogeti.pdf
+2022-12-23 12:02:37- Thomas Pap(4548485) - 24-06-2022: Sogeti - "Geautomatiseerde test case generatie voor de digital twin" [ontvangen]
+2022-12-23 12:02:37- Lezen C:\repos\aapa\temp\Afstudeeropdracht_Jorn_Postma.pdf
+2022-12-23 12:02:40- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:02:40- --- Start storing imported data from PDF C:\repos\aapa\temp\Afstudeeropdracht_Jorn_Postma.pdf
+2022-12-23 12:02:40- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [-1]
+2022-12-23 12:02:40- DB:select * from BEDRIJVEN where (name=?) ['HDM Pipelines']
+2022-12-23 12:02:40- DB:select * from BEDRIJVEN where (name=?) ['HDM Pipelines']
+2022-12-23 12:02:40- DB:INSERT INTO BEDRIJVEN (id,name) VALUES(?,?); [2, 'HDM Pipelines']
+2022-12-23 12:02:40- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:02:40- DB:INSERT INTO STUDENTEN (stud_nr,full_name,first_name,email,tel_nr) VALUES(?,?,?,?,?); ['S4672933', 'Jorn Postma', 'Jorn', 'Jornpostma@hotmail.com', '+31629900100']
+2022-12-23 12:02:40- DB:select count(id) from AANVRAGEN where stud_nr=? ['S4672933']
+2022-12-23 12:02:40- DB:INSERT INTO AANVRAGEN (stud_nr,bedrijf_id,datum_str,titel,aanvraag_nr,beoordeling,status) VALUES(?,?,?,?,?,?,?); ['S4672933', 2, '19-12-2022', 'Een portaal voor het afhandelen van KLIC-meldingen', 1, 0, 0]
+2022-12-23 12:02:40- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:02:40- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf', '20-12-2022 05:51:25', 0, 2]
+2022-12-23 12:02:40- DB:Committing
+2022-12-23 12:02:40- --- Succes storing imported data from PDF C:\repos\aapa\temp\Afstudeeropdracht_Jorn_Postma.pdf
+2022-12-23 12:02:40- Jorn Postma(S4672933) - 19-12-2022: HDM Pipelines - "Een portaal voor het afhandelen van KLIC-meldingen" [ontvangen]
+2022-12-23 12:02:40- Lezen C:\repos\aapa\temp\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf
+2022-12-23 12:02:43- Fout bij importeren C:\repos\aapa\temp\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf: Fout in parse_table (0, 10): de tabel heeft 4 rijen.
+Waarschijnlijk niet een aanvraagformulier
+2022-12-23 12:02:43- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf', '23-12-2022 09:52:58', 1, -1]
+2022-12-23 12:02:43- DB:Committing
+2022-12-23 12:02:43- DB:select max(id) from AANVRAGEN
+2022-12-23 12:02:43- ...Import afgerond
+2022-12-23 12:02:43- ### 1 bestanden geimporteerd van C:\repos\aapa\temp.
+2022-12-23 12:02:43- --- Maken beoordelingsformulieren...
+2022-12-23 12:02:43- Start reading aanvragen from database
+2022-12-23 12:02:43- DB:select id from AANVRAGEN
+2022-12-23 12:02:43- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-23 12:02:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:02:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 6]
+2022-12-23 12:02:43- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-23 12:02:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:02:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 6]
+2022-12-23 12:02:43- End reading aanvragen from database
+2022-12-23 12:02:43- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf']
+2022-12-23 12:02:43- Formulier aangemaakt: C:\repos\aapa\temp\tempo\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx.
+2022-12-23 12:02:43- --- Start storing data for form Jorn Postma(S4672933) - 19-12-2022: HDM Pipelines - "Een portaal voor het afhandelen van KLIC-meldingen" [te beoordelen]
+2022-12-23 12:02:43- DB:UPDATE AANVRAGEN SET stud_nr=?,bedrijf_id=?,datum_str=?,titel=?,aanvraag_nr=?,beoordeling=?,status=? WHERE (id = ?); ['S4672933', 2, '19-12-2022', 'Een portaal voor het afhandelen van KLIC-meldingen', 1, 0, 1, 2]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:02:43- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx', '23-12-2022 12:02:43', 2, 2]
+2022-12-23 12:02:43- DB:Committing
+2022-12-23 12:02:43- --- Succes storing data for form Jorn Postma(S4672933) - 19-12-2022: HDM Pipelines - "Een portaal voor het afhandelen van KLIC-meldingen" [te beoordelen]
+2022-12-23 12:02:43- Formulier aangemaakt: C:\repos\aapa\temp\tempo\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx.
+2022-12-23 12:02:43- --- Start storing data for form Thomas Pap(4548485) - 24-06-2022: Sogeti - "Geautomatiseerde test case generatie voor de digital twin" [te beoordelen]
+2022-12-23 12:02:43- DB:UPDATE AANVRAGEN SET stud_nr=?,bedrijf_id=?,datum_str=?,titel=?,aanvraag_nr=?,beoordeling=?,status=? WHERE (id = ?); ['4548485', 1, '24-06-2022', 'Geautomatiseerde test case generatie voor de digital twin', 1, 0, 1, 1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:02:43- DB:INSERT INTO FILES (filename,timestamp,filetype,aanvraag_id) VALUES(?,?,?,?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx', '23-12-2022 12:02:43', 2, 1]
+2022-12-23 12:02:43- DB:Committing
+2022-12-23 12:02:43- --- Succes storing data for form Thomas Pap(4548485) - 24-06-2022: Sogeti - "Geautomatiseerde test case generatie voor de digital twin" [te beoordelen]
+2022-12-23 12:02:43- --- Einde maken beoordelingsformulieren.
+2022-12-23 12:02:43- ### 2 beoordelingsformulieren aangemaakt in C:\repos\aapa\temp\tempo
+2022-12-23 12:02:43- --- Verwerken beoordeelde formulieren...
+2022-12-23 12:02:43- Start reading aanvragen from database
+2022-12-23 12:02:43- DB:select id from AANVRAGEN
+2022-12-23 12:02:43- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-23 12:02:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:02:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 6]
+2022-12-23 12:02:43- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-23 12:02:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:02:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 6]
+2022-12-23 12:02:43- End reading aanvragen from database
+2022-12-23 12:02:43- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf']
+2022-12-23 12:02:43- ### 0 beooordeelde aanvragen verwerkt
+2022-12-23 12:02:43- --- Einde verwerken beoordeelde formulieren.
+2022-12-23 12:02:43- --- Klaarzetten feedback mails...
+2022-12-23 12:02:43- Start reading aanvragen from database
+2022-12-23 12:02:43- DB:select id from AANVRAGEN
+2022-12-23 12:02:43- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [1]
+2022-12-23 12:02:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['4548485']
+2022-12-23 12:02:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 0]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\afstudeeropdracht Sogeti.pdf']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 2]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Thomas Pap(4548485) (Sogeti)-1.docx']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 3]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 4]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 5]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [1, 6]
+2022-12-23 12:02:43- DB:SELECT * FROM AANVRAGEN WHERE (id = ?); [2]
+2022-12-23 12:02:43- DB:SELECT * FROM STUDENTEN WHERE (stud_nr = ?); ['S4672933']
+2022-12-23 12:02:43- DB:SELECT * FROM BEDRIJVEN WHERE (id = ?); [2]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 0]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Afstudeeropdracht_Jorn_Postma.pdf']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 1]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 2]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\tempo\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.docx']
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 3]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 4]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 5]
+2022-12-23 12:02:43- DB:select filename from FILES where aanvraag_id=? and filetype=? [2, 6]
+2022-12-23 12:02:43- End reading aanvragen from database
+2022-12-23 12:02:43- DB:select filename from FILES where filetype=? [1]
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Aanvraag toelating afstuderen.pdf']
+2022-12-23 12:02:43- DB:SELECT * FROM FILES WHERE (filename = ?); ['C:\\repos\\aapa\\temp\\Beoordeling aanvraag Jorn Postma(S4672933) (HDM Pipelines)-1.pdf']
+2022-12-23 12:02:43- ### 0 mails klaargezet in Outlook Concepten/Drafts.
+2022-12-23 12:02:43- --- Einde klaarzetten feedback mails.
+2022-12-23 12:02:43- Ready.

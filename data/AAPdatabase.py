@@ -6,11 +6,11 @@ from general.keys import reset_key
 from general.config import config
 from general.log import logError, logInfo, logWarn
 from general.versie import Versie
-from data.roots import add_root
+from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.13'
+DBVERSION = '1.14'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -43,16 +43,21 @@ class FileRootTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('FILEROOT', autoid=True)
         self.add_column('code', dbc.TEXT)
-        self.add_column('root_path', dbc.TEXT)
+        self.add_column('root', dbc.TEXT)
+
+def create_root(database: Database, code, root: str):
+    database._execute_sql_command('insert into fileroot (code, root) values (?,?);', [code, root])
+    database.commit()
 
 def create_roots(database: Database):
-    for root in config.get('roots', 'standard'):
-        add_root(root)
+    for code,root in get_roots():
+        create_root(database, code, root)        
+            
 def load_roots(database: Database):
-    if row := database._execute_sql_command('select code, root_path from fileroot', [], True): 
+    reset_roots()
+    if row := database._execute_sql_command('select code, root from fileroot', [], True): 
         for record in row:
-            add_root() 
-# heeft nog wat denktijd nodig. Wat sla je nu op?
+            add_root(record['root'], record['code']) 
 
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
@@ -121,6 +126,7 @@ class AAPDatabase(Database):
         if not self._reset_flag:
             self.reset_keys()
             self.check_version(False)
+            self.load_roots(False)
     def reset_keys(self):
         reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
         reset_key(AanvraagTableDefinition.KEY_FOR_ID, self.__find_max_key('AANVRAGEN'))
@@ -134,7 +140,7 @@ class AAPDatabase(Database):
     def create_from_schema(cls, schema: Schema, filename: str):
         result = super().create_from_schema(schema, filename)
         result.check_version(True)
-
+        result.load_roots(True)
         return result
     def __version_error(self, db_versie, errorStr):
         logError (errorStr)
@@ -159,13 +165,10 @@ class AAPDatabase(Database):
         except AAPaException as E:
             logError('This version of the program can not open this database. Use -init or migrate the data to the new database structure.')
     def load_roots(self, recreate = False):
-        logInfo('--- Laden paden voor OneDrive')
+        logInfo('--- Laden paden voor File Encoding')
         if recreate:
             create_roots(self)
         else:
             load_roots(self)
-        logInfo('--- Einde laden paden voor OneDrive')
-
-
-
-        
+        logInfo(get_roots_report())
+        logInfo('--- Einde laden paden File Encoding')

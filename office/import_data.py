@@ -192,6 +192,7 @@ def import_directory(directory: str, storage: AAPStorage, recursive = True)->tup
         logWarn(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
     logPrint(f'Start import van map  {directory}...')
+    storage.add_file_root(str(directory))
     importer = AanvraagDataImporter(storage)
     for file in Path(directory).glob(_get_pattern(recursive)):
         _import_aanvraag(file, importer)

@@ -60,6 +60,7 @@ def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directo
     logPrint('--- Maken beoordelingsformulieren...')
     if created_directory(output_directory):
         logPrint(f'Map {output_directory} aangemaakt.')
+    storage.add_file_root(str(output_directory))
     file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
     result = file_creator.process(filter_func)
     logPrint('--- Einde maken beoordelingsformulieren.')

@@ -76,6 +76,7 @@ def create_feedback_mails(storage: AAPStorage, templates: dict, default_maildef:
     logPrint('--- Klaarzetten feedback mails...')
     if created_directory(output_directory):
         logPrint(f'Map {output_directory} aangemaakt.')
+    storage.add_file_root(str(output_directory))
     file_creator = FeedbackMailsCreator(storage, templates, default_maildef, output_directory)
     n_mails = file_creator.process(filter_func)
     logPrint(f'### {n_mails} mails klaargezet in Outlook Concepten/Drafts.')

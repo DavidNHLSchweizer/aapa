@@ -4,6 +4,7 @@ import logging
 def logInfo(msg: str):
     logging.info(msg)
 
+
 def logPrint(msg: str):
     logInfo(msg)
     print(msg)

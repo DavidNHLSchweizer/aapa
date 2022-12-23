@@ -1,4 +1,4 @@
-from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, VersionTableDefinition
+from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, VersionTableDefinition, create_root
 from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase
 from database.database import Database
@@ -6,6 +6,7 @@ from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from general.versie import Versie
 from general.config import config
+from data.roots import add_root, decode_path, encode_path
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -39,14 +40,14 @@ class CRUD_files(CRUDbase):
         result.extend(['timestamp', 'filetype', 'aanvraag_id'] )
         return result
     def __get_all_values(self, fileinfo: FileInfo, include_key = True):
-        result = [str(fileinfo.filename)] if include_key else []        
+        result = [encode_path(str(fileinfo.filename))] if include_key else []        
         result.extend([CRUD_files._timestamp_to_value(fileinfo.timestamp), CRUD_files._filetype_to_value(fileinfo.filetype), fileinfo.aanvraag_id])
         return result
     def create(self, fileinfo: FileInfo):
         super().create(columns=self.__get_all_columns(), values=self.__get_all_values(fileinfo))   
     @staticmethod
     def _filename_to_value(filename: str):
-        return f'{filename}'
+        return f'{encode_path(filename)}'
     @staticmethod
     def _timestamp_to_value(timestamp):
         return FileInfo.timestamp_to_str(timestamp)
@@ -55,7 +56,7 @@ class CRUD_files(CRUDbase):
         return filetype.value
     def read(self, filename: str)->FileInfo:
         if row:=super().read(where=SQE('filename', Ops.EQ, CRUD_files._filename_to_value(filename), no_column_ref = True)):
-            return FileInfo(filename, timestamp=FileInfo.str_to_timestamp(row['timestamp']), filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id'])
+            return FileInfo(decode_path(filename), timestamp=FileInfo.str_to_timestamp(row['timestamp']), filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id'])
         else:
             return None
     def update(self, fileinfo: FileInfo):
@@ -153,7 +154,11 @@ class AAPStorage:
         self.crud_files.update(fileinfo)
     def delete_fileinfo(self, filename: str):
         self.crud_files.delete(filename)
-    
+    def add_file_root(self, root: str, code = None):
+        code = add_root(root, code)
+        create_root(self.database, code, root)
+        self.commit()
+
     def create_student(self, student: StudentInfo):
         self.crud_studenten.create(student)
     def read_student(self, studnr: str)->StudentInfo:
@@ -224,12 +229,11 @@ class AAPStorage:
         for row in self.database._execute_sql_command('select filename from FILES where filetype=?', [CRUD_files._filetype_to_value(filetype)], True):
             result.append(self.crud_files.read(row['filename']))
         return result
-
     def max_aanvraag_id(self):
         if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
             return row[0][0]           
         else:
-            return 0        
+            return 0                    
     def commit(self):
         self.database.commit()
     
