@@ -56,12 +56,15 @@ def find_onedrive_path(resource_value: str)->str:
                     return result
         return None                    
     except WindowsError as WE:
+        print(WE)
         logError(__exception_str(WE, 'WindowsError'))
         return None
     except KeyError as KE:
+        print(KE)
         logError(__exception_str(KE, 'KeyError'))
         return None
     except ValueError as VE:
+        print(VE)
         logError(__exception_str(VE, 'ValueError'))
         return None
 

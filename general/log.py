@@ -1,7 +1,7 @@
 import logging
 
-
 def logInfo(msg: str):
+    print('infoing', msg)
     logging.info(msg)
 
 
