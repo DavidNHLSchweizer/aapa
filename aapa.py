@@ -28,6 +28,8 @@ class AAPA:
         self.__initialize_database(options)
         self.__initialize_directories(options)
         logInfo(f'COMMAND LINE OPTIONS:\n{report_options(options)}')
+        if options.info:
+            print(f'CONFIGURATION:\n{report_options(options, True)}')
         self.cleanup = options.clean
         self.noscan  = options.noscan
         self.nomail  = options.nomail

@@ -18,6 +18,7 @@ def _get_arguments(banner: str):
     group = parser.add_argument_group('Acties en overige opties')
     group.add_argument('-init', action='store_true', dest='init', help= 'Initialiseer de database. Alle data wordt verwijderd.')
     group.add_argument('-init!', action='store_true', dest='init_force', help= 'Initialiseer de database. Alle data wordt verwijderd.')
+    group.add_argument('-info', action='store_true', help='Print configuration information')
     group.add_argument('-x', '--xlsx', type=str, help='Rapporteer aanvragen in een .XSLX bestand. Indien geen bestandsnaam wordt ingevoerd (-x=) gaat alleen een samenvatting naar de console.')
     group.add_argument('-clean',  action='store_true', help='Verwijder overbodige bestanden van verwerkte aanvragen.')
     group.add_argument('-noscan', action='store_true', help='Scan niet op nieuwe aanvragen.')
@@ -44,6 +45,7 @@ class AAPAoptions:
     database: str = r'.\aapa.db'
     initialize: Initialize = Initialize.NO_INIT
     report: str = None
+    info: bool = False
     clean: bool = False
     noscan: bool = False
     nomail: bool = False
@@ -61,9 +63,11 @@ class AAPAoptions:
             result = result + f'{str(self.initialize)}\n'
         if self.report is not None:
             result = result + f'report: {self.report}\n'
+        if self.info: 
+            result = result + f'print configuration information\n'
         return result + f'clean: {self.clean}  noscan: {self.noscan}  nomail: {self.nomail}.'
 
-def report_options(options: AAPAoptions)->str:
+def report_options(options: AAPAoptions, config_only = False)->str:
     DEFAULT = "<default>:"
     QUERY   = "<to be queried>"
     def __report_str(item: str, attr, default):
@@ -81,12 +85,16 @@ def report_options(options: AAPAoptions)->str:
     result +=  _report_str('forms directory', options.forms, config.get('configuration', 'forms'))
     result +=  _report_str('mail directory', options.mail, config.get('configuration', 'mail'))
     result +=  _report_str('database', options.database, config.get('configuration', 'database'))
+    if config_only: 
+        return result
     if options.initialize != Initialize.NO_INIT:
         result +=  _report_str('initialize database', str(options.initialize))
     if options.report:
         result +=  _report_str('create report', str(options.report))
     else:
         result +=  _report_str('create report', 'None')
+    if options.info:
+        result += f'print configuration info\n'
     return result + f'clean: {options.clean}  noscan: {options.noscan}  nomail: {options.nomail}.'
 
 def get_arguments()->AAPAoptions:
@@ -96,7 +104,7 @@ def get_arguments()->AAPAoptions:
         else: return Initialize.NO_INIT
     try:
         args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
-        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, initialize=get_init(args), report=args.xlsx, clean=args.clean, noscan=args.noscan or args.noact, nomail=args.nomail or args.noact)
+        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, initialize=get_init(args), info=args.info, report=args.xlsx, clean=args.clean, noscan=args.noscan or args.noact, nomail=args.nomail or args.noact)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
         return None

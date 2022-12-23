@@ -1,5 +1,6 @@
 import sys
 from general.fileutil import test_file_exists
+from general.log import logError
 from general.singleton import Singleton
 import jsonpickle
 import atexit
@@ -80,11 +81,14 @@ def _get_config_file(directory, config_file):
 
 def _load_config():
     global config
-    default_dir  = config.get('configuration', 'default_directory')
-    config_file = config.get('configuration', 'config_file')
-    if config_file and test_file_exists(default_dir, config_file):
-        with open(_get_config_file(default_dir, config_file), 'r') as file:
-            config = config.read(file)
+    try:
+        default_dir  = config.get('configuration', 'default_directory')
+        config_file = config.get('configuration', 'config_file')
+        if config_file and test_file_exists(default_dir, config_file):
+            with open(_get_config_file(default_dir, config_file), 'r') as file:
+                config = config.read(file)
+    except Exception as E:
+        print(f'Fout bij lezen configuratiebestand {config_file}: {E}')
 _load_config()
 
 @atexit.register

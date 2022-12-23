@@ -52,7 +52,7 @@ def load_roots(database: Database):
     if row := database._execute_sql_command('select code, root_path from fileroot', [], True): 
         for record in row:
             add_root() 
-heeft nog wat denktijd nodig. Wat sla je nu op?
+# heeft nog wat denktijd nodig. Wat sla je nu op?
 
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
