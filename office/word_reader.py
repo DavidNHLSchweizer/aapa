@@ -24,18 +24,17 @@ class WordReader:
     def open_document(self, doc_path):
         if self.document:
             self.close()
-        print(doc_path)
         self.word.Documents.Open(doc_path, ReadOnly=-1)
         self._document = self.word.ActiveDocument
         self.doc_path = doc_path
-    def _save_as(self, file_format, suffix):        
-        save_name = str(path_with_suffix(self.doc_path, suffix))
+    def _save_as(self, file_format, suffix, filename=None):        
+        save_name = filename if filename else str(path_with_suffix(self.doc_path, suffix))
         self.document.SaveAs(save_name, FileFormat=file_format)
         return save_name
-    def save_as_pdf(self):
-        return self._save_as(wdFormatPDF, '.pdf')
-    def save_as_htm(self):
-        return self._save_as(wdFormatFilteredHTML, '.htm')
+    def save_as_pdf(self, filename=None):
+        return self._save_as(wdFormatPDF, '.pdf', filename=filename)
+    def save_as_htm(self, filename=None):
+        return self._save_as(wdFormatFilteredHTML, '.htm', filename=filename)
     def close(self):
         try:
             if self.document:

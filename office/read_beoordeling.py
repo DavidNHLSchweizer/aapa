@@ -2,6 +2,7 @@
 from pathlib import Path
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from data.aanvraag_processor import AanvraagProcessor
+from general.fileutil import path_with_suffix
 from office.word_reader import WordReader, WordReaderException
 from data.storage import AAPStorage
 from general.log import logError, logInfo, logPrint, logWarn
@@ -48,7 +49,9 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
     def __store_graded_file(self, aanvraag: AanvraagInfo, docpath: str):
         aanvraag.files.set_info(FileInfo(docpath, timestamp=AUTOTIMESTAMP, filetype=FileType.GRADED_DOCX, aanvraag_id=aanvraag.id))
     def __create_graded_file_pdf(self, aanvraag: AanvraagInfo):
-        pdf_file_name = self.reader.save_as_pdf()
+        aanvraag_path = Path(aanvraag.files.get_filename(FileType.AANVRAAG_PDF)).parent
+        graded_name = Path(aanvraag.files.get_filename(FileType.GRADED_DOCX)).name
+        pdf_file_name = self.reader.save_as_pdf(str(path_with_suffix(aanvraag_path.joinpath(graded_name), '.pdf')))
         aanvraag.files.set_info(FileInfo(pdf_file_name, filetype=FileType.GRADED_PDF, aanvraag_id=aanvraag.id))
         logPrint(f'Feedback file aangemaakt: {pdf_file_name}.')
     def __adapt_aanvraag(self, aanvraag: AanvraagInfo, docpath: str, grade:str)->bool:
