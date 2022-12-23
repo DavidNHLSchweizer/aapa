@@ -4,6 +4,7 @@
 *.docx
 *.htm
 *.db
+*.bak
 !template*.docx
 ?.py
 ??.py
