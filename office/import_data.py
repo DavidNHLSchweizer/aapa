@@ -11,6 +11,7 @@ from data.storage import AAPStorage
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
 from general.log import logError, logPrint, logWarn, logInfo
 from general.valid_email import is_valid_email, try_extract_email
+from PyPDF2 import PdfFileReader
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
@@ -20,6 +21,11 @@ def nrows(table: pd.DataFrame)->int:
     return table.shape[0]
 def ncols(table: pd.DataFrame)->int:
     return table.shape[1]
+
+def count_pdf_pages(file_path):
+    with open(file_path, 'rb') as f:
+        pdf = PdfFileReader(f, strict=False)
+        return pdf.getNumPages()
 
 @dataclass
 class _AanvraagData:
@@ -38,12 +44,14 @@ class AanvraagReaderFromPDF:
     def __str__(self):
         return f'file:"{self.filename}" aanvraag: "{str(self.aanvraag)}"'
     def read_pdf(self, pdf_file: str)->AanvraagInfo:
+        if (n := count_pdf_pages(pdf_file)) < 3:
+            raise PDFReaderException(f"Verwacht meer pagina's dan {n} in document")
         aanvraag_data = _AanvraagData()
         try:
             # tables = tabula.read_pdf(pdf_file,pages=list(range(1,4)),multiple_tables=True,area=[70,70,570,790])
             tables = tabula.read_pdf(pdf_file,pages=list(range(1,4)))
         except Exception as E:
-            raise PDFReaderException(f"Verwacht meer pagina's in document: {E}")
+            raise PDFReaderException(f"Fout bij lezen document: {E}")
         if len(tables) < 3:
             raise PDFReaderException(f'Verwacht 3 of meer tabellen in document ({len(tables)}')
         tables[0].fillna(value='', inplace=True) #found some nan some times, just remove those

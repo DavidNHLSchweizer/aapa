@@ -56,9 +56,9 @@ def create_roots(database: Database):
 def load_roots(database: Database):
     reset_roots()
     if row := database._execute_sql_command('select code, root from fileroot', [], True): 
-        for record in row:
-            print(record['root'], record['code']) 
-            #add_root(record['root'], record['code']) 
+        for record in row:            
+            add_root(record['root'], record['code']) 
+            
 
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
@@ -171,5 +171,5 @@ class AAPDatabase(Database):
             create_roots(self)
         else:
             load_roots(self)
-        logInfo(get_roots_report())
+        logInfo(f'Bekende paden:\n{get_roots_report()}')
         logInfo('--- Einde laden paden File Encoding')

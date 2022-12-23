@@ -62,17 +62,17 @@ class AAPA:
         else:
             return None
     def process(self):
-        # if not self.noscan and self.root:
-        #     process_directory(self.root, self.storage, self.forms_directory)
-        # if not self.nomail and self.mail_directory:
-        #     process_graded(self.storage, self.mail_directory)
-        # if self.cleanup:
-        #     cleanup_files(self.storage)
-        # if self.report is not None:
-        #     if self.report:
-        #         report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
-        #     else:
-        #         report_aanvragen_console(self.storage)
+        if not self.noscan and self.root:
+            process_directory(self.root, self.storage, self.forms_directory)
+        if not self.nomail and self.mail_directory:
+            process_graded(self.storage, self.mail_directory)
+        if self.cleanup:
+            cleanup_files(self.storage)
+        if self.report is not None:
+            if self.report:
+                report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
+            else:
+                report_aanvragen_console(self.storage)
         logInfo('Ready.')
     @staticmethod
     def banner():

@@ -155,9 +155,12 @@ class AAPStorage:
     def delete_fileinfo(self, filename: str):
         self.crud_files.delete(filename)
     def add_file_root(self, root: str, code = None):
-        code = add_root(root, code)
-        create_root(self.database, code, root)
-        self.commit()
+        encoded_root = encode_path(root)
+        code = add_root(encoded_root, code)
+        if encoded_root != code: 
+        #this means the root is already registered, re-encoding causes it to reduced to just the code
+            create_root(self.database, code, encoded_root)
+            self.commit()
 
     def create_student(self, student: StudentInfo):
         self.crud_studenten.create(student)

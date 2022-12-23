@@ -9,10 +9,10 @@ class RootException(Exception): pass
 class PathRootConvertor:
     ROOTCODE = 'ROOT'
     KEYCODE  = 'PATHROOT'
-    def __init__(self, root, expanded: str, code = None):
+    def __init__(self, root, expanded: str, code = None, known_codes = []):
         self.root = root
         self.expanded = expanded
-        self.root_code = f":{PathRootConvertor.ROOTCODE}{get_next_key(PathRootConvertor.ROOTCODE)}:" if not code else code
+        self.root_code = self.__get_next_key (known_codes) if not code else code
     @staticmethod
     def __contains(value: str, root: str)->bool:
         return len(value) >= len(root) and value[:len(root)].lower() == root.lower()
@@ -22,6 +22,10 @@ class PathRootConvertor:
             return substr2 + value[len(substr1):]
         else:
             return value
+    def __get_next_key(self, known_codes = []):
+        while (key := f":{PathRootConvertor.ROOTCODE}{get_next_key(PathRootConvertor.ROOTCODE)}:") in known_codes:
+            continue
+        return key
     def contains_root(self, path: str)->bool:
         return PathRootConvertor.__contains(path, self.expanded)
     def encode_root(self, path: str)->str:
@@ -56,31 +60,32 @@ def find_onedrive_path(resource_value: str)->str:
                     return result
         return None                    
     except WindowsError as WE:
-        print(WE)
         logError(__exception_str(WE, 'WindowsError'))
         return None
     except KeyError as KE:
-        print(KE)
         logError(__exception_str(KE, 'KeyError'))
         return None
     except ValueError as VE:
-        print(VE)
         logError(__exception_str(VE, 'ValueError'))
         return None
 
 class RootFiles(Singleton):
     def __init__(self):
         self._rootconv: list[PathRootConvertor] = []
-    def add(self, root_path: str, code = None):
+    def add(self, root_path: str, code = None, nolog=False):
         if already_there := self.__find_root(root_path):
+            logInfo(f'root already there: {root_path}')
+            return already_there.root_code
+        if already_there := self.__find_code(root_path):
             logInfo(f'root already there: {root_path}')
             return already_there.root_code
         if self.__find_code(code):
             raise RootException(f'Duplicate code: {code}')
         odp = find_onedrive_path(root_path)
-        self._rootconv.append(new_root := PathRootConvertor(self.encode_root(root_path), odp if odp else self.encode_root(root_path), code=code))
+        self._rootconv.append(new_root := PathRootConvertor(self.encode_root(root_path), odp if odp else self.encode_root(root_path), code=code, known_codes=self.get_known_codes()))
         self._rootconv.sort(key=lambda r:len(r.expanded), reverse=True)
-        logInfo(f'root added: {new_root.root_code}: "{new_root.root}"  ({new_root.expanded})')
+        if not nolog:
+            logInfo(f'root added: {new_root.root_code}: "{new_root.root}"  ({new_root.expanded})')
         return new_root.root_code
     def encode_root(self, path)->str:
         if not path:
@@ -114,6 +119,11 @@ class RootFiles(Singleton):
         for r in self._rootconv:
             r.reset() 
         self._rootconv = []
+    def get_known_codes(self)->list[str]:
+        result = []
+        for root in self._rootconv:
+            result.append(root.root_code)
+        return result
     def get_roots(self)->list[tuple[str,str]]:
         result = []
         for root in self._rootconv:
@@ -125,8 +135,8 @@ def encode_path(path: str)-> str:
     return _rootfiles.encode_root(path)
 def decode_path(path: str)-> str:
     return _rootfiles.decode_root(path)
-def add_root(root_path: str, code: str = None)->str:
-    return _rootfiles.add(root_path, code=code)
+def add_root(root_path: str, code: str = None, nolog=False)->str:    
+    return _rootfiles.add(root_path, code=code, nolog=nolog)
 def reset_roots():
     _rootfiles.reset()
 def get_roots()->list[tuple[str,str]]:
@@ -138,7 +148,7 @@ STANDARD_ROOTS = ['OneDrive - NHL Stenden', 'NHL Stenden']
 def init_standard_roots():
     reset_roots()
     for sr in STANDARD_ROOTS:
-        add_root(sr)
+        add_root(sr, nolog=True) #is called before logging is properly initialized
 init_standard_roots()
 
 def _expand_standard_root(standard_root: str)->str:
