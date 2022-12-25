@@ -9,6 +9,7 @@ import tabula
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
+from general.args import ProcessMode
 from general.log import logError, logPrint, logWarn, logInfo
 from general.valid_email import is_valid_email, try_extract_email
 from PyPDF2 import PdfFileReader
@@ -179,32 +180,44 @@ class AanvraagDataImporter(AanvraagProcessor):
     def is_duplicate(self, file: FileInfo):
         return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.timestamp == file.timestamp
         
-def _import_aanvraag(filename: str, importer: AanvraagDataImporter):
+def _import_aanvraag(filename: str, importer: AanvraagDataImporter, preview_mode = False)->bool:
     def is_already_processed(filename):
         if (fileinfo := importer.known_file_info(filename)):
             if fileinfo.filetype in [FileType.AANVRAAG_PDF,FileType.INVALID_PDF]: return  FileInfo.get_timestamp(filename) == fileinfo.timestamp
         else:
             return False
     try:
-        if not is_already_processed(filename):    
-            importer.process(filename)
+        if not is_already_processed(filename): 
+            if preview_mode:
+                print(f'<preview>: Importeren bestand {filename}')
+            else:   
+                importer.process(filename)
+            return True
+        return False
     except PDFReaderException as E:
         logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
         importer.store_invalid(filename)
+        return False
 
-def import_directory(directory: str, storage: AAPStorage, recursive = True)->tuple[int,int]:
+def import_directory(directory: str, storage: AAPStorage, recursive = True, mode: ProcessMode = ProcessMode.PROCESS)->tuple[int,int]:
     def _get_pattern(recursive: bool):
-        return '**/*.pdf' if recursive else '*.pdf' 
+        return '**/*.pdf' if recursive else '*.pdf'
+    preview_mode = mode == ProcessMode.PREVIEW
     min_id = storage.max_aanvraag_id() + 1
     if not Path(directory).is_dir():
         logWarn(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
     logPrint(f'Start import van map  {directory}...')
-    storage.add_file_root(str(directory))
+    if not preview_mode:
+        storage.add_file_root(str(directory))
     importer = AanvraagDataImporter(storage)
+    n_processed = 0
     for file in Path(directory).glob(_get_pattern(recursive)):
-        _import_aanvraag(file, importer)
+        if _import_aanvraag(file, importer, preview_mode):
+            n_processed += 1
     max_id = storage.max_aanvraag_id()    
+    if preview_mode:
+        print(f'<preview> {n_processed} bestanden lezen en (indien mogelijk) importeren als aanvraag.')
     logPrint(f'...Import afgerond')
     return (min_id, max_id)
         

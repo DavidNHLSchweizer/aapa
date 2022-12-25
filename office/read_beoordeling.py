@@ -2,6 +2,7 @@
 from pathlib import Path
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from data.aanvraag_processor import AanvraagProcessor
+from general.args import ProcessMode
 from general.fileutil import path_with_suffix
 from office.word_reader import WordReader, WordReaderException
 from data.storage import AAPStorage
@@ -106,7 +107,7 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
                     n_graded  += 1
         return n_graded
 
-def read_beoordelingen_files(storage: AAPStorage, filter_func = None):
+def read_beoordelingen_files(storage: AAPStorage, filter_func = None, mode=ProcessMode.PROCESS):
     logPrint('--- Verwerken beoordeelde formulieren...')
     BP=BeoordelingenReaderProcessor(storage)
     n_graded = BP.process(filter_func)

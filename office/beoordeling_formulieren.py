@@ -4,6 +4,7 @@ from time import sleep
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from general.args import ProcessMode
 from general.fileutil import created_directory, file_exists
 from office.mail_merge import MailMerger
 from general.log import logInfo, logPrint
@@ -56,7 +57,7 @@ class BeoordelingenFileCreator(AanvraagProcessor):
     def process(self, filter_func = None)->int:
         return self.merger.merge_documents(self.filtered_aanvragen(filter_func))
 
-def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None)->int:
+def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, mode=ProcessMode.PROCESS)->int:
     logPrint('--- Maken beoordelingsformulieren...')
     if created_directory(output_directory):
         logPrint(f'Map {output_directory} aangemaakt.')

@@ -11,7 +11,7 @@ from office.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.database import initialize_database, initialize_storage
 from process.requests import process_directory
 from data.aanvraag_info import AanvraagBeoordeling
-from general.args import AAPAoptions, Initialize, get_arguments, report_options
+from general.args import AAPAoptions, Initialize, ProcessMode, get_arguments, report_options
 
 def init_config():
     config.set_default('configuration', 'database', 'aapa.db')
@@ -30,9 +30,8 @@ class AAPA:
         logInfo(f'COMMAND LINE OPTIONS:\n{report_options(options)}')
         if options.info:
             print(f'CONFIGURATION:\n{report_options(options, True)}')
+        self.mode    = options.mode
         self.cleanup = options.clean
-        self.noscan  = options.noscan
-        self.nomail  = options.nomail
         self.report    = options.report
     def __initialize_database(self, options: AAPAoptions):
         recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
@@ -62,12 +61,12 @@ class AAPA:
         else:
             return None
     def process(self):
-        if not self.noscan and self.root:
-            process_directory(self.root, self.storage, self.forms_directory)
-        if not self.nomail and self.mail_directory:
-            process_graded(self.storage, self.mail_directory)
+        if self.root and self.mode != ProcessMode.MAIL:
+            process_directory(self.root, self.storage, self.forms_directory, mode=self.mode)
+        if self.mail_directory and self.mode != ProcessMode.SCAN:
+            process_graded(self.storage, self.mail_directory, mode=self.mode)
         if self.cleanup:
-            cleanup_files(self.storage)
+            cleanup_files(self.storage, mode=self.mode)
         if self.report is not None:
             if self.report:
                 report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
