@@ -128,7 +128,7 @@ class CRUD_aanvragen(CRUDbase):
 class AAPStorage: 
     #main interface with the database
     def __init__(self, database: Database):
-        self.database = database
+        self.database: Database = database
         self.crud_files = CRUD_files(database)
         self.crud_bedrijven = CRUD_bedrijven(database)
         self.crud_studenten = CRUD_studenten(database)

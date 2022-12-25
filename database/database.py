@@ -25,6 +25,7 @@ class Database:
     def __init__(self, filename: str, _reset_flag = False):
         self.raise_error = True
         self._reset_flag = _reset_flag
+        self._commit_level = 0
         self.connection = self.open_database(filename)
         self._init_logging(filename)
         self.log_info(f'connection ({filename}) opened...')
@@ -71,7 +72,7 @@ class Database:
         self._execute_sql_command('pragma foreign_keys=OFF')
     def open_database(self, filename):
         try:
-            conn = sql3.connect(filename)
+            conn = sql3.connect(filename)#, isolation_level=None)
             return conn
         except sql3.Error as e:
             self.log_error('***ERROR***: '+str(e))
@@ -99,8 +100,20 @@ class Database:
     def execute_select(self, sql:SQLselect):
         return self._execute_sql_command(sql.Query, sql.Parameters, True)
     def commit(self):
+        if self._commit_level > 0:
+            return
         self.log_info('Committing')
         self.connection.commit()
+    def disable_commit(self):
+        self._commit_level += 1
+    def enable_commit(self):
+        self._commit_level -= 1
+    def rollback(self):
+        self.log_info('Rolling back')
+        self.connection.rollback()
+
+    #     self.log_info(f'Setting savepoint {name}')
+    #     self._execute_sql_command('set savepoint {')
     def create_table(self, tabledef):
         sql = SQLcreate(tabledef)
         self.execute_sql_command(sql)

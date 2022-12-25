@@ -146,7 +146,7 @@ class AanvraagReaderFromPDF:
 class AanvraagDataImporter(AanvraagProcessor):
     def __ask_titel(self, aanvraag: AanvraagInfo)->str:
         return tkinter.simpledialog.askstring(f'Titel', f'Titel voor {str(aanvraag)}') 
-    def process(self, filename: str)->AanvraagInfo:
+    def process(self, filename: str, preview_mode: bool)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
