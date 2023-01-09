@@ -5,16 +5,18 @@ from enum import Enum
 from general.config import config
 
 class ProcessMode(Enum):
-    PROCESS = 0
-    SCAN    = 1
-    MAIL    = 2
-    PREVIEW = 3
+    NONE    = 0
+    PROCESS = 1
+    SCAN    = 2
+    MAIL    = 3
+    PREVIEW = 4
     def help_str(self):
         match self:
             case ProcessMode.PROCESS: return 'Verwerk alle (nieuwe) bestanden (combinatie SCAN en MAIL) [DEFAULT]'
             case ProcessMode.SCAN: return 'Vind en verwerk alleen nieuwe aanvragen (niet beoordeelde aanvragen en mail)'
             case ProcessMode.MAIL: return 'Vind en verwerk beoordeelde aanvragen (geen scan voor nieuwe aanvragen)'
             case ProcessMode.PREVIEW: return 'Laat te bewerken bestanden zien maar voer geen bewerkingen uit.'
+            case ProcessMode.NONE: return 'Geen processing'
             case _: return ''
         
     def __str__(self):    
@@ -28,6 +30,8 @@ class ProcessMode(Enum):
             if str(pm) == mode_choice:
                 return pm
         return None
+    def is_preview(self):
+        return self == ProcessMode.PREVIEW
 
 def _get_arguments(banner: str):
     parser = argparse.ArgumentParser(description=banner)
@@ -95,7 +99,7 @@ class AAPAoptions:
             result = result + f'print configuration information\n'
         return result + f'clean: {self.clean}.'#  noscan: {self.noscan}  nomail: {self.nomail}.'
 
-def report_options(options: AAPAoptions, config_only = False)->str:
+def report_options(options: AAPAoptions, parts=0)->str:
     DEFAULT = "<default>:"
     QUERY   = "<to be queried>"
     def __report_str(item: str, attr, default):
@@ -109,22 +113,25 @@ def report_options(options: AAPAoptions, config_only = False)->str:
     result = ''
     if not options:
         return result
-    result += _report_str('root directory', options.root, config.get('configuration', 'root'))
-    result +=  _report_str('forms directory', options.forms, config.get('configuration', 'forms'))
-    result +=  _report_str('mail directory', options.mail, config.get('configuration', 'mail'))
-    result +=  _report_str('database', options.database, config.get('configuration', 'database'))
-    if config_only: 
+    if parts == 0 or parts == 1:
+        result += _report_str('root directory', options.root, config.get('configuration', 'root'))
+        result +=  _report_str('forms directory', options.forms, config.get('configuration', 'forms'))
+        result +=  _report_str('mail directory', options.mail, config.get('configuration', 'mail'))
+        result +=  _report_str('database', options.database, config.get('configuration', 'database'))
+    if parts == 1: 
         return result
-    result += _report_str('process mode', str(options.mode))
-    if options.initialize != Initialize.NO_INIT:
-        result +=  _report_str('initialize database', str(options.initialize))
-    if options.report:
-        result +=  _report_str('create report', str(options.report))
-    else:
-        result +=  _report_str('create report', 'None')
-    if options.info:
-        result += f'print configuration info\n'
-    return result + f'clean: {options.clean}.'# noscan: {options.noscan}  nomail: {options.nomail}.'
+    if parts == 0 or parts == 2:
+        result += _report_str('process mode', str(options.mode))
+        if options.initialize != Initialize.NO_INIT:
+            result +=  _report_str('initialize database', str(options.initialize))
+        if options.report:
+            result +=  _report_str('create report', str(options.report))
+        else:
+            result +=  _report_str('create report', 'None')
+        if options.info:
+            result += f'print configuration info\n'
+        result += f'clean: {options.clean}.'# noscan: {options.noscan}  nomail: {options.nomail}.'
+    return result
 
 def get_arguments()->AAPAoptions:
     def get_init(args):

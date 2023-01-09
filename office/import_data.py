@@ -146,7 +146,7 @@ class AanvraagReaderFromPDF:
 class AanvraagDataImporter(AanvraagProcessor):
     def __ask_titel(self, aanvraag: AanvraagInfo)->str:
         return tkinter.simpledialog.askstring(f'Titel', f'Titel voor {str(aanvraag)}') 
-    def process(self, filename: str, preview_mode: bool)->AanvraagInfo:
+    def process(self, filename: str, mode: ProcessMode = ProcessMode.PROCESS)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
@@ -167,10 +167,11 @@ class AanvraagDataImporter(AanvraagProcessor):
             if not aanvraag.titel:
                 aanvraag.titel=self.__ask_titel(aanvraag)
             logInfo(f'--- Start storing imported data from PDF {filename}')
-            self.storage.create_aanvraag(aanvraag, fileinfo) 
-            self.aanvragen.append(aanvraag)
-            self.storage.commit()
-            logInfo(f'--- Succes storing imported data from PDF {filename}')
+            if not mode.is_preview():
+                self.storage.create_aanvraag(aanvraag, fileinfo) 
+                self.aanvragen.append(aanvraag)
+                self.storage.commit()
+                logInfo(f'--- Succes storing imported data from PDF {filename}')
             logPrint(aanvraag)
             return aanvraag
         return None
@@ -180,7 +181,7 @@ class AanvraagDataImporter(AanvraagProcessor):
     def is_duplicate(self, file: FileInfo):
         return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.timestamp == file.timestamp
         
-def _import_aanvraag(filename: str, importer: AanvraagDataImporter, preview_mode = False)->bool:
+def _import_aanvraag(filename: str, importer: AanvraagDataImporter, mode: ProcessMode = ProcessMode.PROCESS)->bool:
     def is_already_processed(filename):
         if (fileinfo := importer.known_file_info(filename)):
             if fileinfo.filetype in [FileType.AANVRAAG_PDF,FileType.INVALID_PDF]: return  FileInfo.get_timestamp(filename) == fileinfo.timestamp
@@ -188,7 +189,7 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter, preview_mode
             return False
     try:
         if not is_already_processed(filename): 
-            if preview_mode:
+            if mode==ProcessMode.PREVIEW:
                 print(f'<preview>: Importeren bestand {filename}')
             else:   
                 importer.process(filename)
@@ -199,25 +200,33 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter, preview_mode
         importer.store_invalid(filename)
         return False
 
+
 def import_directory(directory: str, storage: AAPStorage, recursive = True, mode: ProcessMode = ProcessMode.PROCESS)->tuple[int,int]:
+    def report_imports(processed_files, new_aanvragen):
+        print('Rapportage import:')
+        print('\t---Gelezen bestanden:---')
+        print('\t\t'+ '\n\t\t'.join([str(file) for file in processed_files]))
+        print('\t--- Nieuwe aanvragen --- :')
+        print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
+        print(f'\t{len(new_aanvragen)} nieuwe aanvragen gelezen.')
+        n_errors = len(processed_files) - len(new_aanvragen)
+        print(f'\t{n_errors} bestanden worden niet geimporteerd. Het is mogelijk dat deze bestanden al zijn geimporteerd, of dat ze niet kunnen worden gelezen.')
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
-    preview_mode = mode == ProcessMode.PREVIEW
     min_id = storage.max_aanvraag_id() + 1
     if not Path(directory).is_dir():
         logWarn(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
     logPrint(f'Start import van map  {directory}...')
-    if not preview_mode:
+    if not mode.is_preview():
         storage.add_file_root(str(directory))
     importer = AanvraagDataImporter(storage)
-    n_processed = 0
+    processed_files = []
     for file in Path(directory).glob(_get_pattern(recursive)):
-        if _import_aanvraag(file, importer, preview_mode):
-            n_processed += 1
+        processed_files.append(file)
+        _import_aanvraag(file, importer, mode)
     max_id = storage.max_aanvraag_id()    
-    if preview_mode:
-        print(f'<preview> {n_processed} bestanden lezen en (indien mogelijk) importeren als aanvraag.')
+    report_imports(processed_files, importer.filtered_aanvragen(lambda x: x.id >= min_id))
     logPrint(f'...Import afgerond')
     return (min_id, max_id)
         

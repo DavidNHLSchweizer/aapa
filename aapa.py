@@ -25,14 +25,19 @@ def verifyRecreate():
 
 class AAPA:
     def __init__(self, options: AAPAoptions):
-        self.__initialize_database(options)
-        self.__initialize_directories(options)
-        logInfo(f'COMMAND LINE OPTIONS:\n{report_options(options)}')
         if options.info:
-            print(f'CONFIGURATION:\n{report_options(options, True)}')
+            self.__report_info(options)
+        logInfo(f'COMMAND LINE OPTIONS:\n{report_options(options)}')
+        self.options = options
         self.mode    = options.mode
         self.cleanup = options.clean
         self.report    = options.report
+    def __report_info(self, options):
+        def tabify(s):
+            return '\t' + s.replace('\n', '\n\t')
+        print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
+        print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
+
     def __initialize_database(self, options: AAPAoptions):
         recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
         if options.database:
@@ -60,7 +65,13 @@ class AAPA:
             return Path(result).resolve()
         else:
             return None
+    def __init_process(self):
+        self.__initialize_database(self.options)
+        self.__initialize_directories(self.options)
     def process(self):
+        if self.mode == ProcessMode.NONE:
+            return
+        self.__init_process()
         if self.root and self.mode != ProcessMode.MAIL:
             process_directory(self.root, self.storage, self.forms_directory, mode=self.mode)
         if self.mail_directory and self.mode != ProcessMode.SCAN:
@@ -81,4 +92,4 @@ if __name__=='__main__':
     print(AAPA.banner())
     AAPA(get_arguments()).process() 
 
-#TODO rootify everything (involve "system root")
+#TODO testing results of rootify on different accounts

@@ -3,7 +3,7 @@ from general.log import logPrint
 from office.beoordeling_formulieren import create_beoordelingen_files
 from office.import_data import import_directory
 from general.config import config
-from storage import AAPStorage
+from data.storage import AAPStorage
 
 def init_config():
     config.set_default('requests', 'form_template',r'.\templates\template 0.7.docx')
