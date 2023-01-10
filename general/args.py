@@ -46,16 +46,13 @@ def _get_arguments(banner: str):
     group.add_argument('-data', '--database', type=str, help='Gebruik een andere database met de opgegeven naam. Indien deze niet bestaat wordt hij aangemaakt, anders wordt hij geopend.')
     
     group = parser.add_argument_group('Acties en overige opties')
-    group.add_argument('-mo', '--mode', default='process', choices=ProcessMode.get_choices(),
+    group.add_argument('-mo', '--mode', default='process', type=str.lower, choices=ProcessMode.get_choices(),
                         help='Keuze activiteit: ' + ', '.join([f'"{str(pm)}"-{ProcessMode.help_str(pm)}' for pm in ProcessMode]))
     group.add_argument('-init', action='store_true', dest='init', help= 'Initialiseer de database. Alle data wordt (na bevestiging) verwijderd. ')
     group.add_argument('-init!', action='store_true', dest='init_force', help= 'Initialiseer de database. Alle data wordt verwijderd. Er wordt geen bevestiging gevraagd.')
     group.add_argument('-info', action='store_true', help='Print configuration information')
     group.add_argument('-x', '--xlsx', type=str, help='Rapporteer aanvragen in een .XSLX bestand. Indien geen bestandsnaam wordt ingevoerd (-x=) gaat alleen een samenvatting naar de console.')
     group.add_argument('-clean',  action='store_true', help='Verwijder overbodige bestanden van verwerkte aanvragen.')
-    # group.add_argument('-noscan', action='store_true', help='Scan niet op nieuwe aanvragen.')
-    # group.add_argument('-nomail', action='store_true', help='Beoordeelde bestanden worden niet verwerkt.')
-    # group.add_argument('-noact', action='store_true', help='Combinatie van -nomail en -noscan.')
     return parser.parse_args()
 
 class Initialize(Enum):

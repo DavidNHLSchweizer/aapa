@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import datetime
+from enum import Enum
 import re
 from pathlib import Path
 import tkinter
@@ -180,37 +181,64 @@ class AanvraagDataImporter(AanvraagProcessor):
         self.storage.commit()
     def is_duplicate(self, file: FileInfo):
         return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.timestamp == file.timestamp
-        
-def _import_aanvraag(filename: str, importer: AanvraagDataImporter, mode: ProcessMode = ProcessMode.PROCESS)->bool:
-    def is_already_processed(filename):
+
+class ImportResult(Enum):
+    UNKNOWN  = 0
+    IMPORTED = 1
+    ERROR    = 2
+    ALREADY_IMPORTED = 3
+    KNOWN_ERROR = 4
+
+def _import_aanvraag(filename: str, importer: AanvraagDataImporter, mode: ProcessMode = ProcessMode.PROCESS)->ImportResult:
+    def known_import_result(filename)->ImportResult:
+        def not_changed(filename, fileinfo):
+            return FileInfo.get_timestamp(filename) == fileinfo.timestamp
         if (fileinfo := importer.known_file_info(filename)):
-            if fileinfo.filetype in [FileType.AANVRAAG_PDF,FileType.INVALID_PDF]: return  FileInfo.get_timestamp(filename) == fileinfo.timestamp
-        else:
-            return False
+            match fileinfo.filetype:
+                case FileType.AANVRAAG_PDF:
+                    if not_changed(filename, fileinfo): 
+                        return ImportResult.ALREADY_IMPORTED
+                    else:
+                        return ImportResult.UNKNOWN
+                case FileType.INVALID_PDF:
+                    if not_changed(filename, fileinfo): 
+                        return ImportResult.KNOWN_ERROR
+                    else:
+                        return ImportResult.UNKNOWN
+        return ImportResult.UNKNOWN
     try:
-        if not is_already_processed(filename): 
-            if mode==ProcessMode.PREVIEW:
-                print(f'<preview>: Importeren bestand {filename}')
-            else:   
-                importer.process(filename)
-            return True
-        return False
+        if (result := known_import_result(filename)) == ImportResult.UNKNOWN: 
+            if importer.process(filename): 
+                return ImportResult.IMPORTED
+            else:
+                return ImportResult.ERROR
+        return result
     except PDFReaderException as E:
         logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
         importer.store_invalid(filename)
-        return False
+        return ImportResult.ERROR
 
 
 def import_directory(directory: str, storage: AAPStorage, recursive = True, mode: ProcessMode = ProcessMode.PROCESS)->tuple[int,int]:
-    def report_imports(processed_files, new_aanvragen):
+    def report_imports(file_results:dict, new_aanvragen):
+        def import_status_str(result):
+            match result:
+                case ImportResult.IMPORTED: return 'geimporteerd'
+                case ImportResult.ERROR: return 'fout bij importeren'
+                case ImportResult.ALREADY_IMPORTED: return 'eerder geimporteerd'
+                case ImportResult.KNOWN_ERROR: return 'eerder gelezen, niet importeerbaar'
+                case _: return '???'
+        def file_str(file,result):
+            return f'{file} [{import_status_str(result)}]'
         print('Rapportage import:')
         print('\t---Gelezen bestanden:---')
-        print('\t\t'+ '\n\t\t'.join([str(file) for file in processed_files]))
+        print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
         print('\t--- Nieuwe aanvragen --- :')
         print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
         print(f'\t{len(new_aanvragen)} nieuwe aanvragen gelezen.')
-        n_errors = len(processed_files) - len(new_aanvragen)
-        print(f'\t{n_errors} bestanden worden niet geimporteerd. Het is mogelijk dat deze bestanden al zijn geimporteerd, of dat ze niet kunnen worden gelezen.')
+        # n_errors = len([f for f in processed_files if f['result']==ImportResult.ERROR])
+        # n_already = len([f for f in processed_files if f['result']==ImportResult.ALREADY_IMPORTED])
+        # print(f'\t{n_errors} bestanden worden niet geimporteerd. Het is mogelijk dat de\ze bestanden al zijn geimporteerd, of dat ze niet kunnen worden gelezen.')
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
     min_id = storage.max_aanvraag_id() + 1
@@ -221,12 +249,12 @@ def import_directory(directory: str, storage: AAPStorage, recursive = True, mode
     if not mode.is_preview():
         storage.add_file_root(str(directory))
     importer = AanvraagDataImporter(storage)
-    processed_files = []
+    file_results = {}
     for file in Path(directory).glob(_get_pattern(recursive)):
-        processed_files.append(file)
-        _import_aanvraag(file, importer, mode)
+        import_result = _import_aanvraag(file, importer, mode)
+        file_results[file] = import_result
     max_id = storage.max_aanvraag_id()    
-    report_imports(processed_files, importer.filtered_aanvragen(lambda x: x.id >= min_id))
+    report_imports(file_results, importer.filtered_aanvragen(lambda x: x.id >= min_id))
     logPrint(f'...Import afgerond')
     return (min_id, max_id)
         
