@@ -1,16 +1,13 @@
 from dataclasses import dataclass
-import datetime
 from enum import Enum
 import re
 from pathlib import Path
 import tkinter
-import numpy as np
 import pandas as pd
 import tabula
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
-from general.args import ProcessMode
 from general.log import logError, logPrint, logWarn, logInfo
 from general.valid_email import is_valid_email, try_extract_email
 from PyPDF2 import PdfFileReader
@@ -147,7 +144,7 @@ class AanvraagReaderFromPDF:
 class AanvraagDataImporter(AanvraagProcessor):
     def __ask_titel(self, aanvraag: AanvraagInfo)->str:
         return tkinter.simpledialog.askstring(f'Titel', f'Titel voor {str(aanvraag)}') 
-    def process(self, filename: str, mode: ProcessMode = ProcessMode.PROCESS)->AanvraagInfo:
+    def process(self, filename: str, preview=False)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
@@ -168,7 +165,7 @@ class AanvraagDataImporter(AanvraagProcessor):
             if not aanvraag.titel:
                 aanvraag.titel=self.__ask_titel(aanvraag)
             logInfo(f'--- Start storing imported data from PDF {filename}')
-            if not mode.is_preview():
+            if not preview:
                 self.storage.create_aanvraag(aanvraag, fileinfo) 
                 self.aanvragen.append(aanvraag)
                 self.storage.commit()
@@ -189,7 +186,7 @@ class ImportResult(Enum):
     ALREADY_IMPORTED = 3
     KNOWN_ERROR = 4
 
-def _import_aanvraag(filename: str, importer: AanvraagDataImporter, mode: ProcessMode = ProcessMode.PROCESS)->ImportResult:
+def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResult:
     def known_import_result(filename)->ImportResult:
         def not_changed(filename, fileinfo):
             return FileInfo.get_timestamp(filename) == fileinfo.timestamp
@@ -219,26 +216,24 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter, mode: Proces
         return ImportResult.ERROR
 
 
-def import_directory(directory: str, storage: AAPStorage, recursive = True, mode: ProcessMode = ProcessMode.PROCESS)->tuple[int,int]:
-    def report_imports(file_results:dict, new_aanvragen):
+def import_directory(directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
+    def report_imports(file_results:dict, new_aanvragen, preview):
         def import_status_str(result):
             match result:
-                case ImportResult.IMPORTED: return 'geimporteerd'
-                case ImportResult.ERROR: return 'fout bij importeren'
+                case ImportResult.IMPORTED: return 'te importeren' if preview else 'geimporteerd'
+                case ImportResult.ERROR: return 'kan niet worden geimporteerd' if preview else 'fout bij importeren'
                 case ImportResult.ALREADY_IMPORTED: return 'eerder geimporteerd'
-                case ImportResult.KNOWN_ERROR: return 'eerder gelezen, niet importeerbaar'
+                case ImportResult.KNOWN_ERROR: return 'eerder gelezen, kan niet worden geimporteerd'
                 case _: return '???'
         def file_str(file,result):
             return f'{file} [{import_status_str(result)}]'
         print('Rapportage import:')
-        print('\t---Gelezen bestanden:---')
+        print('\t---Gelezen bestand(en):---')
         print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
         print('\t--- Nieuwe aanvragen --- :')
         print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
-        print(f'\t{len(new_aanvragen)} nieuwe aanvragen gelezen.')
-        # n_errors = len([f for f in processed_files if f['result']==ImportResult.ERROR])
-        # n_already = len([f for f in processed_files if f['result']==ImportResult.ALREADY_IMPORTED])
-        # print(f'\t{n_errors} bestanden worden niet geimporteerd. Het is mogelijk dat de\ze bestanden al zijn geimporteerd, of dat ze niet kunnen worden gelezen.')
+        gelezen = 'te lezen' if preview else 'gelezen'
+        print(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.')
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
     min_id = storage.max_aanvraag_id() + 1
@@ -246,15 +241,15 @@ def import_directory(directory: str, storage: AAPStorage, recursive = True, mode
         logWarn(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
     logPrint(f'Start import van map  {directory}...')
-    if not mode.is_preview():
+    if not preview:
         storage.add_file_root(str(directory))
     importer = AanvraagDataImporter(storage)
     file_results = {}
     for file in Path(directory).glob(_get_pattern(recursive)):
-        import_result = _import_aanvraag(file, importer, mode)
+        import_result = _import_aanvraag(file, importer)
         file_results[file] = import_result
     max_id = storage.max_aanvraag_id()    
-    report_imports(file_results, importer.filtered_aanvragen(lambda x: x.id >= min_id))
+    report_imports(file_results, importer.filtered_aanvragen(lambda x: x.id >= min_id), preview=preview)
     logPrint(f'...Import afgerond')
     return (min_id, max_id)
         

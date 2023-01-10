@@ -9,14 +9,12 @@ class ProcessMode(Enum):
     PROCESS = 1
     SCAN    = 2
     MAIL    = 3
-    PREVIEW = 4
     def help_str(self):
         match self:
             case ProcessMode.PROCESS: return 'Verwerk alle (nieuwe) bestanden (combinatie SCAN en MAIL) [DEFAULT]'
             case ProcessMode.SCAN: return 'Vind en verwerk alleen nieuwe aanvragen (niet beoordeelde aanvragen en mail)'
             case ProcessMode.MAIL: return 'Vind en verwerk beoordeelde aanvragen (geen scan voor nieuwe aanvragen)'
-            case ProcessMode.PREVIEW: return 'Laat te bewerken bestanden zien maar voer geen bewerkingen uit.'
-            case ProcessMode.NONE: return 'Geen processing'
+            case ProcessMode.NONE: return 'Geen bewerkingen'
             case _: return ''
         
     def __str__(self):    
@@ -30,8 +28,6 @@ class ProcessMode(Enum):
             if str(pm) == mode_choice:
                 return pm
         return None
-    def is_preview(self):
-        return self == ProcessMode.PREVIEW
 
 def _get_arguments(banner: str):
     parser = argparse.ArgumentParser(description=banner)
@@ -51,6 +47,7 @@ def _get_arguments(banner: str):
     group.add_argument('-init', action='store_true', dest='init', help= 'Initialiseer de database. Alle data wordt (na bevestiging) verwijderd. ')
     group.add_argument('-init!', action='store_true', dest='init_force', help= 'Initialiseer de database. Alle data wordt verwijderd. Er wordt geen bevestiging gevraagd.')
     group.add_argument('-info', action='store_true', help='Print configuration information')
+    group.add_argument('-preview', action='store_true', help='Aangeven welke bewerkingen voorzien zijn. Er worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     group.add_argument('-x', '--xlsx', type=str, help='Rapporteer aanvragen in een .XSLX bestand. Indien geen bestandsnaam wordt ingevoerd (-x=) gaat alleen een samenvatting naar de console.')
     group.add_argument('-clean',  action='store_true', help='Verwijder overbodige bestanden van verwerkte aanvragen.')
     return parser.parse_args()
@@ -75,8 +72,7 @@ class AAPAoptions:
     report: str = None
     info: bool = False
     clean: bool = False
-    # noscan: bool = False
-    # nomail: bool = False
+    preview: bool = False
     def __str__(self):
         result = ''
         if self.root is not None:
@@ -94,7 +90,7 @@ class AAPAoptions:
             result = result + f'report: {self.report}\n'
         if self.info: 
             result = result + f'print configuration information\n'
-        return result + f'clean: {self.clean}.'#  noscan: {self.noscan}  nomail: {self.nomail}.'
+        return result + f'preview: {self.preview} clean: {self.clean}.'
 
 def report_options(options: AAPAoptions, parts=0)->str:
     DEFAULT = "<default>:"
@@ -127,7 +123,7 @@ def report_options(options: AAPAoptions, parts=0)->str:
             result +=  _report_str('create report', 'None')
         if options.info:
             result += f'print configuration info\n'
-        result += f'clean: {options.clean}.'# noscan: {options.noscan}  nomail: {options.nomail}.'
+        result += f'preview: {options.preview}  clean: {options.clean}.'
     return result
 
 def get_arguments()->AAPAoptions:
@@ -137,8 +133,8 @@ def get_arguments()->AAPAoptions:
         else: return Initialize.NO_INIT
     try:
         args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
-        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), info=args.info, report=args.xlsx, clean=args.clean)
-        # noscan=args.noscan or args.noact, nomail=args.nomail or args.noact)
+        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), info=args.info, 
+                            report=args.xlsx, clean=args.clean, preview=args.preview)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
         return None

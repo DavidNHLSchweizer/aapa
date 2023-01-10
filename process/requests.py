@@ -9,15 +9,20 @@ def init_config():
     config.set_default('requests', 'form_template',r'.\templates\template 0.7.docx')
 init_config()
 
-def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, mode: ProcessMode = ProcessMode.PROCESS):
-    if mode == ProcessMode.PREVIEW:
+def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, mode: ProcessMode = ProcessMode.PROCESS, preview=False):
+    if preview:
         storage.database.disable_commit()
+        print('*** PREVIEW ONLY ***')
     try:
-        (min_id, max_id) = import_directory(input_directory, storage, recursive, mode=mode)
-        logPrint(f'### {max(max_id-min_id,0)} bestanden geimporteerd van {input_directory}.')
-        n = create_beoordelingen_files(storage, config.get('requests', 'form_template'), output_directory, mode=mode)#, lambda a: a.id >= min_id and a.id <= max_id)
-        logPrint(f'### {n} beoordelingsformulieren aangemaakt in {output_directory}')
+        (min_id, max_id) = import_directory(input_directory, storage, recursive, preview=preview)
+        geimporteerd = 'importeren' if preview else 'geimporteerd'
+        logPrint(f'### {max(max_id-min_id+1,0)} bestand(en) {geimporteerd} van {input_directory}.')
+        n = create_beoordelingen_files(storage, config.get('requests', 'form_template'), output_directory, preview=preview)
+        aangemaakt = 'aanmaken' if preview else 'aangemaakt'
+        logPrint(f'### {n} beoordelingsformulier(en) {aangemaakt} in {output_directory}')
+
     finally:
-        if mode == ProcessMode.PREVIEW:
+        if preview:
             storage.database.rollback()
             storage.database.enable_commit()
+            print('*** end PREVIEW ONLY ***')

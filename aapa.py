@@ -31,6 +31,7 @@ class AAPA:
         self.options = options
         self.mode    = options.mode
         self.cleanup = options.clean
+        self.preview = options.preview
         self.report    = options.report
     def __report_info(self, options):
         def tabify(s):
@@ -73,7 +74,7 @@ class AAPA:
             return
         self.__init_process()
         if self.root and self.mode != ProcessMode.MAIL:
-            process_directory(self.root, self.storage, self.forms_directory, mode=self.mode)
+            process_directory(self.root, self.storage, self.forms_directory, mode=self.mode, preview=self.preview)
         if self.mail_directory and self.mode != ProcessMode.SCAN:
             process_graded(self.storage, self.mail_directory, mode=self.mode)
         if self.cleanup:
