@@ -192,7 +192,7 @@ class AanvraagInfo:
         return self.files.get_timestamp(FileType.AANVRAAG_PDF)
     def __str__(self):
         versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
-        s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'
+        s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'        
         if self.beoordeling != AanvraagBeoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
@@ -221,7 +221,7 @@ class AanvraagInfo:
         return self.__datum_str
     @datum_str.setter
     def datum_str(self, value):
-        self.__datum_str = value
+        self.__datum_str = value.replace('\r', ' ').replace('\n', ' ')
         self.__parse_datum()
     def __parse_datum(self):
         self.__datum,self.__versie = self._dateparser.parse_date(self.datum_str)

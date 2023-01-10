@@ -70,15 +70,14 @@ class AAPA:
         self.__initialize_database(self.options)
         self.__initialize_directories(self.options)
     def process(self):
-        if self.mode == ProcessMode.NONE:
-            return
         self.__init_process()
-        if self.root and self.mode != ProcessMode.MAIL:
-            process_directory(self.root, self.storage, self.forms_directory, mode=self.mode, preview=self.preview)
-        if self.mail_directory and self.mode != ProcessMode.SCAN:
-            process_graded(self.storage, self.mail_directory, mode=self.mode)
-        if self.cleanup:
-            cleanup_files(self.storage, mode=self.mode)
+        if self.mode != ProcessMode.NONE:
+            if self.root and self.mode != ProcessMode.MAIL:
+                process_directory(self.root, self.storage, self.forms_directory, mode=self.mode, preview=self.preview)
+            if self.mail_directory and self.mode != ProcessMode.SCAN:
+                process_graded(self.storage, self.mail_directory, mode=self.mode)
+            if self.cleanup:
+                cleanup_files(self.storage, mode=self.mode)
         if self.report is not None:
             if self.report:
                 report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
