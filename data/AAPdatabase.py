@@ -4,7 +4,7 @@ from database.database import Database, Schema
 import database.dbConst as dbc
 from general.keys import reset_key
 from general.config import config
-from general.log import logError, logInfo, logWarn
+from general.log import logError, logInfo, logWarning
 from general.versie import Versie
 from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
@@ -156,7 +156,7 @@ class AAPDatabase(Database):
                 if  versie.db_versie != config.get('database', 'db_versie'):
                     self.__version_error(versie.db_versie, f"Database version {versie.db_versie} does not match current program (expected {config.get('database', 'db_versie')}).")
                 elif versie.versie != config.get('versie', 'versie'):
-                    logWarn(f"Program version ({config.get('versie', 'versie')}) does not match version in database (expected {versie.versie}). Updating database en configuratie.")
+                    logWarning(f"Program version ({config.get('versie', 'versie')}) does not match version in database (expected {versie.versie}). Updating database en configuratie.")
                     versie.versie = config.get('versie', 'versie')
                     versie.datum = Versie.datetime_str()
                     create_version_info(self, versie)

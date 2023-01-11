@@ -6,7 +6,7 @@ from general.args import ProcessMode
 from general.fileutil import path_with_suffix
 from office.word_reader import WordReader, WordReaderException
 from data.storage import AAPStorage
-from general.log import logError, logInfo, logPrint, logWarn
+from general.log import logError, logInfo, logPrint, logWarning
 
 
 
@@ -68,11 +68,18 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
         self.__reset_to_be_graded_file(aanvraag)
         self.__store_graded_file(aanvraag, docpath)
         self.__create_graded_file_pdf(aanvraag)
+    def __check_invalid_pdf(self, aanvraag: AanvraagInfo):
+        #an earlier file with the same name as the GRADED_PDF may be registered als INVALID_PDF. remove this from storage and aanvraag.
+        filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
+        if (f := self.storage.find_fileinfo(aanvraag.id, FileType.INVALID_PDF)) and f.filename==filename:
+            aanvraag.files.reset_info(FileType.INVALID_PDF)
+            self.storage.delete_fileinfo(filename)
     def __storage_changes(self, aanvraag: AanvraagInfo):
         logInfo(f'--- Start storing data for reading grade {aanvraag}')
         self.storage.update_aanvraag(aanvraag)
         self.storage.update_fileinfo(aanvraag.files.get_info(FileType.TO_BE_GRADED_DOCX))
         self.storage.update_fileinfo(aanvraag.files.get_info(FileType.GRADED_DOCX)) #note: the to_be_graded and graded hebben dezelfde naam
+        self.__check_invalid_pdf(aanvraag)
         self.storage.create_fileinfo(aanvraag.files.get_info(FileType.GRADED_PDF))
         self.storage.commit()
         logInfo(f'--- End storing data for reading grade {aanvraag}')
@@ -83,7 +90,7 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
         self.__adapt_files(aanvraag, docpath)
         self.__storage_changes(aanvraag)
         return result
-    def process_file(self, aanvraag: AanvraagInfo, docpath: str)->bool:
+    def process_file(self, aanvraag: AanvraagInfo, docpath: str, preview=False)->bool:
         result = False
         try:
             self.reader.open_document(docpath)
@@ -96,20 +103,20 @@ class BeoordelingenReaderProcessor(AanvraagProcessor):
             self.reader.close()
         return result
 
-    def process(self, filter_func = None)->int:
+    def process(self, filter_func = None, preview=False)->int:
         n_graded = 0
         for aanvraag in self.filtered_aanvragen(filter_func):
             if aanvraag.status != AanvraagStatus.NEEDS_GRADING:
                 continue            
             docpath = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
             if self.file_is_modified(aanvraag, docpath):
-                if self.process_file(aanvraag, docpath):
+                if self.process_file(aanvraag, docpath, preview=preview):
                     n_graded  += 1
         return n_graded
 
-def read_beoordelingen_files(storage: AAPStorage, filter_func = None, mode=ProcessMode.PROCESS):
+def read_beoordelingen_files(storage: AAPStorage, filter_func = None, preview=False):
     logPrint('--- Verwerken beoordeelde formulieren...')
     BP=BeoordelingenReaderProcessor(storage)
-    n_graded = BP.process(filter_func)
+    n_graded = BP.process(filter_func, preview=preview)
     logPrint(f'### {n_graded} beooordeelde aanvragen verwerkt')
     logPrint('--- Einde verwerken beoordeelde formulieren.')

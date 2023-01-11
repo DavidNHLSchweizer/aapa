@@ -15,14 +15,9 @@ class AanvraagProcessor:
         for fileinfo in storage.find_invalid_fileinfos(FileType.INVALID_PDF):
             self.known_files[fileinfo.filename] = fileinfo
     def known_file_info(self, filename: str)->FileInfo:
-        # print(f'testing: {filename}') 
-        # for fn,fi in self.known_files.items():
-        #     print(f'{fn} ({fi.filename})')
         if fileinfo := self.known_files.get(str(filename), None):
-            # print(f'found: {fileinfo}')
             return fileinfo
         else:
-            # print('not found')
             return None
     def __init_known_files(self, aanvragen: list[AanvraagInfo]):
         result = {}

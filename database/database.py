@@ -63,7 +63,10 @@ class Database:
         if Database._logging_initialized: 
             return
         filename = Path(filename).parent.joinpath('logs').joinpath(Path(filename).name+'.log')
-        logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+        print(filename.resolve())
+        logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], mode='a', format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+        # logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+        # logging.basicConfig(filename=filename, encoding='utf-8', format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
         Database._logging_initialized = True
         self.log_info('logging started...')        
     def enable_foreign_keys(self):

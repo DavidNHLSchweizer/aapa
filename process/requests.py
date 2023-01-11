@@ -9,7 +9,7 @@ def init_config():
     config.set_default('requests', 'form_template',r'.\templates\template 0.7.docx')
 init_config()
 
-def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, mode: ProcessMode = ProcessMode.PROCESS, preview=False):
+def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, preview=False):
     if preview:
         storage.database.disable_commit()
         print('*** PREVIEW ONLY ***')

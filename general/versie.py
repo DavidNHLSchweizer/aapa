@@ -5,7 +5,7 @@ import datetime
 from time import strftime
 from general.config import config
 
-AAPAVERSION = '0.93'
+AAPAVERSION = '0.94'
 @dataclass
 class Versie:
     versie: str = config.get('versie', 'versie')

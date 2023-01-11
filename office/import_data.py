@@ -8,7 +8,7 @@ import tabula
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
-from general.log import logError, logPrint, logWarn, logInfo
+from general.log import logError, logPrint, logWarning, logInfo
 from general.valid_email import is_valid_email, try_extract_email
 from PyPDF2 import PdfFileReader
 
@@ -149,12 +149,12 @@ class AanvraagDataImporter(AanvraagProcessor):
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
             if self.is_duplicate(fileinfo):            
-                logWarn(f'Duplikaat: {filename}.\nal in database: {str(aanvraag)}')
+                logWarning(f'Duplikaat: {filename}.\nal in database: {str(aanvraag)}')
                 return None
             if not is_valid_email(aanvraag.student.email):
                 new_email = try_extract_email(aanvraag.student.email, True)
                 if new_email:
-                    logWarn(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
+                    logWarning(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
                     aanvraag.student.email = new_email
                 else:
                     logError(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
@@ -185,6 +185,7 @@ class ImportResult(Enum):
     ERROR    = 2
     ALREADY_IMPORTED = 3
     KNOWN_ERROR = 4
+    KNOWN_PDF = 5
 
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResult:
     def known_import_result(filename)->ImportResult:
@@ -197,6 +198,8 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
                         return ImportResult.ALREADY_IMPORTED
                     else:
                         return ImportResult.UNKNOWN
+                case FileType.GRADED_PDF:
+                    return ImportResult.KNOWN_PDF
                 case FileType.INVALID_PDF:
                     if not_changed(filename, fileinfo): 
                         return ImportResult.KNOWN_ERROR
@@ -238,7 +241,7 @@ def import_directory(directory: str, storage: AAPStorage, recursive = True, prev
         return '**/*.pdf' if recursive else '*.pdf'
     min_id = storage.max_aanvraag_id() + 1
     if not Path(directory).is_dir():
-        logWarn(f'Map {directory} bestaat niet. Afbreken.')
+        logWarning(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
     logPrint(f'Start import van map  {directory}...')
     if not preview:
