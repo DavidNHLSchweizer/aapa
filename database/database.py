@@ -21,13 +21,14 @@ class SchemaTableDef(TableDefinition):
 def one_line(value: str)->str:
     return value.replace('\n', ' ')
 class Database:
-    _logging_initialized = False
+    # _logging_initialized = False
     def __init__(self, filename: str, _reset_flag = False):
         self.raise_error = True
         self._reset_flag = _reset_flag
         self._commit_level = 0
         self.connection = self.open_database(filename)
-        self._init_logging(filename)
+        # self._init_logging(filename)
+        self.log_info('database logging started...') 
         self.log_info(f'connection ({filename}) opened...')
         self.connection.row_factory = sql3.Row
         self.enable_foreign_keys()
@@ -59,16 +60,16 @@ class Database:
         self.commit()
         self.connection.close()
         self.log_info('connection closed...')
-    def _init_logging(self, filename):        
-        if Database._logging_initialized: 
-            return
-        filename = Path(filename).parent.joinpath('logs').joinpath(Path(filename).name+'.log')
-        print(filename.resolve())
-        logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], mode='a', format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
-        # logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
-        # logging.basicConfig(filename=filename, encoding='utf-8', format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
-        Database._logging_initialized = True
-        self.log_info('logging started...')        
+    # def _init_logging(self, filename):        
+    #     if Database._logging_initialized: 
+    #         return
+    #     filename = Path(filename).parent.joinpath('logs').joinpath(Path(filename).name+'.log')
+    #     print(filename.resolve())
+    #     logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], mode='a', format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+    #     # logging.basicConfig(handlers=[TimedRotatingFileHandler(filename,'D', 1, 7, encoding='utf-8')], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+    #     # logging.basicConfig(filename=filename, encoding='utf-8', format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+    #     Database._logging_initialized = True
+    #     self.log_info('logging started...')        
     def enable_foreign_keys(self):
         self._execute_sql_command('pragma foreign_keys=ON')
     def disable_foreign_keys(self):

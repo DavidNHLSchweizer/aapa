@@ -3,7 +3,7 @@ import sys
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
-from general.log import logInfo
+from general.log import init_logging, logInfo
 from office.cleanup import cleanup_files
 from office.graded_requests import process_graded
 from general.config import config
@@ -39,15 +39,17 @@ class AAPA:
         print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
         print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
 
-    def __initialize_database(self, options: AAPAoptions):
-        recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
-        if options.database:
-            database = options.database
+    def get_database_name(self):
+        if self.options.database:
+            database = self.options.database
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
-        self.database = initialize_database(database, recreate)
-        #self.storage  = initialize_storage(self.database)
+        return database
+    def __initialize_database(self, options: AAPAoptions):
+        recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
+        self.database = initialize_database(self.get_database_name(), recreate)
+        self.storage  = initialize_storage(self.database)
     def __initialize_directories(self, options: AAPAoptions):        
         self.root = self.__get_directory(options.root, 'root','Root directory voor aanvragen', True)
         self.forms_directory = self.__get_directory(options.forms, 'forms', 'Directory voor beoordelingsformulieren')
@@ -71,18 +73,18 @@ class AAPA:
         self.__initialize_directories(self.options)
     def process(self):
         self.__init_process()
-        # if self.mode != ProcessMode.NONE:
-        #     if self.root and self.mode != ProcessMode.MAIL:
-        #         process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
-        #     if self.mail_directory and self.mode != ProcessMode.SCAN:
-        #         process_graded(self.storage, self.mail_directory, preview=self.preview)
-        # if self.cleanup:
-        #     cleanup_files(self.storage, preview=self.preview)
-        # if self.report is not None:
-        #     if self.report:
-        #         report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
-        #     else:
-        #         report_aanvragen_console(self.storage)
+        if self.mode != ProcessMode.NONE:
+            if self.root and self.mode != ProcessMode.MAIL:
+                process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
+            if self.mail_directory and self.mode != ProcessMode.SCAN:
+                process_graded(self.storage, self.mail_directory, preview=self.preview)
+        if self.cleanup:
+            cleanup_files(self.storage, preview=self.preview)
+        if self.report is not None:
+            if self.report:
+                report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
+            else:
+                report_aanvragen_console(self.storage)
         logInfo('Ready.')
     @staticmethod
     def banner():
@@ -90,6 +92,10 @@ class AAPA:
 
 if __name__=='__main__':
     print(AAPA.banner())
-    AAPA(get_arguments()).process() 
+    aapa = AAPA(get_arguments())
+    init_logging(aapa.get_database_name())
+    logInfo('+++ AAPA started +++')
+    aapa.process() 
+    logInfo('+++ AAPA stopped +++')
 
 #TODO testing results of rootify on different accounts
