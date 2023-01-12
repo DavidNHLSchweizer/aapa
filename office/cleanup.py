@@ -3,6 +3,7 @@ from data.aanvraag_processor import AanvraagProcessor
 from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileType
 from general.log import logInfo, logPrint
 from data.storage import AAPStorage
+from general.preview import Preview
 
 class CleanupTempFilesProcessor(AanvraagProcessor):
     def __remove_file(self,aanvraag: AanvraagInfo, filename:Path, filetype:FileType):
@@ -31,16 +32,8 @@ class CleanupTempFilesProcessor(AanvraagProcessor):
             self.process_files(aanvraag,preview=preview)
 
 def cleanup_files(storage: AAPStorage, filter_func = None, preview=False):
-    logPrint('--- Opschonen tijdelijke of onnodige bestanden...')
-    if preview:
-        storage.database.disable_commit()
-        print('*** PREVIEW ONLY ***')
-    try:
+    with Preview(preview, storage, 'clean'):
+        logPrint('--- Opschonen tijdelijke of onnodige bestanden...')
         cleaner = CleanupTempFilesProcessor(storage)
         cleaner.process(filter_func, preview=preview)
         logPrint('--- Einde opschonen tijdelijke of onnodige bestanden.')
-    finally:
-        if preview:
-            storage.database.rollback()
-            storage.database.enable_commit()
-            print('*** end PREVIEW ONLY ***')        

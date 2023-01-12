@@ -1,6 +1,7 @@
 from data.aanvraag_info import AanvraagBeoordeling
 from general.args import ProcessMode
 from general.config import config
+from general.preview import Preview
 from office.mail_feedback import create_feedback_mails
 from office.mail_sender import OutlookMailDef
 from office.read_beoordeling import read_beoordelingen_files
@@ -26,6 +27,7 @@ def template_dict_from_config(config_templates: dict):
     return result
 
 def process_graded(storage, output_directory, filter_func = None, preview=False):
-    read_beoordelingen_files(storage, filter_func, preview=preview)
-    create_feedback_mails(storage, template_dict_from_config(config.get('mail', 'feedback_mail_templates')), __get_default_maildef(), output_directory, filter_func, preview=preview)
+    with Preview(preview, storage, 'graded'):
+        read_beoordelingen_files(storage, filter_func, preview=preview)
+        create_feedback_mails(storage, template_dict_from_config(config.get('mail', 'feedback_mail_templates')), __get_default_maildef(), output_directory, filter_func, preview=preview)  
 

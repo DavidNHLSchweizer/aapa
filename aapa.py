@@ -4,8 +4,9 @@ import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
 from general.log import init_logging, logInfo
+from general.preview import Preview
 from office.cleanup import cleanup_files
-from office.graded_requests import process_graded
+from process.graded_requests import process_graded
 from general.config import config
 from office.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.database import initialize_database, initialize_storage
@@ -73,13 +74,14 @@ class AAPA:
         self.__initialize_directories(self.options)
     def process(self):
         self.__init_process()
-        if self.mode != ProcessMode.NONE:
-            if self.root and self.mode != ProcessMode.MAIL:
-                process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
-            if self.mail_directory and self.mode != ProcessMode.SCAN:
-                process_graded(self.storage, self.mail_directory, preview=self.preview)
-        if self.cleanup:
-            cleanup_files(self.storage, preview=self.preview)
+        with Preview(self.preview, self.storage, 'main'):
+            if self.mode != ProcessMode.NONE:
+                if self.root and self.mode != ProcessMode.MAIL:
+                    process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
+                if self.mail_directory and self.mode != ProcessMode.SCAN:
+                    process_graded(self.storage, self.mail_directory, preview=self.preview)
+            if self.cleanup:
+                cleanup_files(self.storage, preview=self.preview)
         if self.report is not None:
             if self.report:
                 report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
