@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from database.argparser import ArgParser
+from database.dbargparser import dbArgParser
 from database.tabledef import ColumnDefinition, TableDefinition
 
-class SQLFlags(ArgParser):
+class SQLFlags(dbArgParser):
     COLUMNS = 1
     WHERE   = 2
     VALUES  = 3
@@ -18,7 +18,7 @@ class SQLFlags(ArgParser):
          { "flag": JOINS, "attribute":'joins', "default":[], "key":'join'}
         ]
     def execute(self, flags, target, **args):
-        self.parse_args(flags, target, self.flag_map, **args)
+        self.parse(flags, target, self.flag_map, **args)
         
 class SQLbase(ABC):
     def __init__(self, table_def: TableDefinition, **args):

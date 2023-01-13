@@ -1,11 +1,9 @@
-from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, VersionTableDefinition, create_root
+from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, create_root
 from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
-from general.versie import Versie
-from general.config import config
 from data.roots import add_root, decode_path, encode_path
 
 class CRUD_bedrijven(CRUDbase):

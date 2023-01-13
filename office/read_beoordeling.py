@@ -2,12 +2,10 @@
 from pathlib import Path
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from data.aanvraag_processor import AanvraagProcessor
-from database.dbConst import EMPTY_ID
-from general.args import ProcessMode
 from general.fileutil import path_with_suffix
 from office.word_reader import WordReader, WordReaderException
 from data.storage import AAPStorage
-from general.log import logError, logInfo, logPrint, logWarning
+from general.log import logError, logInfo, logPrint
 
 
 

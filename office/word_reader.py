@@ -1,8 +1,5 @@
-from pathlib import Path
 import win32com.client as win32, pywintypes
-
 from general.fileutil import path_with_suffix
-from general.log import logPrint
 
 class WordReaderException(Exception):pass
 
@@ -11,16 +8,13 @@ wdFormatPDF = 17
 wdDoNotSaveChanges = 0
 class WordReader:
     def __init__(self, doc_path=None):
-        self.word= win32.Dispatch('word.application')
+        self.word= win32.dynamic.Dispatch('word.application')
         self.word.visible = 0
         self.doc_path = doc_path
         self._document = None
     @property 
     def document(self):
         return self._document
-    # @document.setter
-    # def document(self, value):
-    #     self._document = self.open_document(str(doc_path)) if doc_path else None
     def open_document(self, doc_path):
         if self.document:
             self.close()

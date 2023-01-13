@@ -2,7 +2,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import datetime
-from time import strftime
 from general.config import config
 
 AAPAVERSION = '0.94'

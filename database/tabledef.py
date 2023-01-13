@@ -1,8 +1,8 @@
 from enum import Enum
 import database.dbConst as dbc
-from database.argparser import ArgParser
+from database.dbargparser import dbArgParser
 
-class ColumnFlags(ArgParser):
+class ColumnFlags(dbArgParser):
     PRIMARY = 1
     NOTNULL = 2
     UNIQUE  = 3
@@ -33,7 +33,7 @@ class ColumnFlags(ArgParser):
                 result.append({"attribute": flag["attribute"], "default":flag["default"]})    
         return result
     def execute(self, target, **args):
-        self.parse_args(ColumnFlags.ALL, target, ColumnFlags.flag_map, **args)
+        self.parse(ColumnFlags.ALL, target, ColumnFlags.flag_map, **args)
   
 class ColumnDefinition:
     def __init__(self, name, type, **args):
@@ -89,7 +89,7 @@ class ForeignKeyDefinition:
     def __str__(self):
         return f'FOREIGN KEY {self.column_name} references {self.ref_table}.{self.ref_column}' + self.action_str()
 
-class TableFlags(ArgParser):
+class TableFlags(dbArgParser):
     AUTOID  = 1
     ALL     = [AUTOID]
     flag_map = \
@@ -97,7 +97,7 @@ class TableFlags(ArgParser):
          { "flag": AUTOID,"attribute":'autoID', "default":False, "key":'autoid'}
         ]
     def execute(self, target, **args):
-        self.parse_args(TableFlags.ALL, target, TableFlags.flag_map, **args)
+        self.parse(TableFlags.ALL, target, TableFlags.flag_map, **args)
 
 class TableDefinition:
     def __init__(self, name, **args):

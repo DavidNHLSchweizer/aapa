@@ -1,6 +1,7 @@
 from data.storage import AAPStorage
 
 class Preview:
+    # preview context manager, may be nested
     level = 0
     def __init__(self, preview:bool, storage: AAPStorage, msg):
         self.preview=preview

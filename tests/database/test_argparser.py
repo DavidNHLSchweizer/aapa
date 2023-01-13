@@ -1,7 +1,7 @@
 import pytest
-from database.argparser import ArgParser
+from database.dbargparser import dbArgParser
 
-class DemoFlags(ArgParser):
+class DemoFlags(dbArgParser):
     SINGLE_BOOL     = 1
     SINGLE_STRING   = 2
     SINGLE_NUMBER   = 3
@@ -13,7 +13,7 @@ class DemoFlags(ArgParser):
          { "flag": MULTIPLE_STRING,"attribute":'multiple_string', "default": [], "key":'s_multiple'}
         ]
     def execute(self, flags, target, **args):
-        self.parse_args(flags, target, self.flag_map, **args)
+        self.parse(flags, target, self.flag_map, **args)
 
 #class ArgParser:
 def test_init_bool():

@@ -1,6 +1,5 @@
 import sys
 from general.fileutil import test_file_exists
-from general.log import logError
 from general.singleton import Singleton
 import jsonpickle
 import atexit

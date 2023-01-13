@@ -28,7 +28,7 @@ olMailItem = 0
 olSave = 0
 class OutlookMail:
     def __init__(self):
-        self.outlook = win32.Dispatch('outlook.application')
+        self.outlook = win32.dynamic.Dispatch('outlook.application')
     def __createItem(self, maildef: OutlookMailDef):
         mail = self.outlook.CreateItem(olMailItem)
         mail.Subject = maildef.subject

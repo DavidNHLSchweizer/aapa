@@ -1,4 +1,4 @@
-class ArgParser:
+class dbArgParser:
     def __parse_args(self, target, store, default, Key, **args):
         if isinstance(default, list):
             value = default.copy()
@@ -15,8 +15,7 @@ class ArgParser:
                 if key == Key:
                     value = args[arg]
         setattr(target, store, value)        
-
-    def parse_args(self, flags, target, flag_map, **args):
+    def parse(self, flags, target, flag_map, **args):
         for map in flag_map:
             if map["flag"] in flags:
                 self.__parse_args(target, map["attribute"], map["default"], map["key"], **args)
