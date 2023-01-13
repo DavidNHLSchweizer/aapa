@@ -35,7 +35,7 @@ def _get_arguments(banner: str):
     group = parser.add_argument_group('Configuratie, directory en database')
     group.add_argument('-r', '--root', type=str, 
                         help='Kies nieuwe directory als basis voor het scannen naar aanvragen. Als geen directory wordt ingevoerd (-r=) wordt deze opgevraagd.')
-    group.add_argument('-f', '--formulieren', dest='forms',  type=str, 
+    group.add_argument('-f', '--forms', dest='forms',  type=str, 
                         help='Kies nieuwe directory voor beoordelingsformulieren. Als geen directory wordt ingevoerd (-f=) wordt deze opgevraagd.')
     group.add_argument('-m', '--mail', type=str, 
                         help='Kies nieuwe directory voor mailbestanden. Als geen directory wordt ingevoerd (-m=) wordt deze opgevraagd.')
