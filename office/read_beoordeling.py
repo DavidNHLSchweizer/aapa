@@ -3,7 +3,7 @@ from pathlib import Path
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from data.aanvraag_processor import AanvraagProcessor
 from general.fileutil import path_with_suffix
-from office.word_reader import WordReader, WordReaderException
+from office.word_processor import WordProcessor, WordReaderException
 from data.storage import AAPStorage
 from general.log import logError, logInfo, logPrint
 
@@ -13,7 +13,7 @@ VOLDOENDE = 'voldoende'
 def is_voldoende(beoordeling: str)->bool:
     return beoordeling.lower() == VOLDOENDE
 
-class BeoordelingOordeelReader(WordReader):
+class BeoordelingOordeelReader(WordProcessor):
     #read grade from the file
     def read_data(self)->str:
         def read_cell_value(table, rownr, colnr)->str:

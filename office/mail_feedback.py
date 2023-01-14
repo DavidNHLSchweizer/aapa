@@ -5,7 +5,7 @@ from general.fileutil import created_directory, path_with_suffix
 from office.mail_merge import MailMerger
 from data.storage import AAPStorage
 from office.mail_sender import OutlookMail, OutlookMailDef
-from office.word_reader import WordReader, WordReaderException
+from office.word_processor import WordProcessor, WordReaderException
 from general.log import logError, logInfo, logPrint
 
 class FeedbackMailMerger(MailMerger):
@@ -16,7 +16,7 @@ class FeedbackMailMerger(MailMerger):
         self.default_maildef = default_maildef
     def __get_output_filename(self, info: AanvraagInfo):
         return f'Mail {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
-    def __convert_to_htm(self, reader: WordReader, doc_path: str, preview=False): 
+    def __convert_to_htm(self, reader: WordProcessor, doc_path: str, preview=False): 
             if preview:
                 return path_with_suffix(doc_path, '.htm')
             else:
@@ -40,7 +40,7 @@ class FeedbackMailMerger(MailMerger):
         self.storage.create_fileinfo(FileInfo(htm_path, filetype=FileType.MAIL_HTM, aanvraag_id=aanvraag.id))
         self.storage.commit()
         logInfo(f'--- Succes storing data for feedback mail {aanvraag}')
-    def __create_attachment(self, aanvraag: AanvraagInfo, reader: WordReader, preview=False)->str:
+    def __create_attachment(self, aanvraag: AanvraagInfo, reader: WordProcessor, preview=False)->str:
         doc_path = self.__merge_document(aanvraag, preview=preview)
         htm_path = self.__convert_to_htm(reader, str(doc_path), preview=preview)
         aangemaakt = 'aan te maken' if preview else 'aangemaakt'
@@ -60,7 +60,7 @@ class FeedbackMailMerger(MailMerger):
             mailer.draft_item(mail_data)
     def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
         result = 0
-        reader = WordReader()
+        reader = WordProcessor()
         mailer = OutlookMail()
         if len(aanvragen) > 0 and not self.output_directory.is_dir():
             if not preview:

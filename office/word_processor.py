@@ -6,19 +6,22 @@ class WordReaderException(Exception):pass
 wdFormatFilteredHTML = 10
 wdFormatPDF = 17
 wdDoNotSaveChanges = 0
-class WordReader:
+class WordProcessor:
     def __init__(self, doc_path=None):
         self.word= win32.dynamic.Dispatch('word.application')
-        self.word.visible = 0
+        # self.word.visible = 0
         self.doc_path = doc_path
         self._document = None
     @property 
     def document(self):
         return self._document
-    def open_document(self, doc_path):
+    def open_document(self, doc_path, read_only = True):
         if self.document:
             self.close()
-        self.word.Documents.Open(doc_path, ReadOnly=-1)
+        if read_only:
+            self.word.Documents.Open(doc_path, ReadOnly=-1)
+        else:
+            self.word.Documents.Open(doc_path)
         self._document = self.word.ActiveDocument
         self.doc_path = doc_path
     def _save_as(self, file_format, suffix, filename=None):        
