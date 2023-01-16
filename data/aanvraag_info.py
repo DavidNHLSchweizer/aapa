@@ -138,8 +138,9 @@ class AanvraagStatus(Enum):
     GRADED          = 2
     MAIL_READY      = 3
     READY           = 4
+    READY_IMPORTED  = 5
     def __str__(self):
-        STRS = {AanvraagStatus.INITIAL: 'ontvangen',  AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'verwerkt'}
+        STRS = {AanvraagStatus.INITIAL: 'ontvangen',  AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'verwerkt', AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
         return STRS[self]
         
 class AanvraagBeoordeling(Enum):

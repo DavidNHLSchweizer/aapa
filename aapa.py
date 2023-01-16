@@ -6,6 +6,7 @@ from general.fileutil import path_with_suffix
 from general.log import init_logging, logInfo
 from general.preview import Preview
 from office.cleanup import cleanup_files
+from office.history import read_beoordelingen_from_files
 from process.graded_requests import process_graded
 from general.config import config
 from office.report_data import report_aanvragen_XLS, report_aanvragen_console
@@ -69,15 +70,24 @@ class AAPA:
             return Path(result).resolve()
         else:
             return None
+    def __get_history_file(self, option_history):
+        if option_history:
+            return option_history
+        else:
+            return tkifd.askopenfilename(initialfile=option_history,initialdir='.', defaultextension='.xlsx')
     def __init_process(self):
         self.__initialize_database(self.options)
         self.__initialize_directories(self.options)
+        if self.options.history is not None:
+            self.options.history = self.__get_history_file(self.options.history)
     def process(self):
         self.__init_process()
         with Preview(self.preview, self.storage, 'main'):
             if self.mode != ProcessMode.NONE:
                 if self.root and self.mode != ProcessMode.MAIL:
                     process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
+                if self.options.history:
+                    read_beoordelingen_from_files(self.options.history, self.storage)
                 if self.mail_directory and self.mode != ProcessMode.SCAN:
                     process_graded(self.storage, self.mail_directory, preview=self.preview)
             if self.cleanup:

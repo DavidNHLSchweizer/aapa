@@ -8,7 +8,6 @@ class WordReaderException(Exception):pass
 
 class WordApplication(Singleton):
     def __init__(self):
-        print('app')
         self.word= win32.dynamic.Dispatch('word.application')
         self.word.visible = 0
 
@@ -52,7 +51,6 @@ class WordDocument:
         else:
             return None
     def _close(self):
-        print('klose')
         try:
             if self.document:
                 self.document.Close(SaveChanges=wdDoNotSaveChanges)

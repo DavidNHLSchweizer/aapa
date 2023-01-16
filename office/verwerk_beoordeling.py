@@ -18,14 +18,14 @@ class GradeInputReader(WordDocument):
     @contextmanager
     def load_aanvraag(self, aanvraag: AanvraagInfo, doc_path: str):
         pass       
-    @property
-    def grade(self)->str:
+    def grade(self, aanvraag: AanvraagInfo)->str:
         pass
 
 class BeoordelingenProcessor(AanvraagProcessor):
-    def __init__(self, reader: GradeInputReader, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
+    def __init__(self, reader: GradeInputReader, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None, graded_status = AanvraagStatus.GRADED):
         super().__init__(storage, aanvragen)
         self.reader = reader
+        self.graded_status = graded_status
     def __reset_to_be_graded_file(self, aanvraag: AanvraagInfo):
         aanvraag.files.reset_info(FileType.TO_BE_GRADED_DOCX)
     def __store_graded_file(self, aanvraag: AanvraagInfo, docpath: str):
@@ -61,7 +61,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
         logInfo(f'--- End storing data for reading grade {aanvraag}')
     def __adapt_aanvraag(self, aanvraag: AanvraagInfo, beoordeling: AanvraagBeoordeling)->bool:
         aanvraag.beoordeling = beoordeling
-        aanvraag.status = AanvraagStatus.GRADED
+        aanvraag.status = self.graded_status
         return True
     def __process_grade(self, aanvraag: AanvraagInfo, docpath: str, beoordeling: AanvraagBeoordeling, preview=False)->bool:
         result = False
@@ -79,7 +79,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
     def process_file(self, aanvraag: AanvraagInfo, docpath: str, preview=False)->bool:
         result = False
         aanvraagcomment = f'\nKan {aanvraag} niet verwerken.'
-        if not (grade := self.reader.grade):
+        if not (grade := self.reader.grade(aanvraag)):
             logPrint(f'kan beoordeling niet lezen: "{grade}" {docpath}...{aanvraagcomment}')
         elif (beoordeling := self.__check_grade(grade)) in [AanvraagBeoordeling.VOLDOENDE,AanvraagBeoordeling.ONVOLDOENDE]:
             logPrint(f'Verwerken {aanvraag}: {beoordeling}')
@@ -103,9 +103,9 @@ class BeoordelingenProcessor(AanvraagProcessor):
         return n_graded
 
 def verwerk_beoordelingen(BP: BeoordelingenProcessor, storage: AAPStorage, filter_func = None, preview=False):
-    logPrint('--- Verwerken beoordeeldingen...')
+    logPrint('--- Verwerken beoordelingen...')
     # BP=BeoordelingenFromWordDocument(storage)
     n_graded = BP.process(filter_func, preview=preview)
     verwerkt = 'te verwerken' if preview else 'verwerkt'
     logPrint(f'### {n_graded} beooordeelde aanvragen {verwerkt}')
-    logPrint('--- Einde verwerken beoordeeldingen.')
+    logPrint('--- Einde verwerken beoordelingen.')

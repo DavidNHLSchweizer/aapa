@@ -5,7 +5,6 @@ from general.singleton import Singleton
 
 class OutlookApplication(Singleton):
     def __init__(self):
-        print('mail app')
         self.outlook= win32.dynamic.Dispatch('outlook.application')
         # self.outlook.visible = 0
 

@@ -9,7 +9,6 @@ class WordDocumentGradeReader(GradeInputReader):
     def load_aanvraag(self, aanvraag: AanvraagInfo, doc_path: str):
         with self.open_document(doc_path=doc_path) as document:
             yield document
-            print('klose2')
     #read grade from the file
     def read_data(self)->str:
         def read_cell_value(table, rownr, colnr)->str:
@@ -26,8 +25,7 @@ class WordDocumentGradeReader(GradeInputReader):
             return (read_cell_value(table, ROW_GRADE,COL_VALUES))
         else:
             return ''
-    @property
-    def grade(self)->str:
+    def grade(self, aanvraag: AanvraagInfo)->str:
         return self.read_data()
 
 class BeoordelingenFromWordDocument(BeoordelingenProcessor):

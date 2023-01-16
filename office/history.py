@@ -1,14 +1,11 @@
 from contextlib import contextmanager
 import pandas as pd
-from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
-from data.aanvraag_processor import AanvraagProcessor
+from data.aanvraag_info import  AanvraagInfo, FileType, AanvraagStatus
 from data.storage import AAPStorage
-from general.fileutil import path_with_suffix
 from general.log import logError, logPrint
 from office.report_data import COLMAP
-from office.import_data import nrows, ncols
+from office.import_data import nrows
 from office.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
-from office.word_processor import WordProcessor
 
 class HistoryError(Exception): pass
 
@@ -16,14 +13,15 @@ class HistoryExcelReader:
     NOTFOUND = -1
     def __init__(self, filename:str):
         self.filename = filename
-        self.table = pd.read_excel(self.filename) 
+        self.table = pd.read_excel(self.filename)
+        self.table.fillna(value='',inplace=True) 
         self.__check_compatible_columns()            
     def __check_compatible_columns(self):
         for r, column in enumerate(self.table.columns):
             if COLMAP.get(column, -1) != r:
                 raise HistoryError(f'Unexpected column "{column}" in {self.filename}')
     def _row_for_aanvraag(self, aanvraag: AanvraagInfo)->int:
-        for row in range(1, nrows(self.table)):
+        for row in range(nrows(self.table)):
             if self.__match_row(aanvraag, row):
                 return row
         return HistoryExcelReader.NOTFOUND
@@ -32,10 +30,12 @@ class HistoryExcelReader:
             return self.__table_row_get(row, 'beoordeling')
         return None        
     def __table_row_get(self, row, col_name):
-        return self.table.values[row, COLMAP[col_name, 0]]
+        return self.table.values[row, COLMAP[col_name]]
     def __match_row(self, aanvraag: AanvraagInfo, row: int)->bool:
-        if aanvraag.titel != self.__table_row_get(row, 'titel') or aanvraag.student.studnr != self.__table_row_get(row, 'studnr') or\
-            aanvraag.bedrijf.bedrijfsnaam != self.__table_row_get(row, 'bedrijf') or aanvraag.files.get_timestamp(FileType.AANVRAAG_PDF) != self.__table_row_get(row, 'timestamp'):
+        if aanvraag.titel != self.__table_row_get(row, 'titel') or aanvraag.student.studnr != str(self.__table_row_get(row, 'studentnr')) or\
+            aanvraag.bedrijf.bedrijfsnaam != self.__table_row_get(row, 'bedrijf'):
+            return False
+        if aanvraag.files.get_timestamp(FileType.AANVRAAG_PDF) != self.__table_row_get(row, 'timestamp'):
             return False
         return True
 
@@ -44,7 +44,8 @@ class WordDocumentGradeCreatorFromHistory(GradeInputReader):
     GENERAL_REMARKS_TABLE = 2
     def __init__(self, xls_filename):
         super().__init__()
-        self.info_from_excel = HistoryExcelReader(xls_filename)        
+        self.info_from_excel = HistoryExcelReader(xls_filename)     
+        self.aanvraag = None   
     def __write_cell_value(table, rownr, colnr, value):
         try:
             table.Cell(Row=rownr,Column=colnr).Range.Text = value
@@ -69,19 +70,17 @@ class WordDocumentGradeCreatorFromHistory(GradeInputReader):
     def load_aanvraag(self, aanvraag: AanvraagInfo, doc_path: str):        
         self.aanvraag = aanvraag
         with self.open_document(doc_path=doc_path) as document:
-            self.__create_grade_file(self.grade)
+            self.__create_grade_file(self.grade(aanvraag))
             yield document
-            print('klose3')
-    @property
-    def grade(self)->str:
-        return self.info_from_excel.get_beoordeling(self.aanvraag)
+    def grade(self, aanvraag: AanvraagInfo)->str:
+        return self.info_from_excel.get_beoordeling(aanvraag)
 
 
 class BeoordelingenFromExcelfile(BeoordelingenProcessor):
     def __init__(self, xls_filename: str, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
-        super().__init__(WordDocumentGradeCreatorFromHistory(xls_filename), storage, aanvragen)
+        super().__init__(WordDocumentGradeCreatorFromHistory(xls_filename), storage, aanvragen, graded_status=AanvraagStatus.READY_IMPORTED)
     def file_is_modified(self, aanvraag: AanvraagInfo, docpath):        
-        return aanvraag.beoordeling != self.reader.grade
+        return aanvraag.beoordeling != self.reader.grade(aanvraag)
     def must_process(self, aanvraag, docpath): 
         return self.file_is_modified(aanvraag, docpath)
 
