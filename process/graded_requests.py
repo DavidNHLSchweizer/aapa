@@ -3,7 +3,8 @@ from general.config import config
 from general.preview import Preview
 from office.mail_feedback import create_feedback_mails
 from office.mail_sender import OutlookMailDef
-from office.read_beoordeling import read_beoordelingen_files
+from office.read_beoordelingen import read_beoordelingen_from_files
+# from office.verwerk_beoordeling import verwerk_beoordelingen
 
 def init_config():
     config.set_default('mail', 'feedback_mail_templates', {str(AanvraagBeoordeling.ONVOLDOENDE): r'.\templates\template_afgekeurd.docx', str(AanvraagBeoordeling.VOLDOENDE):r'.\templates\template_goedgekeurd.docx' })
@@ -27,6 +28,6 @@ def template_dict_from_config(config_templates: dict):
 
 def process_graded(storage, output_directory, filter_func = None, preview=False):
     with Preview(preview, storage, 'graded'):
-        read_beoordelingen_files(storage, filter_func, preview=preview)
+        read_beoordelingen_from_files(storage, filter_func, preview=preview)
         create_feedback_mails(storage, template_dict_from_config(config.get('mail', 'feedback_mail_templates')), __get_default_maildef(), output_directory, filter_func, preview=preview)  
 

@@ -5,7 +5,7 @@ from general.fileutil import created_directory, path_with_suffix
 from office.mail_merge import MailMerger
 from data.storage import AAPStorage
 from office.mail_sender import OutlookMail, OutlookMailDef
-from office.word_processor import WordProcessor, WordReaderException
+from office.word_processor import WordDocument, WordReaderException
 from general.log import logError, logInfo, logPrint
 
 class FeedbackMailMerger(MailMerger):
@@ -14,17 +14,21 @@ class FeedbackMailMerger(MailMerger):
         self.storage = storage
         self.template_docs = template_docs
         self.default_maildef = default_maildef
+        self.mailer = OutlookMail()
+        self.draft_folder_name = self.mailer.getDraftFolderName()
+        self.reader = WordDocument()
     def __get_output_filename(self, info: AanvraagInfo):
         return f'Mail {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
-    def __convert_to_htm(self, reader: WordProcessor, doc_path: str, preview=False): 
-            if preview:
-                return path_with_suffix(doc_path, '.htm')
-            else:
-                try:
-                    reader.open_document(doc_path)
-                    return reader.save_as_htm()
-                except WordReaderException as W:
-                    logError(f'Error saving to HTM: {W}')
+    def __convert_to_htm(self, doc_path: str, preview=False): 
+        htm_path = path_with_suffix(doc_path, '.htm')
+        if preview:
+            return htm_path
+        else:
+            try:
+                with self.reader.open_document(doc_path) as document:
+                    return document.save_as_htm(htm_path)
+            except WordReaderException as W:
+                logError(f'Error saving to HTM {htm_path}: {W}')
     def __merge_document(self, aanvraag: AanvraagInfo, preview=False)->str:
         output_filename = self.__get_output_filename(aanvraag)
         if preview:
@@ -40,14 +44,14 @@ class FeedbackMailMerger(MailMerger):
         self.storage.create_fileinfo(FileInfo(htm_path, filetype=FileType.MAIL_HTM, aanvraag_id=aanvraag.id))
         self.storage.commit()
         logInfo(f'--- Succes storing data for feedback mail {aanvraag}')
-    def __create_attachment(self, aanvraag: AanvraagInfo, reader: WordProcessor, preview=False)->str:
+    def __create_attachment(self, aanvraag: AanvraagInfo, preview=False)->str:
         doc_path = self.__merge_document(aanvraag, preview=preview)
-        htm_path = self.__convert_to_htm(reader, str(doc_path), preview=preview)
+        htm_path = self.__convert_to_htm(str(doc_path), preview=preview)
         aangemaakt = 'aan te maken' if preview else 'aangemaakt'
         logPrint(f'Document voor feedbackmail {aangemaakt}: {htm_path}.')
         self.__store_attachment_info(aanvraag, doc_path, htm_path) 
         return htm_path
-    def __create_mail(self, aanvraag: AanvraagInfo, htm_path: str, mailer: OutlookMail, preview=False):
+    def __create_mail(self, aanvraag: AanvraagInfo, htm_path: str, preview=False):
         filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
         if preview:
             print(f'\tKlaarzetten mail: bestemming {aanvraag.student.email}   attachment: {filename}')
@@ -57,11 +61,9 @@ class FeedbackMailMerger(MailMerger):
                 mail_data.mailto=aanvraag.student.email
                 mail_data.mailbody=htm_file.read()
                 mail_data.attachments=[filename]
-            mailer.draft_item(mail_data)
+            self.mailer.draft_item(mail_data)
     def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
-        result = 0
-        reader = WordProcessor()
-        mailer = OutlookMail()
+        result = 0        
         if len(aanvragen) > 0 and not self.output_directory.is_dir():
             if not preview:
                 self.output_directory.mkdir()
@@ -71,16 +73,17 @@ class FeedbackMailMerger(MailMerger):
         for aanvraag in aanvragen:
             if aanvraag.status != AanvraagStatus.GRADED:
                 continue            
-            htm_path = self.__create_attachment(aanvraag, reader,preview=preview)
-            self.__create_mail(aanvraag, htm_path, mailer, preview=preview)
-            result += 1
-        reader.close()
+            htm_path = self.__create_attachment(aanvraag, preview=preview)
+            self.__create_mail(aanvraag, htm_path, preview=preview)
+            result += 1        
         return result
 
 class FeedbackMailsCreator(AanvraagProcessor):
     def __init__(self, storage: AAPStorage, template_docs:dict, default_maildef: OutlookMailDef, output_directory: Path, aanvragen: list[AanvraagInfo] = None):
         super().__init__(storage, aanvragen)
         self.merger = FeedbackMailMerger(storage, template_docs, default_maildef, output_directory)
+    def get_draft_folder_name(self):
+        return self.merger.draft_folder_name
     def process(self, filter_func = None, preview=False)->int:
         return self.merger.merge_documents(self.filtered_aanvragen(filter_func), preview=preview)
 
@@ -95,6 +98,6 @@ def create_feedback_mails(storage: AAPStorage, templates: dict, default_maildef:
     storage.add_file_root(str(output_directory))
     file_creator = FeedbackMailsCreator(storage, templates, default_maildef, output_directory)
     n_mails = file_creator.process(filter_func, preview=preview)
-    klaargezet = 'klaar te zetten' if preview else 'klaargezet'
-    logPrint(f'### {n_mails} mails {klaargezet} in Outlook Concepten/Drafts.')
+    klaargezet = 'klaar te zetten' if preview else 'klaargezet'    
+    logPrint(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
     logPrint('--- Einde klaarzetten feedback mails.')

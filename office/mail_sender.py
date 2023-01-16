@@ -1,6 +1,15 @@
 from __future__ import annotations
 from enum import Enum
 import win32com.client as win32
+from general.singleton import Singleton
+
+class OutlookApplication(Singleton):
+    def __init__(self):
+        print('mail app')
+        self.outlook= win32.dynamic.Dispatch('outlook.application')
+        # self.outlook.visible = 0
+
+
 
 olFormatPlain	 = 1
 olFormatHTML	 = 2
@@ -26,9 +35,13 @@ class OutlookMailDef:
         
 olMailItem = 0
 olSave = 0
+olFolderDrafts = 16
 class OutlookMail:
     def __init__(self):
-        self.outlook = win32.dynamic.Dispatch('outlook.application')
+        self._outlook_app = OutlookApplication()        
+    @property
+    def outlook(self):
+        return self._outlook_app.outlook
     def __createItem(self, maildef: OutlookMailDef):
         mail = self.outlook.CreateItem(olMailItem)
         mail.Subject = maildef.subject
@@ -48,3 +61,5 @@ class OutlookMail:
         self.__createItem(maildef).Send()
     def draft_item(self, maildef: OutlookMailDef):
         self.__createItem(maildef).Close(olSave)
+    def getDraftFolderName(self):
+        return self.outlook.GetNameSpace('MAPI').GetDefaultFolder(olFolderDrafts)
