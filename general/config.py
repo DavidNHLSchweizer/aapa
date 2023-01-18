@@ -1,5 +1,5 @@
 import sys
-from general.fileutil import test_file_exists
+from general.fileutil import file_exists, test_file_exists
 from general.singleton import Singleton
 import jsonpickle
 import atexit
@@ -20,6 +20,8 @@ class ConfigSection:
         self._entries[value_key] = value
     def get(self, value_key, default):
         return self._entries.get(value_key, default)
+    def remove_key(self,value_key):
+        self._entries.pop(value_key, None)
     def __ini_write_key(self, key, value, ini):
         ini.write(f'{key}={value}\n')
     def ini_write(self, ini):
@@ -38,7 +40,9 @@ class Config (Singleton):
         self.__get_section(section_key).set_default(value_key, default_value)        
     def set(self, section_key: str, value_key: str, value):
         self.__get_section(section_key).set(value_key, value)    
-
+    def remove_key(self, section_key, value_key):
+        if section := self.__get_section(section_key):
+            section.remove_key(value_key)
     def ini_write(self, filename): 
         #TODO not very useful because several items are not supported
         #should do through configparser anyway
@@ -67,24 +71,22 @@ class Config (Singleton):
     def __str__(self):
         return '\n'.join([str(self.__get_section(key)) for key in self.__sections.keys()])
 
+application_root = Path(sys.argv[0]).resolve().parent
+CONFIG_FILE_NAME = 'aapa_config.json'
 config = Config()
 
-config.set_default('configuration', 'default_directory', Path(sys.argv[0]).resolve().parent)
-config.set_default('configuration', 'config_file','aapa_config.json')
-
-def _get_config_file(directory, config_file):
+def _get_config_file():
     try:
-        return Path(directory).joinpath(config_file)
+        return Path(application_root).joinpath(CONFIG_FILE_NAME)
     except:
         return None
 
 def _load_config():
     global config
     try:
-        default_dir  = config.get('configuration', 'default_directory')
-        config_file = config.get('configuration', 'config_file')
-        if config_file and test_file_exists(default_dir, config_file):
-            with open(_get_config_file(default_dir, config_file), 'r') as file:
+        config_file = _get_config_file()
+        if config_file and file_exists(config_file):
+            with open(config_file, 'r') as file:
                 config = config.read(file)
     except Exception as E:
         print(f'Fout bij lezen configuratiebestand {config_file}: {E}')
@@ -92,8 +94,7 @@ _load_config()
 
 @atexit.register
 def _save_config():    
-    global config
-    config_file = _get_config_file(config.get('configuration', 'default_directory'), config.get('configuration', 'config_file'))
+    config_file = _get_config_file()
     if config_file:
         with open(config_file, 'w', encoding='utf-8') as file:
             config.write(file)
