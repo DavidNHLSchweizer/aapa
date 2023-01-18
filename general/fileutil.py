@@ -46,8 +46,15 @@ def __test_can_be_written(path):
     except:
         return False
 def path_with_suffix(filename, suffix):
+    if len(str(filename)) == 0: 
+        return filename
     path = Path(filename)
-    return path.parent.joinpath(f'{path.stem}{suffix}')
+    if path.suffix.lower() == suffix.lower():
+        return path
+    elif str(path.stem)[-1:] == '.':
+        return path.parent.joinpath(f'{str(path.stem)[:-1]}{suffix}')
+    else:
+        return path.parent.joinpath(f'{path.stem}{suffix}')
 
 def pathname_one_directory_up(path):
     return path.parent.parent.joinpath(path.stem)

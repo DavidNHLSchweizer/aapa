@@ -76,11 +76,15 @@ class BeoordelingenProcessor(AanvraagProcessor):
             case 'onvoldoende': return AanvraagBeoordeling.ONVOLDOENDE
             case _: 
                 return AanvraagBeoordeling.TE_BEOORDELEN
+    def get_empty_grade_error_message(self, grade, docpath, comment): 
+        return ''
     def process_file(self, aanvraag: AanvraagInfo, docpath: str, preview=False)->bool:
         result = False
         aanvraagcomment = f'\nKan {aanvraag} niet verwerken.'
         if not (grade := self.reader.grade(aanvraag)):
-            logPrint(f'kan beoordeling niet lezen: "{grade}" {docpath}...{aanvraagcomment}')
+            message = self.get_empty_grade_error_message(grade, docpath, aanvraagcomment)
+            if message:
+                logPrint(message)
         elif (beoordeling := self.__check_grade(grade)) in [AanvraagBeoordeling.VOLDOENDE,AanvraagBeoordeling.ONVOLDOENDE]:
             logPrint(f'Verwerken {aanvraag}: {beoordeling}')
             result = self.__process_grade(aanvraag, docpath, beoordeling, preview=preview)        

@@ -3,7 +3,7 @@ import sys
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
-from general.log import init_logging, logInfo
+from general.log import init_logging, logError, logInfo
 from general.preview import Preview
 from office.cleanup import cleanup_files
 from office.history import read_beoordelingen_from_files
@@ -47,7 +47,7 @@ class AAPA:
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
-        return database
+        return path_with_suffix(database, '.db')
     def __initialize_database(self, options: AAPAoptions):
         recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
         self.database = initialize_database(self.get_database_name(), recreate)
@@ -79,24 +79,31 @@ class AAPA:
         self.__initialize_database(self.options)
         self.__initialize_directories(self.options)
         if self.options.history is not None:
-            self.options.history = self.__get_history_file(self.options.history)
+            self.options.history = path_with_suffix(self.__get_history_file(self.options.history), '.xlsx')
     def process(self):
         self.__init_process()
         with Preview(self.preview, self.storage, 'main'):
-            if self.mode != ProcessMode.NONE:
-                if self.root and self.mode != ProcessMode.MAIL:
-                    process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
-                if self.options.history:
-                    read_beoordelingen_from_files(self.options.history, self.storage)
-                if self.mail_directory and self.mode != ProcessMode.SCAN:
-                    process_graded(self.storage, self.mail_directory, preview=self.preview)
-            if self.cleanup:
-                cleanup_files(self.storage, preview=self.preview)
-        if self.report is not None:
-            if self.report:
-                report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
-            else:
-                report_aanvragen_console(self.storage)
+            try:
+                if self.mode != ProcessMode.NONE:
+                    if self.root and self.mode != ProcessMode.MAIL:
+                        process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
+                    if self.options.history:
+                        if not Path(self.options.history).is_file():
+                            logError(f'History file ({self.options.history}) not found.')
+                        else:
+                            read_beoordelingen_from_files(self.options.history, self.storage)
+                    if self.mail_directory and self.mode != ProcessMode.SCAN:
+                        process_graded(self.storage, self.mail_directory, preview=self.preview)
+                if self.cleanup:
+                    cleanup_files(self.storage, preview=self.preview)
+                if self.report is not None:
+                    if self.report:
+                        report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))
+                    else:
+                        report_aanvragen_console(self.storage)
+            except Exception as E:
+                logError(f'Fout bij processing: {E}')
+
         logInfo('Ready.')
     @staticmethod
     def banner():

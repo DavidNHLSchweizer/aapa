@@ -37,6 +37,8 @@ class BeoordelingenFromWordDocument(BeoordelingenProcessor):
         return current_version.timestamp != registered_version
     def must_process(self, aanvraag, docpath): 
         return self.file_is_modified(aanvraag, docpath)
+    def get_empty_grade_error_message(self, grade, docpath, comment): 
+        return f'kan beoordeling niet lezen: "{grade}" {docpath}...{comment}'
 
 def read_beoordelingen_from_files(storage: AAPStorage, filter_func = None, preview=False):
     logPrint('--- Verwerken beoordeelde formulieren...')

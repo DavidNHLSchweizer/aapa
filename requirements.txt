@@ -1,0 +1,8 @@
+docx_mailmerge==0.5.0
+jsonpickle==2.0.0
+mailmerge==2.2.1
+PyPDF2==3.0.1
+pytest==6.2.5
+pywin32==303
+tabula==1.0.5
+tabula_py==2.3.0

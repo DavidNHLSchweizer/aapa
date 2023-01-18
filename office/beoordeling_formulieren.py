@@ -7,10 +7,14 @@ from general.fileutil import created_directory, file_exists
 from office.mail_merge import MailMerger
 from general.log import logInfo, logPrint
 
+class MailMergeException(Exception): pass
+
 class BeoordelingenMailMerger(MailMerger):
     def __init__(self, storage: AAPStorage, template_doc: str, output_directory: str):
         super().__init__(output_directory)
         self.storage = storage
+        if not Path(template_doc).is_file():
+            raise MailMergeException(f'kan template {template_doc} niet vinden.')
         self.template_doc = template_doc
     def __get_output_filename(self, info: AanvraagInfo):
         return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'

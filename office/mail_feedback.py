@@ -1,7 +1,8 @@
 from pathlib import Path
 from data.aanvraag_processor import AanvraagProcessor
-from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.fileutil import created_directory, path_with_suffix
+from office.beoordeling_formulieren import MailMergeException
 from office.mail_merge import MailMerger
 from data.storage import AAPStorage
 from office.mail_sender import OutlookMail, OutlookMailDef
@@ -12,6 +13,9 @@ class FeedbackMailMerger(MailMerger):
     def __init__(self, storage: AAPStorage, template_docs:dict, default_maildef: OutlookMailDef, output_directory: str):
         super().__init__( output_directory)
         self.storage = storage
+        for beoordeling in [AanvraagBeoordeling.ONVOLDOENDE, AanvraagBeoordeling.VOLDOENDE]:
+            if not Path(template_doc:=template_docs[beoordeling]).is_file():
+                raise MailMergeException(f'kan feedback mail template ({template_doc}) voor "{beoordeling}" niet vinden.')
         self.template_docs = template_docs
         self.default_maildef = default_maildef
         self.mailer = OutlookMail()
