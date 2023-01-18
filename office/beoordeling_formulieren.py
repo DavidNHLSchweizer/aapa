@@ -34,7 +34,7 @@ class BeoordelingenMailMerger(MailMerger):
                     return False
             else:
                 filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
-                return not file_exists(filename)
+                return aanvraag.status in [AanvraagStatus.INITIAL,AanvraagStatus.NEEDS_GRADING] and not file_exists(filename)
         result = 0
         if len(aanvragen) > 0 and not self.output_directory.is_dir() and not preview:
             self.output_directory.mkdir()
