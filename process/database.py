@@ -5,12 +5,13 @@ from data.storage import AAPStorage
 
 def __create_database(name, recreate = False)->Database:
     exists = Path(name).is_file()
+    basename = Path(name).name
     if recreate or not exists:
         action = 'REINITIALISATIE' if exists else 'INITIALISATIE'
-        print(f'--- {action} DATABASE {name} ---')
+        print(f'--- {action} DATABASE {basename} ---')
         return  db.AAPDatabase.create_from_schema(db.AAPSchema(), name)
     else:
-        print(f'--- OPENEN DATABASE {name} ---')
+        print(f'--- OPENEN DATABASE {basename} ---')
         return  db.AAPDatabase(name)
 
 def initialize_database(database_name, recreate = False)->Database:

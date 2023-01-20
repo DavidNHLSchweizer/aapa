@@ -5,6 +5,7 @@ from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
+from general.log import logInfo
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -213,7 +214,9 @@ class AAPStorage:
     def find_fileinfo(self, aanvraag_id: int, filetype: FileType)->FileInfo:
         if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
-            return self.crud_files.read(row[0]['filename'])
+            info = self.crud_files.read(row[0]["filename"])
+            logInfo(f'success: {info}')
+            return info
         return None
     def find_fileinfos(self, aanvraag_id: int)->FileInfos:
         result = FileInfos(aanvraag_id)

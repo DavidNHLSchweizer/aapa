@@ -47,7 +47,7 @@ class AAPA:
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
-        return path_with_suffix(database, '.db')
+        return path_with_suffix(database, '.db').resolve()
     def __initialize_database(self, options: AAPAoptions):
         recreate =  (options.initialize == Initialize.INIT and verifyRecreate()) or options.initialize == Initialize.INIT_FORCE
         self.database = initialize_database(self.get_database_name(), recreate)

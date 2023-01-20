@@ -45,9 +45,9 @@ def __test_can_be_written(path):
             return True
     except:
         return False
-def path_with_suffix(filename, suffix):
+def path_with_suffix(filename, suffix)->Path:
     if len(str(filename)) == 0: 
-        return filename
+        return Path(filename)
     path = Path(filename)
     if path.suffix.lower() == suffix.lower():
         return path
