@@ -2,8 +2,39 @@ from contextlib import contextmanager
 import win32com.client as win32, pywintypes
 from general.fileutil import path_with_suffix
 from general.singleton import Singleton
+from docx import Document
 
 class WordReaderException(Exception):pass
+
+class DocxWordDocument:
+    def __init__(self, doc_path=None):
+        self.doc_path = doc_path
+        self._document = Document(doc_path)
+    @property 
+    def document(self):
+        return self._document
+    @contextmanager
+    def open_document(self, doc_path):
+        if self.document:
+            self._close()
+        self._document = Document(doc_path)
+        self.doc_path = doc_path
+        print('a')
+        yield self
+        self._close()
+    def save(self):        
+        if self.document:
+            self.document.save(self.doc_path)
+        return self.doc_path
+    def find_table(self, index=1):
+        if self.document and len(self.document.tables) >= index:
+            return self.document.tables[index-1]
+        else:
+            return None
+    def _close(self):
+        self._document = None
+        self.doc_path = ''
+
 
 
 class WordApplication(Singleton):
