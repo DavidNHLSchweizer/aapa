@@ -19,7 +19,6 @@ def init_config():
     config.set_default('configuration', 'database', 'aapa.db')
     config.set_default('configuration', 'root', r'.\aanvragen')
     config.set_default('configuration', 'forms', r'.\aanvragen\forms')
-    config.set_default('configuration', 'mail', r'.\aanvragen\mail')
 init_config()
 
 def verifyRecreate():
@@ -55,7 +54,6 @@ class AAPA:
     def __initialize_directories(self, options: AAPAoptions):        
         self.root = self.__get_directory(options.root, 'root','Root directory voor aanvragen', True)
         self.forms_directory = self.__get_directory(options.forms, 'forms', 'Directory voor beoordelingsformulieren')
-        self.mail_directory = self.__get_directory(options.mail, 'mail', 'Directory voor mailbestanden')
     def __get_directory(self, option_value, config_name, title, mustexist=False):
         if option_value is not None and not option_value:
             result = tkifd.askdirectory(mustexist=mustexist, title=title)
@@ -92,8 +90,8 @@ class AAPA:
                             logError(f'History file ({self.options.history}) not found.')
                         else:
                             read_beoordelingen_from_files(self.options.history, self.storage)
-                    if self.mail_directory and self.mode != ProcessMode.SCAN:
-                        process_graded(self.storage, self.mail_directory, preview=self.preview)
+                    if self.mode != ProcessMode.SCAN:
+                        process_graded(self.storage, preview=self.preview)
                 if self.cleanup:
                     cleanup_files(self.storage, preview=self.preview)
                 if self.report is not None:

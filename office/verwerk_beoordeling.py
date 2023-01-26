@@ -4,7 +4,7 @@ from pathlib import Path
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from data.aanvraag_processor import AanvraagProcessor
 from general.fileutil import path_with_suffix
-from office.word_processor import WordDocument, WordReaderException
+from office.word_processor import DocxWordDocument
 from data.storage import AAPStorage
 from general.log import logError, logInfo, logPrint
 
@@ -14,7 +14,7 @@ VOLDOENDE = 'voldoende'
 def is_voldoende(beoordeling: str)->bool:
     return beoordeling.lower() == VOLDOENDE
 
-class GradeInputReader(WordDocument):
+class GradeInputReader(DocxWordDocument):
     @contextmanager
     def load_aanvraag(self, aanvraag: AanvraagInfo, doc_path: str):
         pass       

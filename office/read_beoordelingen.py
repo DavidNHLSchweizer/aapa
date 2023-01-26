@@ -13,9 +13,9 @@ class WordDocumentGradeReader(GradeInputReader):
     def read_data(self)->str:
         def read_cell_value(table, rownr, colnr)->str:
             try:
-                cell_text = table.Cell(Row=rownr,Column=colnr).Range.Text
-                # returned cell_text for some reason ends with both an 0x0d and a 0x07
-                return cell_text[:-2]
+                cell_text = table.cell(rownr-1,colnr-1).text
+                # print(f'cell text {rownr}, {colnr}: |{cell_text}|')
+                return cell_text
             except Exception as E:
                 print(E)
             return ''

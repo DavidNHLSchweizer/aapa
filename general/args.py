@@ -37,8 +37,6 @@ def _get_arguments(banner: str):
                         help='Kies nieuwe directory als basis voor het scannen naar aanvragen. Als geen directory wordt ingevoerd (-r=) wordt deze opgevraagd.')
     group.add_argument('-f', '--forms', dest='forms',  type=str, 
                         help='Kies nieuwe directory voor beoordelingsformulieren. Als geen directory wordt ingevoerd (-f=) wordt deze opgevraagd.')
-    group.add_argument('-m', '--mail', type=str, 
-                        help='Kies nieuwe directory voor mailbestanden. Als geen directory wordt ingevoerd (-m=) wordt deze opgevraagd.')
     group.add_argument('-data', '--database', type=str, help='Gebruik een andere database met de opgegeven naam. Indien deze niet bestaat wordt hij aangemaakt, anders wordt hij geopend.')
     
     group = parser.add_argument_group('Acties en overige opties')
@@ -81,8 +79,6 @@ class AAPAoptions:
             result = result + f'root directory: {self.root}\n'
         if self.forms is not None:
             result = result + f'beoordelingsformulieren naar directory: {self.forms}\n'
-        if self.mail is not None:
-            result = result + f'mailbestanden naar directory: {self.mail}\n'
         if self.database:
             result = result + f'database: {self.database}\n'
         result = result + f'process mode: {self.mode}\n'
@@ -113,7 +109,6 @@ def report_options(options: AAPAoptions, parts=0)->str:
     if parts == 0 or parts == 1:
         result += _report_str('root directory', options.root, config.get('configuration', 'root'))
         result +=  _report_str('forms directory', options.forms, config.get('configuration', 'forms'))
-        result +=  _report_str('mail directory', options.mail, config.get('configuration', 'mail'))
         result +=  _report_str('database', options.database, config.get('configuration', 'database'))
     if parts == 1: 
         return result
@@ -139,7 +134,7 @@ def get_arguments()->AAPAoptions:
         else: return Initialize.NO_INIT
     try:
         args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
-        return AAPAoptions(root=args.root, forms=args.forms, mail=args.mail, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), info=args.info, 
+        return AAPAoptions(root=args.root, forms=args.forms, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), info=args.info, 
                             report=args.xlsx, clean=args.clean, history=args.history, preview=args.preview)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
