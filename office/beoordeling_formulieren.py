@@ -44,7 +44,7 @@ class BeoordelingenMailMerger(MailMerger):
                 continue
             doc_path = self.__merge_document(aanvraag, preview=preview)
             aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-            logPrint(f'Formulier {aangemaakt}: {doc_path}.')
+            logPrint(f'\tFormulier {aangemaakt}: {Path(doc_path).name}.')
             aanvraag.status = AanvraagStatus.NEEDS_GRADING
             if not preview:
                 logInfo(f'--- Start storing data for form {aanvraag}')
@@ -69,6 +69,7 @@ class BeoordelingenFileCreator(AanvraagProcessor):
 
 def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, mode=ProcessMode.PROCESS, preview=False)->int:
     logPrint('--- Maken beoordelingsformulieren...')
+    logPrint(f'Formulieren worden aangemaakt in {output_directory}')
     if not preview:
         if created_directory(output_directory):
             logPrint(f'Map {output_directory} aangemaakt.')

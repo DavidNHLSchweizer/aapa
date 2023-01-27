@@ -7,24 +7,15 @@ from data.storage import AAPStorage
 class WordDocumentGradeReader(GradeInputReader):
     @contextmanager
     def load_aanvraag(self, aanvraag: AanvraagInfo, doc_path: str):
-        with self.open_document(doc_path=doc_path) as document:
-            yield document
-    #read grade from the file
+        with self.open_document(doc_path=doc_path):
+            yield self
     def read_data(self)->str:
-        def read_cell_value(table, rownr, colnr)->str:
-            try:
-                cell_text = table.cell(rownr-1,colnr-1).text
-                # print(f'cell text {rownr}, {colnr}: |{cell_text}|')
-                return cell_text
-            except Exception as E:
-                print(E)
-            return ''
         ROW_GRADE   = 5
         COL_VALUES  = 2
         if (table := self.find_table(1)):
-            return (read_cell_value(table, ROW_GRADE,COL_VALUES))
+            return self.read_table_cell(table, ROW_GRADE,COL_VALUES)
         else:
-            return ''
+            return '--- tabel niet gevonden ---'
     def grade(self, aanvraag: AanvraagInfo)->str:
         return self.read_data()
 

@@ -47,7 +47,6 @@ def _get_arguments(banner: str):
     group.add_argument('-info', action='store_true', help='Print configuration information')
     group.add_argument('-preview', action='store_true', help='Aangeven welke bewerkingen voorzien zijn. Er worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     group.add_argument('-x', '--xlsx', type=str, help='Rapporteer aanvragen in een .XSLX bestand. Indien geen bestandsnaam wordt ingevoerd (-x=) gaat alleen een samenvatting naar de console.')
-    group.add_argument('-clean',  action='store_true', help='Verwijder overbodige bestanden van verwerkte aanvragen.')
     group.add_argument('-hi', '--history',  dest = 'history', type=str, help='Importeer beoordelingen vanuit .XLSX bestand (eerst aangemaakt met --xlsx). Indien geen bestandsnaam wordt ingevoerd (-hi=) wordt deeze opgevraagd.')
     return parser.parse_args()
 
@@ -70,7 +69,6 @@ class AAPAoptions:
     initialize: Initialize = Initialize.NO_INIT
     report: str = None
     info: bool = False
-    clean: bool = False
     preview: bool = False
     history: str = None
     def __str__(self):
@@ -90,7 +88,7 @@ class AAPAoptions:
             result = result + f'print configuration information\n'
         if self.history is not None:
             result = result + f'laden beoordelingen vanuit {self.history}\n'
-        return result + f'preview: {self.preview} clean: {self.clean}.'
+        return result + f'preview: {self.preview}.'
 
 def report_options(options: AAPAoptions, parts=0)->str:
     DEFAULT = "<default>:"
@@ -124,7 +122,7 @@ def report_options(options: AAPAoptions, parts=0)->str:
             result += f'print configuration info\n'
         if options.history is not None:
             result = result + f'laden beoordelingen uit Excel-bestand {options.history}\n'
-        result += f'preview: {options.preview}  clean: {options.clean}.'
+        result += f'preview: {options.preview}.'
     return result
 
 def get_arguments()->AAPAoptions:
@@ -135,7 +133,7 @@ def get_arguments()->AAPAoptions:
     try:
         args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
         return AAPAoptions(root=args.root, forms=args.forms, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), info=args.info, 
-                            report=args.xlsx, clean=args.clean, history=args.history, preview=args.preview)
+                            report=args.xlsx, history=args.history, preview=args.preview)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
         return None

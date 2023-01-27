@@ -14,11 +14,13 @@ VOLDOENDE = 'voldoende'
 def is_voldoende(beoordeling: str)->bool:
     return beoordeling.lower() == VOLDOENDE
 
-class GradeInputReader(DocxWordDocument):
+class GradeInputReader(DocxWordDocument):    
     @contextmanager
     def load_aanvraag(self, aanvraag: AanvraagInfo, doc_path: str):
         pass       
     def grade(self, aanvraag: AanvraagInfo)->str:
+        pass
+    def flush(self):
         pass
 
 class BeoordelingenProcessor(AanvraagProcessor):
@@ -29,6 +31,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
     def __reset_to_be_graded_file(self, aanvraag: AanvraagInfo):
         aanvraag.files.reset_info(FileType.TO_BE_GRADED_DOCX)
     def __store_graded_file(self, aanvraag: AanvraagInfo, docpath: str):
+        self.reader.flush()
         aanvraag.files.set_info(FileInfo(docpath, timestamp=AUTOTIMESTAMP, filetype=FileType.GRADED_DOCX, aanvraag_id=aanvraag.id))
     def __create_graded_file_pdf(self, aanvraag: AanvraagInfo, preview=False):
         aanvraag_path = Path(aanvraag.files.get_filename(FileType.AANVRAAG_PDF)).parent
@@ -80,16 +83,19 @@ class BeoordelingenProcessor(AanvraagProcessor):
         return ''
     def process_file(self, aanvraag: AanvraagInfo, docpath: str, preview=False)->bool:
         result = False
-        aanvraagcomment = f'\nKan {aanvraag} niet verwerken.'
-        if not (grade := self.reader.grade(aanvraag)):
-            message = self.get_empty_grade_error_message(grade, docpath, aanvraagcomment)
-            if message:
-                logPrint(message)
-        elif (beoordeling := self.__check_grade(grade)) in [AanvraagBeoordeling.VOLDOENDE,AanvraagBeoordeling.ONVOLDOENDE]:
-            logPrint(f'Verwerken {aanvraag}: {beoordeling}')
-            result = self.__process_grade(aanvraag, docpath, beoordeling, preview=preview)        
-        else:
-            logPrint(f'onverwachte beoordeling: "{grade}" {docpath}...\{aanvraagcomment}')
+        aanvraagcomment = f'Kan {aanvraag} niet verwerken.'
+        with self.reader.load_aanvraag(aanvraag, docpath) as document:
+            if not (grade := self.reader.grade(aanvraag)):
+                message = self.get_empty_grade_error_message(grade, docpath, aanvraagcomment)
+                if message:
+                    logPrint(message)
+            elif (beoordeling := self.__check_grade(grade)) in [AanvraagBeoordeling.VOLDOENDE,AanvraagBeoordeling.ONVOLDOENDE]:
+                logPrint(f'Verwerken {aanvraag}: {beoordeling}')
+                if document.modified:
+                    document.save()
+                result = self.__process_grade(aanvraag, docpath, beoordeling, preview=preview)        
+            else:
+                logPrint(f'{docpath}\n\tonverwachte beoordeling: "{grade}"\n\t{aanvraagcomment}')
         return result
     def must_process(self, aanvraag, docpath): 
         #to be implemented by subclass
@@ -101,9 +107,8 @@ class BeoordelingenProcessor(AanvraagProcessor):
                 continue            
             docpath = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
             if self.must_process(aanvraag, docpath):
-                with self.reader.load_aanvraag(aanvraag, docpath):
-                    if self.process_file(aanvraag, docpath, preview=preview):
-                        n_graded  += 1
+                if self.process_file(aanvraag, docpath, preview=preview):
+                    n_graded  += 1
         return n_graded
 
 def verwerk_beoordelingen(BP: BeoordelingenProcessor, storage: AAPStorage, filter_func = None, preview=False):

@@ -5,7 +5,6 @@ import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
 from general.log import init_logging, logError, logInfo
 from general.preview import Preview
-from office.cleanup import cleanup_files
 from office.history import read_beoordelingen_from_files
 from process.graded_requests import process_graded
 from general.config import config
@@ -31,7 +30,6 @@ class AAPA:
         logInfo(f'COMMAND LINE OPTIONS:\n{report_options(options)}')
         self.options = options
         self.mode    = options.mode
-        self.cleanup = options.clean
         self.preview = options.preview
         self.report    = options.report
     def __report_info(self, options):
@@ -92,8 +90,6 @@ class AAPA:
                             read_beoordelingen_from_files(self.options.history, self.storage)
                     if self.mode != ProcessMode.SCAN:
                         process_graded(self.storage, preview=self.preview)
-                if self.cleanup:
-                    cleanup_files(self.storage, preview=self.preview)
                 if self.report is not None:
                     if self.report:
                         report_aanvragen_XLS(self.storage, path_with_suffix(self.report, '.xlsx'))

@@ -170,7 +170,7 @@ class AanvraagDataImporter(AanvraagProcessor):
                 self.aanvragen.append(aanvraag)
                 self.storage.commit()
                 logInfo(f'--- Succes storing imported data from PDF {filename}')
-            logPrint(aanvraag)
+            logPrint(f'\t{str(aanvraag)}')
             return aanvraag
         return None
     def store_invalid(self, filename):
@@ -214,29 +214,30 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
                 return ImportResult.ERROR
         return result
     except PDFReaderException as E:
-        logError(f'Fout bij importeren {filename}: {E}\n{ERRCOMMENT}')        
+        logError(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
         importer.store_invalid(filename)
         return ImportResult.ERROR
 
+def report_imports(file_results:dict, new_aanvragen, preview):
+    def import_status_str(result):
+        match result:
+            case ImportResult.IMPORTED: return 'te importeren' if preview else 'geimporteerd'
+            case ImportResult.ERROR: return 'kan niet worden geimporteerd' if preview else 'fout bij importeren'
+            case ImportResult.ALREADY_IMPORTED: return 'eerder geimporteerd'
+            case ImportResult.KNOWN_ERROR: return 'eerder gelezen, kan niet worden geimporteerd'
+            case _: return '???'
+    def file_str(file,result):
+        return f'{file} [{import_status_str(result)}]'
+    print('Rapportage import:')
+    print('\t---Gelezen bestand(en):---')
+    print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
+    print('\t--- Nieuwe aanvragen --- :')
+    print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
+    gelezen = 'te lezen' if preview else 'gelezen'
+    print(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.')
+
 
 def import_directory(directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
-    def report_imports(file_results:dict, new_aanvragen, preview):
-        def import_status_str(result):
-            match result:
-                case ImportResult.IMPORTED: return 'te importeren' if preview else 'geimporteerd'
-                case ImportResult.ERROR: return 'kan niet worden geimporteerd' if preview else 'fout bij importeren'
-                case ImportResult.ALREADY_IMPORTED: return 'eerder geimporteerd'
-                case ImportResult.KNOWN_ERROR: return 'eerder gelezen, kan niet worden geimporteerd'
-                case _: return '???'
-        def file_str(file,result):
-            return f'{file} [{import_status_str(result)}]'
-        print('Rapportage import:')
-        print('\t---Gelezen bestand(en):---')
-        print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
-        print('\t--- Nieuwe aanvragen --- :')
-        print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
-        gelezen = 'te lezen' if preview else 'gelezen'
-        print(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.')
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
     min_id = storage.max_aanvraag_id() + 1

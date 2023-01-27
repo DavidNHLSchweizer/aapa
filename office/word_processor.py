@@ -15,9 +15,13 @@ class DocxWordDocument:
         self.doc_path = doc_path
         self._document = Document(doc_path)
         self.pdf_convertor = Word2PdfConvertor()
+        self._modified = False
     @property 
     def document(self):
         return self._document
+    @property
+    def modified(self):
+        return self._modified
     @contextmanager
     def open_document(self, doc_path):
         if self.document:
@@ -38,6 +42,17 @@ class DocxWordDocument:
             return self.document.tables[index-1]
         else:
             return None
+    def read_table_cell(self, table, cell_row, cell_col)->str:
+        if not table:
+            return ''
+        return table.cell(cell_row-1,cell_col-1).text
+    def write_table_cell(self, table, cell_row, cell_col, value):
+        if not table:
+            return
+        old_value = table.cell(cell_row-1, cell_col-1).text
+        table.cell(cell_row-1, cell_col-1).text = value
+        self._modified = old_value != value
     def _close(self):
         self._document = None
         self.doc_path = ''
+
