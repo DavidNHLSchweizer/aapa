@@ -4,7 +4,7 @@ from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus
 from data.storage import AAPStorage
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from office.mail_sender import OutlookMail, OutlookMailDef
-from general.log import logError, logInfo, logPrint
+from general.log import logPrint
 
 def init_config():
     config.set_default('mail', 'feedback_mail_templates', {str(AanvraagBeoordeling.ONVOLDOENDE): r'.\templates\template_afgekeurd.docx', str(AanvraagBeoordeling.VOLDOENDE):r'.\templates\template_goedgekeurd.docx' })

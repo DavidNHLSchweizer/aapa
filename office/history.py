@@ -2,11 +2,10 @@ from contextlib import contextmanager
 import pandas as pd
 from data.aanvraag_info import  AanvraagInfo, FileType, AanvraagStatus
 from data.storage import AAPStorage
-from general.log import logError, logPrint
+from general.log import logPrint
 from office.report_data import COLMAP
 from office.import_data import nrows
 from office.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
-from office.word_processor import DocxWordDocument
 
 class HistoryError(Exception): pass
 

@@ -1,5 +1,4 @@
 from pathlib import Path
-import sys
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
@@ -11,7 +10,6 @@ from general.config import config
 from office.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.database import initialize_database, initialize_storage
 from process.requests import process_directory
-from data.aanvraag_info import AanvraagBeoordeling
 from general.args import AAPAoptions, Initialize, ProcessMode, get_arguments, report_options
 
 def init_config():

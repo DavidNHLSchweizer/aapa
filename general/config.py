@@ -1,5 +1,5 @@
 import sys
-from general.fileutil import file_exists, test_file_exists
+from general.fileutil import file_exists
 from general.singleton import Singleton
 import jsonpickle
 import atexit

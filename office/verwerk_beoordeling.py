@@ -1,6 +1,6 @@
-
 from contextlib import contextmanager
 from pathlib import Path
+import re
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from data.aanvraag_processor import AanvraagProcessor
 from general.fileutil import path_with_suffix
@@ -74,7 +74,8 @@ class BeoordelingenProcessor(AanvraagProcessor):
         self.__storage_changes(aanvraag)
         return result
     def __check_grade(self, grade: str)->AanvraagBeoordeling:
-        match(grade.split(' ')[0].lower()):
+        DELIMS = '\s,'
+        match(re.split(DELIMS, grade)[0].lower()):
             case 'voldoende':   return AanvraagBeoordeling.VOLDOENDE
             case 'onvoldoende': return AanvraagBeoordeling.ONVOLDOENDE
             case _: 
