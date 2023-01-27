@@ -74,8 +74,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
         self.__storage_changes(aanvraag)
         return result
     def __check_grade(self, grade: str)->AanvraagBeoordeling:
-        DELIMS = '\s,'
-        match(re.split(DELIMS, grade)[0].lower()):
+        match grade.split()[0].split(',')[0].lower():
             case 'voldoende':   return AanvraagBeoordeling.VOLDOENDE
             case 'onvoldoende': return AanvraagBeoordeling.ONVOLDOENDE
             case _: 

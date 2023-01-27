@@ -10,7 +10,7 @@ from data.storage import AAPStorage
 from data.aanvraag_info import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
 from general.log import logError, logPrint, logWarning, logInfo
 from general.valid_email import is_valid_email, try_extract_email
-from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfReader
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
@@ -23,8 +23,8 @@ def ncols(table: pd.DataFrame)->int:
 
 def count_pdf_pages(file_path):
     with open(file_path, 'rb') as f:
-        pdf = PdfFileReader(f, strict=False)
-        return pdf.getNumPages()
+        pdf = PdfReader(f, strict=False)
+        return len(pdf.pages)
 
 @dataclass
 class _AanvraagData:
