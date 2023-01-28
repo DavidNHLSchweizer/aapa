@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import datetime
 from general.config import config
 
-AAPAVERSION = '0.97'
+AAPAVERSION = '0.98'
 @dataclass
 class Versie:
     versie: str = config.get('versie', 'versie')
