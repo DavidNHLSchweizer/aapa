@@ -28,9 +28,10 @@ class FileType(Enum):
     TO_BE_GRADED_DOCX   = 2
     GRADED_DOCX         = 3
     GRADED_PDF          = 4
+    COPIED_PDF          = 5
     def __str__(self):
         STR_DICT = {FileType.UNKNOWN: '?', FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
-                    FileType.TO_BE_GRADED_DOCX: 'Formulier beoordeling (Word format)', FileType.GRADED_DOCX: 'Ingevuld formulier beoordeling (Word format)', FileType.GRADED_PDF: 'Ingevuld formulier beoordeling (PDF format)'
+                    FileType.TO_BE_GRADED_DOCX: 'Formulier beoordeling (Word format)', FileType.GRADED_DOCX: 'Ingevuld formulier beoordeling (Word format)', FileType.GRADED_PDF: 'Ingevuld formulier beoordeling (PDF format)', FileType.COPIED_PDF: 'Kopie van PDF-file (aanvraag)'
                     }
         return STR_DICT.get(self, '!unknown')
 

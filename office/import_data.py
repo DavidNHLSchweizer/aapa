@@ -186,6 +186,7 @@ class ImportResult(Enum):
     ALREADY_IMPORTED = 3
     KNOWN_ERROR = 4
     KNOWN_PDF = 5
+    COPIED_FILE = 6
 
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResult:
     def known_import_result(filename)->ImportResult:
@@ -193,9 +194,9 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
             return FileInfo.get_timestamp(filename) == fileinfo.timestamp
         if (fileinfo := importer.known_file_info(filename)):
             match fileinfo.filetype:
-                case FileType.AANVRAAG_PDF:
+                case FileType.AANVRAAG_PDF | FileType.COPIED_PDF:
                     if not_changed(filename, fileinfo): 
-                        return ImportResult.ALREADY_IMPORTED
+                        return ImportResult.ALREADY_IMPORTED if fileinfo.filetype == FileType.AANVRAAG_PDF else ImportResult.COPIED_FILE
                     else:
                         return ImportResult.UNKNOWN
                 case FileType.GRADED_PDF:
@@ -224,6 +225,7 @@ def report_imports(file_results:dict, new_aanvragen, preview):
             case ImportResult.IMPORTED: return 'te importeren' if preview else 'geimporteerd'
             case ImportResult.ERROR: return 'kan niet worden geimporteerd' if preview else 'fout bij importeren'
             case ImportResult.ALREADY_IMPORTED: return 'eerder geimporteerd'
+            case ImportResult.COPIED_FILE: return 'kopie van aanvraag (eerder geimporteerd)'
             case ImportResult.KNOWN_ERROR: return 'eerder gelezen, kan niet worden geimporteerd'
             case _: return '???'
     def file_str(file,result):

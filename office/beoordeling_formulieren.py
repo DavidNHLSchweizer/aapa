@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 from data.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
@@ -21,6 +22,14 @@ class BeoordelingenMailMerger(MailMerger):
     def __merge_document(self, aanvraag: AanvraagInfo, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)
         return self.process(self.template_doc, output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), preview=preview)
+    def __copy_aanvraag_bestand(self, aanvraag: AanvraagInfo, preview = False):
+        aanvraag_filename = aanvraag.files.get_filename(FileType.AANVRAAG_PDF)
+        copy_filename = self.output_directory.joinpath(f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}.pdf')
+        if not preview:
+            shutil.copyfile(aanvraag_filename, copy_filename)
+        kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
+        logPrint(f'\t{kopied}: aanvraag {aanvraag_filename} to {copy_filename}.')
+        aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
     def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
         def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
             if not preview:
@@ -45,6 +54,7 @@ class BeoordelingenMailMerger(MailMerger):
             doc_path = self.__merge_document(aanvraag, preview=preview)
             aangemaakt = 'aanmaken' if preview else 'aangemaakt'
             logPrint(f'\tFormulier {aangemaakt}: {Path(doc_path).name}.')
+            self.__copy_aanvraag_bestand(aanvraag, preview)
             aanvraag.status = AanvraagStatus.NEEDS_GRADING
             if not preview:
                 logInfo(f'--- Start storing data for form {aanvraag}')
@@ -54,6 +64,11 @@ class BeoordelingenMailMerger(MailMerger):
                 self.storage.update_fileinfo(fileinfo)
             else:
                 self.storage.create_fileinfo(fileinfo)
+            fileinfo2 = aanvraag.files.get_info(FileType.COPIED_PDF)
+            if self.storage.find_fileinfo(aanvraag.id, FileType.COPIED_PDF):
+                self.storage.update_fileinfo(fileinfo2)
+            else:
+                self.storage.create_fileinfo(fileinfo2)
             self.storage.commit()
             if not preview:
                 logInfo(f'--- Succes storing data for form {aanvraag}')                
@@ -68,7 +83,7 @@ class BeoordelingenFileCreator(AanvraagProcessor):
         return self.merger.merge_documents(self.filtered_aanvragen(filter_func), preview=preview)
 
 def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, mode=ProcessMode.PROCESS, preview=False)->int:
-    logPrint('--- Maken beoordelingsformulieren...')
+    logPrint('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')
     logPrint(f'Formulieren worden aangemaakt in {output_directory}')
     if not preview:
         if created_directory(output_directory):
