@@ -10,7 +10,7 @@ class WordDocumentGradeReader(GradeInputReader):
         with self.open_document(doc_path=doc_path):
             yield self
     def read_data(self)->str:
-        ROW_GRADE   = 5
+        ROW_GRADE   = 6
         COL_VALUES  = 2
         if (table := self.find_table(1)):
             return self.read_table_cell(table, ROW_GRADE,COL_VALUES)

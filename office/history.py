@@ -50,7 +50,7 @@ class WordDocumentGradeCreatorFromHistory(GradeInputReader):
         self.aanvraag = None   
     def __write_grade(self, grade):
     #write grade (from excel) to the file
-        ROW_GRADE   = 5
+        ROW_GRADE   = 6
         COL_VALUES  = 2
         if (table := self.find_table(WordDocumentGradeCreatorFromHistory.STUDENT_DATA_TABLE)):
             self.write_table_cell(table, ROW_GRADE, COL_VALUES, grade)

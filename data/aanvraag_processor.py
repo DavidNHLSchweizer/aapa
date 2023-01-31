@@ -1,3 +1,4 @@
+import datetime
 from data.aanvraag_info import AanvraagInfo, FileInfo, FileType
 from data.storage import AAPStorage
 from general.log import logInfo
@@ -28,7 +29,13 @@ class AanvraagProcessor:
         logInfo('End reading aanvragen from database')
         return result
     def __sort_aanvragen(self):
-        self.aanvragen.sort(key=lambda a:a.timestamp, reverse=True)
+        def comparekey(a: AanvraagInfo):
+            if isinstance(a.timestamp, datetime.datetime):
+                return a.timestamp
+            else:
+                return datetime.datetime.now()
+        # self.aanvragen.sort(key=lambda a:a.timestamp, reverse=True)
+        self.aanvragen.sort(key=comparekey, reverse=True)
 
     def filtered_aanvragen(self, filter_func=None)->list[AanvraagInfo]:
         if filter_func:
