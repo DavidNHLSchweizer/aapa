@@ -21,9 +21,11 @@ class BeoordelingenMailMerger(MailMerger):
         return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
     def __merge_document(self, aanvraag: AanvraagInfo, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)
-        return self.process(self.template_doc, output_filename, student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), preview=preview)
+        return self.process(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_path().name, timestamp=aanvraag.timestamp_str(), 
+                        student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
+                        preview=preview)
     def __copy_aanvraag_bestand(self, aanvraag: AanvraagInfo, preview = False):
-        aanvraag_filename = aanvraag.files.get_filename(FileType.AANVRAAG_PDF)
+        aanvraag_filename = aanvraag.aanvraag_source_file_path()
         copy_filename = self.output_directory.joinpath(f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}.pdf')
         if not preview:
             shutil.copyfile(aanvraag_filename, copy_filename)

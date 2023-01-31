@@ -1,10 +1,36 @@
+from enum import Enum
+from pathlib import Path
 import pandas as pd
 from data.aanvraag_processor import AanvraagProcessor
-from data.aanvraag_info import AanvraagInfo
+from data.aanvraag_info import AanvraagInfo, FileType
 from data.storage import AAPStorage
 from general.fileutil import writable_filename
 
-COLMAP = {'timestamp':0, 'student':1, 'studentnr':2, 'voornaam':3, 'telefoonnummer':4, 'email':5, 'datum':6, 'versie':7, 'bedrijf':8, 'titel':9, 'status':10, 'beoordeling':11}
+class COLMAP(Enum):
+    FILENAME:0 
+    TIMESTAMP:1 
+    STUDENT:2
+    STUDENTNR: 3 
+    VOORNAAM: 4 
+    TELEFOONNUMMER: 5 
+    EMAIL:6
+    DATUM:7 
+    VERSIE: 8
+    BEDRIJF:9
+    TITEL:10
+    STATUS:11
+    BEOORDELING:12
+    @staticmethod
+    def keys():
+        return [name.lower() for name, _ in COLMAP.__annotations__.items()]
+    @staticmethod
+    def value(value_name):
+        value_name = value_name.upper()
+        for name, val in COLMAP.__annotations__.items():
+            if name == value_name:
+                return val
+        return None
+        
 class AanvraagDataXLS:   
     def __init__(self, xls_filename):
         self.xls_filename = writable_filename(xls_filename)
@@ -23,7 +49,7 @@ class AanvraagDataXLS:
         for aanvraag in aanvragen:
             self.sheet.append(self.__to_sheet_row(aanvraag))
     def __to_sheet_row(self, aanvraag: AanvraagInfo):
-        return [aanvraag.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
+        return [aanvraag.aanvraag_source_file_path().name, aanvraag.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
                 aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.bedrijfsnaam, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
     def number_rows(self):
         return self.sheet.max_row

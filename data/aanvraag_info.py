@@ -189,6 +189,10 @@ class AanvraagInfo:
     @property
     def timestamp(self):
         return self.files.get_timestamp(FileType.AANVRAAG_PDF)
+    def timestamp_str(self):
+        return FileInfo.timestamp_to_str(self.timestamp)
+    def aanvraag_source_file_path(self):
+        return Path(self.files.get_filename(FileType.AANVRAAG_PDF))
     def __str__(self):
         versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
         s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'        

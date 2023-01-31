@@ -17,9 +17,11 @@ class HistoryExcelReader:
         self.table.fillna(value='',inplace=True) 
         self.__check_compatible_columns()            
     def __check_compatible_columns(self):
+        print ('checking')
         for r, column in enumerate(self.table.columns):
-            if COLMAP.get(column, -1) != r:
+            if COLMAP.value(column) != r:
                 raise HistoryError(f'Unexpected column "{column}" in {self.filename}')
+        print('endcheck')
     def _row_for_aanvraag(self, aanvraag: AanvraagInfo)->int:
         for row in range(nrows(self.table)):
             if self.__match_row(aanvraag, row):
@@ -30,7 +32,7 @@ class HistoryExcelReader:
             return self.__table_row_get(row, 'beoordeling')
         return None        
     def __table_row_get(self, row, col_name):
-        return self.table.values[row, COLMAP[col_name]]
+        return self.table.values[row, COLMAP.value(col_name)]
     def __match_row(self, aanvraag: AanvraagInfo, row: int)->bool:
         if aanvraag.titel != self.__table_row_get(row, 'titel') or aanvraag.student.studnr != str(self.__table_row_get(row, 'studentnr')) or\
             aanvraag.bedrijf.bedrijfsnaam != self.__table_row_get(row, 'bedrijf'):
