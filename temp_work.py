@@ -5,7 +5,6 @@ import pdfplumber
 
 from data.aanvraag_info import AanvraagInfo, Bedrijf, StudentInfo 
 
-ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'
 
@@ -21,10 +20,11 @@ class _AanvraagData:
     def __str__(self):
         return f'student: {self.student} ({self.studnr})  telno: {self.telno}  email: {self.email}\nbedrijf: {self.bedrijf}  titel: {self.titel}  datum_str: {self.datum_str}'
     def valid(self)->bool:
-        if self.student == NOTFOUND or self.bedrijf == NOTFOUND or self.email == NOTFOUND:
+        if not self.student or not self.bedrijf  or not self.email:
             return False
+        if self.student == NOTFOUND or self.bedrijf == NOTFOUND or self.email == NOTFOUND:
+            return False      
         return True
-
 
 class NewAanvraagReaderFromPDF:
     def __init__(self, pdf_file: str):
@@ -195,6 +195,7 @@ r'C:\repos\aapa\temp2\afstudeeropdracht_3D_24_jan_2023.pdf',
 r'C:\repos\aapa\temp2\Beoordeling aanvraag Keanu Attema(3551821) (Grendel Games B.V.)-1.pdf',
 r'C:\repos\aapa\temp2\Keanu-Attema_Afstudeeropdracht_V6[7] hack.pdf',
 r'C:\repos\aapa\temp2\Beoordeling aanvraag Yannick Kooistra(3478237) (Dok.Works B.V.)-2.pdf',
+r'C:\repos\aapa\temp2\Aanvraag eezzee gaming.pdf',
 ]
 
 def test_aanvraag(file):
@@ -206,12 +207,12 @@ def test_aanvraag(file):
         print(E)
 
 
-path1= r"C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 3"
+path1= r"C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 2"
 
 path2 =r'C:\repos\aapa\temp2'
 
-for file in testfiles[0:17]:
-#for file in Path(path1).glob('**/*.pdf'):
+#for file in testfiles[0:18]:
+for file in Path(path1).glob('**/*.pdf'):
     print(file)
     test_aanvraag(file)
 

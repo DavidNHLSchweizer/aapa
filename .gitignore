@@ -20,3 +20,4 @@ aapa.build/**
 aapa.dist/**
 aapa.onefile-build/**
 aapa.exe
+temp_work.py
