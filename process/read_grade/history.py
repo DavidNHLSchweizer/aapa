@@ -1,11 +1,15 @@
 from contextlib import contextmanager
 import pandas as pd
-from data.aanvraag_info import  AanvraagInfo, FileType, AanvraagStatus
+from data.classes import  AanvraagInfo, FileType, AanvraagStatus
 from data.storage import AAPStorage
 from general.log import logPrint
-from office.report_data import COLMAP
-from office.import_data import nrows
-from office.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
+from data.report_data import COLMAP
+from process.read_grade.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
+
+def nrows(table: pd.DataFrame)->int:
+    return table.shape[0]
+def ncols(table: pd.DataFrame)->int:
+    return table.shape[1]
 
 class HistoryError(Exception): pass
 
@@ -17,11 +21,9 @@ class HistoryExcelReader:
         self.table.fillna(value='',inplace=True) 
         self.__check_compatible_columns()            
     def __check_compatible_columns(self):
-        print ('checking')
         for r, column in enumerate(self.table.columns):
             if COLMAP.value(column) != r:
                 raise HistoryError(f'Unexpected column "{column}" in {self.filename}')
-        print('endcheck')
     def _row_for_aanvraag(self, aanvraag: AanvraagInfo)->int:
         for row in range(nrows(self.table)):
             if self.__match_row(aanvraag, row):

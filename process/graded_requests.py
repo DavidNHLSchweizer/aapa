@@ -1,6 +1,6 @@
 from general.preview import Preview
-from office.mail_feedback import create_feedback_mails
-from office.read_beoordelingen import read_beoordelingen_from_files
+from process.send_mail.mail_feedback import create_feedback_mails
+from process.read_grade.read_beoordelingen import read_beoordelingen_from_files
 
 def process_graded(storage, filter_func = None, preview=False):
     with Preview(preview, storage, 'graded'):

@@ -1,10 +1,9 @@
 from contextlib import contextmanager
 from pathlib import Path
-import re
-from data.aanvraag_info import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
-from data.aanvraag_processor import AanvraagProcessor
+from data.classes import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from process.aanvraag_processor import AanvraagProcessor
 from general.fileutil import path_with_suffix
-from office.word_processor import DocxWordDocument
+from process.read_grade.word_processor import DocxWordDocument
 from data.storage import AAPStorage
 from general.log import logError, logInfo, logPrint
 

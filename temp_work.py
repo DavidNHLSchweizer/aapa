@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 import pdfplumber
 
-from data.aanvraag_info import AanvraagInfo, Bedrijf, StudentInfo 
+from data.classes import AanvraagInfo, Bedrijf, StudentInfo 
 
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'

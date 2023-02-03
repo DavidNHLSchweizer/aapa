@@ -1,5 +1,5 @@
 import datetime
-from data.aanvraag_info import AanvraagInfo, FileInfo, FileType
+from data.classes import AanvraagInfo, FileInfo, FileType
 from data.storage import AAPStorage
 from general.log import logInfo
 

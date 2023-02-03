@@ -149,22 +149,3 @@ def init_standard_roots():
     for sr in STANDARD_ROOTS:
         add_root(sr, nolog=True) #is called before logging is properly initialized
 init_standard_roots()
-
-def _expand_standard_root(standard_root: str)->str:
-    return find_onedrive_path(standard_root)
-
-# for r in STANDARD_ROOTS:
-#     print(f'{r}: {_expand_standard_root(r)}')
-
-if __name__=='__main__':
-    TESTCASES = [r'C:\repos\aapa', r'C:\Users\e3528\OneDrive - NHL Stenden\_afstuderen', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering']    
-    TESTROOTS = ['OneDrive - NHL Stenden', 'NHL Stenden', r'C:\repos']
-    for root in TESTROOTS:
-        add_root(root)
-    for case in TESTCASES:
-        p1 = encode_path(case)
-        p2 = decode_path(case)
-        print(f'encoded: {p1}   decoded: {p2}')
-
-
-    

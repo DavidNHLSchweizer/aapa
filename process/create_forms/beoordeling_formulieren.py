@@ -1,11 +1,11 @@
 from pathlib import Path
 import shutil
-from data.aanvraag_processor import AanvraagProcessor
+from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
-from data.aanvraag_info import AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.args import ProcessMode
 from general.fileutil import created_directory, file_exists
-from office.mail_merge import MailMerger
+from process.send_mail.mail_merge import MailMerger
 from general.log import logInfo, logPrint
 
 class MailMergeException(Exception): pass

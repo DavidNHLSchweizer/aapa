@@ -1,8 +1,8 @@
 from enum import Enum
 from pathlib import Path
 import pandas as pd
-from data.aanvraag_processor import AanvraagProcessor
-from data.aanvraag_info import AanvraagInfo, FileType
+from process.aanvraag_processor import AanvraagProcessor
+from data.classes import AanvraagInfo
 from data.storage import AAPStorage
 from general.fileutil import writable_filename
 

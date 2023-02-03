@@ -1,7 +1,7 @@
 from contextlib import contextmanager
-from data.aanvraag_info import AanvraagInfo, FileInfo, FileType
+from data.classes import AanvraagInfo, FileInfo, FileType
 from general.log import logPrint
-from office.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
+from process.read_grade.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
 from data.storage import AAPStorage
 
 class WordDocumentGradeReader(GradeInputReader):

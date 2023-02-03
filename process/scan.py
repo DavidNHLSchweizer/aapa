@@ -1,7 +1,7 @@
 from general.log import logPrint
 from general.preview import Preview
-from office.beoordeling_formulieren import create_beoordelingen_files
-from office.import_data import import_directory
+from process.create_forms.beoordeling_formulieren import create_beoordelingen_files
+from process.importing.import_data import import_directory
 from general.config import config
 from data.storage import AAPStorage
 

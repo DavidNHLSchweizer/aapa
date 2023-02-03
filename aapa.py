@@ -4,12 +4,12 @@ import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
 from general.log import init_logging, logError, logInfo
 from general.preview import Preview
-from office.history import read_beoordelingen_from_files
+from process.read_grade.history import read_beoordelingen_from_files
 from process.graded_requests import process_graded
 from general.config import config
-from office.report_data import report_aanvragen_XLS, report_aanvragen_console
-from process.database import initialize_database, initialize_storage
-from process.requests import process_directory
+from data.report_data import report_aanvragen_XLS, report_aanvragen_console
+from process.initialize import initialize_database, initialize_storage
+from process.scan import process_directory
 from general.args import AAPAoptions, Initialize, ProcessMode, get_arguments, report_options
 
 def init_config():

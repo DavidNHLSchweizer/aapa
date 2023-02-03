@@ -1,9 +1,9 @@
 from general.config import config
-from data.aanvraag_processor import AanvraagProcessor
-from data.aanvraag_info import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
+from process.aanvraag_processor import AanvraagProcessor
+from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
 from general.substitutions import FieldSubstitution, FieldSubstitutions
-from office.mail_sender import OutlookMail, OutlookMailDef
+from process.send_mail.mail_sender import OutlookMail, OutlookMailDef
 from general.log import logPrint
 
 def init_config():
