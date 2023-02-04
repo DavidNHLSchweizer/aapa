@@ -91,7 +91,10 @@ class FileInfos:
     def set_timestamp(self, ft: FileType, value:datetime.datetime):
         self.__files[ft]['timestamp'] = value
     def get_info(self, ft: FileType)->FileInfo:
-        return FileInfo(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
+        if ft == FileType.UNKNOWN:
+            return None
+        else:
+            return FileInfo(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
     def set_info(self, fi: FileInfo):
         if fi.filetype != FileType.UNKNOWN:
             self.set_filename(fi.filetype, fi.filename)

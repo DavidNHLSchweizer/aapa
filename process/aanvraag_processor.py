@@ -9,7 +9,7 @@ class AanvraagProcessor:
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
         self.known_files = self.__init_known_files(self.aanvragen)
-        for fileinfo in storage.find_invalid_fileinfos(FileType.INVALID_PDF):
+        for fileinfo in storage.find_fileinfos_for_filetype(FileType.INVALID_PDF):
             self.known_files[fileinfo.filename] = fileinfo
     def known_file_info(self, filename: str)->FileInfo:
         if fileinfo := self.known_files.get(str(filename), None):

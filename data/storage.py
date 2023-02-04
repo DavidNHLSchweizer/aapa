@@ -228,11 +228,21 @@ class AAPStorage:
             else:
                 result.reset_info(ft)
         return result        
-    def find_invalid_fileinfos(self, filetype)->list[FileInfo]:
+    def find_fileinfos_for_filetype(self, filetype)->list[FileInfo]:
         result = []
         for row in self.database._execute_sql_command('select filename from FILES where filetype=?', [CRUD_files._filetype_to_value(filetype)], True):
             result.append(self.crud_files.read(row['filename']))
         return result
+    def find_all_fileinfos(self):
+        result = []
+        for row in self.database._execute_sql_command('select filename from FILES', [], True):
+            info = self.read_fileinfo(decode_path(row['filename']))
+            if not info:
+                print(f"problem with reading filename: {row['filename']}")
+            else:
+                result.append(info)
+        return result
+
     def max_aanvraag_id(self):
         if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
             return row[0][0]           
