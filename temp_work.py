@@ -5,6 +5,7 @@ import pdfplumber
 
 from data.classes import AanvraagInfo, Bedrijf, StudentInfo 
 
+
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'
 
@@ -199,8 +200,11 @@ r'C:\repos\aapa\temp2\Beoordeling aanvraag Yannick Kooistra(3478237) (Dok.Works 
 r'C:\repos\aapa\temp2\Aanvraag eezzee gaming.pdf',
 ]
 
+from general.filehash import hash_file_digest
+
 def test_aanvraag(file):
     try:
+        print(hash_file_digest(file))
         aanvraag = NewAanvraagReaderFromPDF(file).aanvraag
         if aanvraag:
             print(aanvraag)

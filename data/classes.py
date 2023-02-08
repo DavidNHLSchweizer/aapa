@@ -5,6 +5,7 @@ from enum import Enum
 from pathlib import Path
 from database.dbConst import EMPTY_ID
 from general.date_parser import DateParser
+from general.filehash import hash_file_digest
 from general.valid_email import is_valid_email
 
 
@@ -40,13 +41,24 @@ class FileInfo:
     @staticmethod
     def get_timestamp(filename: str)-> datetime.datetime:
         return FileInfo.__rounded_timestamp(datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime))
+    @staticmethod
+    def get_digest(filename: str)->str:
+        return hash_file_digest(filename)
     DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
-    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
+    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, digest = '', filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
         self.filename = str(filename) # to remove the WindowsPath label if needed
-        if Path(filename).is_file() and timestamp == AUTOTIMESTAMP:
-            self.timestamp = FileInfo.get_timestamp(filename)
+        if Path(filename).is_file():
+            if timestamp == AUTOTIMESTAMP:
+                self.timestamp = FileInfo.get_timestamp(filename)
+            else:
+                self.timestamp = timestamp
+            if not digest:
+                self.digest = FileInfo.get_digest(filename)
+            else:
+                self.digest = digest
         else:
-            self.timestamp = timestamp
+            self.timestamp=timestamp
+            self.digest=digest
         self.filetype = filetype
         self.aanvraag_id = aanvraag_id
     def __str__(self): 
@@ -72,6 +84,8 @@ class FileInfo:
             return False
         if  self.timestamp != value.timestamp:            
             return False
+        if  self.digest != value.digest:            
+            return False
         if  self.filetype != value.filetype:
             return False
         if  self.aanvraag_id != value.aanvraag_id:
@@ -81,7 +95,7 @@ class FileInfo:
 class FileInfos:
     def __init__(self, aanvraag_id=EMPTY_ID):
         self.aanvraag_id = aanvraag_id
-        self.__files = {ft:{'filename': '', 'timestamp':AUTOTIMESTAMP} for ft in FileType if ft != FileType.UNKNOWN}
+        self.__files = {ft:{'filename': '', 'timestamp':AUTOTIMESTAMP, 'digest': ''} for ft in FileType if ft != FileType.UNKNOWN}
     def get_filename(self, ft: FileType)->str:
         return self.__files[ft]['filename']
     def set_filename(self, ft: FileType, value: str):
@@ -90,17 +104,22 @@ class FileInfos:
         return self.__files[ft]['timestamp']
     def set_timestamp(self, ft: FileType, value:datetime.datetime):
         self.__files[ft]['timestamp'] = value
+    def get_digest(self, ft: FileType)->str:
+        return self.__files[ft]['digest']
+    def set_digest(self, ft: FileType, value: str):
+        self.__files[ft]['digest'] = value
     def get_info(self, ft: FileType)->FileInfo:
         if ft == FileType.UNKNOWN:
             return None
         else:
-            return FileInfo(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
+            return FileInfo(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
     def set_info(self, fi: FileInfo):
         if fi.filetype != FileType.UNKNOWN:
             self.set_filename(fi.filetype, fi.filename)
             self.set_timestamp(fi.filetype, fi.timestamp)
+            self.set_digest(fi.filetype, fi.digest)
     def reset_info(self, ft: FileType):
-        self.set_info(FileInfo('', AUTOTIMESTAMP, ft))
+        self.set_info(FileInfo('', AUTOTIMESTAMP, '', ft))
     def reset(self):
         for ft in FileType:
             if ft != FileType.UNKNOWN:
@@ -194,6 +213,9 @@ class AanvraagInfo:
         return self.files.get_timestamp(FileType.AANVRAAG_PDF)
     def timestamp_str(self):
         return FileInfo.timestamp_to_str(self.timestamp)
+    @property
+    def digest(self):
+        return self.files.get_digest(FileType.AANVRAAG_PDF)
     def aanvraag_source_file_path(self):
         return Path(self.files.get_filename(FileType.AANVRAAG_PDF))
     def __str__(self):
