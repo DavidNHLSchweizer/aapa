@@ -36,11 +36,11 @@ class CRUD_files(CRUDbase):
         super().__init__(database, FileTableDefinition())
     def __get_all_columns(self, include_key = True):
         result = ['filename'] if include_key else []        
-        result.extend(['timestamp', 'filetype', 'aanvraag_id'] )
+        result.extend(['timestamp', 'digest', 'filetype', 'aanvraag_id'] )
         return result
     def __get_all_values(self, fileinfo: FileInfo, include_key = True):
         result = [encode_path(str(fileinfo.filename))] if include_key else []        
-        result.extend([CRUD_files._timestamp_to_value(fileinfo.timestamp), CRUD_files._filetype_to_value(fileinfo.filetype), fileinfo.aanvraag_id])
+        result.extend([CRUD_files._timestamp_to_value(fileinfo.timestamp), fileinfo.digest, CRUD_files._filetype_to_value(fileinfo.filetype), fileinfo.aanvraag_id])
         return result
     def create(self, fileinfo: FileInfo):
         super().create(columns=self.__get_all_columns(), values=self.__get_all_values(fileinfo))   
@@ -55,7 +55,7 @@ class CRUD_files(CRUDbase):
         return filetype.value
     def read(self, filename: str)->FileInfo:
         if row:=super().read(where=SQE('filename', Ops.EQ, CRUD_files._filename_to_value(filename), no_column_ref = True)):
-            return FileInfo(decode_path(filename), timestamp=FileInfo.str_to_timestamp(row['timestamp']), filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id'])
+            return FileInfo(decode_path(filename), timestamp=FileInfo.str_to_timestamp(row['timestamp']), digest = row['digest'], filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id'])
         else:
             return None
     def update(self, fileinfo: FileInfo):
@@ -233,6 +233,11 @@ class AAPStorage:
         for row in self.database._execute_sql_command('select filename from FILES where filetype=?', [CRUD_files._filetype_to_value(filetype)], True):
             result.append(self.crud_files.read(row['filename']))
         return result
+    def find_fileinfo_for_digest(self, digest)->FileInfo:
+        if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
+            info = self.crud_files.read(row[0]["filename"])
+            logInfo(f'success: {info}')
+            return info
     def find_all_fileinfos(self):
         result = []
         for row in self.database._execute_sql_command('select filename from FILES', [], True):
@@ -242,6 +247,7 @@ class AAPStorage:
             else:
                 result.append(info)
         return result
+    
 
     def max_aanvraag_id(self):
         if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
@@ -251,3 +257,4 @@ class AAPStorage:
     def commit(self):
         self.database.commit()
     
+

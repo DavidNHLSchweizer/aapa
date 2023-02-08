@@ -201,8 +201,11 @@ class AanvraagDataImporter(AanvraagProcessor):
         return tkinter.simpledialog.askstring(f'Titel', f'Titel voor {str(aanvraag)}') 
     def process(self, filename: str, preview=False)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
+        if (stored := self.is_copy_of_known_file(filename)) is not None:
+            logWarning(f'Bestand {filename} is kopie van bestand in database {stored.filename}')
+            return None
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
-            fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=FileType.AANVRAAG_PDF)
+            fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.AANVRAAG_PDF)
             if self.is_duplicate(fileinfo):            
                 logWarning(f'Duplikaat: {filename}.\nal in database: {str(aanvraag)}')
                 return None
@@ -226,10 +229,12 @@ class AanvraagDataImporter(AanvraagProcessor):
             return aanvraag
         return None
     def store_invalid(self, filename):
-        self.storage.create_fileinfo(FileInfo(filename, AUTOTIMESTAMP, FileType.INVALID_PDF))
+        self.storage.create_fileinfo(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.INVALID_PDF))
         self.storage.commit()
     def is_duplicate(self, file: FileInfo):
-        return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.timestamp == file.timestamp
+        return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.digest == file.digest
+    def is_copy_of_known_file(self, filename: str)->FileInfo:
+        return self.storage.find_fileinfo_for_digest(FileInfo.get_digest(filename))
 
 class ImportResult(Enum):
     UNKNOWN  = 0
@@ -243,7 +248,7 @@ class ImportResult(Enum):
 def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResult:
     def known_import_result(filename)->ImportResult:
         def not_changed(filename, fileinfo):
-            return FileInfo.get_timestamp(filename) == fileinfo.timestamp
+            return FileInfo.get_timestamp(filename) == fileinfo.timestamp and FileInfo.get_digest(filename) == fileinfo.digest
         if (fileinfo := importer.known_file_info(filename)):
             match fileinfo.filetype:
                 case FileType.AANVRAAG_PDF | FileType.COPIED_PDF:
@@ -258,6 +263,7 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
                         return ImportResult.KNOWN_ERROR
                     else:
                         return ImportResult.UNKNOWN
+                
         return ImportResult.UNKNOWN
     try:
         if (result := known_import_result(filename)) == ImportResult.UNKNOWN: 

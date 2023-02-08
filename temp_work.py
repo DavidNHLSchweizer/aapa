@@ -5,6 +5,7 @@ import pdfplumber
 
 from data.classes import AanvraagInfo, Bedrijf, StudentInfo 
 
+
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'
 
@@ -179,6 +180,7 @@ class NewAanvraagReaderFromPDF:
 
 
 testfiles=[r'C:\repos\aapa\DEMO\marie\Marie 123.pdf',
+r'C:\repos\aapa\temp2\Keanu-Attema_Afstudeeropdracht_V7[24].pdf',
 r'C:\repos\aapa\DEMO\tammo\Afstudeeropdracht_Tammo_Jan_Tamminga ICN.pdf',
 r'C:\repos\aapa\temp2\Keanu-Attema_Afstudeeropdracht_V6[7].pdf',
 r'C:\repos\aapa\temp2\Aanvraag goedkeuring Beenen afstudeeropdracht 2022-2023[22].pdf',
@@ -198,8 +200,11 @@ r'C:\repos\aapa\temp2\Beoordeling aanvraag Yannick Kooistra(3478237) (Dok.Works 
 r'C:\repos\aapa\temp2\Aanvraag eezzee gaming.pdf',
 ]
 
+from general.filehash import hash_file_digest
+
 def test_aanvraag(file):
     try:
+        print(hash_file_digest(file))
         aanvraag = NewAanvraagReaderFromPDF(file).aanvraag
         if aanvraag:
             print(aanvraag)
@@ -211,8 +216,8 @@ path1= r"C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\20
 
 path2 =r'C:\repos\aapa\temp2'
 
-#for file in testfiles[0:18]:
-for file in Path(path1).glob('**/*.pdf'):
+for file in testfiles[0:5]:
+# for file in Path(path1).glob('**/*.pdf'):
     print(file)
     test_aanvraag(file)
 

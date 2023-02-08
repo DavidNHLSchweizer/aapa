@@ -9,7 +9,7 @@ from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.14'
+DBVERSION = '1.15'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -93,6 +93,7 @@ class FileTableDefinition(TableDefinition):
         super().__init__('FILES')
         self.add_column('filename', dbc.TEXT, primary=True)
         self.add_column('timestamp', dbc.TEXT)
+        self.add_column('digest', dbc.TEXT)
         self.add_column('filetype', dbc.INTEGER)
         self.add_column('aanvraag_id', dbc.INTEGER)
 
@@ -174,3 +175,6 @@ class AAPDatabase(Database):
             load_roots(self)
         logInfo(f'Bekende paden:\n{get_roots_report()}')
         logInfo('--- Einde laden paden File Encoding')
+
+
+        
