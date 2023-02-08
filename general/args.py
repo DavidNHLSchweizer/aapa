@@ -64,7 +64,7 @@ class AAPAoptions:
     root: str = None
     forms: str= None
     mail: str= None
-    database: str = config.get('database', 'database_name')
+    database: str = config.get('configuration', 'database')
     mode: ProcessMode = ProcessMode.PROCESS
     initialize: Initialize = Initialize.NO_INIT
     report: str = None

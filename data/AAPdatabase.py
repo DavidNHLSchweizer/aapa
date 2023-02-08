@@ -15,11 +15,6 @@ class DBVersie(Versie):
         super().__init__(**kwargs)
         self.db_versie = db_versie
 
-def init_config():
-    config.set_default('database', 'database_name','aapa.DB')
-    config.set('database', 'db_versie', DBVERSION)
-init_config()
-
 class VersionTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('VERSIE', autoid=True)
@@ -32,7 +27,7 @@ def read_version_info(database: Database)->DBVersie:
         record = row[0]
         return DBVersie(db_versie = record['db_versie'], versie=record['versie'], datum=record['datum'])
     else:
-        return DBVersie(db_versie = config.get('database', 'versie'), versie=config.get('versie', 'versie'), datum=Versie.datetime_str())
+        return DBVersie(db_versie = DBVERSION, versie=config.get('versie', 'versie'), datum=Versie.datetime_str())
 
 def create_version_info(database: Database, versie: DBVersie): 
     database._execute_sql_command('insert into versie (db_versie, versie, datum) values (?,?,?)', [versie.db_versie, versie.versie, versie.datum])
@@ -152,11 +147,11 @@ class AAPDatabase(Database):
         logInfo('--- Controle versies database en programma')
         try:
             if recreate:
-                create_version_info(self, DBVersie(db_versie=config.get('database', 'db_versie'), versie=config.get('versie', 'versie'), datum=Versie.datetime_str()))
+                create_version_info(self, DBVersie(db_versie=DBVERSION, versie=config.get('versie', 'versie'), datum=Versie.datetime_str()))
             else:
                 versie = read_version_info(self)
-                if  versie.db_versie != config.get('database', 'db_versie'):
-                    self.__version_error(versie.db_versie, f"Database version {versie.db_versie} does not match current program (expected {config.get('database', 'db_versie')}).")
+                if  versie.db_versie != DBVERSION:
+                    self.__version_error(versie.db_versie, f"Database version {versie.db_versie} does not match current program (expected {DBVERSION}).")
                 elif versie.versie != config.get('versie', 'versie'):
                     logWarning(f"Program version ({config.get('versie', 'versie')}) does not match version in database (expected {versie.versie}). Updating database en configuratie.")
                     versie.versie = config.get('versie', 'versie')

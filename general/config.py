@@ -1,88 +1,128 @@
+import atexit
+from configparser import ConfigParser, NoOptionError
+from pathlib import Path
 import sys
-from typing import Protocol
 from general.fileutil import file_exists
 from general.singleton import Singleton
-import jsonpickle
-import atexit
-from pathlib import Path
 
-class KeyValuePreProcessor(Protocol):
-    def __call__(section_key: str, key: str, value: str)->list(tuple[str,str]):
-        ...
+class ValueConvertor:
+    def __init__(self, parser: ConfigParser):
+        self._parser = parser
+    def get(self, section_key: str, key_value: str, **kwargs)->str:
+        if (section := self._parser[section_key]) is not None:
+            return section.get(key_value, **kwargs)
+        return None
+    def set(self, section_key: str, key_value: str, value: object):
+        if (section := self._parser[section_key]) is not None:
+            section[key_value] = str(value)
 
-class ConfigSection:
-    def __init__(self, section_key):
-        self.section_key = section_key
-        self._entries = {}
-    def __str__(self):
-        return f'{self.section_key}:\n\t' + ','.join([f'{key}:{value}' for key, value in self._entries.items()])
-    def __len__(self):
-        return len(self._entries)
-    def set_default(self, value_key: str, default_value):
-        if not self._entries.get(value_key, None):          
-            self._entries[value_key] = default_value            
-    def set(self, value_key: str, value):
-        self._entries[value_key] = value
-    def get(self, value_key, default):
-        return self._entries.get(value_key, default)
-    def remove_key(self,value_key):
-        self._entries.pop(value_key, None)
-    def __ini_write_key(self, key, value, ini, pre_process:KeyValuePreProcessor=None):
-        if pre_process:
-            process_list = pre_process(self.section_key, key, value)
-        else:
-            process_list = [(key,value)]
-        for key,value in process_list:
-            ini.write(f'{key}={value}\n')
-    def ini_write(self, ini, pre_process:KeyValuePreProcessor=None):
-        ini.write(f'[{self.section_key}]\n')
-        for key,value in self._entries.items():
-            self.__ini_write_key(key, value, ini, pre_process=pre_process)
-    def entries(self)->tuple[str,any]:
-        return self._entries.items()
+class IntValueConvertor(ValueConvertor):
+    def get(self, section_key: str, key_value: str, **kwargs)->str:
+        return self._parser.getint(section_key, key_value, **kwargs)
+class FloatValueConvertor(ValueConvertor):
+    def get(self, section_key: str, key_value: str, **kwargs)->str:
+        return self._parser.getfloat(section_key, key_value, **kwargs)
+class BoolValueConvertor(ValueConvertor):
+    def get(self, section_key: str, key_value: str, **kwargs)->str:
+        return self._parser.getboolean(section_key, key_value, **kwargs)
 
-class Config (Singleton):
-    def __init__(self):
-        self._reset()    
-    def get(self, section_key: str, value_key: str):
-        return self.__get_section(section_key).get(value_key, None)
-    def set_default(self, section_key: str, value_key: str, default_value):
-        self.__get_section(section_key).set_default(value_key, default_value)        
-    def set(self, section_key: str, value_key: str, value):
-        self.__get_section(section_key).set(value_key, value)    
-    def remove_key(self, section_key, value_key):
-        if section := self.__get_section(section_key):
-            section.remove_key(value_key)
-    def ini_write(self, filename): 
-        #TODO not very useful because several items are not supported
-        #should do through configparser anyway
-        with open(filename, mode='w') as ini:
-            for section_key in self.__sections.keys():
-                self.__get_section(section_key).ini_write(ini)
+class ListValueConvertor(ValueConvertor):
+    def __init__(self, parser: ConfigParser, itemConvertor: type[ValueConvertor] = None):
+        super().__init__(parser)
+        self.itemConvertor = itemConvertor(parser) if itemConvertor else None
+    def __next_item(self, section_key, item_key, **kwargs):
+        try:
+            if self.itemConvertor:
+                return self.itemConvertor.get(section_key, item_key, **kwargs)
+            else:
+                return super(ListValueConvertor, self).get(section_key, item_key, **kwargs)
+        except NoOptionError:
+            return None 
+    def get(self, section_key: str, key_value: str, **kwargs)->str:
+        result = []
+        n = 0
+        while (item := self.__next_item(section_key, ListValueConvertor.item_key(key_value, n), **kwargs)) is not None:
+            result.append(item)
+            n+=1
+        return result
+    def set(self, section_key: str, key_value: str, value: object):
+        n_previous_items = len(self.get(section_key, key_value))
+        for n, item in enumerate(value):
+            item_key = ListValueConvertor.item_key(key_value, n)
+            if self.itemConvertor:
+                self.itemConvertor.set(section_key, item_key, item)
+            else:
+                super().set(section_key, item_key, str(item))
+        for n in range(len(value), n_previous_items):
+            self._parser.remove_option(section_key, ListValueConvertor.item_key(key_value, n))
             
-    def write(self, fp): #TODO: do this  (and read, obviously) in a more readable fileformat, e.g. .INI 
-                        # (challenge: make it work for lists, enum or dicts, 
-                        # without knowing anything about the underlying data)
-                        #TODO ISSUES: a) raw string support
-                        #             b) list[string] support
-                        #             c) list [dict] support (see options.mode_patterns) (which can probably also be refactored)
-        fp.write(jsonpickle.encode(self))
-    def read(self, fp):
-        return jsonpickle.decode(fp.read())
-    def _reset(self): 
-        self.__sections = {}
-    def __add_section(self, section_key: str):
-        self.__sections[section_key] = ConfigSection(section_key)
-        return self.__sections[section_key]
-    def __get_section(self, section_key: str)->ConfigSection:
-        if result := self.__sections.get(section_key, None):
-            return result
-        return self.__add_section(section_key)
-    def __str__(self):
-        return '\n'.join([str(self.__get_section(key)) for key in self.__sections.keys()])
+    @staticmethod
+    def item_key(key_value, n):
+        return f'{key_value}_{n+1}'
+    
+class ValueConvertors:
+    def __init__(self, parser: ConfigParser):
+        self._register = []
+        self._parser = parser
+    def register(self, section_key: str, key_value: str, convertor_class: type[ValueConvertor], **kwargs):
+        if (entry := self._register_entry(section_key, key_value)) is not None:
+            self._register.remove(entry)
+
+        self._register.append({'section': section_key, 'key': key_value, 'convertor': convertor_class(self._parser, **kwargs)})
+    def _register_entry(self, section_key: str, key_value: str):
+        for entry in self._register:
+            if entry['section']==section_key and entry['key']==key_value:
+                return entry
+        return None
+    def _get_convertor(self, section_key: str, key_value: str)->ValueConvertor:
+        if (entry := self._register_entry(section_key, key_value)) is not None:
+            return entry['convertor']
+        return None
+    def get(self, section_key: str, key_value: str, **kwargs):
+        try:
+            if (convertor :=  self._get_convertor(section_key, key_value)) is not None:
+                return convertor.get(section_key, key_value, **kwargs)
+            else:
+                return self._parser[section_key][key_value]
+        except KeyError as E:
+            return None
+    def set(self, section_key: str, key_value: str, value):
+        if (convertor :=  self._get_convertor(section_key, key_value)) is not None:
+            convertor.set(section_key, key_value, value)
+        else:
+            self._parser[section_key][key_value] = value
+
+class Config(Singleton):
+    def __init__(self):
+        self._parser = ConfigParser()
+        self._convertors = ValueConvertors(self._parser)
+    @property
+    def sections(self):
+        return self._parser.sections()
+    def items(self, section_key):
+        return self._parser[section_key].items()
+    def get(self, section_key: str, key_value: str):
+        return self._convertors.get(section_key, key_value)
+    def register(self, section_key: str, key_value: str, convertor_class: type[ValueConvertor], **kwargs):
+        if convertor_class:
+            self._convertors.register(section_key, key_value, convertor_class, **kwargs)
+    def init(self, section_key: str, key_value: str, value):
+        if not self.get(section_key, key_value):
+            self.set(section_key, key_value, value)
+    def set(self, section_key: str, key_value: str, value):
+        if not section_key in self._parser.sections():
+            self._parser.add_section(section_key)
+        self._convertors.set(section_key, key_value, value)
+    def write(self, filename: str):
+        with open(filename, "w") as file:
+            self._parser.write(file)
+    def clear(self):
+        self._parser.clear()
+    def read(self, filename: str):
+        self._parser.read(filename)
 
 application_root = Path(sys.argv[0]).resolve().parent
-CONFIG_FILE_NAME = 'aapa_config.json'
+CONFIG_FILE_NAME = 'aapa_config.ini'
 config = Config()
 
 def _get_config_file():
@@ -96,8 +136,7 @@ def _load_config():
     try:
         config_file = _get_config_file()
         if config_file and file_exists(config_file):
-            with open(config_file, 'r') as file:
-                config = config.read(file)
+            config.read(config_file)
     except Exception as E:
         print(f'Fout bij lezen configuratiebestand {config_file}: {E}')
 _load_config()
@@ -106,5 +145,4 @@ _load_config()
 def _save_config():    
     config_file = _get_config_file()
     if config_file:
-        with open(config_file, 'w', encoding='utf-8') as file:
-            config.write(file)
+        config.write(config_file)

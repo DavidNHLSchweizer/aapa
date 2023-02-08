@@ -1,4 +1,4 @@
-from general.config import config
+from general.config import ListValueConvertor, config
 from process.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
@@ -6,11 +6,16 @@ from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.send_mail.mail_sender import OutlookMail, OutlookMailDef
 from general.log import logPrint
 
+
 def init_config():
-    config.set_default('mail', 'feedback_mail_templates', {str(AanvraagBeoordeling.ONVOLDOENDE): r'.\templates\template_afgekeurd.docx', str(AanvraagBeoordeling.VOLDOENDE):r'.\templates\template_goedgekeurd.docx' })
-    config.set_default('mail', 'subject', 'Beoordeling aanvraag afstuderen ":TITEL:"')
-    config.set_default('mail', 'cc', ['afstuderenschoolofict@nhlstenden.com'])
-    config.set_default('mail', 'bcc', ['david.schweizer@nhlstenden.com', 'bas.van.hensbergen@nhlstenden.com', 'joris.lops@nhlstenden.com'])
+    config.register('mail', 'feedback_mail_templates', ListValueConvertor)
+    config.init('mail', 'feedback_mail_templates', [r'.\templates\template_afgekeurd.htm', r'.\templates\template_goedgekeurd.htm'])
+    config.init('mail', 'subject', 'Beoordeling aanvraag afstuderen ":TITEL:"')
+    config.register('mail', 'cc', ListValueConvertor)
+    config.init('mail', 'cc', ['afstuderenschoolofict@nhlstenden.com'])
+    config.register('mail', 'bcc', ListValueConvertor)
+    config.init('mail', 'bcc', ['david.schweizer@nhlstenden.com', 'bas.van.hensbergen@nhlstenden.com', 'joris.lops@nhlstenden.com'])
+    config.init('mail', 'onbehalfof', 'afstuderenschoolofict@nhlstenden.com')
 init_config()
 
 class FeedbackMailCreator:
@@ -18,22 +23,24 @@ class FeedbackMailCreator:
         self.field_substitutions = FieldSubstitutions([FieldSubstitution(':VOORNAAM:', 'voornaam'), FieldSubstitution(':TITEL:', 'titel'), FieldSubstitution(':BEDRIJF:', 'bedrijf')])
         self.htm_bodies  = self.__init__template_bodies(config.get('mail', 'feedback_mail_templates'))
         self.subject_template =  config.get('mail', 'subject')
+        self.onbehalfof = config.get('mail', 'onbehalfof')
         self.outlook = OutlookMail()
         self.draft_folder_name = self.outlook.getDraftFolderName()
     def __init__template_bodies(self, templates)->dict:
+        index2beoordeling = [AanvraagBeoordeling.ONVOLDOENDE, AanvraagBeoordeling.VOLDOENDE]
         result = {}
-        for beoordeling in [AanvraagBeoordeling.ONVOLDOENDE, AanvraagBeoordeling.VOLDOENDE]:             
+        for n, template in enumerate(templates):             
             body = ''
-            with open(templates[str(beoordeling)]) as file:
+            with open(template) as file:
                 for line in file:
                     body = body + line
-            result[str(beoordeling)] = body 
+            result[index2beoordeling[n]] = body 
         return result
     def __create_mail_body(self, aanvraag: AanvraagInfo)->str:
-        return self.field_substitutions.translate(self.htm_bodies[str(aanvraag.beoordeling)], voornaam=aanvraag.student.first_name, bedrijf=aanvraag.bedrijf.bedrijfsnaam, titel=aanvraag.titel)
+        return self.field_substitutions.translate(self.htm_bodies[aanvraag.beoordeling], voornaam=aanvraag.student.first_name, bedrijf=aanvraag.bedrijf.bedrijfsnaam, titel=aanvraag.titel) 
     def _create_mail_def(self, aanvraag: AanvraagInfo, attachment: str)->OutlookMailDef:
         subject = self.field_substitutions.translate(self.subject_template, titel=aanvraag.titel)
-        return OutlookMailDef(subject=subject, mailto=aanvraag.student.email, mailbody=self.__create_mail_body(aanvraag), cc=config.get('mail', 'cc'), bcc=config.get('mail', 'bcc'), attachments=[attachment])
+        return OutlookMailDef(subject=subject, mailto=aanvraag.student.email, mailbody=self.__create_mail_body(aanvraag), onbehalfof = self.onbehalfof, cc=config.get('mail', 'cc'), bcc=config.get('mail', 'bcc'), attachments=[attachment])
     def draft_mail(self, aanvraag: AanvraagInfo, attachment: str):
         self.outlook.draft_item(self._create_mail_def(aanvraag, attachment))
 

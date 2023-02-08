@@ -6,7 +6,7 @@ from general.config import config
 from data.storage import AAPStorage
 
 def init_config():
-    config.set('requests', 'form_template',r'.\templates\template 0.8.docx')
+    config.init('requests', 'form_template',r'.\templates\template 0.8.docx')
 init_config()
 
 def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, preview=False):

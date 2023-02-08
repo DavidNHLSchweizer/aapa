@@ -19,16 +19,17 @@ class MailBodyFormat(Enum):
 
 class OutlookMailDef:
     def __init__(self, subject:str, mailto:str, mailbody, mailType: MailBodyFormat = MailBodyFormat.HTML, 
-                cc: list[str]=[], bcc: list[str]=[], attachments: list[str]=[]):
+                 onbehalfof: str = '', cc: list[str]=[], bcc: list[str]=[], attachments: list[str]=[]):
         self.subject = subject
         self.mailto = mailto
         self.mailbody = mailbody
         self.mailType = mailType 
+        self.onbehalfof = onbehalfof
         self.cc = cc
         self.bcc = bcc
         self.attachments = attachments
     def copy(self)->OutlookMailDef:
-        return OutlookMailDef(self.subject, self.mailto, self.mailbody, self.mailType,self.cc, self.bcc, self.attachments)
+        return OutlookMailDef(self.subject, self.mailto, self.mailbody, self.mailType, self.onbehalfof, self.cc, self.bcc, self.attachments)
         
 olMailItem = 0
 olSave = 0
@@ -49,9 +50,12 @@ class OutlookMail:
             case MailBodyFormat.RTF:
                 mail.RTFBody=maildef.mailbody
             case _: mail.Body=maildef.mailbody
+        if maildef.onbehalfof:
+            mail.SentOnBehalfOfName = maildef.onbehalfof
         mail.CC = ';'.join(maildef.cc)
         mail.BCC = ';'.join(maildef.bcc)
         for attachment in maildef.attachments:
+            print(attachment)
             mail.Attachments.Add(attachment)
         return mail
     def send_item(self, maildef: OutlookMailDef):
@@ -60,4 +64,3 @@ class OutlookMail:
         self.__createItem(maildef).Close(olSave)
     def getDraftFolderName(self):
         return self.outlook.GetNameSpace('MAPI').GetDefaultFolder(olFolderDrafts)
-

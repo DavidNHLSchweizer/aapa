@@ -11,15 +11,16 @@ from data.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.initialize import initialize_database, initialize_storage
 from process.scan import process_directory
 from general.args import AAPAoptions, Initialize, ProcessMode, get_arguments, report_options
-
+DEFAULTDATABASE = 'aapa.db'
 def init_config():
-    config.set_default('configuration', 'database', 'aapa.db')
-    config.set_default('configuration', 'root', r'.\aanvragen')
-    config.set_default('configuration', 'forms', r'.\aanvragen\forms')
+    config.init('configuration', 'database', DEFAULTDATABASE)
+    config.init('configuration', 'root', '')
+    config.init('configuration', 'forms', '')
 init_config()
 
 def verifyRecreate():
     return tkimb.askyesno('Vraagje', 'Alle data wordt verwijderd. Is dat echt wat je wilt?', default = tkimb.NO, icon=tkimb.WARNING) 
+
 
 class AAPA:
     def __init__(self, options: AAPAoptions):
@@ -38,6 +39,7 @@ class AAPA:
 
     def get_database_name(self):
         if self.options.database:
+            print(self.options.database)
             database = self.options.database
             config.set('configuration', 'database', database) 
         else:
@@ -51,7 +53,8 @@ class AAPA:
         self.root = self.__get_directory(options.root, 'root','Root directory voor aanvragen', True)
         self.forms_directory = self.__get_directory(options.forms, 'forms', 'Directory voor beoordelingsformulieren')
     def __get_directory(self, option_value, config_name, title, mustexist=False):
-        if option_value is not None and not option_value:
+        config_value = config.get('configuration', config_name)
+        if (option_value is not None and not option_value) or (not config_value):
             result = tkifd.askdirectory(mustexist=mustexist, title=title)
         else:
             result = option_value
