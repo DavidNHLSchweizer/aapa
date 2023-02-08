@@ -22,3 +22,4 @@ aapa.onefile-build/**
 aapa.exe
 temp_work.py
 DEMO/cleandemo.out
+aapa_config.json
