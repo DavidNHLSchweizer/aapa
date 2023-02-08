@@ -1,9 +1,14 @@
 import sys
+from typing import Protocol
 from general.fileutil import file_exists
 from general.singleton import Singleton
 import jsonpickle
 import atexit
 from pathlib import Path
+
+class KeyValuePreProcessor(Protocol):
+    def __call__(section_key: str, key: str, value: str)->list(tuple[str,str]):
+        ...
 
 class ConfigSection:
     def __init__(self, section_key):
@@ -22,12 +27,17 @@ class ConfigSection:
         return self._entries.get(value_key, default)
     def remove_key(self,value_key):
         self._entries.pop(value_key, None)
-    def __ini_write_key(self, key, value, ini):
-        ini.write(f'{key}={value}\n')
-    def ini_write(self, ini):
+    def __ini_write_key(self, key, value, ini, pre_process:KeyValuePreProcessor=None):
+        if pre_process:
+            process_list = pre_process(self.section_key, key, value)
+        else:
+            process_list = [(key,value)]
+        for key,value in process_list:
+            ini.write(f'{key}={value}\n')
+    def ini_write(self, ini, pre_process:KeyValuePreProcessor=None):
         ini.write(f'[{self.section_key}]\n')
         for key,value in self._entries.items():
-            self.__ini_write_key(key, value, ini)
+            self.__ini_write_key(key, value, ini, pre_process=pre_process)
     def entries(self)->tuple[str,any]:
         return self._entries.items()
 
