@@ -27,7 +27,10 @@ def migrate_version_114_115(database_name):
     rows = database._execute_sql_command('select filename from files', [], True)
     for row in rows:
         info = storage.read_fileinfo(row['filename'])
-        if not Path(info.filename).is_file():
+        if not info:
+            f_name = row['filename']
+            print(f'\tWARNING: "{f_name}" could not be loaded from database')
+        elif not Path(info.filename).is_file():
             print(f'\tWARNING: "{info.filename}" does not exist')
         else:
             print(f'\t{info.filename}')
