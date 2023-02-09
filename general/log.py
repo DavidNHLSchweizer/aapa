@@ -7,13 +7,11 @@ from general.singleton import Singleton
 class AAPAlogger(Singleton):
     def __init__(self, filename):
         logpath = Path(filename).parent.joinpath('logs').resolve()
-        print(logpath)
         if not (test_directory_exists(logpath) or created_directory(logpath)):
             print(f'ERROR: can not create logfile {filename} in {logpath}')            
             logpath = Path('.').resolve()
             print(f'Creating log in {logpath}')        
         filename = path_with_suffix(logpath.joinpath(Path(filename).name), '.log')
-        print(filename)
         logging.basicConfig(handlers=[TimedRotatingFileHandler(str(filename),'D', 1, 7, encoding='utf-8')], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
     def info(self, msg):
         logging.info(msg)
