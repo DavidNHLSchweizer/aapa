@@ -267,8 +267,6 @@ class AAPStorage:
             else:
                 result.append(info)
         return result
-    
-
     def max_aanvraag_id(self):
         if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
             return row[0][0]           

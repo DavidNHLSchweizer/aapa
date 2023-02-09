@@ -12,7 +12,7 @@ from process.initialize import initialize_database, initialize_storage
 from process.scan import process_directory
 from general.args import AAPAoptions, Initialize, ProcessMode, get_arguments, report_options
 DEFAULTDATABASE = 'aapa.db'
-LOGFILENAME = 'aapa.log'
+LOGFILENAME = 'aa2pa.log'
 def init_config():
     config.init('configuration', 'database', DEFAULTDATABASE)
     config.init('configuration', 'root', '')
@@ -112,8 +112,8 @@ class AAPA:
 if __name__=='__main__':
     print(AAPA.banner())
     init_logging(LOGFILENAME)
-    logInfo('+++ AAPA started +++')
     aapa = AAPA(get_arguments())
+    logInfo('+++ AAPA started +++')
     logInfo(f'COMMAND LINE OPTIONS:\n{report_options(aapa.options)}')
     aapa.process() 
     logInfo('+++ AAPA stopped +++\n')

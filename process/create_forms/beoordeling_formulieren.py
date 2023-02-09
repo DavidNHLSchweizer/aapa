@@ -64,6 +64,7 @@ class BeoordelingenMailMerger(MailMerger):
                 logInfo(f'--- Start storing data for form {aanvraag}')
             self.storage.update_aanvraag(aanvraag)
             fileinfo = FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id)
+            fileinfos = self.storage.find_fileinfos
             if self.storage.find_fileinfo(aanvraag.id, FileType.TO_BE_GRADED_DOCX):
                 self.storage.update_fileinfo(fileinfo)
             else:
