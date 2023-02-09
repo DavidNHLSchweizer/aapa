@@ -25,10 +25,12 @@ class BeoordelingenMailMerger(MailMerger):
                         student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
                         preview=preview)
     def __copy_aanvraag_bestand(self, aanvraag: AanvraagInfo, preview = False):
+        logPrint(aanvraag)        
         aanvraag_filename = aanvraag.aanvraag_source_file_path()
+        logPrint(aanvraag_filename)
         copy_filename = self.output_directory.joinpath(f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}.pdf')
         if not preview:
-            shutil.copyfile(aanvraag_filename, copy_filename)
+            shutil.copy2(aanvraag_filename, copy_filename)
         kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
         logPrint(f'\t{kopied}: aanvraag {aanvraag_filename} to {copy_filename}.')
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import atexit
 from configparser import ConfigParser, NoOptionError
 from pathlib import Path
@@ -92,15 +93,27 @@ class ValueConvertors:
         else:
             self._parser[section_key][key_value] = value
 
+def config_as_string(conf: Config)->str:
+    result = ''
+    for section_key in conf.sections:
+        result = result + f'[{section_key}]\n'
+        for key, value in conf.items(section_key):
+            result = result + f'\t{key} = {value}\n'
+    return result
+
 class Config(Singleton):
     def __init__(self):
         self._parser = ConfigParser()
         self._convertors = ValueConvertors(self._parser)
+    def __str__(self):
+        return config_as_string(self)
     @property
     def sections(self):
         return self._parser.sections()
+    def section(self, section_key):
+        return self._parser[section_key]
     def items(self, section_key):
-        return self._parser[section_key].items()
+        return self.section(section_key).items()
     def get(self, section_key: str, key_value: str):
         return self._convertors.get(section_key, key_value)
     def register(self, section_key: str, key_value: str, convertor_class: type[ValueConvertor], **kwargs):

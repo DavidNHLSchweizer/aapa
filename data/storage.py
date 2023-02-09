@@ -58,6 +58,14 @@ class CRUD_files(CRUDbase):
             return FileInfo(decode_path(filename), timestamp=FileInfo.str_to_timestamp(row['timestamp']), digest = row['digest'], filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id'])
         else:
             return None
+    def read_all(self, filenames: list[str])->list[FileInfo]:
+        if rows:=super().read(where=SQE('filename', Ops.IN, [CRUD_files._filename_to_value(filename) for filename in filenames], no_column_ref = True), multiple=True):
+            result = []
+            for row in rows:
+                result.append(FileInfo(decode_path(row['filename']), timestamp=FileInfo.str_to_timestamp(row['timestamp']), digest = row['digest'], filetype=FileType(row['filetype']), aanvraag_id=row['aanvraag_id']))
+            return result
+        else:
+            return None
     def update(self, fileinfo: FileInfo):
         super().update(columns=self.__get_all_columns(False), values=self.__get_all_values(fileinfo, False), 
             where=SQE('filename', Ops.EQ, CRUD_files._filename_to_value(fileinfo.filename), no_column_ref=True))
@@ -218,15 +226,27 @@ class AAPStorage:
             logInfo(f'success: {info}')
             return info
         return None
+    def __load_fileinfos(self, aanvraag_id: int, filetypes: list[FileType])->list[FileInfo]:
+        params = [aanvraag_id]
+        params.extend([CRUD_files._filetype_to_value(ft) for ft in filetypes])
+        if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
+            filenames=[]
+            filenames.extend([row["filename"] for row in rows])
+            result = self.crud_files.read_all(filenames)
+            logInfo(f'success: {[str(info) for info in result]}')
+            return result
+        return None
     def find_fileinfos(self, aanvraag_id: int)->FileInfos:
         result = FileInfos(aanvraag_id)
+        filetypes = []
         for ft in FileType:
             if ft == FileType.UNKNOWN:
                 continue
-            if (fileinfo:=self.find_fileinfo(aanvraag_id, ft)):
+            filetypes.append(ft)
+            result.reset_info(ft)
+        for fileinfo in self.__load_fileinfos(aanvraag_id, filetypes):
+            if fileinfo:
                 result.set_info(fileinfo)
-            else:
-                result.reset_info(ft)
         return result        
     def find_fileinfos_for_filetype(self, filetype)->list[FileInfo]:
         result = []

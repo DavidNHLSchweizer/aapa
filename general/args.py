@@ -44,6 +44,7 @@ def _get_arguments(banner: str):
                         help='Keuze activiteit: ' + ', '.join([f'"{str(pm)}"-{ProcessMode.help_str(pm)}' for pm in ProcessMode]))
     group.add_argument('-init', action='store_true', dest='init', help= 'Initialiseer de database. Alle data wordt (na bevestiging) verwijderd. ')
     group.add_argument('-init!', action='store_true', dest='init_force', help= 'Initialiseer de database. Alle data wordt verwijderd. Er wordt geen bevestiging gevraagd.')
+    group.add_argument('-c', '--config', type=str, help='Laad een alternatieve configuratiefile.')
     group.add_argument('-info', action='store_true', help='Print configuration information')
     group.add_argument('-preview', action='store_true', help='Aangeven welke bewerkingen voorzien zijn. Er worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     group.add_argument('-x', '--xlsx', type=str, help='Rapporteer aanvragen in een .XSLX bestand. Indien geen bestandsnaam wordt ingevoerd (-x=) gaat alleen een samenvatting naar de console.')
@@ -68,6 +69,7 @@ class AAPAoptions:
     mode: ProcessMode = ProcessMode.PROCESS
     initialize: Initialize = Initialize.NO_INIT
     report: str = None
+    config: str = None
     info: bool = False
     preview: bool = False
     history: str = None
@@ -84,8 +86,10 @@ class AAPAoptions:
             result = result + f'{str(self.initialize)}\n'
         if self.report is not None:
             result = result + f'report: {self.report}\n'
+        if self.config: 
+            result = result + f'laad alternatieve configuratie {self.config}\n'
         if self.info: 
-            result = result + f'print configuration information\n'
+            result = result + f'print configuratie informatie\n'
         if self.history is not None:
             result = result + f'laden beoordelingen vanuit {self.history}\n'
         return result + f'preview: {self.preview}.'
@@ -118,6 +122,8 @@ def report_options(options: AAPAoptions, parts=0)->str:
             result +=  _report_str('create report', str(options.report))
         else:
             result +=  _report_str('create report', 'None')
+        if options.config:
+            result += _report_str('load alternative configuration file', options.config)
         if options.info:
             result += f'print configuration info\n'
         if options.history is not None:
@@ -132,7 +138,7 @@ def get_arguments()->AAPAoptions:
         else: return Initialize.NO_INIT
     try:
         args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
-        return AAPAoptions(root=args.root, forms=args.forms, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), info=args.info, 
+        return AAPAoptions(root=args.root, forms=args.forms, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), config=args.config, info=args.info, 
                             report=args.xlsx, history=args.history, preview=args.preview)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   

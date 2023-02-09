@@ -2,7 +2,7 @@ from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
-from general.log import init_logging, logError, logInfo
+from general.log import init_logging, logError, logInfo, logWarning
 from general.preview import Preview
 from process.read_grade.history import read_beoordelingen_from_files
 from process.graded_requests import process_graded
@@ -12,6 +12,7 @@ from process.initialize import initialize_database, initialize_storage
 from process.scan import process_directory
 from general.args import AAPAoptions, Initialize, ProcessMode, get_arguments, report_options
 DEFAULTDATABASE = 'aapa.db'
+LOGFILENAME = 'aapa.log'
 def init_config():
     config.init('configuration', 'database', DEFAULTDATABASE)
     config.init('configuration', 'root', '')
@@ -24,9 +25,14 @@ def verifyRecreate():
 
 class AAPA:
     def __init__(self, options: AAPAoptions):
+        if options.config:
+            config_file = path_with_suffix(options.config, '.ini')
+            if not Path(config_file).is_file():
+                logError(f'Alternatieve configuratiefile ({config_file}) niet gevonden.')
+            config.read(config_file)
+            logInfo(f'Alternative configuratie file {config_file} geladen.')
         if options.info:
             self.__report_info(options)
-        logInfo(f'COMMAND LINE OPTIONS:\n{report_options(options)}')
         self.options = options
         self.mode    = options.mode
         self.preview = options.preview
@@ -39,7 +45,6 @@ class AAPA:
 
     def get_database_name(self):
         if self.options.database:
-            print(self.options.database)
             database = self.options.database
             config.set('configuration', 'database', database) 
         else:
@@ -106,10 +111,11 @@ class AAPA:
 
 if __name__=='__main__':
     print(AAPA.banner())
-    aapa = AAPA(get_arguments())
-    init_logging(aapa.get_database_name())
+    init_logging(LOGFILENAME)
     logInfo('+++ AAPA started +++')
+    aapa = AAPA(get_arguments())
+    logInfo(f'COMMAND LINE OPTIONS:\n{report_options(aapa.options)}')
     aapa.process() 
-    logInfo('+++ AAPA stopped +++')
+    logInfo('+++ AAPA stopped +++\n')
 
 #TODO testing results of rootify on different accounts
