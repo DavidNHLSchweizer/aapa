@@ -41,5 +41,3 @@ def migrate_version_114_115(database_name):
     update_versie(database, '1.15')    
     storage.commit()
 
-
-

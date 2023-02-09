@@ -60,7 +60,7 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('stud_nr', dbc.TEXT, primary=True)
         self.add_column('full_name', dbc.TEXT)
         self.add_column('first_name', dbc.TEXT)
-        self.add_column('email', dbc.TEXT)
+        self.add_column('email', dbc.TEXT, notnull=True)
         self.add_column('tel_nr', dbc.TEXT)
 
 class BedrijfTableDefinition(TableDefinition):
@@ -115,6 +115,10 @@ class AAPSchema(Schema):
         # Dit is wel ingewikkeld, want moet ook op de AANVRAGEN tabel (on DELETE) worden gechecked. Voorlopig werkt het zo waarschijnlijk ook wel.
         # Andere oplossing: een "lege" aanvraag opslaan en daarnaar verwijzen. Kan weer andere problemen veroorzaken, maar als het kan worden opgevangen in storage.py is het misschien 
         # toch de netste oplossing.
+        #
+        # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel, waarbij tevens de FILES tabel een eigen (integer) primary key krijgt ipv de filenaam. Dan kan de koppeltable met een (tweetal) foreign keys 
+        # werken en mogen files ook ongekoppeld blijven.
+        #
 
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False):
