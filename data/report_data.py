@@ -15,7 +15,7 @@ class COLMAP(Enum):
     TELEFOONNUMMER: 5 
     EMAIL:6
     DATUM:7 
-    VERSIE: 8
+    VERSIE: 8   
     BEDRIJF:9
     TITEL:10
     STATUS:11

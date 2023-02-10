@@ -5,23 +5,35 @@ from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.args import ProcessMode
 from general.fileutil import created_directory, file_exists
-from process.send_mail.mail_merge import MailMerger
-from general.log import logInfo, logPrint
+from general.log import logError, logInfo, logPrint
+from mailmerge import MailMerge
 
 class MailMergeException(Exception): pass
 
-class BeoordelingenMailMerger(MailMerger):
+class BeoordelingenMailMerger:
     def __init__(self, storage: AAPStorage, template_doc: str, output_directory: str):
-        super().__init__(output_directory)
+        self.output_directory = Path(output_directory)
         self.storage = storage
         if not Path(template_doc).is_file():
             raise MailMergeException(f'kan template {template_doc} niet vinden.')
         self.template_doc = template_doc
+    def merge_document(self, template_doc: str, output_file_name: str, **kwds)->str:
+        preview = kwds.pop('preview', False)
+        try:
+            full_output_name = self.output_directory.joinpath(output_file_name)
+            document = MailMerge(template_doc)
+            if not preview:
+                document.merge(**kwds)
+                document.write(full_output_name)
+            return Path(full_output_name).resolve()
+        except Exception as E:
+            logError(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
+            return None
     def __get_output_filename(self, info: AanvraagInfo):
         return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
     def __merge_document(self, aanvraag: AanvraagInfo, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)
-        return self.process(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_path().name, timestamp=aanvraag.timestamp_str(), 
+        return self.merge_document(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_path().name, timestamp=aanvraag.timestamp_str(), 
                         student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
                         preview=preview)
     def __copy_aanvraag_bestand(self, aanvraag: AanvraagInfo, preview = False):
