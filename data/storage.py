@@ -5,7 +5,7 @@ from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import logInfo
+from general.log import logError, logInfo
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -263,7 +263,7 @@ class AAPStorage:
         for row in self.database._execute_sql_command('select filename from FILES', [], True):
             info = self.read_fileinfo(decode_path(row['filename']))
             if not info:
-                print(f"problem with reading filename: {row['filename']}")
+                logError(f"problem with reading filename: {row['filename']}")
             else:
                 result.append(info)
         return result

@@ -52,7 +52,6 @@ class BeoordelingenMailMerger:
         aanvragen = self.storage.find_aanvragen(aanvraag.student, aanvraag.bedrijf)
         if aanvragen:
             aanvragen.sort(key=lambda a: a.timestamp, reverse=True)
-        print([str(aanvraag) for aanvraag in aanvragen])
         if len(aanvragen)>1:
             return aanvragen[1]
         else:
@@ -62,6 +61,7 @@ class BeoordelingenMailMerger:
             diff_file_name=self.output_directory.joinpath(f'Verschil aanvraag {aanvraag.student.student_name} met vorige versie.html')           
             create_difference_file(previous_aanvraag.aanvraag_source_file_path(), aanvraag.aanvraag_source_file_path(), 
                                    difference_filename=diff_file_name, preview=preview)
+            aanvraag.files.set_filename(FileType.DIFFERENCE_HTML, diff_file_name)
         else:
             print('Geen vorige versie van aanvraag bekend.')
     def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
