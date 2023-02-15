@@ -8,6 +8,8 @@ from general.fileutil import created_directory, file_exists
 from general.log import logError, logInfo, logPrint
 from mailmerge import MailMerge
 
+from process.create_forms.difference import create_difference_file
+
 class MailMergeException(Exception): pass
 
 class BeoordelingenMailMerger:
@@ -46,6 +48,22 @@ class BeoordelingenMailMerger:
         kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
         logPrint(f'\t{kopied}: aanvraag {aanvraag_filename} to {copy_filename}.')
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
+    def __find_previous_version(self, aanvraag: AanvraagInfo)->AanvraagInfo:
+        aanvragen = self.storage.find_aanvragen(aanvraag.student, aanvraag.bedrijf)
+        if aanvragen:
+            aanvragen.sort(key=lambda a: a.timestamp, reverse=True)
+        print([str(aanvraag) for aanvraag in aanvragen])
+        if len(aanvragen)>1:
+            return aanvragen[1]
+        else:
+            return None
+    def __create_diff_file(self, aanvraag: AanvraagInfo, preview = False):
+        if (previous_aanvraag := self.__find_previous_version(aanvraag)) is not None:
+            diff_file_name=self.output_directory.joinpath(f'Verschil aanvraag {aanvraag.student.student_name} met vorige versie.html')           
+            create_difference_file(previous_aanvraag.aanvraag_source_file_path(), aanvraag.aanvraag_source_file_path(), 
+                                   difference_filename=diff_file_name, preview=preview)
+        else:
+            print('Geen vorige versie van aanvraag bekend.')
     def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
         def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
             if not preview:
@@ -71,6 +89,7 @@ class BeoordelingenMailMerger:
             aangemaakt = 'aanmaken' if preview else 'aangemaakt'
             logPrint(f'\tFormulier {aangemaakt}: {Path(doc_path).name}.')
             self.__copy_aanvraag_bestand(aanvraag, preview)
+            self.__create_diff_file(aanvraag, preview)
             aanvraag.status = AanvraagStatus.NEEDS_GRADING
             if not preview:
                 logInfo(f'--- Start storing data for form {aanvraag}')

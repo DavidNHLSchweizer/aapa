@@ -267,6 +267,8 @@ class AAPStorage:
             else:
                 result.append(info)
         return result
+    def find_aanvragen(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
+        return self.read_aanvragen(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
     def max_aanvraag_id(self):
         if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
             return row[0][0]           

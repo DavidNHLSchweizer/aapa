@@ -3,94 +3,54 @@ from enum import Enum
 import re
 from pathlib import Path
 import tkinter
-import pandas as pd
 import pdfplumber
-import tabula
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
 from general.log import logError, logPrint, logWarning, logInfo
 from general.valid_email import is_valid_email, try_extract_email
-from PyPDF2 import PdfReader
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'
 
-
-def count_pdf_pages(file_path):
-    with open(file_path, 'rb') as f:
-        pdf = PdfReader(f, strict=False)
-        return len(pdf.pages)
-
-@dataclass
-class _AanvraagData:
-    datum_str = ''
-    student = ''
-    studnr = ''
-    telno = ''
-    email = ''
-    bedrijf = ''
-    titel = ''
-    def __str__(self):
-        return f'student: {self.student} ({self.studnr})  telno: {self.telno}  email: {self.email}\nbedrijf: {self.bedrijf}  titel: {self.titel}  datum_str: {self.datum_str}'
-    def valid(self)->bool:
-        if not self.student or not self.bedrijf  or not self.email:
-            return False
-        if self.student == NOTFOUND or self.bedrijf == NOTFOUND or self.email == NOTFOUND:
-            return False      
-        return True
-
-class AanvraagReaderFromPDF:
-    def __init__(self, pdf_file: str):
-        self.aanvraag = self.read_pdf(pdf_file)
+class PDFtoTablesReader:
+    def __init__(self, pdf_file: str, expected_tables=0, expected_pages=0):
+        self.tables = self.read_tables_from_pdf(pdf_file, expected_tables=expected_tables, expected_pages=expected_pages)
         self.filename = pdf_file
-    def __str__(self):
-        return f'file:"{self.filename}" aanvraag: "{str(self.aanvraag)}"'
-    def read_pdf(self, pdf_file: str)->AanvraagInfo:
+    def read_tables_from_pdf(self, pdf_file: str, expected_pages=0, expected_tables=0)->list[list[str]]:
         with pdfplumber.open(pdf_file) as pdf:
-            if (n := len(pdf.pages)) < 3:
-                raise PDFReaderException(f"Verwacht meer pagina's dan {n} in document")
-            aanvraag_data = _AanvraagData()
+            if (n := len(pdf.pages)) < expected_pages:
+                raise PDFReaderException(f"Verwacht minimaal {expected_pages} pagina's. {n} pagina's in document.")
             try:
-                tables = self.__init_tables(pdf)
-                self.__parse_main_data(tables[0], aanvraag_data)
-                self.__parse_title(tables[1], aanvraag_data)
-                aanvraag = self.__convert_data(aanvraag_data)
-                if not aanvraag:
-                    raise PDFReaderException(f"Document bevat geen geldige aanvraag")
-                return aanvraag
+                return self.__init_tables(pdf, expected_tables=expected_tables)
             except Exception as E:
                 raise PDFReaderException(f"Fout bij lezen document: {E}")    
-    def __convert_data(self, aanvraag_data: _AanvraagData)->AanvraagInfo:
-        if not aanvraag_data.valid():
-            return None
-        bedrijf = Bedrijf(aanvraag_data.bedrijf)
-        student = StudentInfo(aanvraag_data.student, aanvraag_data.studnr, aanvraag_data.telno, aanvraag_data.email)
-        return AanvraagInfo(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
-    def __init_tables(self, pdf: pdfplumber.PDF)->list[list[str]]:
-        def listify(page):
-            return page.extract_text(use_text_flow=True,split_at_punctuation=True).split('\n')
+    def __init_tables(self, pdf: pdfplumber.PDF, expected_tables=0)->list[list[str]]:
         tables = []
         for page in pdf.pages:
-            tables.append(listify(page))
+            tables.append(page.extract_text(use_text_flow=True,split_at_punctuation=True).split('\n'))
             #note: this works better than the pdf_plumber table extraction methods, it is fairly easy to get the right data this way
-        if len(tables) < 3:
-            raise PDFReaderException(f'Verwacht 3 of meer tabellen in document ({len(tables)} gevonden)')
-        return [tables[0], self.__merge_tables(tables[1:])]
-    def __merge_tables(self, tables:list[list[str]])->list[str]:
-        def table_merged_text(table: list[str]):
-            result = []
-            for row in table:
-                merged_row = row[0]
-                for col in row[1:]:
-                    merged_row += col
-                result.append(merged_row)
-            return result
-        result = tables[0]
-        for table in tables[1:]:
+        if len(tables) < expected_tables:
+            raise PDFReaderException(f'Verwacht {expected_tables} of meer tabellen in document ({len(tables)} gevonden).')
+        return tables
+    def all_lines(self, first_table=None, last_table=None):
+        if not first_table:
+            first_table = None
+        if not last_table:
+            last_table = len(self.tables)
+        result = []
+        for table in self.tables[first_table:last_table]:
             result.extend(table)
-        return table_merged_text(result)
+        return result
+
+class PDFaanvraagReader(PDFtoTablesReader):
+    student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
+    END_ROW = len(student_dict_fields) + 12 # een beetje langer ivm bedrijfsnaam en sommige aanvragen met "extra" regels
+    def __init__(self,pdf_file: str):
+        super().__init__(pdf_file, expected_pages=3, expected_tables=3)
+        self.tables[0] = self.rectify_table(self.tables[0][:PDFaanvraagReader.END_ROW], PDFaanvraagReader.student_dict_fields.keys())
+        self.tables[1] = self.all_lines(1)
     def rectify_table(self, table: list[str], field_keys: list[str])->list[str]:
         # some students manage to cause table keys (e.g. Studentnummer) to split over multiple lines (Studentnumme\nr)
         # this method tries to rectify this by rejoining the keys and assuming that the actual values (column 2) are in between
@@ -110,6 +70,7 @@ class AanvraagReaderFromPDF:
                     skip_until = None
                 continue
             for key in field_keys:
+                #TODO zeproblem is: einddatum) als regular expression werkt niet lekker. Misschien beter gewoon find toepassen?
                 if  len(row_text) < len(key) and re.match(row_text, key):
                     n_lines, value = try_find_rest(table[row+1:], key[len(row_text):])
                     if value:
@@ -118,13 +79,54 @@ class AanvraagReaderFromPDF:
             if not skip_until:
                 result.append(row_text)
         return result
+
+@dataclass
+class _AanvraagData:
+    datum_str = ''
+    student = ''
+    studnr = ''
+    telno = ''
+    email = ''
+    bedrijf = ''
+    titel = ''
+    def __str__(self):
+        return f'student: {self.student} ({self.studnr})  telno: {self.telno}  email: {self.email}\nbedrijf: {self.bedrijf}  titel: {self.titel}  datum_str: {self.datum_str}'
+    def valid(self)->bool:
+        if not self.student or not self.bedrijf  or not self.email:
+            return False
+        if self.student == NOTFOUND or self.bedrijf == NOTFOUND or self.email == NOTFOUND:
+            return False      
+        return True
+
+class AanvraagReaderFromPDF(PDFaanvraagReader):
+    def __init__(self, pdf_file: str):
+        super().__init__(pdf_file)
+        self.aanvraag = self.get_aanvraag()
+    def __str__(self):
+        return f'file:"{self.filename}" aanvraag: "{str(self.aanvraag)}"'
+    def get_aanvraag(self)->AanvraagInfo:            
+        aanvraag_data = _AanvraagData()
+        try:
+            self.__parse_main_data(self.tables[0], aanvraag_data)
+            self.__parse_title(self.tables[1], aanvraag_data)
+            aanvraag = self.__convert_data(aanvraag_data)
+            if not aanvraag:
+                raise PDFReaderException(f"Document bevat geen geldige aanvraag")
+            return aanvraag
+        except Exception as E:
+            raise PDFReaderException(f"Fout bij lezen document: {E}")    
+    def __convert_data(self, aanvraag_data: _AanvraagData)->AanvraagInfo:
+        if not aanvraag_data.valid():
+            return None
+        bedrijf = Bedrijf(aanvraag_data.bedrijf)
+        student = StudentInfo(aanvraag_data.student, aanvraag_data.studnr, aanvraag_data.telno, aanvraag_data.email)
+        return AanvraagInfo(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
     def __parse_first_table(self, table: list[str], field_keys: list[str])->dict:
         def find_pattern(table_row: str)->tuple[str,str]:
             for key in field_keys:
                 if (m :=re.match(fr'{key}\s+(?P<value>.*)', table_row, flags=re.IGNORECASE)):
                     return (key, m.group('value'))
             return (None, None)
-        table = self.rectify_table(table, field_keys)
         result = {}
         for row in table:
             key, value = find_pattern(row)
@@ -141,12 +143,8 @@ class AanvraagReaderFromPDF:
             L.append(table[r])
         result_dict['Datum/revisie'] = '/'.join(filter(lambda l: l != '', L))               
     def __parse_main_data(self, table: list[str], aanvraag_data: _AanvraagData):
-        student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
-        END_ROW = len(student_dict_fields) + 12 # een beetje langer ivm bedrijfsnaam en sommige aanvragen met "extra" regels
-        if  END_ROW >= len(table):
-            raise PDFReaderException(f'Fout in parse_main_data ({END_ROW} rijen verwacht): de tabel heeft {len(table)} rijen.')
-        table_dict = self.__parse_first_table(table[:END_ROW], student_dict_fields.keys())
-        self.__convert_fields(table_dict, student_dict_fields, aanvraag_data)
+        table_dict = self.__parse_first_table(table[:PDFaanvraagReader.END_ROW], PDFaanvraagReader.student_dict_fields.keys())
+        self.__convert_fields(table_dict, PDFaanvraagReader.student_dict_fields, aanvraag_data)
     def __convert_fields(self, fields_dict:dict, translation_table, aanvraag_data: _AanvraagData):
         for field in translation_table:               
             setattr(aanvraag_data, translation_table[field], fields_dict.get(field, NOTFOUND))    
@@ -193,8 +191,6 @@ class AanvraagReaderFromPDF:
             return (1, 0)
         else:
             return (row1,row2)
-
-
 
 class AanvraagDataImporter(AanvraagProcessor):
     def __ask_titel(self, aanvraag: AanvraagInfo)->str:
