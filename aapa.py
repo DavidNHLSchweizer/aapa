@@ -4,6 +4,7 @@ import tkinter.filedialog as tkifd
 from general.fileutil import path_with_suffix
 from general.log import init_logging, logError, logInfo, logWarning
 from general.preview import Preview
+from process.create_forms.difference import DifferenceProcessor
 from process.read_grade.history import read_beoordelingen_from_files
 from process.graded_requests import process_graded
 from general.config import config
@@ -86,6 +87,8 @@ class AAPA:
         self.__init_process()
         with Preview(self.preview, self.storage, 'main'):
             try:
+                # DP = DifferenceProcessor(self.storage)
+                # DP.process_student('4575741', '.')
                 if self.mode != ProcessMode.NONE:
                     if self.root and self.mode != ProcessMode.MAIL:
                         process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)

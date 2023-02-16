@@ -40,7 +40,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
             pdf_file_name = self.reader.save_as_pdf(pdf_file_name)
         aanvraag.files.set_info(FileInfo(pdf_file_name, filetype=FileType.GRADED_PDF, aanvraag_id=aanvraag.id))
         aangemaakt = 'aan te maken' if preview else 'aangemaakt'
-        logPrint(f'Feedback file {aangemaakt}: {pdf_file_name}.')
+        logPrint(f'\tFeedback file {aangemaakt}: {pdf_file_name}.')
     def __adapt_files(self, aanvraag: AanvraagInfo, docpath: str, preview = False):
         self.__reset_to_be_graded_file(aanvraag)
         self.__store_graded_file(aanvraag, docpath)

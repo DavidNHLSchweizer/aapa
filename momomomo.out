@@ -1,0 +1,17 @@
+AAPA-Afstudeer Aanvragen Proces Applicatie  versie 1.00
+CONFIGURATION:
+	ROOT DIRECTORY: <default>: (temp7)
+	FORMS DIRECTORY: <default>: (C:/Users/e3528/NHL Stenden/HBO-ICT Afstuderen - Software Engineering/2022-2023/Beoordeling aanvragen 2023/Week 7)
+	DATABASE: <default>: (aapa.db)
+	
+OPERATION:
+	PROCESS MODE: none
+	CREATE REPORT: None
+	print configuration info
+	preview: True.
+
+--- OPENEN DATABASE aapa.db ---
+*** PREVIEW ONLY ***
+Verschil-bestand "Verschil aanvraag Joop de Graaf met vorige versie.html" aangemaakt van deze versie
+	Nieuwe versie(C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 3\Graaf, de, Joop\afstudeeropdracht 19-12-2022.pdf) vergeleken met (C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 3\Graaf, de, Joop\Afstudeeropdracht[94].pdf)
+*** end PREVIEW ONLY ***

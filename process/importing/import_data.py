@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 import tkinter
 import pdfplumber
+from general.fileutil import summary_string
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
@@ -36,22 +37,21 @@ class PDFtoTablesReader:
         return tables
     def all_lines(self, first_table=None, last_table=None):
         if not first_table:
-            first_table = None
+            first_table = 0
         if not last_table:
             last_table = len(self.tables)
         result = []
         for table in self.tables[first_table:last_table]:
             result.extend(table)
         return result
-
+    
 class PDFaanvraagReader(PDFtoTablesReader):
     student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
     END_ROW = len(student_dict_fields) + 12 # een beetje langer ivm bedrijfsnaam en sommige aanvragen met "extra" regels
     def __init__(self,pdf_file: str):
         super().__init__(pdf_file, expected_pages=3, expected_tables=3)
-        self.tables[0] = self.rectify_table(self.tables[0][:PDFaanvraagReader.END_ROW], PDFaanvraagReader.student_dict_fields.keys())
-        self.tables[1] = self.all_lines(1)
-    def rectify_table(self, table: list[str], field_keys: list[str])->list[str]:
+        self.tables = [self.rectify_table(self.tables[0], PDFaanvraagReader.END_ROW, PDFaanvraagReader.student_dict_fields.keys()), self.all_lines(first_table = 1)]   
+    def rectify_table(self, table: list[str], rows_to_rectify: int, field_keys: list[str])->list[str]:
         # some students manage to cause table keys (e.g. Studentnummer) to split over multiple lines (Studentnumme\nr)
         # this method tries to rectify this by rejoining the keys and assuming that the actual values (column 2) are in between
         def try_find_rest(table, rest_key):
@@ -64,7 +64,7 @@ class PDFaanvraagReader(PDFtoTablesReader):
             return n, value        
         result = []
         skip_until = None
-        for row, row_text in enumerate(table):
+        for row, row_text in enumerate(table[:rows_to_rectify]):
             if skip_until and skip_until >=row:
                 if skip_until == row:
                     skip_until = None
@@ -78,6 +78,7 @@ class PDFaanvraagReader(PDFtoTablesReader):
                         skip_until = row + n_lines+1
             if not skip_until:
                 result.append(row_text)
+        result.extend(table[rows_to_rectify:])
         return result
 
 @dataclass
@@ -198,12 +199,12 @@ class AanvraagDataImporter(AanvraagProcessor):
     def process(self, filename: str, preview=False)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
         if (stored := self.is_copy_of_known_file(filename)) is not None:
-            logWarning(f'Bestand {filename} is kopie van bestand in database {stored.filename}')
+            logWarning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}')
             return None
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.AANVRAAG_PDF)
             if self.is_duplicate(fileinfo):            
-                logWarning(f'Duplikaat: {filename}.\nal in database: {str(aanvraag)}')
+                logWarning(f'Duplikaat: {summary_string(filename)}.\nal in database: {str(aanvraag)}')
                 return None
             if not is_valid_email(aanvraag.student.email):
                 new_email = try_extract_email(aanvraag.student.email, True)
@@ -215,12 +216,12 @@ class AanvraagDataImporter(AanvraagProcessor):
                     return None
             if not aanvraag.titel:
                 aanvraag.titel=self.__ask_titel(aanvraag)
-            logInfo(f'--- Start storing imported data from PDF {filename}')
+            logInfo(f'--- Start storing imported data from PDF {summary_string(filename)}')
             if not preview:
                 self.storage.create_aanvraag(aanvraag, fileinfo) 
                 self.aanvragen.append(aanvraag)
                 self.storage.commit()
-                logInfo(f'--- Succes storing imported data from PDF {filename}')
+                logInfo(f'--- Succes storing imported data from PDF {summary_string(filename)}')
             logPrint(f'\t{str(aanvraag)}')
             return aanvraag
         return None
@@ -283,7 +284,7 @@ def report_imports(file_results:dict, new_aanvragen, preview):
             case ImportResult.KNOWN_ERROR: return 'eerder gelezen, kan niet worden geimporteerd'
             case _: return '???'
     def file_str(file,result):
-        return f'{file} [{import_status_str(result)}]'
+        return f'{summary_string(file)} [{import_status_str(result)}]'
     print('Rapportage import:')
     print('\t---Gelezen bestand(en):---')
     print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))

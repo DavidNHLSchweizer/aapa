@@ -92,3 +92,14 @@ def list_files(folder_name, patterns)->list[str]:
     except:
         pass
     return result
+
+
+INITIAL = 18
+MAXLEN  = 64
+def summary_string(s: str, initial=INITIAL, maxlen = MAXLEN):
+    s = str(s)
+    if len(s) <= maxlen:
+        return s
+    else:
+        return f'{s[0:initial]}...{s[len(s)- maxlen+initial+3:]}'
+

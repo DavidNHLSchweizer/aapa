@@ -1,4 +1,5 @@
 from general.config import ListValueConvertor, config
+from general.fileutil import summary_string
 from process.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
@@ -61,10 +62,10 @@ class FeedbackMailsCreator(AanvraagProcessor):
                 continue            
             filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
             if preview:
-                print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.email} met als attachment: {filename}')
+                print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
             else:
                 self.mailer.draft_mail(aanvraag, filename)
-                logPrint(f'Feedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
+                logPrint(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
                 self.__update_aanvraag(aanvraag)
             result += 1        
         return result
