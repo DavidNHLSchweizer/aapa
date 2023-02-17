@@ -103,7 +103,7 @@ class BeoordelingenFileCreator(AanvraagProcessor):
     def process(self, filter_func = None, preview=False)->int:
         return self.merger.merge_documents(self.filtered_aanvragen(filter_func), preview=preview)
 
-def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, mode=ProcessMode.PROCESS, preview=False)->int:
+def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:
     logPrint('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')
     logPrint(f'Formulieren worden aangemaakt in {output_directory}')
     if not preview:
