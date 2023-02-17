@@ -36,7 +36,6 @@ class AanvraagProcessor:
                 return datetime.datetime.now()
         # self.aanvragen.sort(key=lambda a:a.timestamp, reverse=True)
         self.aanvragen.sort(key=comparekey, reverse=True)
-
     def filtered_aanvragen(self, filter_func=None)->list[AanvraagInfo]:
         if filter_func:
             return list(filter(filter_func, self.aanvragen))
