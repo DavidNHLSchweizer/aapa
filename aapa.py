@@ -38,6 +38,7 @@ class AAPA:
         self.mode    = options.mode
         self.preview = options.preview
         self.report    = options.report
+        self.diff =  options.diff
     def __report_info(self, options):
         def tabify(s):
             return '\t' + s.replace('\n', '\n\t')
@@ -87,8 +88,9 @@ class AAPA:
         self.__init_process()
         with Preview(self.preview, self.storage, 'main'):
             try:
-                # DP = DifferenceProcessor(self.storage)
-                # DP.process_student('4575741', '.')
+                if self.diff:
+                    DP = DifferenceProcessor(self.storage)
+                    DP.process_student(self.diff, self.forms_directory)
                 if self.mode != ProcessMode.NONE:
                     if self.root and self.mode != ProcessMode.MAIL:
                         process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)

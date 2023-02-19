@@ -49,6 +49,7 @@ def _get_arguments(banner: str):
     group.add_argument('-preview', action='store_true', help='Aangeven welke bewerkingen voorzien zijn. Er worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     group.add_argument('-x', '--xlsx', type=str, help='Rapporteer aanvragen in een .XSLX bestand. Indien geen bestandsnaam wordt ingevoerd (-x=) gaat alleen een samenvatting naar de console.')
     group.add_argument('-hi', '--history',  dest = 'history', type=str, help='Importeer beoordelingen vanuit .XLSX bestand (eerst aangemaakt met --xlsx). Indien geen bestandsnaam wordt ingevoerd (-hi=) wordt deeze opgevraagd.')
+    group.add_argument('--diff', dest='diff', type=str,help=argparse.SUPPRESS)
     return parser.parse_args()
 
 class Initialize(Enum):
@@ -73,6 +74,7 @@ class AAPAoptions:
     info: bool = False
     preview: bool = False
     history: str = None
+    diff: str = None
     def __str__(self):
         result = ''
         if self.root is not None:
@@ -139,7 +141,7 @@ def get_arguments()->AAPAoptions:
     try:
         args = _get_arguments('Als er geen opties worden gekozen wordt de huidige rootdirectory gescand op nieuwe aanvragen, en worden beoordeelde aanvragen verwerkt.')
         return AAPAoptions(root=args.root, forms=args.forms, database=args.database, mode = ProcessMode.from_mode_choice(args.mode), initialize=get_init(args), config=args.config, info=args.info, 
-                            report=args.xlsx, history=args.history, preview=args.preview)
+                            report=args.xlsx, history=args.history, preview=args.preview, diff=args.diff)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
         return None
