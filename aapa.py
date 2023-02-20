@@ -12,6 +12,7 @@ from data.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.initialize import initialize_database, initialize_storage
 from process.scan import process_directory
 from general.args import AAPAoptions, Initialize, ProcessMode, get_arguments, report_options
+from general.banner import banner
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
 def init_config():
@@ -110,12 +111,9 @@ class AAPA:
                 logError(f'Fout bij processing: {E}')
 
         logInfo('Ready.')
-    @staticmethod
-    def banner():
-        return f'AAPA-Afstudeer Aanvragen Proces Applicatie  versie {config.get("versie", "versie")}'
 
 if __name__=='__main__':
-    print(AAPA.banner())
+    print(banner())
     init_logging(LOGFILENAME)
     aapa = AAPA(get_arguments())
     logInfo('+++ AAPA started +++')
