@@ -87,7 +87,7 @@ class AAPA:
             self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')
     def process(self):
         def must_process(options: AAPAoptions)->bool:
-            if any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.REPORT]]) or\
+            if any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.NEW, AAPAaction.REPORT]]) or\
                 options.diff_file or options.history_file:
                 return True
             return False
