@@ -274,7 +274,7 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
         importer.store_invalid(filename)
         return ImportResult.ERROR
 
-def report_imports(file_results:dict, new_aanvragen, preview):
+def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=False):
     def import_status_str(result):
         match result:
             case ImportResult.IMPORTED: return 'te importeren' if preview else 'geimporteerd'
@@ -286,8 +286,9 @@ def report_imports(file_results:dict, new_aanvragen, preview):
     def file_str(file,result):
         return f'{summary_string(file)} [{import_status_str(result)}]'
     print('Rapportage import:')
-    print('\t---Gelezen bestand(en):---')
-    print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
+    if verbose:
+        print('\t---Gelezen bestand(en):---')
+        print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
     print('\t--- Nieuwe aanvragen --- :')
     print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
     gelezen = 'te lezen' if preview else 'gelezen'

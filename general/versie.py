@@ -16,3 +16,5 @@ def init_config():
     config.init('versie', 'datum', Versie.datetime_str(datetime.datetime.now()))
 init_config()
 
+def banner():
+    return f'AAPA-Afstudeer Aanvragen Proces Applicatie  versie {AAPAVERSION}'
