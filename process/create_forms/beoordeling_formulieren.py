@@ -3,7 +3,6 @@ import shutil
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
-from general.args import ProcessMode
 from general.fileutil import created_directory, file_exists, summary_string
 from general.log import logError, logInfo, logPrint
 from mailmerge import MailMerge

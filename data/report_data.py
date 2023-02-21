@@ -5,6 +5,12 @@ from process.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagInfo
 from data.storage import AAPStorage
 from general.fileutil import writable_filename
+from general.config import config
+
+DEFAULTFILENAME = 'aanvragen.xlsx'
+def init_config():
+    config.init('report', 'filename', DEFAULTFILENAME)
+init_config()
 
 class COLMAP(Enum):
     FILENAME:0 
