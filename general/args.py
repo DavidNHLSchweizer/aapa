@@ -94,7 +94,7 @@ class AAPAoptions:
         if self.filename is not None:
             result = result + f'FILENAME (voor REPORT): {self.filename}\n'
         if self.config_file: 
-            result = result + f'laad alternatieve CONFIGURATIE {self.config}\n'
+            result = result + f'laad alternatieve CONFIGURATIE {self.config_file}\n'
         return result + '.'
 
 def report_options(options: AAPAoptions, parts=0)->str:

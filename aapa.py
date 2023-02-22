@@ -29,7 +29,7 @@ def verifyRecreate():
 class AAPA:
     def __init__(self, options: AAPAoptions):
         if options.config_file:
-            config_file = path_with_suffix(options.config, '.ini')
+            config_file = path_with_suffix(options.config_file, '.ini')
             if not Path(config_file).is_file():
                 logError(f'Alternatieve configuratiefile ({config_file}) niet gevonden.')
             config.read(config_file)
