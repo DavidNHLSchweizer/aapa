@@ -13,6 +13,7 @@ from process.initialize import initialize_database, initialize_storage
 from process.scan import process_directory
 from general.args import AAPAaction, AAPAoptions, get_arguments, report_options
 from general.versie import banner
+
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
 def init_config():
