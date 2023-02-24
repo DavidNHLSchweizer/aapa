@@ -109,7 +109,7 @@ class AAPA:
                     DP.process_student(self.options.diff_file, self.forms_directory)
                 if must_process_action(self.options, AAPAaction.SCAN):
                     process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
-                if must_process_history(self.options)
+                if must_process_history(self.options):
                     if not Path(self.options.history_file).is_file():
                         logError(f'History file ({self.options.history_file}) not found.')
                     else:
