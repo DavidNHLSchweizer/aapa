@@ -1,7 +1,9 @@
 import winreg
+
 from general.keys import get_next_key, reset_key
 from general.log import logError, logInfo
 from general.singleton import Singleton
+
 
 class RootException(Exception): pass
 

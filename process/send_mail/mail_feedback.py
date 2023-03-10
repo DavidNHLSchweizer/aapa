@@ -1,5 +1,5 @@
 from general.config import ListValueConvertor, config
-from general.fileutil import summary_string
+from general.fileutil import from_main_path, summary_string
 from process.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
@@ -19,10 +19,13 @@ def init_config():
     config.init('mail', 'onbehalfof', 'afstuderenschoolofict@nhlstenden.com')
 init_config()
 
+def get_feedback_mail_templates():
+    return [from_main_path(template) for template in config.get('mail', 'feedback_mail_templates')]
+
 class FeedbackMailCreator:
     def __init__(self):
         self.field_substitutions = FieldSubstitutions([FieldSubstitution(':VOORNAAM:', 'voornaam'), FieldSubstitution(':TITEL:', 'titel'), FieldSubstitution(':BEDRIJF:', 'bedrijf')])
-        self.htm_bodies  = self.__init__template_bodies(config.get('mail', 'feedback_mail_templates'))
+        self.htm_bodies  = self.__init__template_bodies(get_feedback_mail_templates())
         self.subject_template =  config.get('mail', 'subject')
         self.onbehalfof = config.get('mail', 'onbehalfof')
         self.outlook = OutlookMail()

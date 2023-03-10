@@ -25,7 +25,6 @@ init_config()
 def verifyRecreate():
     return tkimb.askyesno('Vraagje', 'Alle data wordt verwijderd. Is dat echt wat je wilt?', default = tkimb.NO, icon=tkimb.WARNING) 
 
-
 class AAPA:
     def __init__(self, options: AAPAoptions):
         if options.config_file:
