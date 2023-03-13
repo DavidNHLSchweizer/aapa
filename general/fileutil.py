@@ -105,7 +105,7 @@ def summary_string(s: str, initial=INITIAL, maxlen = MAXLEN):
         return f'{s[0:initial]}...{s[len(s)- maxlen+initial+3:]}'
 
 def get_main_module_path():
-    return Path(sys.argv[0]).parent.resolve()
+    return Path(sys.argv[0]).resolve().parent
 
 def from_main_path(filename):
     return get_main_module_path().joinpath(filename)

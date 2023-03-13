@@ -3,7 +3,7 @@ import atexit
 from configparser import ConfigParser, NoOptionError
 from pathlib import Path
 import sys
-from general.fileutil import file_exists
+from general.fileutil import file_exists, from_main_path, get_main_module_path
 from general.singleton import Singleton
 
 class ValueConvertor:
@@ -134,13 +134,12 @@ class Config(Singleton):
     def read(self, filename: str):
         self._parser.read(filename)
 
-application_root = Path(sys.argv[0]).resolve().parent
 CONFIG_FILE_NAME = 'aapa_config.ini'
 config = Config()
 
 def _get_config_file():
     try:
-        return Path(application_root).joinpath(CONFIG_FILE_NAME)
+        return from_main_path(CONFIG_FILE_NAME)
     except:
         return None
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
-from general.fileutil import path_with_suffix
+from general.fileutil import from_main_path, path_with_suffix
 from general.log import init_logging, logError, logInfo, logWarning
 from general.preview import Preview
 from process.create_forms.difference import DifferenceProcessor
@@ -51,7 +51,7 @@ class AAPA:
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
-        return path_with_suffix(database, '.db').resolve()    
+        return from_main_path(path_with_suffix(database, '.db'))
     def __initialize_database(self):
         database = self.get_database_name()
         recreate = (AAPAaction.NEW in self.actions and (not Path(database).is_file() or verifyRecreate()))
