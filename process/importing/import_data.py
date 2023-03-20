@@ -182,7 +182,7 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
                 row = row0
                 pattern = re.compile(regex)
                 while row < len(table) and not row_matches(table, row, pattern):
-                    row+=1
+                    row+=1 
                 return min(row + 1, len(table))
         row1 = find_pattern(start_paragraph_regex, 0)
         if row1 == len(table) and not must_find_both:
@@ -199,7 +199,7 @@ class AanvraagDataImporter(AanvraagProcessor):
     def process(self, filename: str, preview=False)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
         if (stored := self.is_copy_of_known_file(filename)) is not None:
-            logWarning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}')
+            logWarning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=False)
             return None
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.AANVRAAG_PDF)

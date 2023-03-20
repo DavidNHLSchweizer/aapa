@@ -55,7 +55,7 @@ class AanvraagDataXLS:
         for aanvraag in aanvragen:
             self.sheet.append(self.__to_sheet_row(aanvraag))
     def __to_sheet_row(self, aanvraag: AanvraagInfo):
-        return [aanvraag.aanvraag_source_file_path().name, aanvraag.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
+        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
                 aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.bedrijfsnaam, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
     def number_rows(self):
         return self.sheet.max_row

@@ -219,7 +219,7 @@ class AanvraagInfo:
     @property
     def digest(self):
         return self.files.get_digest(FileType.AANVRAAG_PDF)
-    def aanvraag_source_file_path(self):
+    def aanvraag_source_file_name(self):
         return Path(self.files.get_filename(FileType.AANVRAAG_PDF))
     def __str__(self):
         versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'

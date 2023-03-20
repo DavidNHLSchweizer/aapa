@@ -35,10 +35,11 @@ def logPrint(msg: str):
         _logger.info(msg)
     print(msg)
 
-def logWarning(msg: str):
+def logWarning(msg: str, to_console=True):
     if _logger:
         _logger.warning(msg)
-    print(f'WARNING: {msg}')
+    if to_console:
+        print(f'WARNING: {msg}')
 
 def logError(msg: str):
     if _logger:
