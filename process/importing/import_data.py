@@ -10,6 +10,13 @@ from data.storage import AAPStorage
 from data.classes import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
 from general.log import logError, logPrint, logWarning, logInfo
 from general.valid_email import is_valid_email, try_extract_email
+from general.config import IntValueConvertor, config
+
+def init_config():
+    config.register('pdf_read', 'x_tolerance', IntValueConvertor)
+    config.init('pdf_read', 'x_tolerance', 3)
+init_config()
+
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
@@ -30,11 +37,12 @@ class PDFtoTablesReader:
     def __init_tables(self, pdf: pdfplumber.PDF, expected_tables=0)->list[list[str]]:
         tables = []
         for page in pdf.pages:
-            tables.append(page.extract_text(use_text_flow=True,split_at_punctuation=True).split('\n'))
+            tables.append(page.extract_text(use_text_flow=True,split_at_punctuation=False,x_tolerance=config.get('pdf_read', 'x_tolerance')).split('\n'))
             #note: this works better than the pdf_plumber table extraction methods, it is fairly easy to get the right data this way
         if len(tables) < expected_tables:
             raise PDFReaderException(f'Verwacht {expected_tables} of meer tabellen in document ({len(tables)} gevonden).')
         return tables
+    
     def all_lines(self, first_table=None, last_table=None):
         if not first_table:
             first_table = 0
@@ -149,9 +157,9 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
     def __convert_fields(self, fields_dict:dict, translation_table, aanvraag_data: _AanvraagData):
         for field in translation_table:               
             setattr(aanvraag_data, translation_table[field], fields_dict.get(field, NOTFOUND))    
-    def __parse_title(self, table:list[list[str]], aanvraag_data: _AanvraagData)->str:
+    def __parse_title(self, table:list[str], aanvraag_data: _AanvraagData)->str:
         #regex because some students somehow lose the '.' characters or renumber the paragraphs, also older versions of the form have different paragraphs and some students do even stranger things
-        regex_versies = [{'start':'\d.*\(Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\?'},
+        regex_versies = [{'start':'\d.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\s*\?'},
                          {'start':'\d.*Titel van de afstudeeropdracht', 'end': '\d.*Korte omschrijving van de opdracht.*'},                        
                          {'start':'.*Titel van de afstudeeropdracht', 'end': '.*Korte omschrijving van de opdracht.*'},                        
                         ]
