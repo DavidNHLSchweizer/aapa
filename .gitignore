@@ -1,6 +1,7 @@
 *.pdf
 *.xlsx
 *.log
+*.log.*
 *.docx
 *.htm
 *.db
