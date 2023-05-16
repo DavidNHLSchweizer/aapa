@@ -33,7 +33,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
         self.reader.flush()
         aanvraag.files.set_info(FileInfo(docpath, timestamp=AUTOTIMESTAMP, filetype=FileType.GRADED_DOCX, aanvraag_id=aanvraag.id))
     def __create_graded_file_pdf(self, aanvraag: AanvraagInfo, preview=False):
-        aanvraag_path = aanvraag.aanvraag_source_file_path().parent
+        aanvraag_path = aanvraag.aanvraag_source_file_name().parent
         graded_name = Path(aanvraag.files.get_filename(FileType.GRADED_DOCX)).name
         pdf_file_name = str(path_with_suffix(aanvraag_path.joinpath(graded_name), '.pdf').resolve())
         if not preview:

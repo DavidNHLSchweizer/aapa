@@ -3,11 +3,11 @@ from dataclasses import dataclass
 import datetime
 from general.config import config
 
-AAPAVERSION = '1.01'
+AAPAVERSION = '1.02'
 @dataclass
 class Versie:
-    versie: str = '' #config.get('versie', 'versie')
-    datum: str = '' #config.get('versie', 'datum')
+    versie: str = '' 
+    datum: str = '' 
     @staticmethod
     def datetime_str(d=datetime.datetime.now()):
         return datetime.datetime.strftime(d, '%d-%m-%Y %H:%M:%S')

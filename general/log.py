@@ -1,12 +1,12 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
-from general.fileutil import created_directory, path_with_suffix, test_directory_exists
+from general.fileutil import created_directory, from_main_path, path_with_suffix, test_directory_exists, get_main_module_path
 from general.singleton import Singleton
 
 class AAPAlogger(Singleton):
     def __init__(self, filename):
-        logpath = Path(filename).parent.joinpath('logs').resolve()
+        logpath = from_main_path('logs')
         if not (test_directory_exists(logpath) or created_directory(logpath)):
             print(f'ERROR: can not create logfile {filename} in {logpath}')            
             logpath = Path('.').resolve()
@@ -35,10 +35,11 @@ def logPrint(msg: str):
         _logger.info(msg)
     print(msg)
 
-def logWarning(msg: str):
+def logWarning(msg: str, to_console=True):
     if _logger:
         _logger.warning(msg)
-    print(f'WARNING: {msg}')
+    if to_console:
+        print(f'WARNING: {msg}')
 
 def logError(msg: str):
     if _logger:

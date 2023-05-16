@@ -36,8 +36,8 @@ class DifferenceProcessor(AanvraagProcessor):
     def get_difference_filename(self, output_directory, student):
         return Path(output_directory).joinpath(f'Veranderingen in aanvraag {student.student_name}.html')           
     def create_difference(self, previous_aanvraag: AanvraagInfo, aanvraag: AanvraagInfo, output_directory, preview=False)->str:
-            version1 = previous_aanvraag.aanvraag_source_file_path()
-            version2 = aanvraag.aanvraag_source_file_path()
+            version1 = previous_aanvraag.aanvraag_source_file_name()
+            version2 = aanvraag.aanvraag_source_file_name()
             difference_filename= self.get_difference_filename(output_directory, aanvraag.student)            
             if not preview:
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)

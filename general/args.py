@@ -1,8 +1,8 @@
 from __future__ import annotations
 from enum import Enum
-from general.versie import banner
-import gettext
 
+import gettext
+from general.versie import banner
 def __vertaling(Text):
     Text = Text.replace('usage', 'aanroep')
     Text = Text.replace('positional arguments', 'positionele argumenten')

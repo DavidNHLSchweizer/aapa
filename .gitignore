@@ -1,8 +1,10 @@
 *.pdf
 *.xlsx
 *.log
+*.log.*
 *.docx
 *.htm
+*.html
 *.db
 *.bak
 !template*.docx
