@@ -4,6 +4,7 @@
 *.log.*
 *.docx
 *.htm
+*.html
 *.db
 *.bak
 !template*.docx
@@ -25,10 +26,3 @@ aapa.dist/**
 aapa.onefile-build/**
 aapa.exe
 temp_work.py
-diff.html
-diff.html
-diff.html
-diffs.html
-diffs.html
-jasper.html
-momomomo.out
