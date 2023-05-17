@@ -8,6 +8,7 @@
 *.db
 *.bak
 !template*.docx
+!template*.htm
 ?.py
 ??.py
 t?.py
