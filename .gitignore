@@ -4,9 +4,11 @@
 *.log.*
 *.docx
 *.htm
+*.html
 *.db
 *.bak
 !template*.docx
+!template*.htm
 ?.py
 ??.py
 t?.py
