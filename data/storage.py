@@ -186,11 +186,12 @@ class AAPStorage:
         if not (student := self.read_student(aanvraag.student.studnr)):
             self.create_student(aanvraag.student)
     def __create_sourcefile(self, aanvraag_id,  source_file: FileInfo):
-        source_file.aanvraag_id = aanvraag_id
-        if (self.read_fileinfo(source_file.filename)):
-            self.update_fileinfo(source_file)
-        else:
-            self.create_fileinfo(source_file)
+        self.replace_fileinfo(aanvraag_id, source_file)
+        # source_file.aanvraag_id = aanvraag_id
+        # if (self.read_fileinfo(source_file.filename)):
+        #     self.update_fileinfo(source_file)
+        # else:
+        #     self.create_fileinfo(source_file)
     def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
         if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.studnr], True)):
             return row[0][0]
@@ -253,6 +254,15 @@ class AAPStorage:
         for row in self.database._execute_sql_command('select filename from FILES where filetype=?', [CRUD_files._filetype_to_value(filetype)], True):
             result.append(self.crud_files.read(row['filename']))
         return result
+    def replace_fileinfo(self, aanvraag_id, info: FileInfo):
+        info.aanvraag_id = aanvraag_id
+        if (cur_info:=self.find_fileinfo(aanvraag_id, info.filetype)) is not None:
+            if info.filename:
+                self.update_fileinfo(info)
+            else:
+                self.delete_fileinfo(cur_info.filename)
+        else:
+            self.create_fileinfo(info)
     def find_fileinfo_for_digest(self, digest)->FileInfo:
         if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
             info = self.crud_files.read(row[0]["filename"])

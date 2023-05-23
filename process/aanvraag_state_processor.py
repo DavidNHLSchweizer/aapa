@@ -1,9 +1,10 @@
 
+from abc import ABC, abstractmethod
 from data.classes import AanvraagInfo
 from data.storage import AAPStorage
 
 
-class AanvraagStateProcessor:
+class AanvraagStateProcessor(ABC):
     def __init__(self, storage: AAPStorage):
         self.storage = storage
         self._aanvraag: AanvraagInfo = None
@@ -12,8 +13,16 @@ class AanvraagStateProcessor:
         return self._aanvraag
     @aanvraag.setter
     def aanvraag(self, value: AanvraagInfo):
-        self._aanvraag = self.retrieve(value.id)
-    def retrieve(self, id: int)->AanvraagInfo:
-        return self.storage.read_aanvraag(id)
+        self._aanvraag = value
+    @staticmethod
+    def retrieve(storage: AAPStorage, id: int)->AanvraagInfo:
+        return storage.read_aanvraag(id)
     def store(self): 
         self.storage.update_aanvraag(self.aanvraag)
+        for info in self.aanvraag.files:
+            self.storage.replace_fileinfo(info)
+    @abstractmethod
+    def process(self, **kwargs):
+        pass
+
+
