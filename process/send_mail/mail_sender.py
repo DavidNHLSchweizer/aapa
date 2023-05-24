@@ -55,7 +55,6 @@ class OutlookMail:
         mail.CC = ';'.join(maildef.cc)
         mail.BCC = ';'.join(maildef.bcc)
         for attachment in maildef.attachments:
-            print(attachment)
             mail.Attachments.Add(attachment)
         return mail
     def send_item(self, maildef: OutlookMailDef):
