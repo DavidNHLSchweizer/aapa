@@ -135,10 +135,18 @@ class FileInfoStorage:
     def __init__(self, database: Database):
         self.database: Database = database
         self.crud_files = CRUD_files(database)
+    def create(self, fileinfo: FileInfo):
+        self.crud_files.create(fileinfo)
+    def read(self, filename: str)->FileInfo:
+        return self.crud_files.read(filename)
+    def update(self, fileinfo: FileInfo):
+        self.crud_files.update(fileinfo)
+    def delete(self, filename: str):
+        self.crud_files.delete(filename)
     def find(self, aanvraag_id: int, filetype: FileType)->FileInfo:
         if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
-            info = self.crud_files.read(row[0]["filename"])
+            info = self.read(row[0]["filename"])
             logInfo(f'success: {info}')
             return info
         return None
@@ -167,11 +175,11 @@ class FileInfoStorage:
     def find_all_for_filetype(self, filetype: FileType)->list[FileInfo]:
         result = []
         for row in self.database._execute_sql_command('select filename from FILES where filetype=?', [CRUD_files._filetype_to_value(filetype)], True):
-            result.append(self.crud_files.read(row['filename']))
+            result.append(self.read(row['filename']))
         return result
     def find_digest(self, digest)->FileInfo:
         if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
-            info = self.crud_files.read(row[0]["filename"])
+            info = self.read(row[0]["filename"])
             logInfo(f'success: {info}')
             return info
 
@@ -179,14 +187,14 @@ class FileInfoStorage:
         info.aanvraag_id = aanvraag_id
         if (cur_info:=self.find(aanvraag_id, info.filetype)) is not None:
             if info.filename:
-                self.crud_files.update(info)
+                self.update(info)
             else:
-                self.crud_files.delete(cur_info.filename)
+                self.delete(cur_info.filename)
         else:
-            self.crud_files.create(info)
-    def delete(self, aanvraag_id):
+            self.create(info)
+    def delete_all(self, aanvraag_id):
         for info in self.__load(aanvraag_id, [ft for ft in FileType if ft != FileType.UNKNOWN]):
-            self.crud_files.delete(info.filename)
+            self.delete(info.filename)
 
 
 class BedrijvenStorage:
@@ -237,31 +245,19 @@ class AanvraagStorage:
         aanvraag.files = self.file_info.find_all(aanvraag.id)
         return aanvraag
     def update(self, aanvraag: AanvraagInfo):
+        print('u1')
         self.__create_references(aanvraag)        
+        print('u2')
         self.crud_aanvragen.update(aanvraag)
-        for info in aanvraag.files:
+        print('u3')
+        for info in aanvraag.files.get_infos():
             self.file_info.replace(aanvraag.id, info)
+        print('u4')
     def delete(self, id: int):
-        self.file_info.delete(id)
+        self.file_info.delete_all(id)
         self.crud_aanvragen.delete(id)
     def find_student_bedrijf(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
-        return self.crudread_aanvragen(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
-
-    def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
-        if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.studnr], True)):
-            return row[0][0]
-        else:
-            return 0    
-    def __create_references(self, aanvraag: AanvraagInfo):
-        if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
-            (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.bedrijfsnaam], True)):
-            aanvraag.bedrijf.id = row[0]['id']
-        else:
-            self.bedrijven.create(aanvraag.bedrijf)
-        if not (self.studenten.read(aanvraag.student.studnr)):
-            self.studenten.create(aanvraag.student)
-    def __create_sourcefile(self, aanvraag_id,  source_file: FileInfo):
-        self.file_info.replace(aanvraag_id, source_file)
+        return self.read_all(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
     def read_all(self, filter_func = None)->list[AanvraagInfo]:
         if row:= self.database._execute_sql_command('select id from AANVRAGEN', [], True):
             result = [self.read(r['id']) for r in row]
@@ -284,6 +280,21 @@ class AanvraagStorage:
             return row[0][0]           
         else:
             return 0                    
+    def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
+        if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.studnr], True)):
+            return row[0][0]
+        else:
+            return 0    
+    def __create_references(self, aanvraag: AanvraagInfo):
+        if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
+            (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.bedrijfsnaam], True)):
+            aanvraag.bedrijf.id = row[0]['id']
+        else:
+            self.bedrijven.create(aanvraag.bedrijf)
+        if not (self.studenten.read(aanvraag.student.studnr)):
+            self.studenten.create(aanvraag.student)
+    def __create_sourcefile(self, aanvraag_id,  source_file: FileInfo):
+        self.file_info.replace(aanvraag_id, source_file)
 
 class AAPStorage: 
     #main interface with the database
@@ -293,6 +304,9 @@ class AAPStorage:
     @property
     def file_info(self)->FileInfoStorage:
         return self.aanvragen.file_info
+    @property
+    def studenten(self)->StudentenStorage:
+        return self.aanvragen.studenten
         # self.crud_files = CRUD_files(database)
         # self.crud_studenten = CRUD_studenten(database)
         # self.crud_aanvragen = CRUD_aanvragen(database)
@@ -409,7 +423,7 @@ class AAPStorage:
     #         else:
     #             result.append(info)
     #     return result
-    # def find_aanvragen(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
+    #def find_aanvragen(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
     #     return self.read_aanvragen(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
     # def find_aanvragen_for_student(self, student: StudentInfo):
     #     result = []

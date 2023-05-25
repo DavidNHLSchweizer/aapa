@@ -26,7 +26,7 @@ class DifferenceGenerator:
 
 class DifferenceProcessor(AanvraagProcessor):
     def find_previous_version(self, aanvraag: AanvraagInfo)->AanvraagInfo:
-        aanvragen = self.storage.find_aanvragen(aanvraag.student, aanvraag.bedrijf)
+        aanvragen = self.storage.aanvragen.find_aanvragen_for_student_bedrijf(aanvraag.student, aanvraag.bedrijf)
         if aanvragen:
             aanvragen.sort(key=lambda a: a.timestamp, reverse=True)
         if len(aanvragen)>1:
@@ -51,7 +51,7 @@ class DifferenceProcessor(AanvraagProcessor):
         else:
             logPrint(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
     def process_student(self, studnr, output_directory, preview = False):
-        if (student := self.storage.read_student(studnr)) is None:
+        if (student := self.storage.studenten.read(studnr)) is None:
             logPrint(f'Student {studnr} niet bekend.')
             return
         if (aanvragen := self.storage.find_aanvragen_for_student(student)) is None:

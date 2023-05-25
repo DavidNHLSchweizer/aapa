@@ -111,6 +111,12 @@ class FileInfos:
         return self.__files[ft]['digest']
     def set_digest(self, ft: FileType, value: str):
         self.__files[ft]['digest'] = value
+    def get_infos(self)->list[FileInfo]:
+        result = []
+        for ft in FileType:
+            if (info:=self.get_info(ft)):
+                result.append(info)
+        return result
     def get_info(self, ft: FileType)->FileInfo:
         if ft == FileType.UNKNOWN:
             return None

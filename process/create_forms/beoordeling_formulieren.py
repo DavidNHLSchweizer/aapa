@@ -77,18 +77,20 @@ class BeoordelingenMailMerger:
             aanvraag.status = AanvraagStatus.NEEDS_GRADING
             if not preview:
                 logInfo(f'--- Start storing data for form {aanvraag}')
-            self.storage.update_aanvraag(aanvraag)
-            fileinfo = FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id)
-            fileinfos = self.storage.find_fileinfos
-            if self.storage.find_fileinfo(aanvraag.id, FileType.TO_BE_GRADED_DOCX):
-                self.storage.update_fileinfo(fileinfo)
-            else:
-                self.storage.create_fileinfo(fileinfo)
-            fileinfo2 = aanvraag.files.get_info(FileType.COPIED_PDF)
-            if self.storage.find_fileinfo(aanvraag.id, FileType.COPIED_PDF):
-                self.storage.update_fileinfo(fileinfo2)
-            else:
-                self.storage.create_fileinfo(fileinfo2)
+            print('1')
+            self.storage.aanvragen.update(aanvraag)
+            print('2')
+            # fileinfo = FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id)
+            # fileinfos = self.storage.find_fileinfos
+            # if self.storage.find_fileinfo(aanvraag.id, FileType.TO_BE_GRADED_DOCX):
+            #     self.storage.update_fileinfo(fileinfo)
+            # else:
+            #     self.storage.create_fileinfo(fileinfo)
+            # fileinfo2 = aanvraag.files.get_info(FileType.COPIED_PDF)
+            # if self.storage.find_fileinfo(aanvraag.id, FileType.COPIED_PDF):
+            #     self.storage.update_fileinfo(fileinfo2)
+            # else:
+            #     self.storage.create_fileinfo(fileinfo2)
             self.storage.commit()
             if not preview:
                 logInfo(f'--- Succes storing data for form {aanvraag}')                

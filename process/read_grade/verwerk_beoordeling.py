@@ -51,14 +51,14 @@ class BeoordelingenProcessor(AanvraagProcessor):
         if (f := self.known_file_info(filename)):
             logInfo(f'removing previous registration for {filename}')
             aanvraag.files.reset_info(FileType.INVALID_PDF)
-            self.storage.delete_fileinfo(filename)
+            # self.storage.delete_fileinfo(filename)
     def __storage_changes(self, aanvraag: AanvraagInfo):
         logInfo(f'--- Start storing data for reading grade {aanvraag}')
-        self.storage.update_aanvraag(aanvraag)
-        self.storage.update_fileinfo(aanvraag.files.get_info(FileType.TO_BE_GRADED_DOCX))
-        self.storage.update_fileinfo(aanvraag.files.get_info(FileType.GRADED_DOCX)) #note: the to_be_graded and graded hebben dezelfde naam
+        # self.storage.update_fileinfo(aanvraag.files.get_info(FileType.TO_BE_GRADED_DOCX))
+        # self.storage.update_fileinfo(aanvraag.files.get_info(FileType.GRADED_DOCX)) #note: the to_be_graded and graded hebben dezelfde naam
         self.__check_invalid_pdf(aanvraag)        
-        self.storage.create_fileinfo(aanvraag.files.get_info(FileType.GRADED_PDF))
+        self.storage.aanvragen.update(aanvraag)
+        # self.storage.create_fileinfo(aanvraag.files.get_info(FileType.GRADED_PDF))
         self.storage.commit()
         logInfo(f'--- End storing data for reading grade {aanvraag}')
     def __adapt_aanvraag(self, aanvraag: AanvraagInfo, beoordeling: AanvraagBeoordeling)->bool:

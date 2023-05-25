@@ -226,7 +226,7 @@ class AanvraagDataImporter(AanvraagProcessor):
                 aanvraag.titel=self.__ask_titel(aanvraag)
             logInfo(f'--- Start storing imported data from PDF {summary_string(filename)}')
             if not preview:
-                self.storage.create_aanvraag(aanvraag, fileinfo) 
+                self.storage.aanvragen.create(aanvraag, fileinfo) 
                 self.aanvragen.append(aanvraag)
                 self.storage.commit()
                 logInfo(f'--- Succes storing imported data from PDF {summary_string(filename)}')
@@ -234,10 +234,10 @@ class AanvraagDataImporter(AanvraagProcessor):
             return aanvraag
         return None
     def store_invalid(self, filename):
-        self.storage.create_fileinfo(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.INVALID_PDF))
+        self.storage.file_info.create(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.INVALID_PDF))
         self.storage.commit()
     def is_duplicate(self, file: FileInfo):
-        return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.digest == file.digest
+        return (stored:=self.storage.file_info.read(file.filename)) is not None and stored.digest == file.digest
     def is_copy_of_known_file(self, filename: str)->FileInfo:
         return self.storage.file_info.find_digest(FileInfo.get_digest(filename))
 
@@ -301,7 +301,6 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
     print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
     gelezen = 'te lezen' if preview else 'gelezen'
     print(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.')
-
 
 def import_directory(directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
     def _get_pattern(recursive: bool):

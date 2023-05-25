@@ -18,9 +18,9 @@ class AanvraagStateProcessor(ABC):
     def retrieve(storage: AAPStorage, id: int)->AanvraagInfo:
         return storage.read_aanvraag(id)
     def store(self): 
-        self.storage.update_aanvraag(self.aanvraag)
-        for info in self.aanvraag.files:
-            self.storage.replace_fileinfo(info)
+        self.storage.aanvragen.update(self.aanvraag)
+        # for info in self.aanvraag.files:
+        #     self.storage.replace_fileinfo(info)
     @abstractmethod
     def process(self, **kwargs):
         pass

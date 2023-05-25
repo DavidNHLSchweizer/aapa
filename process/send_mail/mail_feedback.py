@@ -56,7 +56,7 @@ class FeedbackMailsCreator(AanvraagProcessor):
         return self.mailer.draft_folder_name
     def __update_aanvraag(self, aanvraag):
         aanvraag.status = AanvraagStatus.MAIL_READY
-        self.storage.update_aanvraag(aanvraag)
+        self.storage.aanvragen.update(aanvraag)
         self.storage.commit()
     def _process_aanvragen(self, aanvragen: list[AanvraagInfo], preview=False)->int:
         result = 0        
