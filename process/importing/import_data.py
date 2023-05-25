@@ -239,7 +239,7 @@ class AanvraagDataImporter(AanvraagProcessor):
     def is_duplicate(self, file: FileInfo):
         return (stored:=self.storage.read_fileinfo(file.filename)) is not None and stored.digest == file.digest
     def is_copy_of_known_file(self, filename: str)->FileInfo:
-        return self.storage.find_fileinfo_for_digest(FileInfo.get_digest(filename))
+        return self.storage.file_info.find_digest(FileInfo.get_digest(filename))
 
 class ImportResult(Enum):
     UNKNOWN  = 0
@@ -306,7 +306,7 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
 def import_directory(directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
-    min_id = storage.max_aanvraag_id() + 1
+    min_id = storage.aanvragen.max_id() + 1
     if not Path(directory).is_dir():
         logWarning(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
@@ -318,7 +318,7 @@ def import_directory(directory: str, storage: AAPStorage, recursive = True, prev
     for file in Path(directory).glob(_get_pattern(recursive)):
         import_result = _import_aanvraag(file, importer)
         file_results[file] = import_result
-    max_id = storage.max_aanvraag_id()    
+    max_id = storage.aanvragen.max_id()    
     report_imports(file_results, importer.filtered_aanvragen(lambda x: x.id >= min_id), preview=preview)
     logPrint(f'...Import afgerond')
     return (min_id, max_id)
