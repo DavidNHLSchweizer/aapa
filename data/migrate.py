@@ -35,7 +35,7 @@ def migrate_version_114_115(database_name):
         else:
             print(f'\t{info.filename}')
             info.digest = FileInfo.get_digest(info.filename)
-            storage.update_fileinfo(info)
+            storage.file_info.update(info)
     print('end adding DIGEST column to FILES table.')
     print('updating database versie')
     update_versie(database, '1.15')    

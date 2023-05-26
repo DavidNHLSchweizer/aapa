@@ -97,12 +97,10 @@ class Database:
         self._commit_level += 1
     def enable_commit(self):
         self._commit_level -= 1
+    #note: SQLite savepoints do not work as expected in python
     def rollback(self):
         self.log_info('Rolling back')
         self.connection.rollback()
-
-    #     self.log_info(f'Setting savepoint {name}')
-    #     self._execute_sql_command('set savepoint {')
     def create_table(self, tabledef):
         sql = SQLcreate(tabledef)
         self.execute_sql_command(sql)

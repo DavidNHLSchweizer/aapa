@@ -35,21 +35,18 @@ class ResetAanvraagForMailCommand(ResetCommandBase):
         return True
     def process(self, storage: AAPStorage, preview = True)->bool:
         with Preview(preview):
-            if not (aanvraag := storage.read_aanvraag(self.aanvraag_id)):
+            if not (aanvraag := storage.aanvragen.read(self.aanvraag_id)):
                 logError(f'Aanvraag met aanvraag_id {self.aanvraag_id} kan niet worden geladen.')
                 return False
             aanvraag.status = AanvraagStatus.NEEDS_GRADING
             aanvraag.beoordeling = AanvraagBeoordeling.TE_BEOORDELEN
             if (info := aanvraag.files.get_info(FileType.GRADED_DOCX)):
                 aanvraag.files.set_info(FileInfo(info.filename, timestamp=AUTOTIMESTAMP, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
-                storage.update_fileinfo(aanvraag.files.get_info(FileType.TO_BE_GRADED_DOCX))
                 aanvraag.files.reset_info(FileType.GRADED_DOCX)
-                storage.update_fileinfo(aanvraag.files.get_info(FileType.GRADED_DOCX))
             if (info := aanvraag.files.get_info(FileType.GRADED_PDF)):
                 Path(info.filename).unlink(missing_ok=True)
                 aanvraag.files.reset_info(FileType.GRADED_PDF)         
-                storage.update_fileinfo(aanvraag.files.get_info(FileType.GRADED_PDF))
-            storage.update_aanvraag(aanvraag)
+            storage.aanvragen.update(aanvraag)
             storage.commit()
 
 

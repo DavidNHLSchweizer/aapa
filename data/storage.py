@@ -5,7 +5,7 @@ from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import logError, logInfo
+from general.log import logError, logInfo, logPrint
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -185,13 +185,22 @@ class FileInfoStorage:
 
     def replace(self, aanvraag_id, info: FileInfo):
         info.aanvraag_id = aanvraag_id
-        if (cur_info:=self.find(aanvraag_id, info.filetype)) is not None:
+        # logPrint(f'start replace: {info}')
+        if (cur_info:=self.find(aanvraag_id, info.filetype)) is not None :
+            # logPrint(f'info exists: {cur_info}')
             if info.filename:
+                # logPrint(f'(updating)')
                 self.update(info)
             else:
+                # logPrint(f'(deleting)')
                 self.delete(cur_info.filename)
-        else:
+        elif info.filename and (cur_info := self.read(info.filename)):
+            # logPrint(f'(known file): {cur_info}')
+            self.update(info)
+        elif info.filename:
+            # logPrint(f'(new file)')
             self.create(info)
+        # logPrint(f'end replace')
     def delete_all(self, aanvraag_id):
         for info in self.__load(aanvraag_id, [ft for ft in FileType if ft != FileType.UNKNOWN]):
             self.delete(info.filename)
@@ -245,19 +254,16 @@ class AanvraagStorage:
         aanvraag.files = self.file_info.find_all(aanvraag.id)
         return aanvraag
     def update(self, aanvraag: AanvraagInfo):
-        print('u1')
         self.__create_references(aanvraag)        
-        print('u2')
         self.crud_aanvragen.update(aanvraag)
-        print('u3')
+        # print('u3')
         for info in aanvraag.files.get_infos():
+            # print(f'{info}')
             self.file_info.replace(aanvraag.id, info)
-        print('u4')
+        # print('u4')
     def delete(self, id: int):
         self.file_info.delete_all(id)
         self.crud_aanvragen.delete(id)
-    def find_student_bedrijf(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
-        return self.read_all(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
     def read_all(self, filter_func = None)->list[AanvraagInfo]:
         if row:= self.database._execute_sql_command('select id from AANVRAGEN', [], True):
             result = [self.read(r['id']) for r in row]
@@ -267,9 +273,9 @@ class AanvraagStorage:
             return list(filter(filter_func, result))
         else:
             return result
-    def find_aanvragen_for_student_bedrijf(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
+    def find_student_bedrijf(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
         return self.read_all(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
-    def find_aanvragen_for_student(self, student: StudentInfo):
+    def find_student(self, student: StudentInfo):
         result = []
         if (rows := self.database._execute_sql_command('select id from AANVRAGEN where stud_nr=?', [student.studnr], True)):
             for row in rows:
@@ -307,19 +313,6 @@ class AAPStorage:
     @property
     def studenten(self)->StudentenStorage:
         return self.aanvragen.studenten
-        # self.crud_files = CRUD_files(database)
-        # self.crud_studenten = CRUD_studenten(database)
-        # self.crud_aanvragen = CRUD_aanvragen(database)
-
-
-    # def create_fileinfo(self, fileinfo: FileInfo):
-    #     self.crud_files.create(fileinfo)
-    # def read_fileinfo(self, filename: str)->FileInfo:
-    #     return self.crud_files.read(filename)
-    # def update_fileinfo(self, fileinfo: FileInfo):
-    #     self.crud_files.update(fileinfo)
-    # def delete_fileinfo(self, filename: str):
-    #     self.crud_files.delete(filename)
     def add_file_root(self, root: str, code = None):
         encoded_root = encode_path(root)
         code = add_root(encoded_root, code)
@@ -327,115 +320,6 @@ class AAPStorage:
         #this means the root is already registered, re-encoding causes it to reduced to just the code
             create_root(self.database, code, encoded_root)
             self.commit()
-
-    # def __create_aanvraag_references(self, aanvraag: AanvraagInfo):
-    #     if (not self.read_bedrijf(aanvraag.bedrijf.id)) and (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.bedrijfsnaam], True)):
-    #         aanvraag.bedrijf.id = row[0]['id']
-    #     else:
-    #         self.create_bedrijf(aanvraag.bedrijf)
-    #     if not (student := self.read_student(aanvraag.student.studnr)):
-    #         self.create_student(aanvraag.student)
-    # def __create_sourcefile(self, aanvraag_id,  source_file: FileInfo):
-    #     self.replace_fileinfo(aanvraag_id, source_file)
-    #     # source_file.aanvraag_id = aanvraag_id
-    #     # if (self.read_fileinfo(source_file.filename)):
-    #     #     self.update_fileinfo(source_file)
-    #     # else:
-    #     #     self.create_fileinfo(source_file)
-
-    # def create_aanvraag(self, aanvraag: AanvraagInfo, source_file: FileInfo):
-    #     self.__create_aanvraag_references(aanvraag)
-    #     aanvraag.files.set_info(source_file)
-    #     aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
-    #     self.crud_aanvragen.create(aanvraag)
-    #     self.__create_sourcefile(aanvraag.id, source_file)
-    # def read_aanvraag(self, id: int)->AanvraagInfo:
-    #     aanvraag = self.crud_aanvragen.read(id)
-    #     aanvraag.files = self.find_fileinfos(aanvraag.id)
-    #     return aanvraag
-    # def update_aanvraag(self, aanvraag: AanvraagInfo):
-    #     self.crud_aanvragen.update(aanvraag)
-    # def delete_aanvraag(self, id: int):
-    #     self.crud_aanvragen.delete(id)
-    # def read_aanvragen(self, filter_func = None)->list[AanvraagInfo]:
-    #     if row:= self.database._execute_sql_command('select id from AANVRAGEN', [], True):
-    #         result = [self.aanvragen.read(r['id']) for r in row]
-    #     else:
-    #         result = []
-    #     if result and filter_func:
-    #         return list(filter(filter_func, result))
-    #     else:
-    #         return result
-    # def find_fileinfo(self, aanvraag_id: int, filetype: FileType)->FileInfo:
-    #     if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
-    #             [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
-    #         info = self.crud_files.read(row[0]["filename"])
-    #         logInfo(f'success: {info}')
-    #         return info
-    #     return None
-    # def __load_fileinfos(self, aanvraag_id: int, filetypes: list[FileType])->list[FileInfo]:
-    #     params = [aanvraag_id]
-    #     params.extend([CRUD_files._filetype_to_value(ft) for ft in filetypes])
-    #     if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
-    #         filenames=[]
-    #         filenames.extend([row["filename"] for row in rows])
-    #         result = self.crud_files.read_all(filenames)
-    #         logInfo(f'success: {[str(info) for info in result]}')
-    #         return result
-    #     return None
-    # def find_fileinfos(self, aanvraag_id: int)->FileInfos:
-    #     result = FileInfos(aanvraag_id)
-    #     filetypes = []
-    #     for ft in FileType:
-    #         if ft == FileType.UNKNOWN:
-    #             continue
-    #         filetypes.append(ft)
-    #         result.reset_info(ft)
-    #     for fileinfo in self.__load_fileinfos(aanvraag_id, filetypes):
-    #         if fileinfo:
-    #             result.set_info(fileinfo)
-    #     return result        
-    # def find_fileinfos_for_filetype(self, filetype)->list[FileInfo]:
-    #     result = []
-    #     for row in self.database._execute_sql_command('select filename from FILES where filetype=?', [CRUD_files._filetype_to_value(filetype)], True):
-    #         result.append(self.file_info.read(row['filename']))
-    #     return result
-    # def replace_fileinfo(self, aanvraag_id, info: FileInfo):
-    #     info.aanvraag_id = aanvraag_id
-    #     if (cur_info:=self.find_fileinfo(aanvraag_id, info.filetype)) is not None:
-    #         if info.filename:
-    #             self.update_fileinfo(info)
-    #         else:
-    #             self.delete_fileinfo(cur_info.filename)
-    #     else:
-    #         self.create_fileinfo(info)
-    # def find_fileinfo_for_digest(self, digest)->FileInfo:
-    #     if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
-    #         info = self.crud_files.read(row[0]["filename"])
-    #         logInfo(f'success: {info}')
-    #         return info
-    # def find_all_fileinfos(self):
-    #     result = []
-    #     for row in self.database._execute_sql_command('select filename from FILES', [], True):
-    #         info = self.read_fileinfo(decode_path(row['filename']))
-    #         if not info:
-    #             logError(f"problem with reading filename: {row['filename']}")
-    #         else:
-    #             result.append(info)
-    #     return result
-    #def find_aanvragen(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
-    #     return self.read_aanvragen(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
-    # def find_aanvragen_for_student(self, student: StudentInfo):
-    #     result = []
-    #     if (rows := self.database._execute_sql_command('select id from AANVRAGEN where stud_nr=?', [student.studnr], True)):
-    #         for row in rows:
-    #             result.append(self.read_aanvraag(row['id']))
-    #     return result
-    # def max_aanvraag_id(self):
-    #     if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
-    #         return row[0][0]           
-    #     else:
-    #         return 0                    
     def commit(self):
         self.database.commit()
     

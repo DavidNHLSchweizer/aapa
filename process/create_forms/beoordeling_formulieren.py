@@ -4,7 +4,7 @@ from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.fileutil import created_directory, file_exists, summary_string
-from general.log import logError, logInfo, logPrint
+from general.log import logError, logInfo, logPrint, logWarning
 from mailmerge import MailMerge
 
 from process.create_forms.difference import DifferenceProcessor
@@ -39,8 +39,14 @@ class BeoordelingenMailMerger:
                         student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
                         preview=preview)
     def __copy_aanvraag_bestand(self, aanvraag: AanvraagInfo, preview = False):
+        def __get_copy_filename(rootname):
+            copy_filename = self.output_directory.joinpath(f'{rootname}.pdf')
+            if copy_filename.exists():
+                return __get_copy_filename(rootname+'(copy)')
+            else:
+                return copy_filename
         aanvraag_filename = aanvraag.aanvraag_source_file_name()
-        copy_filename = self.output_directory.joinpath(f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}.pdf')
+        copy_filename = __get_copy_filename(f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}')
         if not preview:
             shutil.copy2(aanvraag_filename, copy_filename)
         kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
@@ -77,20 +83,8 @@ class BeoordelingenMailMerger:
             aanvraag.status = AanvraagStatus.NEEDS_GRADING
             if not preview:
                 logInfo(f'--- Start storing data for form {aanvraag}')
-            print('1')
+            aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
             self.storage.aanvragen.update(aanvraag)
-            print('2')
-            # fileinfo = FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id)
-            # fileinfos = self.storage.find_fileinfos
-            # if self.storage.find_fileinfo(aanvraag.id, FileType.TO_BE_GRADED_DOCX):
-            #     self.storage.update_fileinfo(fileinfo)
-            # else:
-            #     self.storage.create_fileinfo(fileinfo)
-            # fileinfo2 = aanvraag.files.get_info(FileType.COPIED_PDF)
-            # if self.storage.find_fileinfo(aanvraag.id, FileType.COPIED_PDF):
-            #     self.storage.update_fileinfo(fileinfo2)
-            # else:
-            #     self.storage.create_fileinfo(fileinfo2)
             self.storage.commit()
             if not preview:
                 logInfo(f'--- Succes storing data for form {aanvraag}')                

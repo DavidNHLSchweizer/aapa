@@ -26,19 +26,19 @@ class DifferenceGenerator:
 
 class DifferenceProcessor(AanvraagProcessor):
     def find_previous_version(self, aanvraag: AanvraagInfo)->AanvraagInfo:
-        aanvragen = self.storage.aanvragen.find_aanvragen_for_student_bedrijf(aanvraag.student, aanvraag.bedrijf)
+        aanvragen = self.storage.aanvragen.find_student_bedrijf(aanvraag.student, aanvraag.bedrijf)
         if aanvragen:
-            aanvragen.sort(key=lambda a: a.timestamp, reverse=True)
+            aanvragen.sort(key=lambda a: a.aanvraag_nr)#, reverse=True)
         if len(aanvragen)>1:
             return aanvragen[1]
         else:
             return None
-    def get_difference_filename(self, output_directory, student):
-        return Path(output_directory).joinpath(f'Veranderingen in aanvraag {student.student_name}.html')           
+    def get_difference_filename(self, output_directory, student, version1, version2):
+        return Path(output_directory).joinpath(f'Veranderingen in aanvraag {student.student_name} ({version2}-{version1}).html')
     def create_difference(self, previous_aanvraag: AanvraagInfo, aanvraag: AanvraagInfo, output_directory, preview=False)->str:
             version1 = previous_aanvraag.aanvraag_source_file_name()
             version2 = aanvraag.aanvraag_source_file_name()
-            difference_filename= self.get_difference_filename(output_directory, aanvraag.student)            
+            difference_filename= self.get_difference_filename(output_directory, aanvraag.student, previous_aanvraag.aanvraag_nr, aanvraag.aanvraag_nr)            
             if not preview:
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)
             aangemaakt = 'aan te maken' if preview else 'aangemaakt'
@@ -54,13 +54,13 @@ class DifferenceProcessor(AanvraagProcessor):
         if (student := self.storage.studenten.read(studnr)) is None:
             logPrint(f'Student {studnr} niet bekend.')
             return
-        if (aanvragen := self.storage.find_aanvragen_for_student(student)) is None:
+        if (aanvragen := self.storage.aanvragen.find_student(student)) is None:
             logPrint(f'Geen aanvragen gevonden voor student {student}.')
             return
         if len(aanvragen) <= 1:
             logPrint(f'Geen oudere versies gevonden voor student {student}.')
             return
-        aanvragen.sort(key=lambda a: a.timestamp, reverse=True)
+        aanvragen.sort(key=lambda a: a.aanvraag_nr)#, reverse=True)
         self.create_difference(aanvragen[1], aanvragen[0], output_directory=output_directory, preview=preview)
 
 # def create_difference_file_for_aanvraag(s(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:aanvraag: AanvraagInfo)
