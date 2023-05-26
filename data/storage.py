@@ -5,7 +5,7 @@ from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import logError, logInfo, logPrint
+from general.log import logError, logInfo, logPrint, logWarning
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -182,25 +182,22 @@ class FileInfoStorage:
             info = self.read(row[0]["filename"])
             logInfo(f'success: {info}')
             return info
-
     def replace(self, aanvraag_id, info: FileInfo):
         info.aanvraag_id = aanvraag_id
-        # logPrint(f'start replace: {info}')
-        if (cur_info:=self.find(aanvraag_id, info.filetype)) is not None :
-            # logPrint(f'info exists: {cur_info}')
+        if (cur_info:=self.find(aanvraag_id, info.filetype)) is not None:
+            #file currently exists in database
             if info.filename:
-                # logPrint(f'(updating)')
                 self.update(info)
             else:
-                # logPrint(f'(deleting)')
                 self.delete(cur_info.filename)
-        elif info.filename and (cur_info := self.read(info.filename)):
-            # logPrint(f'(known file): {cur_info}')
-            self.update(info)
-        elif info.filename:
-            # logPrint(f'(new file)')
-            self.create(info)
-        # logPrint(f'end replace')
+        elif info.filename:            
+            if (cur_info := self.read(info.filename)):
+                #file is known in database, not linked to aanvraag
+                logWarning(f'bestand {info.filename} is bekend in database: {cur_info}')
+                self.update(info)
+            else:
+                #new file
+                self.create(info)
     def delete_all(self, aanvraag_id):
         for info in self.__load(aanvraag_id, [ft for ft in FileType if ft != FileType.UNKNOWN]):
             self.delete(info.filename)
