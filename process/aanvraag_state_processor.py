@@ -16,7 +16,7 @@ class AanvraagStateProcessor(ABC):
         self._aanvraag = value
     @staticmethod
     def retrieve(storage: AAPStorage, id: int)->AanvraagInfo:
-        return storage.read_aanvraag(id)
+        return storage.aanvragen.read(id)
     def store(self): 
         self.storage.aanvragen.update(self.aanvraag)
     @abstractmethod

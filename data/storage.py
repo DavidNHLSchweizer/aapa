@@ -256,11 +256,8 @@ class AanvraagStorage:
     def update(self, aanvraag: AanvraagInfo):
         self.__create_references(aanvraag)        
         self.crud_aanvragen.update(aanvraag)
-        # print('u3')
         for info in aanvraag.files.get_infos():
-            # print(f'{info}')
             self.file_info.replace(aanvraag.id, info)
-        # print('u4')
     def delete(self, id: int):
         self.file_info.delete_all(id)
         self.crud_aanvragen.delete(id)
