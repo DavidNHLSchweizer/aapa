@@ -1,7 +1,8 @@
 from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, create_root
-from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
+from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase
 from database.database import Database
+from database.dbConst import EMPTY_ID
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
@@ -182,7 +183,7 @@ class FileInfoStorage:
             info = self.read(row[0]["filename"])
             logInfo(f'success: {info}')
             return info
-    def replace(self, aanvraag_id, info: FileInfo):
+    def sync(self, aanvraag_id, info: FileInfo):
         info.aanvraag_id = aanvraag_id
         if (cur_info:=self.find(aanvraag_id, info.filetype)) is not None:
             #file currently exists in database
@@ -201,7 +202,13 @@ class FileInfoStorage:
     def delete_all(self, aanvraag_id):
         for info in self.__load(aanvraag_id, [ft for ft in FileType if ft != FileType.UNKNOWN]):
             self.delete(info.filename)
-
+    def is_duplicate(self, file: FileInfo):
+        return (stored:=self.read(file.filename)) is not None and stored.digest == file.digest
+    def known_file(self, filename: str)->FileInfo:
+        return self.find_digest(FileInfo.get_digest(filename))
+    def store_invalid(self, filename):
+        self.create(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.INVALID_PDF, aanvraag_id=EMPTY_ID))
+        self.storage.commit()
 
 class BedrijvenStorage:
     def __init__(self, database: Database):
@@ -240,12 +247,17 @@ class AanvraagStorage:
         self.bedrijven = BedrijvenStorage(database)
         self.studenten = StudentenStorage(database)
         self.crud_aanvragen = CRUD_aanvragen(database)
-    def create(self, aanvraag: AanvraagInfo, source_file: FileInfo):
+    def create(self, aanvraag: AanvraagInfo):#, source_file: FileInfo):
         self.__create_references(aanvraag)
-        aanvraag.files.set_info(source_file)
+        # aanvraag.files.set_info(source_file)
         aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
         self.crud_aanvragen.create(aanvraag)
-        self.__create_sourcefile(aanvraag.id, source_file)
+        self.sync_files(aanvraag, {FileType.AANVRAAG_PDF})
+        # self.__create_sourcefile(aanvraag.id, source_file)
+    def sync_files(self, aanvraag: AanvraagInfo, filetypes: set[FileType]=None):
+        for info in aanvraag.files.get_infos():
+            if filetypes is None or info.filetype in filetypes:
+                self.file_info.sync(aanvraag.id, info)
     def read(self, id: int)->AanvraagInfo:
         aanvraag = self.crud_aanvragen.read(id)
         aanvraag.files = self.file_info.find_all(aanvraag.id)
@@ -253,8 +265,7 @@ class AanvraagStorage:
     def update(self, aanvraag: AanvraagInfo):
         self.__create_references(aanvraag)        
         self.crud_aanvragen.update(aanvraag)
-        for info in aanvraag.files.get_infos():
-            self.file_info.replace(aanvraag.id, info)
+        self.sync_files(aanvraag)
     def delete(self, id: int):
         self.file_info.delete_all(id)
         self.crud_aanvragen.delete(id)
@@ -293,8 +304,8 @@ class AanvraagStorage:
             self.bedrijven.create(aanvraag.bedrijf)
         if not (self.studenten.read(aanvraag.student.studnr)):
             self.studenten.create(aanvraag.student)
-    def __create_sourcefile(self, aanvraag_id,  source_file: FileInfo):
-        self.file_info.replace(aanvraag_id, source_file)
+    # def __create_sourcefile(self, aanvraag_id,  source_file: FileInfo):
+    #     self.file_info.sync(aanvraag_id, source_file)
 
 class AAPStorage: 
     #main interface with the database
@@ -311,7 +322,7 @@ class AAPStorage:
         encoded_root = encode_path(root)
         code = add_root(encoded_root, code)
         if encoded_root != code: 
-        #this means the root is already registered, re-encoding causes it to reduced to just the code
+        #this means the root is already registered, re-encoding causes it to reduce to just the code
             create_root(self.database, code, encoded_root)
             self.commit()
     def commit(self):

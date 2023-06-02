@@ -4,10 +4,11 @@ import re
 from pathlib import Path
 import tkinter
 import pdfplumber
+from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
-from data.classes import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
+from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
 from general.log import logError, logPrint, logWarning, logInfo
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import IntValueConvertor, config
@@ -204,42 +205,56 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
 class AanvraagDataImporter(AanvraagProcessor):
     def __ask_titel(self, aanvraag: AanvraagInfo)->str:
         return tkinter.simpledialog.askstring(f'Titel', f'Titel voor {str(aanvraag)}') 
+    def __check_complete_aanvraag(self, aanvraag: AanvraagInfo, filename: str)->bool:
+        if not self.__check_email(aanvraag):
+            return False
+        if not self.__check_titel(aanvraag):
+            return False
+        if not self.__check_sourcefile(aanvraag, filename):
+            return False
+        return True
+    def __check_email(self, aanvraag: AanvraagInfo)->bool:
+        if not is_valid_email(aanvraag.student.email):
+            new_email = try_extract_email(aanvraag.student.email, True)
+            if new_email:
+                logWarning(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
+                aanvraag.student.email = new_email
+            else:
+                logError(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
+                return False
+        return True
+    def __check_titel(self, aanvraag: AanvraagInfo)->bool:
+        if not aanvraag.titel:
+            aanvraag.titel=self.__ask_titel(aanvraag)
+        return True
+    def __check_sourcefile(self, aanvraag: AanvraagInfo, filename: str)->bool:
+        fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.AANVRAAG_PDF)
+        if self.storage.file_info.is_duplicate(fileinfo):            
+            logWarning(f'Duplikaat: {summary_string(filename)}.\nal in database: {str(aanvraag)}')
+            return False
+        aanvraag.files.set_info(fileinfo)
+        return True
     def process(self, filename: str, preview=False)->AanvraagInfo:
         logPrint(f'Lezen {filename}')
-        if (stored := self.is_copy_of_known_file(filename)) is not None:
+        if (stored := self.storage.file_info.known_file(filename)) is not None:
             logWarning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=False)
             return None
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
-            fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.AANVRAAG_PDF)
-            if self.is_duplicate(fileinfo):            
-                logWarning(f'Duplikaat: {summary_string(filename)}.\nal in database: {str(aanvraag)}')
+            if not self.__check_complete_aanvraag(aanvraag, filename):
                 return None
-            if not is_valid_email(aanvraag.student.email):
-                new_email = try_extract_email(aanvraag.student.email, True)
-                if new_email:
-                    logWarning(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
-                    aanvraag.student.email = new_email
-                else:
-                    logError(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
-                    return None
-            if not aanvraag.titel:
-                aanvraag.titel=self.__ask_titel(aanvraag)
             logInfo(f'--- Start storing imported data from PDF {summary_string(filename)}')
             if not preview:
-                self.storage.aanvragen.create(aanvraag, fileinfo) 
+                self.storage.aanvragen.create(aanvraag)#, fileinfo) 
                 self.aanvragen.append(aanvraag)
                 self.storage.commit()
                 logInfo(f'--- Succes storing imported data from PDF {summary_string(filename)}')
             logPrint(f'\t{str(aanvraag)}')
             return aanvraag
         return None
-    def store_invalid(self, filename):
-        self.storage.file_info.create(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.INVALID_PDF))
-        self.storage.commit()
-    def is_duplicate(self, file: FileInfo):
-        return (stored:=self.storage.file_info.read(file.filename)) is not None and stored.digest == file.digest
-    def is_copy_of_known_file(self, filename: str)->FileInfo:
-        return self.storage.file_info.find_digest(FileInfo.get_digest(filename))
+    # def is_duplicate(self, file: FileInfo):
+    #     return (stored:=self.storage.file_info.read(file.filename)) is not None and stored.digest == file.digest
+    # def is_copy_of_known_file(self, filename: str)->FileInfo:
+    #     return self.storage.file_info.find_digest(FileInfo.get_digest(filename))
 
 class ImportResult(Enum):
     UNKNOWN  = 0

@@ -22,6 +22,7 @@ class Bedrijf:
             return False
         return True
 
+AUTODIGEST = ''
 class FileType(Enum):
     UNKNOWN             = -1
     AANVRAAG_PDF        = 0
@@ -48,14 +49,14 @@ class FileInfo:
     def get_digest(filename: str)->str:
         return hash_file_digest(filename)
     DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
-    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, digest = '', filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
+    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, digest = AUTODIGEST, filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file():
             if timestamp == AUTOTIMESTAMP:
                 self.timestamp = FileInfo.get_timestamp(filename)
             else:
                 self.timestamp = timestamp
-            if not digest:
+            if digest == AUTODIGEST:
                 self.digest = FileInfo.get_digest(filename)
             else:
                 self.digest = digest
@@ -98,7 +99,7 @@ class FileInfo:
 class FileInfos:
     def __init__(self, aanvraag_id=EMPTY_ID):
         self.aanvraag_id = aanvraag_id
-        self.__files = {ft:{'filename': '', 'timestamp':AUTOTIMESTAMP, 'digest': ''} for ft in FileType if ft != FileType.UNKNOWN}
+        self.__files = {ft:{'filename': '', 'timestamp':AUTOTIMESTAMP, 'digest':AUTODIGEST} for ft in FileType if ft != FileType.UNKNOWN}
     def get_filename(self, ft: FileType)->str:
         return self.__files[ft]['filename']
     def set_filename(self, ft: FileType, value: str):
@@ -133,7 +134,6 @@ class FileInfos:
         for ft in FileType:
             if ft != FileType.UNKNOWN:
                 self.reset_info(ft)
-
 
 class StudentInfo:
     def __init__(self, student_name='', studnr='', telno='', email=''):        
