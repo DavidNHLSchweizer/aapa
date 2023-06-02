@@ -61,24 +61,28 @@ class FeedbackMailsCreator(AanvraagProcessor):
     def _process_aanvragen(self, aanvragen: list[AanvraagInfo], preview=False)->int:
         result = 0        
         for aanvraag in aanvragen:
-            if aanvraag.status != AanvraagStatus.GRADED:
-                continue            
-            filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
-            if preview:
-                print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
-            else:
-                self.mailer.draft_mail(aanvraag, filename)
-                logPrint(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
-                self.__update_aanvraag(aanvraag)
-            result += 1        
+            if self.process(aanvraag, preview):
+                result += 1        
         return result
-    def process(self, filter_func = None, preview=False)->int:
+    def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
+        if aanvraag.status != AanvraagStatus.GRADED:
+            return False
+        filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
+        if preview:
+            print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
+        else:
+            self.mailer.draft_mail(aanvraag, filename)
+            logPrint(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
+            self.__update_aanvraag(aanvraag)
+        return True
+
+    def process_all(self, filter_func = None, preview=False)->int:
         return self._process_aanvragen(self.filtered_aanvragen(filter_func), preview=preview)
 
 def create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
     logPrint('--- Klaarzetten feedback mails...')
     file_creator = FeedbackMailsCreator(storage)
-    n_mails = file_creator.process(filter_func, preview=preview)
+    n_mails = file_creator.process_all(filter_func, preview=preview)
     klaargezet = 'klaar te zetten' if preview else 'klaargezet'    
     logPrint(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
     logPrint('--- Einde klaarzetten feedback mails.')

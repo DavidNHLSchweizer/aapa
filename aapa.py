@@ -6,10 +6,10 @@ from general.log import init_logging, logError, logInfo, logWarning
 from general.preview import Preview
 from process.create_forms.difference import DifferenceProcessor
 from process.read_grade.history import read_beoordelingen_from_files
-from process.graded_requests import process_graded
 from general.config import config
 from data.report_data import report_aanvragen_XLS, report_aanvragen_console
 from process.initialize import initialize_database, initialize_storage
+from process.mail import process_graded
 from process.scan import process_directory
 from general.args import AAPAaction, AAPAoptions, get_arguments, report_options
 from general.versie import banner

@@ -54,27 +54,9 @@ class BeoordelingenMailMerger:
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
     def __create_diff_file(self, aanvraag: AanvraagInfo, preview=False):
         self.diff_processor.process_aanvraag(aanvraag, self.output_directory, preview=preview)
-    def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
-        def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
-            if not preview:
-                if aanvraag.status in [AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING]:
-                    filename = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
-                    if filename != None:
-                        return not file_exists(filename)
-                    else:
-                        return True
-                else:
-                    return False
-            else:
-                filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
-                return aanvraag.status in [AanvraagStatus.INITIAL,AanvraagStatus.NEEDS_GRADING] and not file_exists(filename)
-        result = 0
-        if len(aanvragen) > 0 and not self.output_directory.is_dir() and not preview:
-            self.output_directory.mkdir()
-            logPrint(f'Map {self.output_directory} aangemaakt.')
-        for aanvraag in aanvragen:
+        def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
             if not check_must_create_beoordeling(aanvraag, preview=preview):
-                continue
+                return False
             doc_path = self.__merge_document(aanvraag, preview=preview)
             aangemaakt = 'aanmaken' if preview else 'aangemaakt'
             logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
@@ -88,7 +70,46 @@ class BeoordelingenMailMerger:
             self.storage.commit()
             if not preview:
                 logInfo(f'--- Succes storing data for form {aanvraag}')                
-            result += 1
+            return True
+    def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
+        def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
+            if not preview:
+                if aanvraag.status in [AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING]:
+                    filename = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
+                    if filename != None:
+                        return not file_exists(filename)
+                    else:
+                        return True
+                else:
+                    return False
+            else:
+                filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
+                return aanvraag.status in [AanvraagStatus.INITIAL,AanvraagStatus.NEEDS_GRADING] and not file_exists(filename)
+        if not check_must_create_beoordeling(aanvraag, preview=preview):
+            return False
+        doc_path = self.__merge_document(aanvraag, preview=preview)
+        aangemaakt = 'aanmaken' if preview else 'aangemaakt'
+        logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
+        self.__copy_aanvraag_bestand(aanvraag, preview)
+        self.__create_diff_file(aanvraag, preview)
+        aanvraag.status = AanvraagStatus.NEEDS_GRADING
+        if not preview:
+            logInfo(f'--- Start storing data for form {aanvraag}')
+        aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
+        self.storage.aanvragen.update(aanvraag)
+        self.storage.commit()
+        if not preview:
+            logInfo(f'--- Succes storing data for form {aanvraag}')                
+        return True
+
+    def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
+        result = 0
+        if len(aanvragen) > 0 and not self.output_directory.is_dir() and not preview:
+            self.output_directory.mkdir()
+            logPrint(f'Map {self.output_directory} aangemaakt.')        
+        for aanvraag in aanvragen:
+            if self.process(aanvraag, preview=preview):              
+                result += 1
         return result
 
 class BeoordelingenFileCreator(AanvraagProcessor):

@@ -95,21 +95,25 @@ class BeoordelingenProcessor(AanvraagProcessor):
     def must_process(self, aanvraag, docpath): 
         #to be implemented by subclass
         return False
-    def process(self, filter_func = None, preview=False)->int:
-        n_graded = 0
+    def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
+        if aanvraag.status != AanvraagStatus.NEEDS_GRADING:
+            return False
+        docpath = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
+        if self.must_process(aanvraag, docpath):
+            if self.process_file(aanvraag, docpath, preview=preview):
+                return True
+        return False  
+    def process_all(self, filter_func = None, preview=False)->int:
+        n_processed = 0
         for aanvraag in self.filtered_aanvragen(filter_func):
-            if aanvraag.status != AanvraagStatus.NEEDS_GRADING:
-                continue            
-            docpath = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
-            if self.must_process(aanvraag, docpath):
-                if self.process_file(aanvraag, docpath, preview=preview):
-                    n_graded  += 1
-        return n_graded
+            if self.process(aanvraag, preview):
+                n_processed  += 1
+        return n_processed
 
 def verwerk_beoordelingen(BP: BeoordelingenProcessor, storage: AAPStorage, filter_func = None, preview=False):
     logPrint('--- Verwerken beoordelingen...')
     # BP=BeoordelingenFromWordDocument(storage)
-    n_graded = BP.process(filter_func, preview=preview)
+    n_graded = BP.process_all(filter_func, preview=preview)
     verwerkt = 'te verwerken' if preview else 'verwerkt'
     logPrint(f'### {n_graded} beooordeelde aanvragen {verwerkt}')
     logPrint('--- Einde verwerken beoordelingen.')
