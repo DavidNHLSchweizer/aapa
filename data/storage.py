@@ -151,7 +151,7 @@ class FileInfoStorage:
             logInfo(f'success: {info}')
             return info
         return None
-    def __load(self, aanvraag_id: int, filetypes: list[FileType])->list[FileInfo]:
+    def __load(self, aanvraag_id: int, filetypes: set[FileType])->list[FileInfo]:
         params = [aanvraag_id]
         params.extend([CRUD_files._filetype_to_value(ft) for ft in filetypes])
         if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
@@ -163,19 +163,21 @@ class FileInfoStorage:
         return None
     def find_all(self, aanvraag_id: int)->FileInfos:
         result = FileInfos(aanvraag_id)
-        filetypes = []
-        for ft in FileType:
-            if ft == FileType.UNKNOWN:
-                continue
-            filetypes.append(ft)
-            result.reset_info(ft)
+        filetypes = {ft for ft in FileType if ft != FileType.UNKNOWN}
+        result.reset_info(filetypes)
         for fileinfo in self.__load(aanvraag_id, filetypes):
             if fileinfo:
                 result.set_info(fileinfo)
         return result        
-    def find_all_for_filetype(self, filetype: FileType)->list[FileInfo]:
+    def find_all_for_filetype(self, filetypes: FileType | set[FileType])->list[FileInfo]:
+        if isinstance(filetypes, set):
+            place_holders = f' in ({",".join("?"*len(filetypes))})' 
+            params = [CRUD_files._filetype_to_value(ft) for ft in filetypes]
+        else:
+            place_holders = '=?'
+            params = [CRUD_files._filetype_to_value(filetypes)]
         result = []
-        for row in self.database._execute_sql_command('select filename from FILES where filetype=?', [CRUD_files._filetype_to_value(filetype)], True):
+        for row in self.database._execute_sql_command('select filename from FILES where filetype' + place_holders, params, True):
             result.append(self.read(row['filename']))
         return result
     def find_digest(self, digest)->FileInfo:
@@ -200,7 +202,7 @@ class FileInfoStorage:
                 #new file
                 self.create(info)
     def delete_all(self, aanvraag_id):
-        for info in self.__load(aanvraag_id, [ft for ft in FileType if ft != FileType.UNKNOWN]):
+        for info in self.__load(aanvraag_id, {ft for ft in FileType if ft != FileType.UNKNOWN}):
             self.delete(info.filename)
     def is_duplicate(self, file: FileInfo):
         return (stored:=self.read(file.filename)) is not None and stored.digest == file.digest
@@ -208,7 +210,7 @@ class FileInfoStorage:
         return self.find_digest(FileInfo.get_digest(filename))
     def store_invalid(self, filename):
         self.create(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.INVALID_PDF, aanvraag_id=EMPTY_ID))
-        self.storage.commit()
+        self.database.commit()
 
 class BedrijvenStorage:
     def __init__(self, database: Database):

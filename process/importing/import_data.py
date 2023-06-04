@@ -294,7 +294,7 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
         return result
     except PDFReaderException as E:
         logError(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
-        importer.store_invalid(filename)
+        importer.storage.file_info.store_invalid(filename)
         return ImportResult.ERROR
 
 def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=False):

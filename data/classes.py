@@ -128,12 +128,14 @@ class FileInfos:
             self.set_filename(fi.filetype, fi.filename)
             self.set_timestamp(fi.filetype, fi.timestamp)
             self.set_digest(fi.filetype, fi.digest)
-    def reset_info(self, ft: FileType):
-        self.set_info(FileInfo('', AUTOTIMESTAMP, '', ft))
+    def reset_info(self, file_type: FileType | set[FileType]):
+        if isinstance(file_type, set):
+            for ft in file_type:
+                self.set_info(FileInfo('', AUTOTIMESTAMP, '', ft))
+        else:
+            self.set_info(FileInfo('', AUTOTIMESTAMP, '', file_type))
     def reset(self):
-        for ft in FileType:
-            if ft != FileType.UNKNOWN:
-                self.reset_info(ft)
+        self.reset_info({ft for ft in FileType if ft != FileType.UNKNOWN})
 
 class StudentInfo:
     def __init__(self, student_name='', studnr='', telno='', email=''):        

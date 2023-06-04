@@ -54,23 +54,23 @@ class BeoordelingenMailMerger:
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
     def __create_diff_file(self, aanvraag: AanvraagInfo, preview=False):
         self.diff_processor.process_aanvraag(aanvraag, self.output_directory, preview=preview)
-        def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
-            if not check_must_create_beoordeling(aanvraag, preview=preview):
-                return False
-            doc_path = self.__merge_document(aanvraag, preview=preview)
-            aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-            logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
-            self.__copy_aanvraag_bestand(aanvraag, preview)
-            self.__create_diff_file(aanvraag, preview)
-            aanvraag.status = AanvraagStatus.NEEDS_GRADING
-            if not preview:
-                logInfo(f'--- Start storing data for form {aanvraag}')
-            aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
-            self.storage.aanvragen.update(aanvraag)
-            self.storage.commit()
-            if not preview:
-                logInfo(f'--- Succes storing data for form {aanvraag}')                
-            return True
+        # def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
+        #     if not check_must_create_beoordeling(aanvraag, preview=preview):
+        #         return False
+        #     doc_path = self.__merge_document(aanvraag, preview=preview)
+        #     aangemaakt = 'aanmaken' if preview else 'aangemaakt'
+        #     logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
+        #     self.__copy_aanvraag_bestand(aanvraag, preview)
+        #     self.__create_diff_file(aanvraag, preview)
+        #     aanvraag.status = AanvraagStatus.NEEDS_GRADING
+        #     if not preview:
+        #         logInfo(f'--- Start storing data for form {aanvraag}')
+        #     aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
+        #     self.storage.aanvragen.update(aanvraag)
+        #     self.storage.commit()
+        #     if not preview:
+        #         logInfo(f'--- Succes storing data for form {aanvraag}')                
+        #     return True
     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
         def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
             if not preview:
@@ -116,7 +116,7 @@ class BeoordelingenFileCreator(AanvraagProcessor):
     def __init__(self, storage: AAPStorage, template_doc: str, output_directory: Path, aanvragen: list[AanvraagInfo] = None):
         super().__init__(storage, aanvragen)
         self.merger = BeoordelingenMailMerger(storage, template_doc, output_directory)
-    def process(self, filter_func = None, preview=False)->int:
+    def process_all(self, filter_func = None, preview=False)->int:
         return self.merger.merge_documents(self.filtered_aanvragen(filter_func), preview=preview)
 
 def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:
@@ -127,6 +127,6 @@ def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directo
             logPrint(f'Map {output_directory} aangemaakt.')
         storage.add_file_root(str(output_directory))
     file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
-    result = file_creator.process(filter_func, preview=preview)
+    result = file_creator.process_all(filter_func, preview=preview)
     logPrint('--- Einde maken beoordelingsformulieren.')
     return result
