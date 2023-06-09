@@ -1,32 +1,22 @@
 
 from abc import ABC, abstractmethod
+import datetime
 from data.classes import AanvraagInfo, FileInfo, FileType
 from data.storage import AAPStorage
 from general.log import logInfo
+from general.preview import Preview
 
 
-class AanvraagStateProcessor(ABC):
-    def __init__(self, storage: AAPStorage):
-        self.storage = storage
-        self._aanvraag: AanvraagInfo = None
-    @property
-    def aanvraag(self)->AanvraagInfo:
-        return self._aanvraag
-    @aanvraag.setter
-    def aanvraag(self, value: AanvraagInfo):
-        self._aanvraag = value
-    @staticmethod
-    def retrieve(storage: AAPStorage, id: int)->AanvraagInfo:
-        return storage.aanvragen.read(id)
-    def store(self): 
-        self.storage.aanvragen.update(self.aanvraag)
+class NewAanvraagProcessor(ABC):
     @abstractmethod
-    def process(self, **kwargs):
-        pass
+    def process(self, aanvraag: AanvraagInfo, preview = False, **kwargs)->bool:
+        return False
+    def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:
+        return True
 
-
-class NewAanvraagProcessor:
-    def __init__(self, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
+class NewAanvragenProcessor:
+    def __init__(self, processor: NewAanvraagProcessor, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
+        self.processor = processor
         self.storage = storage
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
@@ -40,7 +30,7 @@ class NewAanvraagProcessor:
             return None
     def __init_known_files(self, aanvragen: list[AanvraagInfo]):
         result = {}
-        for aanvraag in self.storage.file_info.find_all_for_filetype:
+        for aanvraag in aanvragen:
             for ft in FileType:
                 if ft != FileType.UNKNOWN and (fn := aanvraag.files.get_filename(ft)):                    
                     result[str(fn)] = aanvraag.files.get_info(ft)
@@ -56,11 +46,19 @@ class NewAanvraagProcessor:
                 return a.timestamp
             else:
                 return datetime.datetime.now()
-        # self.aanvragen.sort(key=lambda a:a.timestamp, reverse=True)
         self.aanvragen.sort(key=comparekey, reverse=True)
     def filtered_aanvragen(self, filter_func=None)->list[AanvraagInfo]:
         if filter_func:
             return list(filter(filter_func, self.aanvragen))
         else:
             return(self.aanvragen)
+    def process(self, preview=False, filter_func = None, **kwargs):
+        n_processed = 0
+        with Preview(preview):
+            for aanvraag in self.filtered_aanvragen(filter_func):
+                if self.processor.must_process(aanvraag, preview) and self.processor.process(aanvraag, preview, **kwargs):
+                    n_processed += 1
+                    self.storage.aanvragen.update(aanvraag)
+                    self.storage.commit()
+        return n_processed
 
