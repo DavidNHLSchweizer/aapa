@@ -15,8 +15,12 @@ class NewAanvraagProcessor(ABC):
         return True
 
 class NewAanvragenProcessor:
-    def __init__(self, processor: NewAanvraagProcessor, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
-        self.processor = processor
+    def __init__(self, processors: NewAanvraagProcessor|list[NewAanvraagProcessor], storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
+        self._processors:list[NewAanvraagProcessor] = []
+        if isinstance(processors, list):
+            for processor in processors: self._processors.append(processor)
+        else:
+            self._processors.append(processors)
         self.storage = storage
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
@@ -52,13 +56,18 @@ class NewAanvragenProcessor:
             return list(filter(filter_func, self.aanvragen))
         else:
             return(self.aanvragen)
-    def process(self, preview=False, filter_func = None, **kwargs):
+    def process(self, preview=False, filter_func = None, **kwargs)->int:
         n_processed = 0
         with Preview(preview):
             for aanvraag in self.filtered_aanvragen(filter_func):
-                if self.processor.must_process(aanvraag, preview) and self.processor.process(aanvraag, preview, **kwargs):
-                    n_processed += 1
+                aanvraag_processed = True
+                for processor in self._processors:
+                    if processor.must_process(aanvraag, preview) and not processor.process(aanvraag, preview, **kwargs):                        
+                        aanvraag_processed = False
+                        break
                     self.storage.aanvragen.update(aanvraag)
                     self.storage.commit()
+                if aanvraag_processed:
+                    n_processed += 1
         return n_processed
 

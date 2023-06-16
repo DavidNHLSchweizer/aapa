@@ -1,10 +1,11 @@
 import difflib
 import html
 from pathlib import Path
-from data.classes import AanvraagInfo, FileType
+from data.classes import AanvraagInfo, FileType, StudentInfo
 from general.fileutil import summary_string
 from general.log import logPrint
 from process.aanvraag_processor import AanvraagProcessor
+from process.aanvraag_state_processor import NewAanvraagProcessor
 
 from process.importing.import_data import PDFaanvraagReader
 
@@ -64,3 +65,36 @@ class DifferenceProcessor(AanvraagProcessor):
         self.create_difference(aanvragen[1], aanvragen[0], output_directory=output_directory, preview=preview)
 
 # def create_difference_file_for_aanvraag(s(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:aanvraag: AanvraagInfo)
+
+
+class NewDifferenceProcessor(NewAanvraagProcessor):
+    def __init__(self, all_aanvragen: list[AanvraagInfo], output_directory: str):
+        self.output_directory = Path(output_directory)
+        self.all_aanvragen = all_aanvragen
+    def find_previous_aanvraag(self, aanvraag: AanvraagInfo)->AanvraagInfo:
+        relevante_aanvragen = list(filter(lambda a: a.student.studnr==aanvraag.student.studnr and a.bedrijf.id == aanvraag.bedrijf.id, self.all_aanvragen))
+        if relevante_aanvragen:
+            relevante_aanvragen.sort(key=lambda a: a.aanvraag_nr)#, reverse=True)
+        if len(relevante_aanvragen)>1:
+            return relevante_aanvragen[1]
+        else:
+            return None
+    def get_difference_filename(self, output_directory:str, student: StudentInfo, version1:str, version2:str)->str:
+        return Path(output_directory).joinpath(f'Veranderingen in aanvraag {student.student_name} ({version2}-{version1}).html')
+    def create_difference(self, previous_aanvraag: AanvraagInfo, aanvraag: AanvraagInfo, output_directory, preview=False)->str:
+            version1 = previous_aanvraag.aanvraag_source_file_name()
+            version2 = aanvraag.aanvraag_source_file_name()
+            difference_filename= self.get_difference_filename(output_directory, aanvraag.student, previous_aanvraag.aanvraag_nr, aanvraag.aanvraag_nr)            
+            if not preview:
+                DifferenceGenerator(version1, version2).generate_html(difference_filename)
+            aangemaakt = 'aan te maken' if preview else 'aangemaakt'
+            vergeleken = 'te vergelijken' if preview else 'vergeleken'
+            print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {aangemaakt}.\n\tNieuwste versie "{summary_string(version2)}" {vergeleken} met\n\tvorige versie "{summary_string(version1)}"')
+            aanvraag.files.set_filename(FileType.DIFFERENCE_HTML, difference_filename)           
+    def process(self, aanvraag: AanvraagInfo, preview = False, output_directory='.')->bool:
+        if (previous_aanvraag := self.find_previous_aanvraag(aanvraag)):
+            self.create_difference(previous_aanvraag, aanvraag, output_directory=output_directory, preview=preview)
+        else:
+            logPrint(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
+        return True
+

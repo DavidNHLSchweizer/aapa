@@ -8,7 +8,7 @@ from general.log import logError, logInfo, logPrint, logWarning
 from mailmerge import MailMerge
 from process.aanvraag_state_processor import NewAanvraagProcessor, NewAanvragenProcessor
 
-from process.create_forms.difference import DifferenceProcessor
+from process.create_forms.difference import DifferenceProcessor, NewDifferenceProcessor
 
 class MailMergeException(Exception): pass
 
@@ -132,13 +132,42 @@ def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directo
     logPrint('--- Einde maken beoordelingsformulieren.')
     return result
 
+class CopyAanvraagProcessor(NewAanvraagProcessor):
+    def __init__(self, output_directory: str):
+        self.output_directory = Path(output_directory)
+    @staticmethod
+    def _get_copy_filename(output_directory, aanvraag: AanvraagInfo):
+        rootname = f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}'
+        copy_filename = output_directory.joinpath(f'{rootname}.pdf')
+        if copy_filename.exists():
+            return CopyAanvraagProcessor._get_copy_filename(output_directory, rootname+'(copy)')
+        else:
+            return copy_filename
+    def must_process(self, aanvraag: AanvraagInfo, preview=False, **kwargs)->bool:
+        if not aanvraag.status in [AanvraagStatus.NEEDS_GRADING]:
+            return False
+        else:
+            filename = CopyAanvraagProcessor._get_copy_filename(self.output_directory, aanvraag)
+            if preview:
+                return not filename.exists()
+            else: 
+                return True
+    def process(self, aanvraag: AanvraagInfo, preview=False, previous_aanvraag: AanvraagInfo=None)->bool:
+        aanvraag_filename = aanvraag.aanvraag_source_file_name()
+        copy_filename = CopyAanvraagProcessor._get_copy_filename(self.output_directory, aanvraag)
+        if not preview:
+            shutil.copy2(aanvraag_filename, copy_filename)
+        kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
+        logPrint(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
+        aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
+        return True
+
 class BeoordelingFormsProcessor(NewAanvraagProcessor):
     def __init__(self, template_doc: str, output_directory: str):
         self.output_directory = Path(output_directory)
-        if not Path(template_doc).is_file():
+        if not Path(template_doc).exists():
             raise MailMergeException(f'kan template {template_doc} niet vinden.')
         self.template_doc = template_doc
-        self.diff_processor = DifferenceProcessor(storage) #TODO: dit moet worden opgelost
     def merge_document(self, template_doc: str, output_file_name: str, **kwds)->str:
         preview = kwds.pop('preview', False)
         try:
@@ -147,7 +176,7 @@ class BeoordelingFormsProcessor(NewAanvraagProcessor):
             if not preview:
                 document.merge(**kwds)
                 document.write(full_output_name)
-            return Path(full_output_name).resolve()
+            return full_output_name.resolve()
         except Exception as E:
             logError(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
             return None
@@ -158,22 +187,6 @@ class BeoordelingFormsProcessor(NewAanvraagProcessor):
         return self.merge_document(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_name().name, timestamp=aanvraag.timestamp_str(), 
                         student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
                         preview=preview)
-    def __copy_aanvraag_bestand(self, aanvraag: AanvraagInfo, preview = False):
-        def __get_copy_filename(rootname):
-            copy_filename = self.output_directory.joinpath(f'{rootname}.pdf')
-            if copy_filename.exists():
-                return __get_copy_filename(rootname+'(copy)')
-            else:
-                return copy_filename
-        aanvraag_filename = aanvraag.aanvraag_source_file_name()
-        copy_filename = __get_copy_filename(f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}')
-        if not preview:
-            shutil.copy2(aanvraag_filename, copy_filename)
-        kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
-        logPrint(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
-        aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
-    def __create_diff_file(self, aanvraag: AanvraagInfo, preview=False):
-        self.diff_processor.process_aanvraag(aanvraag, self.output_directory, preview=preview)
     def must_process(self, aanvraag: AanvraagInfo, preview=False, **kwargs)->bool:
         if not preview:
             if aanvraag.status in [AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING]:
@@ -187,12 +200,10 @@ class BeoordelingFormsProcessor(NewAanvraagProcessor):
         else:
             filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
             return aanvraag.status in [AanvraagStatus.INITIAL,AanvraagStatus.NEEDS_GRADING] and not file_exists(filename)
-    def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
+    def process(self, aanvraag: AanvraagInfo, preview=False, previous_aanvraag: AanvraagInfo=None)->bool:
         doc_path = self.__merge_document(aanvraag, preview=preview)
         aangemaakt = 'aanmaken' if preview else 'aangemaakt'
         logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
-        self.__copy_aanvraag_bestand(aanvraag, preview)
-        self.__create_diff_file(aanvraag, preview)
         aanvraag.status = AanvraagStatus.NEEDS_GRADING
         aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
         return True
@@ -204,7 +215,7 @@ def new_create_beoordelingen_files(storage: AAPStorage, template_doc, output_dir
         if created_directory(output_directory):
             logPrint(f'Map {output_directory} aangemaakt.')
         storage.add_file_root(str(output_directory))
-    file_creator = NewAanvragenProcessor(BeoordelingFormsProcessor(template_doc, output_directory), storage)
-    result = file_creator.process(preview=preview, filter_func=filter_func)
+    file_creator = NewAanvragenProcessor([BeoordelingFormsProcessor(template_doc, output_directory), CopyAanvraagProcessor(output_directory), NewDifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage)
+    result = file_creator.process(preview=preview, filter_func=filter_func) 
     logPrint('--- Einde maken beoordelingsformulieren.')
     return result
