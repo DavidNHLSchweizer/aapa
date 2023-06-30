@@ -162,7 +162,7 @@ class CopyAanvraagProcessor(NewAanvraagProcessor):
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
         return True
 
-class BeoordelingFormsProcessor(NewAanvraagProcessor):
+class BeoordelingFormsCreator(NewAanvraagProcessor):
     def __init__(self, template_doc: str, output_directory: str):
         self.output_directory = Path(output_directory)
         if not Path(template_doc).exists():
@@ -215,7 +215,7 @@ def new_create_beoordelingen_files(storage: AAPStorage, template_doc, output_dir
         if created_directory(output_directory):
             logPrint(f'Map {output_directory} aangemaakt.')
         storage.add_file_root(str(output_directory))
-    file_creator = NewAanvragenProcessor([BeoordelingFormsProcessor(template_doc, output_directory), CopyAanvraagProcessor(output_directory), NewDifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage)
+    file_creator = NewAanvragenProcessor([BeoordelingFormsCreator(template_doc, output_directory), CopyAanvraagProcessor(output_directory), NewDifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage)
     result = file_creator.process(preview=preview, filter_func=filter_func) 
     logPrint('--- Einde maken beoordelingsformulieren.')
     return result
