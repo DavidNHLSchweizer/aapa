@@ -1,5 +1,5 @@
 from pathlib import Path
-from classes import AanvraagInfo
+from data.classes import AanvraagInfo
 from general.config import ListValueConvertor, config
 from general.fileutil import from_main_path, summary_string
 from process.aanvraag_processor import AanvraagProcessor
