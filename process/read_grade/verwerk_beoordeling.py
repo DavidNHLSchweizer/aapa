@@ -83,6 +83,9 @@ class BeoordelingenProcessor(AanvraagProcessor):
     def process_file(self, aanvraag: AanvraagInfo, docpath: str, preview=False)->bool:
         result = False
         aanvraagcomment = f'Kan {aanvraag} niet verwerken.'
+        if not Path(docpath).is_file():
+            logError(f'Bestand {docpath} niet gevonden.')
+            return False
         with self.reader.load_aanvraag(aanvraag, docpath) as document:
             if not (grade := self.reader.grade(aanvraag)):
                 message = self.get_empty_grade_error_message(grade, docpath, aanvraagcomment)
