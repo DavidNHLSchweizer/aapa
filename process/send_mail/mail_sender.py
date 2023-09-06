@@ -2,9 +2,11 @@ from __future__ import annotations
 from enum import Enum
 import win32com.client as win32
 from general.singleton import Singleton
+from pythoncom import CoInitialize
 
 class OutlookApplication(Singleton):
     def __init__(self):
+        CoInitialize() HIERIHIHIERHIH
         self.outlook= win32.dynamic.Dispatch('outlook.application')
         # self.outlook.visible = 0
 

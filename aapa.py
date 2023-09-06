@@ -25,7 +25,7 @@ init_config()
 def verifyRecreate():
     return tkimb.askyesno('Vraagje', 'Alle data wordt verwijderd. Is dat echt wat je wilt?', default = tkimb.NO, icon=tkimb.WARNING) 
 
-class AAPA:
+class AAPAconfiguration:
     def __init__(self, options: AAPAoptions):
         if options.config_file:
             config_file = path_with_suffix(options.config_file, '.ini')
@@ -33,18 +33,9 @@ class AAPA:
                 logError(f'Alternatieve configuratiefile ({config_file}) niet gevonden.')
             config.read(config_file)
             logInfo(f'Alternative configuratie file {config_file} geladen.')
-        if AAPAaction.INFO in options.actions:
-            self.__report_info(options)
         self.options = options
         self.actions = options.actions
         self.preview = options.preview
-
-    def __report_info(self, options):
-        def tabify(s):
-            return '\t' + s.replace('\n', '\n\t')
-        print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
-        print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
-
     def get_database_name(self):
         if self.options.database_file:
             database = self.options.database_file
@@ -80,13 +71,59 @@ class AAPA:
             return option_history
         else:
             return tkifd.askopenfilename(initialfile=option_history,initialdir='.', defaultextension='.xlsx')
-    def __init_process(self):
+    def initialize(self):
         self.__initialize_database()
         self.__initialize_directories()
         if self.options.history_file is not None:
             self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')
-    def process(self):
+
+class AAPAprocessor:
+    def __report_info(self, options):
+        def tabify(s):
+            return '\t' + s.replace('\n', '\n\t')
+        print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
+        print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
+    def __create_diff_file(self, configuration: AAPAconfiguration):
+        DP = DifferenceProcessor(configuration.storage)
+        DP.process_student(configuration.options.diff_file, configuration.forms_directory)
+    def __read_history_file(self, configuration: AAPAconfiguration):
+        if not Path(configuration.options.history_file).is_file():
+            logError(f'History file ({configuration.options.history_file}) not found.')
+        else:
+            read_beoordelingen_from_files(configuration.options.history_file, configuration.storage)
+    def process(self, configuration: AAPAconfiguration):
         def must_process(options: AAPAoptions)->bool:
+<<<<<<< HEAD
+            if any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.NEW, AAPAaction.REPORT]]) or\
+                options.history_file:
+                return True
+            return False
+        try:
+            if AAPAaction.INFO in configuration.options.actions:
+                self.__report_info(configuration.options)
+            if configuration.options.diff_file:
+                self.__create_diff_file(configuration)
+            if not must_process(configuration.options):
+                return
+            if AAPAaction.SCAN in configuration.actions or AAPAaction.FULL in configuration.actions:
+                process_directory(configuration.root, configuration.storage, configuration.forms_directory, preview=configuration.preview)
+            if configuration.options.history_file:
+                self.__read_history_file(configuration)
+            if AAPAaction.MAIL in configuration.actions or AAPAaction.FULL in configuration.actions:
+                process_graded(configuration.storage, preview=configuration.preview)
+            if AAPAaction.REPORT in configuration.actions:
+                report_aanvragen_XLS(configuration.storage, path_with_suffix(configuration.options.filename, '.xlsx'))
+        except Exception as E:
+            logError(f'Fout bij processing: {E}')
+
+class AAPA:
+    def __init__(self, options: AAPAoptions):
+        self.configuration = AAPAconfiguration(options)
+    def process(self):
+        self.configuration.initialize()        
+        with Preview(self.configuration.preview, self.configuration.storage, 'main'):
+            AAPAprocessor().process(self.configuration)
+=======
             return any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.NEW, AAPAaction.REPORT]]) or\
                 options.diff_file or options.history_file
         def must_process_action(options: AAPAoptions, action: AAPAaction):
@@ -119,14 +156,15 @@ class AAPA:
                     report_aanvragen_XLS(self.storage, path_with_suffix(self.options.filename, '.xlsx'))
             except Exception as E:
                 logError(f'Fout bij processing: {E}')
+>>>>>>> 8439b7bf1804d666078abce5fe1b065f148a49d3
         logInfo('Ready.')
 
 if __name__=='__main__':
     print(banner())
     init_logging(LOGFILENAME)
-    aapa = AAPA(get_arguments())
     logInfo('+++ AAPA started +++')
-    logInfo(f'COMMAND LINE OPTIONS:\n{report_options(aapa.options)}')
+    aapa = AAPA(get_arguments())
+    logInfo(f'COMMAND LINE OPTIONS:\n{report_options(aapa.configuration.options)}')
     aapa.process() 
     logInfo('+++ AAPA stopped +++\n')
 
