@@ -3,7 +3,7 @@ import html
 from pathlib import Path
 from data.classes import AanvraagInfo, FileType
 from general.fileutil import summary_string
-from general.log import logPrint
+from general.log import log_print
 from process.aanvraag_processor import AanvraagProcessor
 
 from process.importing.import_data import PDFaanvraagReader
@@ -49,16 +49,16 @@ class DifferenceProcessor(AanvraagProcessor):
         if (previous_aanvraag := self.find_previous_version(aanvraag)) is not None:
             self.create_difference(previous_aanvraag, aanvraag, output_directory, preview=preview)
         else:
-            logPrint(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
+            log_print(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
     def process_student(self, studnr, output_directory, preview = False):
         if (student := self.storage.read_student(studnr)) is None:
-            logPrint(f'Student {studnr} niet bekend.')
+            log_print(f'Student {studnr} niet bekend.')
             return
         if (aanvragen := self.storage.find_aanvragen_for_student(student)) is None:
-            logPrint(f'Geen aanvragen gevonden voor student {student}.')
+            log_print(f'Geen aanvragen gevonden voor student {student}.')
             return
         if len(aanvragen) <= 1:
-            logPrint(f'Geen oudere versies gevonden voor student {student}.')
+            log_print(f'Geen oudere versies gevonden voor student {student}.')
             return
         aanvragen.sort(key=lambda a: a.timestamp, reverse=True)
         self.create_difference(aanvragen[1], aanvragen[0], output_directory=output_directory, preview=preview)

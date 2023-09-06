@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from data.classes import AanvraagInfo, FileInfo, FileType
-from general.log import logPrint
+from general.log import log_print
 from process.read_grade.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
 from data.storage import AAPStorage
 
@@ -33,6 +33,6 @@ class BeoordelingenFromWordDocument(BeoordelingenProcessor):
         return f'kan beoordeling niet lezen: "{grade}" {docpath}...{comment}'
 
 def read_beoordelingen_from_files(storage: AAPStorage, filter_func = None, preview=False):
-    logPrint('--- Verwerken beoordeelde formulieren...')
+    log_print('--- Verwerken beoordeelde formulieren...')
     verwerk_beoordelingen(BeoordelingenFromWordDocument(storage), storage=storage, filter_func = filter_func, preview=preview)
-    logPrint('--- Einde verwerken beoordeelde formulieren.')
+    log_print('--- Einde verwerken beoordeelde formulieren.')

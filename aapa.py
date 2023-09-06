@@ -1,8 +1,9 @@
+from datetime import datetime
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from general.fileutil import from_main_path, path_with_suffix
-from general.log import init_logging, logError, logInfo, logWarning
+from general.log import init_logging, log_error, log_info, log_print, log_warning
 from general.preview import Preview
 from process.create_forms.difference import DifferenceProcessor
 from process.read_grade.history import read_beoordelingen_from_files
@@ -30,9 +31,9 @@ class AAPAconfiguration:
         if options.config_file:
             config_file = path_with_suffix(options.config_file, '.ini')
             if not Path(config_file).is_file():
-                logError(f'Alternatieve configuratiefile ({config_file}) niet gevonden.')
+                log_error(f'Alternatieve configuratiefile ({config_file}) niet gevonden.')
             config.read(config_file)
-            logInfo(f'Alternative configuratie file {config_file} geladen.')
+            log_info(f'Alternative configuratie file {config_file} geladen.')
         self.options = options
         self.actions = options.actions
         self.preview = options.preview
@@ -88,7 +89,7 @@ class AAPAprocessor:
         DP.process_student(configuration.options.diff_file, configuration.forms_directory)
     def __read_history_file(self, configuration: AAPAconfiguration):
         if not Path(configuration.options.history_file).is_file():
-            logError(f'History file ({configuration.options.history_file}) not found.')
+            log_error(f'History file ({configuration.options.history_file}) not found.')
         else:
             read_beoordelingen_from_files(configuration.options.history_file, configuration.storage)
     def process(self, configuration: AAPAconfiguration):
@@ -113,24 +114,32 @@ class AAPAprocessor:
             if AAPAaction.REPORT in configuration.actions:
                 report_aanvragen_XLS(configuration.storage, path_with_suffix(configuration.options.filename, '.xlsx'))
         except Exception as E:
-            logError(f'Fout bij processing: {E}')
+            log_error(f'Fout bij processing: {E}')
+
+class AAPARunnerContext:
+    def __init__(self, options: AAPAoptions):
+        self.options = options
+    def __enter__(self):
+        log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.options)}')
+        log_print(banner())
+        log_info(f'+++ AAPA started +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}', to_console=True)
+        return self
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        log_info('Ready.')
+        log_info(f'+++ AAPA stopped +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}\n', to_console=True)
 
 class AAPA:
     def __init__(self, options: AAPAoptions):
         self.configuration = AAPAconfiguration(options)
     def process(self):
         self.configuration.initialize()        
-        with Preview(self.configuration.preview, self.configuration.storage, 'main'):
-            AAPAprocessor().process(self.configuration)
-        logInfo('Ready.')
+        with AAPARunnerContext(self.configuration.options):
+            with Preview(self.configuration.preview, self.configuration.storage, 'main'):
+                AAPAprocessor().process(self.configuration)
 
 if __name__=='__main__':
-    print(banner())
     init_logging(LOGFILENAME)
-    logInfo('+++ AAPA started +++')
     aapa = AAPA(get_arguments())
-    logInfo(f'COMMAND LINE OPTIONS:\n{report_options(aapa.configuration.options)}')
     aapa.process() 
-    logInfo('+++ AAPA stopped +++\n')
 
 #TODO testing results of rootify on different accounts

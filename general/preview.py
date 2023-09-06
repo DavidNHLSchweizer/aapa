@@ -1,4 +1,5 @@
 from data.storage import AAPStorage
+from general.log import console_info
 
 class Preview:
     # preview context manager, may be nested
@@ -10,7 +11,7 @@ class Preview:
     def __enter__(self):
         if self.preview and Preview.level == 0:
             self.storage.database.disable_commit()
-            print('*** PREVIEW ONLY ***')
+            console_info('*** PREVIEW ONLY ***')
         Preview.level += 1
         return self
     def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -18,6 +19,6 @@ class Preview:
         if self.preview and Preview.level == 0:
             self.storage.database.rollback()
             self.storage.database.enable_commit()
-            print('*** end PREVIEW ONLY ***')
+            console_info('*** end  PREVIEW ***')
 
     

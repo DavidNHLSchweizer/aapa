@@ -4,30 +4,26 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
-from aapa import AAPA, LOGFILENAME
-from general.args import AAPAaction, AAPAoptions, report_options
-from general.log import init_logging, logInfo, pop_console, printFuncs, push_console
-from general.versie import banner
+from aapa import AAPA, LOGFILENAME, AAPARunnerContext
+from general.args import AAPAaction, AAPAoptions
+from general.log import init_logging, pop_console, push_console
 from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
 from tui.common.required import Required
-from tui.common.terminal import TerminalScreen, console_error, console_print, console_warning, init_console, show_console
+from tui.common.terminal import TerminalScreen
+from tui.terminal_console import init_console, show_console
 import logging
 import tkinter.filedialog as tkifd
 
-# global_terminal: TerminalScreen = None
+from tui.terminal_console import TerminalConsoleFactory
+
 def AAPArun_script(options: AAPAoptions)->bool:
     init_logging(LOGFILENAME)
-    logging.debug(f'DIT IS DE LOGFILE: {LOGFILENAME}')
     try:
-        push_console(printFuncs(console_print, console_warning, console_error))
-        console_print(banner())
-        logInfo('+++ AAPA started +++')
-        aapa = AAPA(options)
-        logInfo(f'COMMAND LINE OPTIONS:\n{report_options(aapa.configuration.options)}')
-        aapa.process() 
-        logInfo('+++ AAPA stopped +++\n')
+        push_console(TerminalConsoleFactory().create())
+        aapa_script = AAPA(options)
+        aapa_script.process() 
     finally:
         pop_console()
     return True
@@ -210,6 +206,6 @@ class AAPAApp(App):
             widget.styles.color = 'white'
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='terminal.log', filemode='w', format='%(module)s-%(funcName)s-%(lineno)d: %(message)s', level=logging.DEBUG)
+    logging.basicConfig(filename='test.log', filemode='w', format='%(module)s-%(funcName)s-%(lineno)d: %(message)s', level=logging.DEBUG)
     app = AAPAApp()
     app.run()

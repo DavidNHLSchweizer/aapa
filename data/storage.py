@@ -5,7 +5,7 @@ from database.database import Database
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import logError, logInfo
+from general.log import log_error, log_info
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -223,7 +223,7 @@ class AAPStorage:
         if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
             info = self.crud_files.read(row[0]["filename"])
-            logInfo(f'success: {info}')
+            log_info(f'success: {info}')
             return info
         return None
     def __load_fileinfos(self, aanvraag_id: int, filetypes: list[FileType])->list[FileInfo]:
@@ -233,7 +233,7 @@ class AAPStorage:
             filenames=[]
             filenames.extend([row["filename"] for row in rows])
             result = self.crud_files.read_all(filenames)
-            logInfo(f'success: {[str(info) for info in result]}')
+            log_info(f'success: {[str(info) for info in result]}')
             return result
         return None
     def find_fileinfos(self, aanvraag_id: int)->FileInfos:
@@ -256,14 +256,14 @@ class AAPStorage:
     def find_fileinfo_for_digest(self, digest)->FileInfo:
         if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
             info = self.crud_files.read(row[0]["filename"])
-            logInfo(f'success: {info}')
+            log_info(f'success: {info}')
             return info
     def find_all_fileinfos(self):
         result = []
         for row in self.database._execute_sql_command('select filename from FILES', [], True):
             info = self.read_fileinfo(decode_path(row['filename']))
             if not info:
-                logError(f"problem with reading filename: {row['filename']}")
+                log_error(f"problem with reading filename: {row['filename']}")
             else:
                 result.append(info)
         return result

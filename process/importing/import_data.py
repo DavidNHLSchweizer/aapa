@@ -8,7 +8,7 @@ from general.fileutil import summary_string
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
-from general.log import logError, logPrint, logWarning, logInfo
+from general.log import log_error, log_print, log_warning, log_info
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import IntValueConvertor, config
 
@@ -205,32 +205,32 @@ class AanvraagDataImporter(AanvraagProcessor):
     def __ask_titel(self, aanvraag: AanvraagInfo)->str:
         return tkinter.simpledialog.askstring(f'Titel', f'Titel voor {str(aanvraag)}') 
     def process(self, filename: str, preview=False)->AanvraagInfo:
-        logPrint(f'Lezen {filename}')
+        log_print(f'Lezen {filename}')
         if (stored := self.is_copy_of_known_file(filename)) is not None:
-            logWarning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=False)
+            log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=False)
             return None
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.AANVRAAG_PDF)
             if self.is_duplicate(fileinfo):            
-                logWarning(f'Duplikaat: {summary_string(filename)}.\nal in database: {str(aanvraag)}')
+                log_warning(f'Duplikaat: {summary_string(filename)}.\nal in database: {str(aanvraag)}')
                 return None
             if not is_valid_email(aanvraag.student.email):
                 new_email = try_extract_email(aanvraag.student.email, True)
                 if new_email:
-                    logWarning(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
+                    log_warning(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
                     aanvraag.student.email = new_email
                 else:
-                    logError(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
+                    log_error(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
                     return None
             if not aanvraag.titel:
                 aanvraag.titel=self.__ask_titel(aanvraag)
-            logInfo(f'--- Start storing imported data from PDF {summary_string(filename)}')
+            log_info(f'--- Start storing imported data from PDF {summary_string(filename)}')
             if not preview:
                 self.storage.create_aanvraag(aanvraag, fileinfo) 
                 self.aanvragen.append(aanvraag)
                 self.storage.commit()
-                logInfo(f'--- Succes storing imported data from PDF {summary_string(filename)}')
-            logPrint(f'\t{str(aanvraag)}')
+                log_info(f'--- Succes storing imported data from PDF {summary_string(filename)}')
+            log_print(f'\t{str(aanvraag)}')
             return aanvraag
         return None
     def store_invalid(self, filename):
@@ -278,7 +278,7 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
                 return ImportResult.ERROR
         return result
     except PDFReaderException as E:
-        logError(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
+        log_error(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
         importer.store_invalid(filename)
         return ImportResult.ERROR
 
@@ -308,9 +308,9 @@ def import_directory(directory: str, storage: AAPStorage, recursive = True, prev
         return '**/*.pdf' if recursive else '*.pdf'
     min_id = storage.max_aanvraag_id() + 1
     if not Path(directory).is_dir():
-        logWarning(f'Map {directory} bestaat niet. Afbreken.')
+        log_warning(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
-    logPrint(f'Start import van map  {directory}...')
+    log_info(f'Start import van map  {directory}...', to_console=True)
     if not preview:
         storage.add_file_root(str(directory))
     importer = AanvraagDataImporter(storage)
@@ -320,6 +320,6 @@ def import_directory(directory: str, storage: AAPStorage, recursive = True, prev
         file_results[file] = import_result
     max_id = storage.max_aanvraag_id()    
     report_imports(file_results, importer.filtered_aanvragen(lambda x: x.id >= min_id), preview=preview)
-    logPrint(f'...Import afgerond')
+    log_info(f'...Import afgerond', to_console=True)
     return (min_id, max_id)
         

@@ -6,7 +6,7 @@ from pythoncom import CoInitialize
 
 class OutlookApplication(Singleton):
     def __init__(self):
-        CoInitialize() HIERIHIHIERHIH
+        CoInitialize() #TODO Check this HIERIHIHIERHIH
         self.outlook= win32.dynamic.Dispatch('outlook.application')
         # self.outlook.visible = 0
 
