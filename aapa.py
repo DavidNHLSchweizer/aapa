@@ -93,7 +93,6 @@ class AAPAprocessor:
             read_beoordelingen_from_files(configuration.options.history_file, configuration.storage)
     def process(self, configuration: AAPAconfiguration):
         def must_process(options: AAPAoptions)->bool:
-<<<<<<< HEAD
             if any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.NEW, AAPAaction.REPORT]]) or\
                 options.history_file:
                 return True
@@ -123,40 +122,6 @@ class AAPA:
         self.configuration.initialize()        
         with Preview(self.configuration.preview, self.configuration.storage, 'main'):
             AAPAprocessor().process(self.configuration)
-=======
-            return any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.NEW, AAPAaction.REPORT]]) or\
-                options.diff_file or options.history_file
-        def must_process_action(options: AAPAoptions, action: AAPAaction):
-            if action in options.actions:
-                return True
-            match action:
-                case AAPAaction.SCAN | AAPAaction.MAIL: return AAPAaction.FULL in self.actions
-                case _: return False
-        def must_process_history(options):
-            return self.options.history_file is not None
-        
-        if not must_process(self.options):
-            return            
-        self.__init_process()
-        with Preview(self.preview, self.storage, 'main'):
-            try:
-                if self.options.diff_file:
-                    DP = DifferenceProcessor(self.storage)
-                    DP.process_student(self.options.diff_file, self.forms_directory)
-                if must_process_action(self.options, AAPAaction.SCAN):
-                    process_directory(self.root, self.storage, self.forms_directory, preview=self.preview)
-                if must_process_history(self.options):
-                    if not Path(self.options.history_file).is_file():
-                        logError(f'History file ({self.options.history_file}) not found.')
-                    else:
-                        read_beoordelingen_from_files(self.options.history_file, self.storage)
-                if must_process_action(self.options, AAPAaction.MAIL):
-                    process_graded(self.storage, preview=self.preview)
-                if must_process_action(self.options, AAPAaction.REPORT):
-                    report_aanvragen_XLS(self.storage, path_with_suffix(self.options.filename, '.xlsx'))
-            except Exception as E:
-                logError(f'Fout bij processing: {E}')
->>>>>>> 8439b7bf1804d666078abce5fe1b065f148a49d3
         logInfo('Ready.')
 
 if __name__=='__main__':
