@@ -1,5 +1,5 @@
 from general.fileutil import from_main_path
-from general.log import log_print
+from general.log import log_info
 from general.preview import Preview
 from process.create_forms.beoordeling_formulieren import create_beoordelingen_files
 from process.importing.import_data import import_directory
@@ -15,9 +15,9 @@ def get_template_doc():
 
 def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):
-        (min_id, max_id) = import_directory(input_directory, storage, recursive, preview=preview)
+        (min_id, max_id) = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
         geimporteerd = 'importeren' if preview else 'geimporteerd'
-        log_print(f'### {max(max_id-min_id+1,0)} bestand(en) {geimporteerd} van {input_directory}.')
+        log_info(f'### {max(max_id-min_id+1,0)} bestand(en) {geimporteerd} van {input_directory}.', to_console=True)
         n = create_beoordelingen_files(storage, get_template_doc(), output_directory, preview=preview)
         aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-        log_print(f'### {n} beoordelingsformulier(en) {aangemaakt} in {output_directory}')
+        log_info(f'### {n} beoordelingsformulier(en) {aangemaakt} in {output_directory}', to_console=True)

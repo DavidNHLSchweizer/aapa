@@ -1,6 +1,6 @@
 from enum import Enum
-from pathlib import Path
 import pandas as pd
+from general.log import log_print
 from process.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagInfo
 from data.storage import AAPStorage
@@ -60,7 +60,7 @@ class AanvraagDataXLS:
     def number_rows(self):
         return self.sheet.max_row
     def close(self):
-        print(f'Rapport  ({self.number_rows()-1} aanvragen) geschreven naar {self.xls_filename}.')
+        log_print(f'Rapport  ({self.number_rows()-1} aanvragen) geschreven naar {self.xls_filename}.')
         self.writer.close()
 
 class AanvraagDataXLSReporter(AanvraagProcessor):
@@ -72,7 +72,7 @@ class AanvraagDataXLSReporter(AanvraagProcessor):
 class AanvraagDataConsoleReporter(AanvraagProcessor):
     def process(self, filter_func=None):
         for aanvraag in self.filtered_aanvragen(filter_func):
-            print(aanvraag)
+            log_print(aanvraag)
 
 def report_aanvragen_XLS(storage: AAPStorage, xls_filename: str, filter_func = None):
     AanvraagDataXLSReporter(storage).process(xls_filename, filter_func)

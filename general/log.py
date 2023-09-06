@@ -98,10 +98,11 @@ def log_print(msg: str):
     console_print(msg)
 
 def console_warning(msg: str):
+    print_str = f'WAARSCHUWING: {msg}'
     if _console:
-        _console.warning(msg)
+        _console.warning(print_str)
     else:
-        print(f'WARNING: {msg}')
+        print(print_str)
 
 def log_warning(msg: str, to_console=True):
     if _logger:
@@ -109,11 +110,12 @@ def log_warning(msg: str, to_console=True):
     if to_console:
         console_warning(msg)
 
-def console_error(msg: str):    
+def console_error(msg: str):
+    print_str = f'FOUT: {msg}'
     if _console:
-        _console.error(msg)
+        _console.error(print_str)
     else:
-        print(f'ERROR: {msg}')
+        print(print_str)
 
 def log_error(msg: str):
     if _logger:

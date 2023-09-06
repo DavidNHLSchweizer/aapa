@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-from datetime import datetime
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
-from aapa import AAPA, LOGFILENAME, AAPARunnerContext
+from aapa import AAPA
 from general.args import AAPAaction, AAPAoptions
-from general.log import init_logging, pop_console, push_console
+from general.log import pop_console, push_console
 from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
@@ -19,7 +18,6 @@ import tkinter.filedialog as tkifd
 from tui.terminal_console import TerminalConsoleFactory
 
 def AAPArun_script(options: AAPAoptions)->bool:
-    init_logging(LOGFILENAME)
     try:
         push_console(TerminalConsoleFactory().create())
         aapa_script = AAPA(options)
@@ -139,7 +137,7 @@ class AAPAApp(App):
     BINDINGS = [ 
                 Binding('ctrl-c', 'einde', 'Einde programma', priority=True),
                 Binding('ctrl+s', 'scan', 'Scan nieuwe aanvragen', priority = True),
-                Binding('ctrl+m', 'mail', 'Zet mails klaar', priority = True),         
+                Binding('ctrl+o', 'mail', 'Zet mails klaar', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
                 Binding('ctrl+p', 'toggle_preview', 'Toggle preview mode', priority=True),
                 Binding('ctrl+r', 'edit_root', 'Bewerk root directory', priority = True, show=False),
                 Binding('ctrl+f', 'edit_forms', 'Bewerk forms directory', priority = True, show=False),

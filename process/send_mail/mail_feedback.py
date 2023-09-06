@@ -65,7 +65,7 @@ class FeedbackMailsCreator(AanvraagProcessor):
                 continue            
             filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
             if preview:
-                print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
+                log_print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
             else:
                 self.mailer.draft_mail(aanvraag, filename)
                 log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')

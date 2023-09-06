@@ -5,7 +5,7 @@ from process.aanvraag_processor import AanvraagProcessor
 from general.fileutil import path_with_suffix
 from process.read_grade.word_processor import DocxWordDocument
 from data.storage import AAPStorage
-from general.log import log_error, log_info, log_print
+from general.log import log_error, log_info, log_print, log_warning
 
 class BeoordelingError(Exception):pass
 
@@ -90,14 +90,14 @@ class BeoordelingenProcessor(AanvraagProcessor):
             if not (grade := self.reader.grade(aanvraag)):
                 message = self.get_empty_grade_error_message(grade, docpath, aanvraagcomment)
                 if message:
-                    log_print(message)
+                    log_warning(message)
             elif (beoordeling := self.__check_grade(grade)) in [AanvraagBeoordeling.VOLDOENDE,AanvraagBeoordeling.ONVOLDOENDE]:
                 log_print(f'Verwerken {aanvraag}: {beoordeling}')
                 if document.modified:
                     document.save()
                 result = self.__process_grade(aanvraag, docpath, beoordeling, preview=preview)        
             else:
-                log_print(f'{docpath}\n\tonverwachte beoordeling: "{grade}"\n\t{aanvraagcomment}')
+                log_warning(f'{docpath}\n\tonverwachte beoordeling: "{grade}"\n\t{aanvraagcomment}')
         return result
     def must_process(self, aanvraag, docpath): 
         #to be implemented by subclass

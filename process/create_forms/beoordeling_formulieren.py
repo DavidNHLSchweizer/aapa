@@ -1,10 +1,11 @@
 from pathlib import Path
 import shutil
+from typing import Iterable
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
-from general.fileutil import created_directory, file_exists, summary_string
-from general.log import log_error, log_info, log_print
+from general.fileutil import file_exists, summary_string
+from general.log import log_error, log_info, log_print, log_warning
 from mailmerge import MailMerge
 
 from process.create_forms.difference import DifferenceProcessor
@@ -41,27 +42,33 @@ class BeoordelingenMailMerger:
     def __copy_aanvraag_bestand(self, aanvraag: AanvraagInfo, preview = False):
         aanvraag_filename = aanvraag.aanvraag_source_file_name()
         copy_filename = self.output_directory.joinpath(f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}.pdf')
-        if not preview:
-            shutil.copy2(aanvraag_filename, copy_filename)
-        kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
-        log_print(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
-        aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
+        if aanvraag_filename == copy_filename:
+            log_warning(f'Aanvraagbestand {summary_string(aanvraag_filename)}\n\tstaat in map voor beoordelingsformulieren. Wordt niet gekopieerd', to_console=True)
+        else:
+            if not preview:
+                shutil.copy2(aanvraag_filename, copy_filename)
+            kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
+            log_print(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
+            aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
     def __create_diff_file(self, aanvraag: AanvraagInfo, preview=False):
         self.diff_processor.process_aanvraag(aanvraag, self.output_directory, preview=preview)
     def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
+        def check_exist_warning(filenames: Iterable[str])->bool:
+            for filename in filenames:
+                if filename is not None and file_exists(filename):
+                    log_warning(f'Beoordelingsformulier {summary_string(filename)}\n\tis al aanwezig. Wordt overschreven.')
+                    return
         def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
-            if not preview:
-                if aanvraag.status in [AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING]:
-                    filename = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
-                    if filename != None:
-                        return not file_exists(filename)
-                    else:
-                        return True
+            if aanvraag.status in [AanvraagStatus.INITIAL]:
+                generated_filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
+                if preview:
+                    check_exist_warning([generated_filename])
+                    return True
                 else:
-                    return False
+                    check_exist_warning([aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX), generated_filename])
+                    return True
             else:
-                filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
-                return aanvraag.status in [AanvraagStatus.INITIAL,AanvraagStatus.NEEDS_GRADING] and not file_exists(filename)
+                return False
         result = 0
         if len(aanvragen) > 0 and not self.output_directory.is_dir() and not preview:
             self.output_directory.mkdir()
@@ -105,10 +112,6 @@ class BeoordelingenFileCreator(AanvraagProcessor):
 def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:
     log_info('--- Maken beoordelingsformulieren en kopiëren aanvragen ...', to_console=True)
     log_info(f'Formulieren worden aangemaakt in {output_directory}', to_console=True)
-    if not preview:
-        if created_directory(output_directory):
-            log_print(f'Map {output_directory} aangemaakt.')
-        storage.add_file_root(str(output_directory))
     file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
     result = file_creator.process(filter_func, preview=preview)
     log_info('--- Einde maken beoordelingsformulieren.', to_console=True)

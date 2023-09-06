@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from general.fileutil import path_with_suffix
 from docx import Document
 import docx2pdf 
+from pythoncom import CoInitialize
 
 class WordReaderException(Exception):pass
 
@@ -13,6 +14,7 @@ class Word2PdfConvertor:
 class DocxWordDocument:
     def __init__(self, doc_path=None):
         self.doc_path = doc_path
+        CoInitialize() #needed for TUI interface, else async or multithreading problems
         self._document = Document(doc_path)
         self.pdf_convertor = Word2PdfConvertor()
         self._modified = False

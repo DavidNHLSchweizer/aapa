@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 import tkinter.filedialog as tkifd
-import datetime
 from enum import Enum, auto
 from rich.text import Text
 from typing import Iterable, Protocol
@@ -71,7 +69,6 @@ class TerminalScreen(Screen):
         return self.query_one(TerminalForm).terminal
     def __script_wrapper(self, script: RunScript, **kwdargs):
         result = script(**kwdargs)
-        #self.post_message(TerminalWrite(f'READY {result}  {datetime.datetime.strftime(datetime.datetime.now(), "%d-%m-%Y, %H:%M:%S")}'))
     @work(exclusive=True, thread=True)
     async def run(self, script: RunScript, **kwdargs)->bool:
         try:
@@ -90,10 +87,10 @@ class TerminalScreen(Screen):
             self.write_line(line)
     def info(self, message: str):
         self.write_line(Text(message, self._info_color))
-    def warning(self, message: str, warning_str= 'WARNING'):
-        self.write_line(Text(f'{warning_str}: {message}', self._warning_color))
-    def error(self, message: str, error_str= 'ERROR'):
-        self.write_line(Text(f'{error_str}: {message}', self._error_color))
+    def warning(self, message: str):
+        self.write_line(Text(message, self._warning_color))
+    def error(self, message: str):
+        self.write_line(Text(message, self._error_color))
     def close(self):
         if not self._running:
             self.dismiss(True)

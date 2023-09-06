@@ -23,10 +23,12 @@ class BeoordelingenFromWordDocument(BeoordelingenProcessor):
     def __init__(self, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
         super().__init__(WordDocumentGradeReader(), storage, aanvragen)
     def file_is_modified(self, aanvraag: AanvraagInfo, docpath):        
+        registered_timestamp = aanvraag.files.get_timestamp(FileType.TO_BE_GRADED_DOCX)
+        current_timestamp = FileInfo.get_timestamp(docpath)
         registered_digest  = aanvraag.files.get_digest(FileType.TO_BE_GRADED_DOCX)
-        current_version = FileInfo(docpath, filetype=FileType.TO_BE_GRADED_DOCX)
-        return current_version.digest != registered_digest
-        # return current_version.timestamp != registered_version or current_version.digest != registered_digest
+        current_digest = FileInfo.get_digest(docpath) 
+        return current_timestamp != registered_timestamp or current_digest != registered_digest
+        #TODO: Er lijkt wat mis te gaan bij het opslaan van de digest, maar misschien valt dat mee. Gevolgen lijken mee te vallen.
     def must_process(self, aanvraag, docpath): 
         return self.file_is_modified(aanvraag, docpath)
     def get_empty_grade_error_message(self, grade, docpath, comment): 

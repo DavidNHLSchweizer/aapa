@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterable
-from textual.containers import Horizontal, Vertical
 from textual.app import ComposeResult
-from textual.widgets import Button, Log, Static
+from textual.widgets import Button, Static
 
 @dataclass
 class ButtonDef:

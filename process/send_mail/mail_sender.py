@@ -1,14 +1,12 @@
 from __future__ import annotations
 from enum import Enum
 import win32com.client as win32
-from general.singleton import Singleton
 from pythoncom import CoInitialize
 
-class OutlookApplication(Singleton):
+class OutlookApplication:
     def __init__(self):
-        CoInitialize() #TODO Check this HIERIHIHIERHIH
+        CoInitialize() #needed for TUI interface, else async or multithreading problems
         self.outlook= win32.dynamic.Dispatch('outlook.application')
-        # self.outlook.visible = 0
 
 olFormatPlain	 = 1
 olFormatHTML	 = 2
@@ -38,7 +36,7 @@ olSave = 0
 olFolderDrafts = 16
 class OutlookMail:
     def __init__(self):
-        self._outlook_app = OutlookApplication()        
+        self._outlook_app = OutlookApplication()  
     @property
     def outlook(self):
         return self._outlook_app.outlook

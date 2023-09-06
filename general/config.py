@@ -1,9 +1,7 @@
 from __future__ import annotations
 import atexit
 from configparser import ConfigParser, NoOptionError
-from pathlib import Path
-import sys
-from general.fileutil import file_exists, from_main_path, get_main_module_path
+from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
 
 class ValueConvertor:

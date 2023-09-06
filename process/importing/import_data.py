@@ -207,7 +207,7 @@ class AanvraagDataImporter(AanvraagProcessor):
     def process(self, filename: str, preview=False)->AanvraagInfo:
         log_print(f'Lezen {filename}')
         if (stored := self.is_copy_of_known_file(filename)) is not None:
-            log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=False)
+            log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}\n\tWordt niet opnieuw gelezen.', to_console=True)
             return None
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest='', filetype=FileType.AANVRAAG_PDF)
@@ -293,29 +293,31 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
             case _: return '???'
     def file_str(file,result):
         return f'{summary_string(file)} [{import_status_str(result)}]'
-    print('Rapportage import:')
+    log_info('Rapportage import:', to_console=True)
     if verbose:
-        print('\t---Gelezen bestand(en):---')
-        print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
-    print('\t--- Nieuwe aanvragen --- :')
-    print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
+        log_info('\t---Gelezen bestand(en):---')
+        log_print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
+    log_info('\t--- Nieuwe aanvragen --- :')
+    log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
     gelezen = 'te lezen' if preview else 'gelezen'
-    print(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.')
+    log_info(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.', to_console=True)
 
 
-def import_directory(directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
+def import_directory(directory: str, output_directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
     min_id = storage.max_aanvraag_id() + 1
     if not Path(directory).is_dir():
-        log_warning(f'Map {directory} bestaat niet. Afbreken.')
+        log_error(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
     log_info(f'Start import van map  {directory}...', to_console=True)
-    if not preview:
-        storage.add_file_root(str(directory))
     importer = AanvraagDataImporter(storage)
     file_results = {}
+    if Path(output_directory).is_relative_to(directory):
+        log_warning(f'Directory {summary_string(output_directory)}\n\tis onderdeel van {summary_string(directory)}.\n\tWordt overgeslagen.', to_console=True)           
     for file in Path(directory).glob(_get_pattern(recursive)):
+        if file.parent == output_directory:
+            continue
         import_result = _import_aanvraag(file, importer)
         file_results[file] = import_result
     max_id = storage.max_aanvraag_id()    

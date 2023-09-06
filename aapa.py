@@ -2,14 +2,14 @@ from datetime import datetime
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
-from general.fileutil import from_main_path, path_with_suffix
-from general.log import init_logging, log_error, log_info, log_print, log_warning
+from general.fileutil import created_directory, from_main_path, path_with_suffix
+from general.log import init_logging, log_error, log_info, log_print
 from general.preview import Preview
 from process.create_forms.difference import DifferenceProcessor
 from process.read_grade.history import read_beoordelingen_from_files
 from process.graded_requests import process_graded
 from general.config import config
-from data.report_data import report_aanvragen_XLS, report_aanvragen_console
+from data.report_data import report_aanvragen_XLS
 from process.initialize import initialize_database, initialize_storage
 from process.scan import process_directory
 from general.args import AAPAaction, AAPAoptions, get_arguments, report_options
@@ -49,9 +49,20 @@ class AAPAconfiguration:
         recreate = (AAPAaction.NEW in self.actions and (not Path(database).is_file() or verifyRecreate()))
         self.database = initialize_database(database, recreate)
         self.storage  = initialize_storage(self.database)
+    def __prepare_storage_roots(self):
+        # initialize file roots BEFORE processing to cover for cases where aanvraagformulieren 
+        # (stored in the forms_directory) are created with the wrong root
+        # this will cause problems later on
+        if not self.preview:
+            self.storage.add_file_root(str(self.root))
+        if created_directory(self.forms_directory):
+            log_print(f'Map {self.forms_directory} aangemaakt.')
+        self.storage.add_file_root(str(self.forms_directory))
     def __initialize_directories(self):        
         self.root = self.__get_directory(self.options.root_directory, 'root','Root directory voor aanvragen', True)
+
         self.forms_directory = self.__get_directory(self.options.forms_directory, 'forms', 'Directory voor beoordelingsformulieren')
+        self.__prepare_storage_roots()
     def __get_directory(self, option_value, config_name, title, mustexist=False):
         config_value = config.get('configuration', config_name)
         if (option_value is not None and not option_value) or (not config_value):
@@ -82,8 +93,8 @@ class AAPAprocessor:
     def __report_info(self, options):
         def tabify(s):
             return '\t' + s.replace('\n', '\n\t')
-        print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
-        print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
+        log_print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
+        log_print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
     def __create_diff_file(self, configuration: AAPAconfiguration):
         DP = DifferenceProcessor(configuration.storage)
         DP.process_student(configuration.options.diff_file, configuration.forms_directory)

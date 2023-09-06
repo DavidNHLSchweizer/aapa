@@ -43,7 +43,7 @@ class DifferenceProcessor(AanvraagProcessor):
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)
             aangemaakt = 'aan te maken' if preview else 'aangemaakt'
             vergeleken = 'te vergelijken' if preview else 'vergeleken'
-            print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {aangemaakt}.\n\tNieuwste versie "{summary_string(version2)}" {vergeleken} met\n\tvorige versie "{summary_string(version1)}"')
+            log_print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {aangemaakt}.\n\tNieuwste versie "{summary_string(version2)}" {vergeleken} met\n\tvorige versie "{summary_string(version1)}"')
             aanvraag.files.set_filename(FileType.DIFFERENCE_HTML, difference_filename)        
     def process_aanvraag(self, aanvraag: AanvraagInfo, output_directory, preview = False):
         if (previous_aanvraag := self.find_previous_version(aanvraag)) is not None:

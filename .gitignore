@@ -6,7 +6,11 @@
 *.htm
 *.html
 *.db
+*.sqbpro
 *.bak
+*.ini
+!aapa-config.ini
+!ini/*.ini
 !template*.docx
 !template*.htm
 ?.py
@@ -19,6 +23,8 @@ t?.py
 /temp/**
 /temp2/**
 /DEMO/**
+/backup
+/logs
 *.pyc
 aapa stroomschema.drawio
 batchtimer.py
