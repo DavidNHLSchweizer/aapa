@@ -1,6 +1,10 @@
+from asyncio import sleep
 from dataclasses import dataclass
+import random
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.widget import Widget
+from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPA
@@ -141,6 +145,8 @@ class AAPAApp(App):
     CSS_PATH = ['aapa.tcss']
     def __init__(self, **kwdargs):
         self.terminal_active = False
+        self.barbie = False
+        self.barbie_oldcolors = {}
         super().__init__(**kwdargs)
     def compose(self) -> ComposeResult:
         yield Header()
@@ -203,12 +209,21 @@ class AAPAApp(App):
         self.query_one(AapaConfiguration).edit_database()
     def action_einde(self):
         self.exit()
+    def _animate_widget_attribute(self, widget: Widget, attribute, target, duration):
+        result = getattr(widget.styles, attribute, None)
+        widget.styles.animate(attribute, target, duration = duration*(1+ random.random()))
+        return result
     def action_barbie(self):
         BARBIE = '#e0218a'
+        self.barbie = not self.barbie
         for widget in self.query():
-            widget.styles.background=BARBIE
-            widget.styles.color = 'white'
+            if not isinstance(widget, Screen):
+                oldbackground = self._animate_widget_attribute(widget, 'background', BARBIE if self.barbie else self.barbie_oldcolors[widget]['background'], 3.0)
+                oldcolor = self._animate_widget_attribute(widget, 'color', 'white' if self.barbie else self.barbie_oldcolors[widget]['color'], 4.0)
+                self.barbie_oldcolors[widget] = {'background': oldbackground, 'color': oldcolor} 
 
+            
+            
 if __name__ == "__main__":
     logging.basicConfig(filename='test.log', filemode='w', format='%(module)s-%(funcName)s-%(lineno)d: %(message)s', level=logging.DEBUG)
     app = AAPAApp()
