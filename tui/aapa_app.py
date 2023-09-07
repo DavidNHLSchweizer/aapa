@@ -34,8 +34,9 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'database-input-button': 'Kies de database',
             'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories, maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
-            'preview_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database',
-            'preview_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid'
+            'mode_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database',
+            'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid',
+            'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',
             }
 @dataclass
 class AAPATuiParams:
@@ -100,38 +101,31 @@ class AapaConfiguration(Static):
         self.query_one('#database', LabeledInput).input.value = value.database
         
 class AapaButtons(Static):
-    DEFAULT_CSS = """
-    AapaButtons ButtonBar {
-        width: 40;
-        margin: 0 2 0 2;
-    }
-    """
     def compose(self)->ComposeResult:
         with Horizontal():
             yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan'),
                              ButtonDef('Mail', variant= 'primary', id='mail')]) 
-            yield RadioSet('preview', 'uitvoeren', id='preview')
+            with RadioSet():
+                yield RadioButton('preview', id='preview', value=True)
+                yield RadioButton('uitvoeren', id='uitvoeren')
+            yield Button('Rapport', variant = 'primary', id='report')
     def on_mount(self):
         self.query_one(ButtonBar).styles.width = 36
-        radio = self.query_one(RadioSet)
-        radio.styles.layout = 'horizontal'
-        self.query_one('#scan', Button).tooltip = ToolTips['scan']
-        self.query_one('#mail', Button).tooltip = ToolTips['mail']
-        radio.query(RadioButton)[0].value = True
-        self.query(RadioButton)[0].tooltip = ToolTips['preview_preview']
-        self.query(RadioButton)[1].tooltip = ToolTips['preview_uitvoeren']
+        for id in {'scan', 'mail', 'report'}:
+            self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
+        for id in {'preview', 'uitvoeren'}:
+            self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}']    
     def toggle(self):
         self.preview = not self.preview
     @property
     def preview(self)->bool:
-        return self.query(RadioButton)[0].value
+        return self.query_one('#preview', RadioButton).value
     @preview.setter
     def preview(self, value: bool):
-        buttons = self.query(RadioButton)
         if value: #note: this is the only way it works properly
-            buttons[0].value = True
+            self.query_one('#preview', RadioButton).value = True
         else:
-            buttons[1].value = True
+            self.query_one('#uitvoeren', RadioButton).value= True
   
 class AAPAApp(App):
     BINDINGS = [ 
@@ -167,10 +161,15 @@ class AAPAApp(App):
         match message.button.id:
             case 'scan': await self.action_scan()
             case 'mail': await self.action_mail()
+            case 'report': await self.action_report()
         message.stop()
-    async def run_AAPA(self, action: AAPAaction):            
-        options = self.params.get_options(action)
-        logging.debug(f'{options=}')
+    def _create_options(self, **kwdargs)->AAPAoptions:
+        options = self.params.get_options(kwdargs.pop('action', None))
+        options.filename = kwdargs.pop('filename', options.filename)
+        return options
+    async def run_AAPA(self, action: AAPAaction, **kwdargs):
+        options = self._create_options(action=action, **kwdargs)
+        logging.info(f'{options=}')
         if await show_console():
             self.terminal.run(AAPArun_script,options=options)                
     
@@ -178,6 +177,13 @@ class AAPAApp(App):
         await self.run_AAPA(AAPAaction.SCAN)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
+    async def action_report(self):
+        if (filename := tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
+                                           filetypes=[('*.xlsx', 'Excel bestanden'), ('*.*', 'Alle bestanden')],
+                                           initialfile=config.get('report', 'filename'),
+                                           confirmoverwrite=True)):
+            await self.run_AAPA(AAPAaction.REPORT,filename=filename)
+    
     @property 
     def params(self)->AAPATuiParams:
         result = self.query_one(AapaConfiguration).params

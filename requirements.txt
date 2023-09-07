@@ -7,3 +7,4 @@ python_docx==0.8.11
 pywin32==306
 rich==13.5.2
 textual==0.36.0
+openpyxl==3.1.2

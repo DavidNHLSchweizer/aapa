@@ -25,6 +25,9 @@ class RunScript(Protocol):
     def __call__(self, **kwdargs)->bool:
         pass
 
+ToolTips = {'save_log':'Schrijf de AAPA-uitvoer naar een tekstbestand', 
+            'close': 'Sluit dit venster',
+            }
 class TerminalForm(Static):
     def compose(self)->ComposeResult:
         yield RichLog()
@@ -33,6 +36,10 @@ class TerminalForm(Static):
     @property
     def terminal(self)->RichLog:
         return self.query_one(RichLog)
+    def on_mount(self):
+        for id in {'save_log', 'close'}:
+            self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
+
 
 class TerminalScreen(Screen):
     DEFAULT_CSS = """
