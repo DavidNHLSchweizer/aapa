@@ -8,7 +8,7 @@ from data.storage import AAPStorage
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.aanvraag_state_processor import NewAanvraagProcessor, NewAanvragenProcessor
 from process.send_mail.mail_sender import OutlookMail, OutlookMailDef
-from general.log import logError, logPrint
+from general.log import log_error, log_print
 
 
 def init_config():
@@ -76,7 +76,7 @@ class FeedbackMailCreator:
 #             print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
 #         else:
 #             self.mailer.draft_mail(aanvraag, filename)
-#             logPrint(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
+#             log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
 #             self.__update_aanvraag(aanvraag)
 #         return True
 
@@ -84,12 +84,12 @@ class FeedbackMailCreator:
 #         return self._process_aanvragen(self.filtered_aanvragen(filter_func), preview=preview)
 
 # def create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
-#     logPrint('--- Klaarzetten feedback mails...')
+#     log_print('--- Klaarzetten feedback mails...')
 #     file_creator = FeedbackMailsCreator(storage)
 #     n_mails = file_creator.process_all(filter_func, preview=preview)
 #     klaargezet = 'klaar te zetten' if preview else 'klaargezet'    
-#     logPrint(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
-#     logPrint('--- Einde klaarzetten feedback mails.')
+#     log_print(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
+#     log_print('--- Einde klaarzetten feedback mails.')
 #OBSOLETE CLASSES END
 
 class NewFeedbackMailsCreator(NewAanvraagProcessor):
@@ -105,18 +105,18 @@ class NewFeedbackMailsCreator(NewAanvraagProcessor):
             print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
         else:
             if not Path(filename).exists():
-                logError(f'Kan feedback mail voor {aanvraag} niet maken:\n\tbeoordelingbestand {filename} ontbreekt.')
+                log_error(f'Kan feedback mail voor {aanvraag} niet maken:\n\tbeoordelingbestand {filename} ontbreekt.')
                 return False            
             self.mailer.draft_mail(aanvraag, filename)
-            logPrint(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
+            log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
             aanvraag.status = AanvraagStatus.MAIL_READY
         return True
 
 def new_create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
-    logPrint('--- Klaarzetten feedback mails...')
+    log_print('--- Klaarzetten feedback mails...')
     file_creator = NewAanvragenProcessor(NewFeedbackMailsCreator(), storage)
     n_mails = file_creator.process(filter_func, preview=preview)
     klaargezet = 'klaar te zetten' if preview else 'klaargezet'    
-    logPrint(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
-    logPrint('--- Einde klaarzetten feedback mails.')
+    log_print(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
+    log_print('--- Einde klaarzetten feedback mails.')
 

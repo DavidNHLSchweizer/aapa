@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import datetime
 from data.classes import AanvraagInfo, FileInfo, FileType
 from data.storage import AAPStorage
-from general.log import logInfo
+from general.log import log_info
 from general.preview import Preview
 
 
@@ -40,9 +40,9 @@ class NewAanvragenProcessor:
                     result[str(fn)] = aanvraag.files.get_info(ft)
         return result        
     def __read_from_storage(self):
-        logInfo('Start reading aanvragen from database')
+        log_info('Start reading aanvragen from database')
         result = self.storage.aanvragen.read_all()
-        logInfo('End reading aanvragen from database')
+        log_info('End reading aanvragen from database')
         return result
     def __sort_aanvragen(self):
         def comparekey(a: AanvraagInfo):

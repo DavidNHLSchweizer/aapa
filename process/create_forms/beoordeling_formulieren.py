@@ -7,7 +7,7 @@ from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.fileutil import file_exists, summary_string
 from general.log import log_error, log_info, log_print, log_warning
 from general.fileutil import created_directory, file_exists, summary_string
-from general.log import logError, logInfo, logPrint, logWarning
+from general.log import log_error, log_info, log_print, log_warning
 from mailmerge import MailMerge
 from process.aanvraag_state_processor import NewAanvraagProcessor, NewAanvragenProcessor
 
@@ -54,7 +54,7 @@ class BeoordelingenMailMerger:
         if not preview:
             shutil.copy2(aanvraag_filename, copy_filename)
         kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
-        logPrint(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
+        log_print(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
     def __create_diff_file(self, aanvraag: AanvraagInfo, preview=False):
         self.diff_processor.process_aanvraag(aanvraag, self.output_directory, preview=preview)
@@ -63,17 +63,17 @@ class BeoordelingenMailMerger:
         #         return False
         #     doc_path = self.__merge_document(aanvraag, preview=preview)
         #     aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-        #     logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
+        #     log_print(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
         #     self.__copy_aanvraag_bestand(aanvraag, preview)
         #     self.__create_diff_file(aanvraag, preview)
         #     aanvraag.status = AanvraagStatus.NEEDS_GRADING
         #     if not preview:
-        #         logInfo(f'--- Start storing data for form {aanvraag}')
+        #         log_info(f'--- Start storing data for form {aanvraag}')
         #     aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
         #     self.storage.aanvragen.update(aanvraag)
         #     self.storage.commit()
         #     if not preview:
-        #         logInfo(f'--- Succes storing data for form {aanvraag}')                
+        #         log_info(f'--- Succes storing data for form {aanvraag}')                
         #     return True
     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
         def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
@@ -92,24 +92,24 @@ class BeoordelingenMailMerger:
             return False
         doc_path = self.__merge_document(aanvraag, preview=preview)
         aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-        logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
+        log_print(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
         self.__copy_aanvraag_bestand(aanvraag, preview)
         self.__create_diff_file(aanvraag, preview)
         aanvraag.status = AanvraagStatus.NEEDS_GRADING
         if not preview:
-            logInfo(f'--- Start storing data for form {aanvraag}')
+            log_info(f'--- Start storing data for form {aanvraag}')
         aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
         self.storage.aanvragen.update(aanvraag)
         self.storage.commit()
         if not preview:
-            logInfo(f'--- Succes storing data for form {aanvraag}')                
+            log_info(f'--- Succes storing data for form {aanvraag}')                
         return True
 
     def merge_documents(self, aanvragen: list[AanvraagInfo], preview=False)->int:
         result = 0
         if len(aanvragen) > 0 and not self.output_directory.is_dir() and not preview:
             self.output_directory.mkdir()
-            logPrint(f'Map {self.output_directory} aangemaakt.')        
+            log_print(f'Map {self.output_directory} aangemaakt.')        
         for aanvraag in aanvragen:
             if self.process(aanvraag, preview=preview):              
                 result += 1
@@ -123,15 +123,15 @@ class BeoordelingenFileCreator(AanvraagProcessor):
         return self.merger.merge_documents(self.filtered_aanvragen(filter_func), preview=preview)
 
 def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:
-    logPrint('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')
-    logPrint(f'Formulieren worden aangemaakt in {output_directory}')
+    log_print('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')
+    log_print(f'Formulieren worden aangemaakt in {output_directory}')
     if not preview:
         if created_directory(output_directory):
-            logPrint(f'Map {output_directory} aangemaakt.')
+            log_print(f'Map {output_directory} aangemaakt.')
         storage.add_file_root(str(output_directory))
     file_creator = BeoordelingenFileCreator(storage, template_doc, output_directory)
     result = file_creator.process_all(filter_func, preview=preview)
-    logPrint('--- Einde maken beoordelingsformulieren.')
+    log_print('--- Einde maken beoordelingsformulieren.')
     return result
 
 class CopyAanvraagProcessor(NewAanvraagProcessor):
@@ -160,7 +160,7 @@ class CopyAanvraagProcessor(NewAanvraagProcessor):
         if not preview:
             shutil.copy2(aanvraag_filename, copy_filename)
         kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
-        logPrint(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
+        log_print(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
         return True
 
@@ -180,7 +180,7 @@ class BeoordelingFormsCreator(NewAanvraagProcessor):
                 document.write(full_output_name)
             return full_output_name.resolve()
         except Exception as E:
-            logError(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
+            log_error(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
             return None
     def __get_output_filename(self, info: AanvraagInfo):
         return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
@@ -205,19 +205,19 @@ class BeoordelingFormsCreator(NewAanvraagProcessor):
     def process(self, aanvraag: AanvraagInfo, preview=False, previous_aanvraag: AanvraagInfo=None)->bool:
         doc_path = self.__merge_document(aanvraag, preview=preview)
         aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-        logPrint(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
+        log_print(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
         aanvraag.status = AanvraagStatus.NEEDS_GRADING
         aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
         return True
 
 def new_create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:
-    logPrint('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')
-    logPrint(f'Formulieren worden aangemaakt in {output_directory}')
+    log_print('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')
+    log_print(f'Formulieren worden aangemaakt in {output_directory}')
     if not preview:
         if created_directory(output_directory):
-            logPrint(f'Map {output_directory} aangemaakt.')
+            log_print(f'Map {output_directory} aangemaakt.')
         storage.add_file_root(str(output_directory))
     file_creator = NewAanvragenProcessor([BeoordelingFormsCreator(template_doc, output_directory), CopyAanvraagProcessor(output_directory), NewDifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage)
     result = file_creator.process(preview=preview, filter_func=filter_func) 
-    logPrint('--- Einde maken beoordelingsformulieren.')
+    log_print('--- Einde maken beoordelingsformulieren.')
     return result
