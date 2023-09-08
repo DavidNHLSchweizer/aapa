@@ -1,4 +1,3 @@
-from asyncio import sleep
 from dataclasses import dataclass
 import random
 from textual.app import App, ComposeResult
@@ -76,7 +75,7 @@ class AapaConfiguration(Static):
             input.focus()
     def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
-        if (result := tkifd.askopenfilename(initialfile=input.value, title=title, 
+        if (result := tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
                                             filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension)):
             input.value=result
             input.cursor_position = len(result)
@@ -163,7 +162,7 @@ class AAPAApp(App):
     async def on_mount(self):
         await init_console(self)
     async def on_button_pressed(self, message: Button.Pressed):
-        logging.debug(f'button {message.button.id}')
+        # logging.debug(f'button {message.button.id}')
         match message.button.id:
             case 'scan': await self.action_scan()
             case 'mail': await self.action_mail()
@@ -175,7 +174,7 @@ class AAPAApp(App):
         return options
     async def run_AAPA(self, action: AAPAaction, **kwdargs):
         options = self._create_options(action=action, **kwdargs)
-        logging.info(f'{options=}')
+        # logging.info(f'{options}')
         if await show_console():
             self.terminal.run(AAPArun_script,options=options)                
     

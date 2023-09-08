@@ -1,8 +1,8 @@
 from general.fileutil import from_main_path
 from general.log import log_info
 from general.preview import Preview
-from process.create_forms.beoordeling_formulieren import create_beoordelingen_files
-from process.importing.import_data import import_directory
+from process.create_forms.create_beoordelings_formulieren import new_create_beoordelingen_files
+from process.importing.import_directory import import_directory
 from general.config import config
 from data.storage import AAPStorage
 
@@ -15,9 +15,9 @@ def get_template_doc():
 
 def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):
-        (min_id, max_id) = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
+        n_imported = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
         geimporteerd = 'importeren' if preview else 'geimporteerd'
-        log_info(f'### {max(max_id-min_id+1,0)} bestand(en) {geimporteerd} van {input_directory}.', to_console=True)
-        n = create_beoordelingen_files(storage, get_template_doc(), output_directory, preview=preview)
-        aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-        log_info(f'### {n} beoordelingsformulier(en) {aangemaakt} in {output_directory}', to_console=True)
+        log_info(f'### {n_imported} bestand(en) {geimporteerd} van {input_directory}.', to_console=True)
+        n = new_create_beoordelingen_files(storage, get_template_doc(), output_directory, preview=preview)
+        verwerkt  = 'klaarzetten voor beoordeling' if preview else 'klaargezet voor beoordeling'        
+        log_info(f'### {n} {"aanvragen" if n != 1 else "aanvraag"} {verwerkt} in {output_directory}', to_console=True)

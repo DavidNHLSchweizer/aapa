@@ -67,12 +67,13 @@ def _get_arguments():
     group.add_argument('--difference', dest='difference', type=str,help=argparse.SUPPRESS) #maak een verschilbestand voor een student (voer studentnummer in); "invisible" command; bv: --difference=diff.html
     group.add_argument('--history', dest='history', type=str,help=argparse.SUPPRESS) #voer beoordelingsgegevens in via een aangepast report-bestand; "invisible" command; bv: --history=history.xlsx
     group.add_argument('--reset', dest='reset', type=str,help=argparse.SUPPRESS) #voer code in voor het terugzetten van de status van een aanvraag. Zie documentatie voor mogelijkheden bv: --reset=mail:aanvraagnr
+    group.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     return parser.parse_args()
 
 
 class AAPAoptions:
     def __init__(self, actions: list[AAPAaction], root_directory: str, forms_directory: str, database_file: str, 
-                 preview = False, filename:str = None, config_file:str = None, history_file:str = None, diff_file:str = None):
+                 preview = False, filename:str = None, config_file:str = None, history_file:str = None, diff_file:str = None, force=False):
         self.actions = actions
         self.root_directory = root_directory
         self.forms_directory: str= forms_directory
@@ -85,6 +86,7 @@ class AAPAoptions:
         self.config_file: str = config_file
         self.history_file: str = history_file
         self.diff_file: str = diff_file
+        self.force: bool = force
     def __str__(self):
         result = f'ACTIONS: {AAPAaction.get_actions_str(self.actions)}\n'
         if self.root_directory is not None:
@@ -146,7 +148,8 @@ def get_arguments()->AAPAoptions:
             actions=[AAPAaction.FULL]
             preview = True
         return AAPAoptions(actions=actions, root_directory=args.root, forms_directory=args.forms, database_file=args.database, 
-                           preview=preview, filename=args.file, config_file=args.config, history_file=args.history, diff_file=args.difference)
+                           preview=preview, filename=args.file, config_file=args.config, history_file=args.history, 
+                           diff_file=args.difference, force=args.force)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
         return None

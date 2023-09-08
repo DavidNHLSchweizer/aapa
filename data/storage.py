@@ -6,7 +6,7 @@ from database.dbConst import EMPTY_ID
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import log_error, log_info
+from general.log import log_error, log_info, log_warning
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -208,9 +208,21 @@ class FileInfoStorage:
         return (stored:=self.read(file.filename)) is not None and stored.digest == file.digest
     def known_file(self, filename: str)->FileInfo:
         return self.find_digest(FileInfo.get_digest(filename))
+    
     def store_invalid(self, filename):
-        self.create(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.INVALID_PDF, aanvraag_id=EMPTY_ID))
+        if (stored:=self.read(filename)):
+            stored.filetype = FileType.INVALID_PDF
+            stored.aanvraag_id=EMPTY_ID
+            self.update(stored)
+        else:
+            self.create(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.INVALID_PDF, aanvraag_id=EMPTY_ID))
         self.database.commit()
+    def is_known_invalid(self, filename):
+        if (stored:=self.read(filename)):
+            return stored.filetype == FileType.INVALID_PDF
+        else:
+            return False
+           
 
 class BedrijvenStorage:
     def __init__(self, database: Database):

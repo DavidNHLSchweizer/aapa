@@ -5,7 +5,7 @@ import tkinter.filedialog as tkifd
 from general.fileutil import created_directory, from_main_path, path_with_suffix
 from general.log import init_logging, log_error, log_info, log_print
 from general.preview import Preview
-from process.create_forms.difference import DifferenceProcessor
+from process.create_forms.create_diff_file import NewDifferenceProcessor
 from process.read_grade.history import read_beoordelingen_from_files
 from general.config import config
 from data.report_data import report_aanvragen_XLS
@@ -46,7 +46,7 @@ class AAPAconfiguration:
         return from_main_path(path_with_suffix(database, '.db'))
     def __initialize_database(self):
         database = self.get_database_name()
-        recreate = (AAPAaction.NEW in self.actions and (not Path(database).is_file() or verifyRecreate()))
+        recreate = (AAPAaction.NEW in self.actions and (not Path(database).is_file() or self.options.force or verifyRecreate()))
         self.database = initialize_database(database, recreate)
         self.storage  = initialize_storage(self.database)
     def __prepare_storage_roots(self):
@@ -96,8 +96,9 @@ class AAPAprocessor:
         log_print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
         log_print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
     def __create_diff_file(self, configuration: AAPAconfiguration):
-        DP = DifferenceProcessor(configuration.storage)
-        DP.process_student(configuration.options.diff_file, configuration.forms_directory)
+        DP = NewDifferenceProcessor(configuration.storage)
+        pass
+        # DP.process_student(configuration.options.diff_file, configuration.forms_directory)
     def __read_history_file(self, configuration: AAPAconfiguration):
         if not Path(configuration.options.history_file).is_file():
             log_error(f'History file ({configuration.options.history_file}) not found.')

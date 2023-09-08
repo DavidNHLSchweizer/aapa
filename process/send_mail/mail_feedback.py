@@ -6,7 +6,7 @@ from process.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
 from general.substitutions import FieldSubstitution, FieldSubstitutions
-from process.aanvraag_state_processor import NewAanvraagProcessor, NewAanvragenProcessor
+from process.new_aanvraag_processor import NewAanvraagProcessor, NewAanvragenProcessor
 from process.send_mail.mail_sender import OutlookMail, OutlookMailDef
 from general.log import log_error, log_print
 
