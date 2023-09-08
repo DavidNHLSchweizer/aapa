@@ -221,9 +221,7 @@ class AAPAApp(App):
                 oldbackground = self._animate_widget_attribute(widget, 'background', BARBIE if self.barbie else self.barbie_oldcolors[widget]['background'], 3.0)
                 oldcolor = self._animate_widget_attribute(widget, 'color', 'white' if self.barbie else self.barbie_oldcolors[widget]['color'], 4.0)
                 self.barbie_oldcolors[widget] = {'background': oldbackground, 'color': oldcolor} 
-
-            
-            
+                       
 if __name__ == "__main__":
     logging.basicConfig(filename='test.log', filemode='w', format='%(module)s-%(funcName)s-%(lineno)d: %(message)s', level=logging.DEBUG)
     app = AAPAApp()
