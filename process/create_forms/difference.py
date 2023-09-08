@@ -3,7 +3,7 @@ import html
 from pathlib import Path
 from data.classes import AanvraagInfo, FileType, StudentInfo
 from general.fileutil import summary_string
-from general.log import logPrint
+from general.log import log_print
 from process.aanvraag_processor import AanvraagProcessor
 from process.aanvraag_state_processor import NewAanvraagProcessor
 
@@ -44,13 +44,13 @@ class DifferenceProcessor(AanvraagProcessor):
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)
             aangemaakt = 'aan te maken' if preview else 'aangemaakt'
             vergeleken = 'te vergelijken' if preview else 'vergeleken'
-            print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {aangemaakt}.\n\tNieuwste versie "{summary_string(version2)}" {vergeleken} met\n\tvorige versie "{summary_string(version1)}"')
+            log_print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {aangemaakt}.\n\tNieuwste versie "{summary_string(version2)}" {vergeleken} met\n\tvorige versie "{summary_string(version1)}"')
             aanvraag.files.set_filename(FileType.DIFFERENCE_HTML, difference_filename)        
     def process_aanvraag(self, aanvraag: AanvraagInfo, output_directory, preview = False):
         if (previous_aanvraag := self.find_previous_version(aanvraag)) is not None:
             self.create_difference(previous_aanvraag, aanvraag, output_directory, preview=preview)
         else:
-            logPrint(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
+            log_print(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
     def process_student(self, studnr, output_directory, preview = False):
         if (student := self.storage.studenten.read(studnr)) is None:
             logPrint(f'Student {studnr} niet bekend.')
@@ -59,7 +59,7 @@ class DifferenceProcessor(AanvraagProcessor):
             logPrint(f'Geen aanvragen gevonden voor student {student}.')
             return
         if len(aanvragen) <= 1:
-            logPrint(f'Geen oudere versies gevonden voor student {student}.')
+            log_print(f'Geen oudere versies gevonden voor student {student}.')
             return
         aanvragen.sort(key=lambda a: a.aanvraag_nr)#, reverse=True)
         self.create_difference(aanvragen[1], aanvragen[0], output_directory=output_directory, preview=preview)
@@ -95,6 +95,6 @@ class NewDifferenceProcessor(NewAanvraagProcessor):
         if (previous_aanvraag := self.find_previous_aanvraag(aanvraag)):
             self.create_difference(previous_aanvraag, aanvraag, output_directory=output_directory, preview=preview)
         else:
-            logPrint(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
+            log_print(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
         return True
 

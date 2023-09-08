@@ -80,6 +80,8 @@ class AAPAoptions:
         self.preview: bool = preview
         if AAPAaction.REPORT in self.actions:
             self.filename: str = filename if filename else config.get('report', 'filename')
+        else:
+            self.filename: str = None
         self.config_file: str = config_file
         self.history_file: str = history_file
         self.diff_file: str = diff_file

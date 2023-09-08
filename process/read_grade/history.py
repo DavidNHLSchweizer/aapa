@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import pandas as pd
 from data.classes import  AanvraagInfo, FileType, AanvraagStatus
 from data.storage import AAPStorage
-from general.log import logPrint
+from general.log import log_print
 from data.report_data import COLMAP
 from process.read_grade.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
 
@@ -83,8 +83,8 @@ class BeoordelingenFromExcelfile(BeoordelingenProcessor):
         return self.file_is_modified(aanvraag, docpath)
 
 def read_beoordelingen_from_files(xls_filename: str, storage: AAPStorage, filter_func = None, preview=False):
-    logPrint(f'--- Verwerken beoordeelde aanvragen (uit {xls_filename})...')
+    log_print(f'--- Verwerken beoordeelde aanvragen (uit {xls_filename})...')
     verwerk_beoordelingen(BeoordelingenFromExcelfile(xls_filename, storage), storage=storage, filter_func = filter_func, preview=preview)
-    logPrint(f'--- Einde verwerken beoordeelde aanvragen (uit {xls_filename}).')
+    log_print(f'--- Einde verwerken beoordeelde aanvragen (uit {xls_filename}).')
 
 

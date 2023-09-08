@@ -9,7 +9,7 @@ from general.fileutil import summary_string
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileType, StudentInfo
-from general.log import logError, logPrint, logWarning, logInfo
+from general.log import log_error, log_print, log_warning, log_info
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import IntValueConvertor, config
 
@@ -217,10 +217,10 @@ class AanvraagDataImporter(AanvraagProcessor):
         if not is_valid_email(aanvraag.student.email):
             new_email = try_extract_email(aanvraag.student.email, True)
             if new_email:
-                logWarning(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
+                log_warning(f'Aanvraag email is ongeldig ({aanvraag.student.email}), aangepast als {new_email}.')
                 aanvraag.student.email = new_email
             else:
-                logError(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
+                log_error(f'Aanvraag email is ongeldig: {aanvraag.student.email}')
                 return False
         return True
     def __check_titel(self, aanvraag: AanvraagInfo)->bool:
@@ -230,25 +230,25 @@ class AanvraagDataImporter(AanvraagProcessor):
     def __check_sourcefile(self, aanvraag: AanvraagInfo, filename: str)->bool:
         fileinfo = FileInfo(filename, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.AANVRAAG_PDF)
         if self.storage.file_info.is_duplicate(fileinfo):            
-            logWarning(f'Duplikaat: {summary_string(filename)}.\nal in database: {str(aanvraag)}')
+            log_warning(f'Duplikaat: {summary_string(filename)}.\nal in database: {str(aanvraag)}')
             return False
         aanvraag.files.set_info(fileinfo)
         return True
     def process(self, filename: str, preview=False)->AanvraagInfo:
-        logPrint(f'Lezen {filename}')
+        log_print(f'Lezen {filename}')
         if (stored := self.storage.file_info.known_file(filename)) is not None:
-            logWarning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=False)
+            log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=False)
             return None
         if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
             if not self.__check_complete_aanvraag(aanvraag, filename):
                 return None
-            logInfo(f'--- Start storing imported data from PDF {summary_string(filename)}')
+            log_info(f'--- Start storing imported data from PDF {summary_string(filename)}')
             if not preview:
                 self.storage.aanvragen.create(aanvraag)#, fileinfo) 
                 self.aanvragen.append(aanvraag)
                 self.storage.commit()
-                logInfo(f'--- Succes storing imported data from PDF {summary_string(filename)}')
-            logPrint(f'\t{str(aanvraag)}')
+                log_info(f'--- Succes storing imported data from PDF {summary_string(filename)}')
+            log_print(f'\t{str(aanvraag)}')
             return aanvraag
         return None
     # def is_duplicate(self, file: FileInfo):
@@ -293,7 +293,7 @@ def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResul
                 return ImportResult.ERROR
         return result
     except PDFReaderException as E:
-        logError(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
+        log_error(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
         importer.storage.file_info.store_invalid(filename)
         return ImportResult.ERROR
 
@@ -308,32 +308,35 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
             case _: return '???'
     def file_str(file,result):
         return f'{summary_string(file)} [{import_status_str(result)}]'
-    print('Rapportage import:')
+    log_info('Rapportage import:', to_console=True)
     if verbose:
-        print('\t---Gelezen bestand(en):---')
-        print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
-    print('\t--- Nieuwe aanvragen --- :')
-    print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
+        log_info('\t---Gelezen bestand(en):---')
+        log_print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
+    log_info('\t--- Nieuwe aanvragen --- :')
+    log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
     gelezen = 'te lezen' if preview else 'gelezen'
-    print(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.')
+    log_info(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.', to_console=True)
 
-def import_directory(directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
+
+def import_directory(directory: str, output_directory: str, storage: AAPStorage, recursive = True, preview=False)->tuple[int,int]:
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
     min_id = storage.aanvragen.max_id() + 1
     if not Path(directory).is_dir():
-        logWarning(f'Map {directory} bestaat niet. Afbreken.')
+        log_error(f'Map {directory} bestaat niet. Afbreken.')
         return (min_id,min_id)
-    logPrint(f'Start import van map  {directory}...')
-    if not preview:
-        storage.add_file_root(str(directory))
+    log_info(f'Start import van map  {directory}...', to_console=True)
     importer = AanvraagDataImporter(storage)
     file_results = {}
+    if Path(output_directory).is_relative_to(directory):
+        log_warning(f'Directory {summary_string(output_directory)}\n\tis onderdeel van {summary_string(directory)}.\n\tWordt overgeslagen.', to_console=True)           
     for file in Path(directory).glob(_get_pattern(recursive)):
+        if file.parent == output_directory:
+            continue
         import_result = _import_aanvraag(file, importer)
         file_results[file] = import_result
     max_id = storage.aanvragen.max_id()    
     report_imports(file_results, importer.filtered_aanvragen(lambda x: x.id >= min_id), preview=preview)
-    logPrint(f'...Import afgerond')
+    log_info(f'...Import afgerond', to_console=True)
     return (min_id, max_id)
         

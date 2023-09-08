@@ -6,7 +6,7 @@ from database.dbConst import EMPTY_ID
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import logError, logInfo, logPrint, logWarning
+from general.log import logError, logInfo
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -148,7 +148,7 @@ class FileInfoStorage:
         if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
             info = self.read(row[0]["filename"])
-            logInfo(f'success: {info}')
+            log_info(f'success: {info}')
             return info
         return None
     def __load(self, aanvraag_id: int, filetypes: set[FileType])->list[FileInfo]:
@@ -158,7 +158,7 @@ class FileInfoStorage:
             filenames=[]
             filenames.extend([row["filename"] for row in rows])
             result = self.crud_files.read_all(filenames)
-            logInfo(f'success: {[str(info) for info in result]}')
+            log_info(f'success: {[str(info) for info in result]}')
             return result
         return None
     def find_all(self, aanvraag_id: int)->FileInfos:
@@ -183,7 +183,7 @@ class FileInfoStorage:
     def find_digest(self, digest)->FileInfo:
         if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
             info = self.read(row[0]["filename"])
-            logInfo(f'success: {info}')
+            log_info(f'success: {info}')
             return info
     def sync(self, aanvraag_id, info: FileInfo):
         info.aanvraag_id = aanvraag_id
@@ -196,7 +196,7 @@ class FileInfoStorage:
         elif info.filename:            
             if (cur_info := self.read(info.filename)):
                 #file is known in database, not linked to aanvraag
-                logWarning(f'bestand {info.filename} is bekend in database: {cur_info}')
+                log_warning(f'bestand {info.filename} is bekend in database: {cur_info}')
                 self.update(info)
             else:
                 #new file
@@ -240,7 +240,6 @@ class StudentenStorage:
         self.crud_studenten.update(student)
     def delete(self, studnr: str):
         self.crud_studenten.delete(studnr)
-
 
 class AanvraagStorage:
     def __init__(self, database: Database):

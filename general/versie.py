@@ -14,6 +14,8 @@ class Versie:
 def init_config():
     config.init('versie', 'versie', AAPAVERSION)
     config.init('versie', 'datum', Versie.datetime_str(datetime.datetime.now()))
+    if config.get('versie', 'versie') != AAPAVERSION:
+        config.set('versie', 'versie', AAPAVERSION)
 init_config()
 
 def banner():

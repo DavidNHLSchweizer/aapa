@@ -1,8 +1,11 @@
 from pathlib import Path
 import shutil
+from typing import Iterable
 from process.aanvraag_processor import AanvraagProcessor
 from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from general.fileutil import file_exists, summary_string
+from general.log import log_error, log_info, log_print, log_warning
 from general.fileutil import created_directory, file_exists, summary_string
 from general.log import logError, logInfo, logPrint, logWarning
 from mailmerge import MailMerge
@@ -30,7 +33,7 @@ class BeoordelingenMailMerger:
                 document.write(full_output_name)
             return Path(full_output_name).resolve()
         except Exception as E:
-            logError(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
+            log_error(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
             return None
     def __get_output_filename(self, info: AanvraagInfo):
         return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
@@ -74,15 +77,14 @@ class BeoordelingenMailMerger:
         #     return True
     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
         def check_must_create_beoordeling(aanvraag: AanvraagInfo, preview=False):
-            if not preview:
-                if aanvraag.status in [AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING]:
-                    filename = aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX)
-                    if filename != None:
-                        return not file_exists(filename)
-                    else:
-                        return True
+            if aanvraag.status in [AanvraagStatus.INITIAL]:
+                generated_filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
+                if preview:
+                    check_exist_warning([generated_filename])
+                    return True
                 else:
-                    return False
+                    check_exist_warning([aanvraag.files.get_filename(FileType.TO_BE_GRADED_DOCX), generated_filename])
+                    return True
             else:
                 filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
                 return aanvraag.status in [AanvraagStatus.INITIAL,AanvraagStatus.NEEDS_GRADING] and not file_exists(filename)

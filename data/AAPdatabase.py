@@ -3,7 +3,7 @@ from database.database import Database, Schema
 import database.dbConst as dbc
 from general.keys import reset_key
 from general.config import config
-from general.log import logError, logInfo, logWarning
+from general.log import log_error, log_info, log_warning
 from general.versie import Versie
 from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
@@ -145,10 +145,10 @@ class AAPDatabase(Database):
         result.load_roots(True)
         return result
     def __version_error(self, db_versie, errorStr):
-        logError (errorStr)
+        log_error (errorStr)
         raise AAPaException()
     def check_version(self, recreate = False):
-        logInfo('--- Controle versies database en programma')
+        log_info('--- Controle versies database en programma')
         try:
             if recreate:
                 create_version_info(self, DBVersie(db_versie=DBVERSION, versie=config.get('versie', 'versie'), datum=Versie.datetime_str()))
@@ -157,23 +157,23 @@ class AAPDatabase(Database):
                 if  versie.db_versie != DBVERSION:
                     self.__version_error(versie.db_versie, f"Database version {versie.db_versie} does not match current program (expected {DBVERSION}).")
                 elif versie.versie != config.get('versie', 'versie'):
-                    logWarning(f"Program version ({config.get('versie', 'versie')}) does not match version in database (expected {versie.versie}). Updating database en configuratie.")
+                    log_warning(f"Program version ({config.get('versie', 'versie')}) does not match version in database (expected {versie.versie}). Updating database en configuratie.")
                     versie.versie = config.get('versie', 'versie')
                     versie.datum = Versie.datetime_str()
                     create_version_info(self, versie)
                     config.set('versie', 'versie', versie.versie)
                     config.set('versie', 'datum', versie.datum)
-            logInfo('--- Einde controle versies database en programma')
+            log_info('--- Einde controle versies database en programma')
         except AAPaException as E:
-            logError('This version of the program can not open this database. Use -init or migrate the data to the new database structure.')
+            log_error('This version of the program can not open this database. Use -init or migrate the data to the new database structure.')
     def load_roots(self, recreate = False):
-        logInfo('--- Laden paden voor File Encoding')
+        log_info('--- Laden paden voor File Encoding')
         if recreate:
             create_roots(self)
         else:
             load_roots(self)
-        logInfo(f'Bekende paden:\n{get_roots_report()}')
-        logInfo('--- Einde laden paden File Encoding')
+        log_info(f'Bekende paden:\n{get_roots_report()}')
+        log_info('--- Einde laden paden File Encoding')
 
 
         

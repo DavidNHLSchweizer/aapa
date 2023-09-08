@@ -99,7 +99,7 @@ class SQLexpression:
     @staticmethod
     def _is_string_parameter(s: str):
         result = s and s[0] == "'" and s[-1] == "'"
-        print(f'{s} {result}' )        
+        # print(f'{s} {result}' )        
         return s and s[0] == "'" and s[-1] == "'"
     def _prepare(self):
         self.parametrized = ''

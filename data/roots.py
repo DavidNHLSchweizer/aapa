@@ -1,9 +1,8 @@
 import winreg
 
 from general.keys import get_next_key, reset_key
-from general.log import logError, logInfo
+from general.log import log_error, log_info
 from general.singleton import Singleton
-
 
 class RootException(Exception): pass
 
@@ -61,13 +60,13 @@ def find_onedrive_path(resource_value: str)->str:
                     return result
         return None                    
     except WindowsError as WE:
-        logError(__exception_str(WE, 'WindowsError'))
+        log_error(__exception_str(WE, 'WindowsError'))
         return None
     except KeyError as KE:
-        logError(__exception_str(KE, 'KeyError'))
+        log_error(__exception_str(KE, 'KeyError'))
         return None
     except ValueError as VE:
-        logError(__exception_str(VE, 'ValueError'))
+        log_error(__exception_str(VE, 'ValueError'))
         return None
 
 class RootFiles(Singleton):
@@ -75,10 +74,10 @@ class RootFiles(Singleton):
         self._rootconv: list[PathRootConvertor] = []
     def add(self, root_path: str, code = None, nolog=False):
         if already_there := self.__find_root(root_path):
-            logInfo(f'root already there: {root_path}')
+            log_info(f'root already there: {root_path}')
             return already_there.root_code
         if already_there := self.__find_code(root_path):
-            logInfo(f'root already there: {root_path}')
+            log_info(f'root already there: {root_path}')
             return already_there.root_code
         if self.__find_code(code):
             raise RootException(f'Duplicate code: {code}')
@@ -86,7 +85,7 @@ class RootFiles(Singleton):
         self._rootconv.append(new_root := PathRootConvertor(self.encode_root(root_path), odp if odp else self.encode_root(root_path), code=code, known_codes=self.get_known_codes()))
         self._rootconv.sort(key=lambda r:len(r.expanded), reverse=True)
         if not nolog:
-            logInfo(f'root added: {new_root.root_code}: "{new_root.root}"  ({new_root.expanded})')
+            log_info(f'root added: {new_root.root_code}: "{new_root.root}"  ({new_root.expanded})')
         return new_root.root_code
     def encode_root(self, path)->str:
         if not path:
