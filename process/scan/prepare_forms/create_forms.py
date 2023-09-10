@@ -6,8 +6,8 @@ from general.log import log_error, log_info, log_print, log_warning
 from general.fileutil import created_directory, file_exists, summary_string
 from general.log import log_error, log_info, log_print, log_warning
 from mailmerge import MailMerge
-from process.scan.create_forms.copy_aanvraag import CopyAanvraagProcessor
-from process.scan.create_forms.create_diff_file import NewDifferenceProcessor
+from process.scan.prepare_forms.copy_aanvraag import CopyAanvraagProcessor
+from process.scan.prepare_forms.create_diff_file import NewDifferenceProcessor
 from process.general.new_aanvraag_processor import NewAanvraagProcessor, NewAanvragenProcessor
 
 class MailMergeException(Exception): pass
