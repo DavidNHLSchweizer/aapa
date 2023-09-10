@@ -8,8 +8,8 @@ from general.log import log_error, log_print, log_warning, log_info
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import IntValueConvertor, config
 from general.fileutil import file_exists, summary_string
-from process.new_aanvraag_processor import NewAanvraagFileProcessor, NewAanvraagProcessor, NewAanvragenFileProcessor
-from process.importing.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException
+from process.general.new_aanvraag_processor import NewAanvraagFileProcessor, NewAanvragenFileProcessor
+from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException
 
 def init_config():
     config.register('pdf_read', 'x_tolerance', IntValueConvertor)
@@ -75,7 +75,7 @@ class AanvraagDataImporter(NewAanvraagFileProcessor):
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
-        log_print(f'Lezen {filename}')
+        log_print(f'Lezen {summary_string(filename, maxlen=80)}')
         try:
             if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
                 validator = AanvraagValidator(storage, filename, aanvraag)

@@ -1,8 +1,8 @@
 from general.fileutil import from_main_path
 from general.log import log_info
 from general.preview import Preview
-from process.create_forms.create_beoordelings_formulieren import new_create_beoordelingen_files
-from process.importing.import_directory import import_directory
+from process.scan.create_forms.create_beoordelings_formulieren import new_create_beoordelingen_files
+from process.scan.importing.import_directory import import_directory
 from general.config import config
 from data.storage import AAPStorage
 

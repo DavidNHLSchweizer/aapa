@@ -1,4 +1,5 @@
 import datetime
+import os
 from pathlib import Path
 from typing import Iterable
 from data.classes import AanvraagInfo, FileInfo, FileType
@@ -94,7 +95,7 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
     def process_files(self, files: Iterable[Path], preview=False, **kwargs)->int:
         n_processed = 0
         with Preview(preview, self.storage, 'process_files'):
-            for filename in files:
+            for filename in sorted(files, key=os.path.getmtime):
                 if self._in_skip_directory(filename): 
                     continue
                 file_processed = True

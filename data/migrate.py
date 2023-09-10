@@ -2,7 +2,7 @@ from pathlib import Path
 from data.AAPdatabase import create_version_info, read_version_info
 from data.storage import AAPStorage
 from data.classes import FileInfo
-from process.initialize import initialize_database
+from process.aapa_processor.initialize import initialize_database
 
 def init_database(database_name, expected_version):
     database = initialize_database(database_name)    

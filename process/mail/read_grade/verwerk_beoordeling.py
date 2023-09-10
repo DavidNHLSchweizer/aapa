@@ -1,9 +1,9 @@
 from contextlib import contextmanager
 from pathlib import Path
 from data.classes import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
-from process.aanvraag_processor import AanvraagProcessor
+from process.general.aanvraag_processor import AanvraagProcessor
 from general.fileutil import path_with_suffix
-from process.read_grade.word_processor import DocxWordDocument
+from process.general.word_processor import DocxWordDocument
 from data.storage import AAPStorage
 from general.log import log_error, log_info, log_print, log_warning
 
@@ -52,7 +52,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
             log_info(f'removing previous registration for {filename}')
             aanvraag.files.reset_info(FileType.INVALID_PDF)
     def __storage_changes(self, aanvraag: AanvraagInfo):
-        logInfo(f'--- Start storing data for reading grade {aanvraag}')
+        log_info(f'--- Start storing data for reading grade {aanvraag}')
         self.__check_invalid_pdf(aanvraag)        
         self.storage.aanvragen.update(aanvraag)
         self.storage.commit()

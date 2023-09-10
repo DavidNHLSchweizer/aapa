@@ -2,7 +2,6 @@ from pathlib import Path
 from data.classes import AanvraagInfo
 from general.config import ListValueConvertor, config
 from general.fileutil import from_main_path, summary_string
-from process.general.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
 from general.substitutions import FieldSubstitution, FieldSubstitutions
@@ -49,47 +48,6 @@ class FeedbackMailCreator:
         return OutlookMailDef(subject=subject, mailto=aanvraag.student.email, mailbody=self.__create_mail_body(aanvraag), onbehalfof = self.onbehalfof, cc=config.get('mail', 'cc'), bcc=config.get('mail', 'bcc'), attachments=[attachment])
     def draft_mail(self, aanvraag: AanvraagInfo, attachment: str):
         self.outlook.draft_item(self._create_mail_def(aanvraag, attachment))
-
-#OBSOLETE CLASSES START
-# class FeedbackMailsCreator(AanvraagProcessor):
-#     def __init__(self, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
-#         super().__init__(storage, aanvragen)
-#         self.mailer = FeedbackMailCreator()
-#     def get_draft_folder_name(self):
-#         return self.mailer.draft_folder_name
-#     def __update_aanvraag(self, aanvraag):
-#         aanvraag.status = AanvraagStatus.MAIL_READY
-#         self.storage.aanvragen.update(aanvraag)
-#         self.storage.commit()
-#     def _process_aanvragen(self, aanvragen: list[AanvraagInfo], preview=False)->int:
-#         result = 0        
-#         for aanvraag in aanvragen:
-#             if self.process(aanvraag, preview):
-#                 result += 1        
-#         return result
-#     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
-#         if aanvraag.status != AanvraagStatus.GRADED:
-#             return False
-#         filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
-#         if preview:
-#             print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
-#         else:
-#             self.mailer.draft_mail(aanvraag, filename)
-#             log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
-#             self.__update_aanvraag(aanvraag)
-#         return True
-
-#     def process_all(self, filter_func = None, preview=False)->int:
-#         return self._process_aanvragen(self.filtered_aanvragen(filter_func), preview=preview)
-
-# def create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
-#     log_print('--- Klaarzetten feedback mails...')
-#     file_creator = FeedbackMailsCreator(storage)
-#     n_mails = file_creator.process_all(filter_func, preview=preview)
-#     klaargezet = 'klaar te zetten' if preview else 'klaargezet'    
-#     log_print(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
-#     log_print('--- Einde klaarzetten feedback mails.')
-#OBSOLETE CLASSES END
 
 class NewFeedbackMailsCreator(NewAanvraagProcessor):
     def __init__(self):

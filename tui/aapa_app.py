@@ -6,7 +6,7 @@ from textual.widget import Widget
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
-from aapa import AAPA
+from aapa import AAPARunner
 from general.args import AAPAaction, AAPAoptions
 from general.log import pop_console, push_console
 from tui.common.button_bar import ButtonBar, ButtonDef
@@ -23,8 +23,8 @@ from tui.terminal_console import TerminalConsoleFactory
 def AAPArun_script(options: AAPAoptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
-        aapa_script = AAPA(options)
-        aapa_script.process() 
+        aapa_runner = AAPARunner(options)
+        aapa_runner.process() 
     finally:
         pop_console()
     return True

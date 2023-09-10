@@ -68,3 +68,6 @@ AapaButtons RadioButton {
 }
 
 
+.input--cursor {
+    color: slategray;
+}

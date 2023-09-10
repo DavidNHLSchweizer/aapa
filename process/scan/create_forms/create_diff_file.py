@@ -2,8 +2,8 @@ from pathlib import Path
 from data.classes import AanvraagInfo, AanvraagStatus, FileType
 from general.fileutil import file_exists, summary_string
 from general.log import log_info, log_print
-from process.create_forms.difference import DifferenceGenerator
-from process.new_aanvraag_processor import NewAanvraagProcessor
+from process.general.difference import DifferenceGenerator
+from process.general.new_aanvraag_processor import NewAanvraagProcessor
 
 class NewDifferenceProcessor(NewAanvraagProcessor):
     def __init__(self, all_aanvragen: list[AanvraagInfo], output_directory: str):
@@ -48,4 +48,3 @@ class NewDifferenceProcessor(NewAanvraagProcessor):
                 log_print(f'\tGeen vorige versie van aanvraag {aanvraag} bekend.')
                 return True
         return False
-
