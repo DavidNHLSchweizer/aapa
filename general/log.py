@@ -3,6 +3,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from typing import Protocol
+from general.args import get_debug
 from general.fileutil import created_directory, from_main_path, path_with_suffix, test_directory_exists
 from general.singleton import Singleton
 
@@ -58,7 +59,9 @@ class AAPAlogger(Singleton):
             logpath = Path('.').resolve()
             print(f'Creating log in {logpath}')        
         filename = path_with_suffix(logpath.joinpath(Path(filename).name), '.log')
-        logging.basicConfig(handlers=[TimedRotatingFileHandler(str(filename),'D', 1, 7, encoding='utf-8')], format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+        debug = get_debug()
+        logging.basicConfig(handlers=[TimedRotatingFileHandler(str(filename),'D', 1, 7, encoding='utf-8')], 
+                            format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG if debug else logging.INFO)
     def info(self, msg):
         logging.info(msg)
     def warning(self, msg):

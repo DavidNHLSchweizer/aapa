@@ -1,3 +1,4 @@
+import logging
 from process.aapa_processor.aapa_config import LOGFILENAME
 from general.log import init_logging
 

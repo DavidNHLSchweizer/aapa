@@ -9,19 +9,20 @@ def init_config():
     config.init('pdf_read', 'x_tolerance', 3)
 init_config()
 
-
-ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'
+EMPTY_TITLE = 'NO TITLE FOUND'
 
 class PDFtoTablesReader:
-    def __init__(self, pdf_file: str, expected_tables=0, expected_pages=0):
-        self.tables = self.read_tables_from_pdf(pdf_file, expected_tables=expected_tables, expected_pages=expected_pages)
+    def __init__(self, pdf_file: str, expected_tables=0, expected_pages=0, max_pages=0):
         self.filename = pdf_file
-    def read_tables_from_pdf(self, pdf_file: str, expected_pages=0, expected_tables=0)->list[list[str]]:
+        self.tables = self.read_tables_from_pdf(pdf_file, expected_tables=expected_tables, expected_pages=expected_pages, max_pages=max_pages)
+    def read_tables_from_pdf(self, pdf_file: str, expected_pages=0, max_pages=0, expected_tables=0)->list[list[str]]:
         with pdfplumber.open(pdf_file) as pdf:
-            if (n := len(pdf.pages)) < expected_pages:
-                raise PDFReaderException(f"Verwacht minimaal {expected_pages} pagina's. {n} pagina's in document.")
+            if (npages := len(pdf.pages)) < expected_pages:
+                raise PDFReaderException(f"Verwacht minimaal {expected_pages} pagina's. {npages} pagina's in document.")
+            elif npages > max_pages:
+                raise PDFReaderException(f"Verwacht maximaal {max_pages} pagina's. {npages} pagina's in document.")
             try:
                 return self.__init_tables(pdf, expected_tables=expected_tables)
             except Exception as E:
@@ -49,19 +50,21 @@ class PDFaanvraagReader(PDFtoTablesReader):
     student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
     END_ROW = len(student_dict_fields) + 12 # een beetje langer ivm bedrijfsnaam en sommige aanvragen met "extra" regels
     def __init__(self,pdf_file: str):
-        super().__init__(pdf_file, expected_pages=3, expected_tables=3)
+        super().__init__(pdf_file, expected_tables=3, expected_pages=3, max_pages=5)
         self.tables = [self.rectify_table(self.tables[0], PDFaanvraagReader.END_ROW, PDFaanvraagReader.student_dict_fields.keys()), self.all_lines(first_table = 1)]   
     def rectify_table(self, table: list[str], rows_to_rectify: int, field_keys: list[str])->list[str]:
         # some students manage to cause table keys (e.g. Studentnummer) to split over multiple lines (Studentnumme\nr)
         # this method tries to rectify this by rejoining the keys and assuming that the actual values (column 2) are in between
         def try_find_rest(table, rest_key):
             value = ''
-            for n, row_text in enumerate(table):
+            if not len(table):
+                return 0, None
+            for rownr, row_text in enumerate(table):
                 if row_text != rest_key:
                     value += row_text
                 else:
                     break
-            return n, value        
+            return rownr, value        
         result = []
         skip_until = None
         for row, row_text in enumerate(table[:rows_to_rectify]):
@@ -149,7 +152,7 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
     def __convert_fields(self, fields_dict:dict, translation_table, aanvraag_data: _AanvraagData):
         for field in translation_table:               
             setattr(aanvraag_data, translation_table[field], fields_dict.get(field, NOTFOUND))    
-    def __parse_title(self, table:list[str], aanvraag_data: _AanvraagData)->str:
+    def __parse_title(self, table:list[str], aanvraag_data: _AanvraagData):
         #regex because some students somehow lose the '.' characters or renumber the paragraphs, also older versions of the form have different paragraphs and some students do even stranger things
         regex_versies = [{'start':'\d.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\s*\?'},
                          {'start':'\d.*Titel van de afstudeeropdracht', 'end': '\d.*Korte omschrijving van de opdracht.*'},                        
@@ -159,12 +162,16 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
             aanvraag_data.titel = ' '.join(self.__get_strings_from_table(table, versie['start'], versie['end'])).strip()
             if aanvraag_data.titel:
                 break
-        return aanvraag_data.titel
+        if aanvraag_data.titel == EMPTY_TITLE:
+            aanvraag_data.titel = ""
     def __get_strings_from_table(self, table: list[str], start_paragraph_regex:str, end_paragraph_regex:str)->list[str]:
         row1, row2 = self.__find_range_from_table(table, start_paragraph_regex, end_paragraph_regex, must_find_both=True)
         result = []
-        for row in range(row1, row2-1):
-            result.append(table[row])
+        if row2 > row1 + 1:
+            for row in range(row1, row2-1):
+                result.append(table[row])
+        else:
+            return [EMPTY_TITLE]
         return result
     def __find_range_from_table(self, table: list[str], start_paragraph_regex:str, end_paragraph_regex:str, must_find_both = False, ignore_case=False)->tuple[int,int]:
         def row_matches(table, row, pattern:re.Pattern):

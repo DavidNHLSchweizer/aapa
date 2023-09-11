@@ -39,25 +39,25 @@ class ListValueConvertor(ValueConvertor):
             return None 
     def get(self, section_key: str, key_value: str, **kwargs)->str:
         result = []
-        n = 0
-        while (item := self.__next_item(section_key, ListValueConvertor.item_key(key_value, n), **kwargs)) is not None:
+        nn = 0
+        while (item := self.__next_item(section_key, ListValueConvertor.item_key(key_value, nn), **kwargs)) is not None:
             result.append(item)
-            n+=1
+            nn+=1
         return result
     def set(self, section_key: str, key_value: str, value: object):
         n_previous_items = len(self.get(section_key, key_value))
-        for n, item in enumerate(value):
-            item_key = ListValueConvertor.item_key(key_value, n)
+        for n1, item in enumerate(value):
+            item_key = ListValueConvertor.item_key(key_value, n1)
             if self.itemConvertor:
                 self.itemConvertor.set(section_key, item_key, item)
             else:
                 super().set(section_key, item_key, str(item))
-        for n in range(len(value), n_previous_items):
-            self._parser.remove_option(section_key, ListValueConvertor.item_key(key_value, n))
+        for n1 in range(len(value), n_previous_items):
+            self._parser.remove_option(section_key, ListValueConvertor.item_key(key_value, n1))
             
     @staticmethod
-    def item_key(key_value, n):
-        return f'{key_value}_{n+1}'
+    def item_key(key_value, n1):
+        return f'{key_value}_{n1+1}'
     
 class ValueConvertors:
     def __init__(self, parser: ConfigParser):

@@ -27,18 +27,18 @@ def writable_filename(path):
         return path        
     return __writable_filename(path, 1)
     
-def __writable_filename(basepath, n):
-    if n > MAXDEPTH:
+def __writable_filename(basepath, depth):
+    if depth > MAXDEPTH:
         return None
-    path = __get_filename(basepath, n)
+    path = __get_filename(basepath, depth)
     if __test_can_be_written(path):
         return path
     else:
-        return __writable_filename(basepath, n+1)
+        return __writable_filename(basepath, depth+1)
 
-def __get_filename(basepath, n):
+def __get_filename(basepath, v):
     BP = Path(basepath)
-    return BP.parent.joinpath(f'{BP.stem}({n}){BP.suffix}')
+    return BP.parent.joinpath(f'{BP.stem}({v}){BP.suffix}')
 
 def __test_can_be_written(path):
     try:

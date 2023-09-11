@@ -91,9 +91,8 @@ class AanvraagDataImporter(NewAanvraagFileProcessor):
             else:
                 return None
         except PDFReaderException as reader_exception:
-            # print(f'storing invalide {filename}')
             storage.file_info.store_invalid(filename)
-            log_warning(f'{reader_exception}.\n\t{ERRCOMMENT}.')           
+            log_warning(f'{reader_exception}\n\t{ERRCOMMENT}.')           
         return None
 
 
