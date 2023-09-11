@@ -61,5 +61,5 @@ class OutlookMail:
         self.__createItem(maildef).Send()
     def draft_item(self, maildef: OutlookMailDef):
         self.__createItem(maildef).Close(olSave)
-    def getDraftFolderName(self):
+    def getDraftFolderName(self)->str:
         return self.outlook.GetNameSpace('MAPI').GetDefaultFolder(olFolderDrafts)

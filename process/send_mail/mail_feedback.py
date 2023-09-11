@@ -51,11 +51,12 @@ class FeedbackMailCreator:
     def draft_mail(self, aanvraag: AanvraagInfo, attachment: str):
         self.outlook.draft_item(self._create_mail_def(aanvraag, attachment))
 
-class NewFeedbackMailsCreator(NewAanvraagProcessor):
-    def __init__(self):
-        self.mailer = FeedbackMailCreator()
-    def get_draft_folder_name(self):
-        return self.mailer.draft_folder_name
+class FeedbackMailProcessor(NewAanvraagProcessor):
+    def __init__(self, mailer: FeedbackMailCreator):
+        self.mailer = mailer
+    @property
+    def draft_folder_name(self):
+        return self.mailer.draft_folder_name if self.mailer else None
     def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:
         return aanvraag.status == AanvraagStatus.GRADED
     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
@@ -67,14 +68,22 @@ class NewFeedbackMailsCreator(NewAanvraagProcessor):
                 log_error(f'Kan feedback mail voor {aanvraag} niet maken:\n\tbeoordelingbestand {filename} ontbreekt.')
                 return False            
             self.mailer.draft_mail(aanvraag, filename)
-            log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
+            log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.draft_folder_name}.')
             aanvraag.status = AanvraagStatus.MAIL_READY
         return True
-
-def new_create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
+    
+class FeedbackMailsProcessor(NewAanvragenProcessor):
+    def __init__(self, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
+        self.mailer = FeedbackMailCreator()
+        super().__init__(self, FeedbackMailProcessor(self.mailer), storage, aanvragen)
+    @property
+    def draft_folder_name(self):
+        return self.mailer.draft_folder_name if self.mailer else None
+    
+def new_create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False, **kwargs):
     log_print('--- Klaarzetten feedback mails...')
-    file_creator = NewAanvragenProcessor(NewFeedbackMailsCreator(), storage)
-    n_mails = file_creator.process(filter_func, preview=preview)
-    log_print(f'### {n_mails} mails {pva(preview, "klaar te zetten", "klaargezet")} in Outlook {file_creator.get_draft_folder_name()}')
+    file_creator = FeedbackMailsProcessor(storage)
+    n_mails = file_creator.process_aanvragen(preview=preview, filter_func=filter_func, **kwargs)
+    log_print(f'### {n_mails} mails {pva(preview, "klaar te zetten", "klaargezet")} in Outlook {file_creator.draft_folder_name()}')
     log_print('--- Einde klaarzetten feedback mails.')
 
