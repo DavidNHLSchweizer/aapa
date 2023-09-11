@@ -15,7 +15,7 @@ class NewDifferenceProcessor(NewAanvraagProcessor):
                                         a.student.studnr==aanvraag.student.studnr and \
                                         a.bedrijf.id == aanvraag.bedrijf.id, self.all_aanvragen))
         if len(relevante_aanvragen)>=1:            
-            return relevante_aanvragen.sorted(key=lambda a: a.aanvraag_nr, reverse=True)[0]
+            return sorted(relevante_aanvragen, key=lambda a: a.aanvraag_nr, reverse=True)[0]
         else:
             return None
     def get_difference_filename(self, output_directory:str, student_name: str)->str:
@@ -27,8 +27,8 @@ class NewDifferenceProcessor(NewAanvraagProcessor):
             if not preview:
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)                
                 aanvraag.files.set_filename(FileType.DIFFERENCE_HTML, difference_filename)
-            log_print(f"""\tVerschil-bestand "{summary_string(difference_filename)}" {pva(preview, "aan te maken", "aangemaakt")}.\n
-                  \tNieuwste versie "{summary_string(version2)}" {pva(preview, "te vergelijken", "vergeleken")} met\n\tvorige versie "{summary_string(version1)}\".""")
+            log_print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {pva(preview, "aan te maken", "aangemaakt")}.')
+            log_print(f'\t\tNieuwste versie "{summary_string(version2, maxlen=80)}" {pva(preview, "te vergelijken", "vergeleken")} met\n\t\tvorige versie "{summary_string(version1, maxlen=80)}".')
     def must_process(self, aanvraag: AanvraagInfo, preview=False, **kwargs)->bool:      
         return aanvraag.status in {AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING} 
     def process(self, aanvraag: AanvraagInfo, preview = False, output_directory='.')->bool:

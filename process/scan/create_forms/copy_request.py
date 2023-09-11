@@ -34,7 +34,7 @@ class CopyAanvraagProcessor(NewAanvraagProcessor):
         copy_filename = CopyAanvraagProcessor._get_copy_filename(self.output_directory, aanvraag)
         if not preview:
             shutil.copy2(aanvraag_filename, copy_filename)
-        log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
+        log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {summary_string(aanvraag_filename)} to\n\t\t{summary_string(copy_filename)}.')
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
         return True
 

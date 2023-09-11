@@ -102,7 +102,7 @@ class TerminalScreen(Screen):
         if not self._running:
             self.dismiss(True)
     def save_log(self, filename: str):
-        with open(filename, 'w') as file:
+        with open(filename, 'w', encoding='utf-8') as file:
             for line in self.terminal.lines:
                 file.write(line.text +'\n')
     def on_button_pressed(self, message: Button.Pressed):

@@ -1,9 +1,11 @@
 import datetime
 import os
 from pathlib import Path
+import re
 from typing import Iterable
 from data.classes import AanvraagInfo, FileInfo, FileType
 from data.storage import AAPStorage
+from general.fileutil import summary_string
 from general.log import log_info, log_print
 from general.preview import Preview
 
@@ -75,12 +77,18 @@ class NewAanvragenProcessor(NewAanvragenProcessorBase):
         return n_processed
 
 class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
-    def __init__(self, processors: NewAanvraagProcessorBase|list[NewAanvraagProcessorBase], storage: AAPStorage, skip_directories: set[Path] = {}):
+    def __init__(self, processors: NewAanvraagProcessorBase|list[NewAanvraagProcessorBase], storage: AAPStorage, skip_directories: set[Path] = {}, skip_files: list[str]= []):
         super().__init__(processors, storage)
-        self.skip_directories = skip_directories
+        self.skip_directories:list[Path] = skip_directories
+        self.skip_files:list[re.Pattern] = [re.compile(f'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]
     def _in_skip_directory(self, filename: Path)->bool:
         for skip in self.skip_directories:
             if filename.is_relative_to(skip):
+                return True
+            return False
+    def _skip_file(self, filename: Path)->bool:
+        for pattern in self.skip_files:
+            if pattern.match(str(filename)):
                 return True
         return False
     def _process_file(self, processor: NewAanvraagFileProcessor, filename: str, storage: AAPStorage, preview=False, **kwargs)->bool:
@@ -97,6 +105,9 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
         with Preview(preview, self.storage, 'process_files'):
             for filename in sorted(files, key=os.path.getmtime):
                 if self._in_skip_directory(filename): 
+                    continue
+                if self._skip_file(filename):
+                    log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
                     continue
                 file_processed = True
                 for processor in self._processors:

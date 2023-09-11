@@ -8,14 +8,16 @@ from general.log import log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.valid_email import is_valid_email, try_extract_email
-from general.config import IntValueConvertor, config
+from general.config import IntValueConvertor, ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
 from process.general.new_aanvraag_processor import NewAanvraagFileProcessor, NewAanvragenFileProcessor
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException
 
 def init_config():
-    config.register('pdf_read', 'x_tolerance', IntValueConvertor)
-    config.init('pdf_read', 'x_tolerance', 3)
+    config.register('import', 'skip_files', ListValueConvertor)
+    config.init('import', 'skip_files', ['.*Aanvraag toelating afstuderen.*', 
+                '.*Beoordeling.*verslag.*', '.*Plan van aanpak.*', '.*Beoordeling aanvraag.*',
+                '.*Onderzoeksverslag.*', '.*Technisch verslag.*'])
 init_config()
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
@@ -77,7 +79,7 @@ class AanvraagDataImporter(NewAanvraagFileProcessor):
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
-        log_print(f'Lezen {summary_string(filename, maxlen=80)}')
+        log_print(f'Lezen {summary_string(filename, maxlen=100)}')
         try:
             if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
                 validator = AanvraagValidator(storage, filename, aanvraag)
@@ -148,12 +150,14 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
     def file_str(file,result):
         return f'{summary_string(file)} [{import_status_str(result)}]'
     log_info('Rapportage import:', to_console=True)
+    sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")    
     if verbose:
-        sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")
         log_info(f'\t---Gelezen {sop_aanvragen}:---')
-        log_print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
-    log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')
-    log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
+        if len(new_aanvragen):
+            log_print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
+    if len(new_aanvragen):
+        log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')
+        log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te lezen", "gelezen")}.', to_console=True)
 
 class NewImportDirectoryProcessor(NewAanvragenFileProcessor): pass
@@ -170,7 +174,9 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
         skip_directories = {Path(output_directory)}
     else:
         skip_directories = {}
-    importer = NewImportDirectoryProcessor(AanvraagDataImporter(), storage, skip_directories=skip_directories)
+    skip_files = config.get('import', 'skip_files')
+    # {'.*Aanvraag toelating afstuderen.*', '.*Beoordeling.*verslag.*', '.*Plan van aanpak.*', '.*Beoordeling aanvraag.*', '.*Onderzoeksverslag.*', '.*Technisch verslag.*'}
+    importer = NewImportDirectoryProcessor(AanvraagDataImporter(), storage, skip_directories=skip_directories, skip_files =skip_files)
     file_results = {}
     first_id = storage.aanvragen.max_id() + 1
     #TODO: hier zorgen voor resultaten bij het importeren, misschien
