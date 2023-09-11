@@ -102,7 +102,6 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
         return False    
     def process_files(self, files: Iterable[Path], preview=False, **kwargs)->int:
         n_processed = 0
-        must_commit = False
         with Preview(preview, self.storage, 'process_files'):
             for filename in sorted(files, key=os.path.getmtime):
                 if self._in_skip_directory(filename): 
@@ -110,7 +109,6 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
                 if self._skip_file(filename):
                     log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
                     if not preview:
-                        must_commit = True
                         self.storage.file_info.store_invalid(str(filename))
                     continue
                 file_processed = True
@@ -120,6 +118,4 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
                         break                
                 if file_processed:
                     n_processed += 1
-            # if must_commit:
-            #     self.storage.commit()
         return n_processed
