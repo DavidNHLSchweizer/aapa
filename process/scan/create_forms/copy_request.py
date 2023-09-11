@@ -3,6 +3,7 @@ import shutil
 from data.classes import AanvraagInfo, AanvraagStatus, FileType
 from general.fileutil import file_exists, summary_string
 from general.log import log_print
+from general.preview import pva
 from process.general.new_aanvraag_processor import NewAanvraagProcessor
 
 
@@ -33,8 +34,7 @@ class CopyAanvraagProcessor(NewAanvraagProcessor):
         copy_filename = CopyAanvraagProcessor._get_copy_filename(self.output_directory, aanvraag)
         if not preview:
             shutil.copy2(aanvraag_filename, copy_filename)
-        kopied = 'Te kopiëren' if preview else 'Gekopiëerd'
-        log_print(f'\t{kopied}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
+        log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {summary_string(aanvraag_filename)} to {summary_string(copy_filename)}.')
         aanvraag.files.set_filename(FileType.COPIED_PDF, copy_filename)
         return True
 

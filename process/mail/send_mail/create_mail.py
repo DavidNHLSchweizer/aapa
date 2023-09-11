@@ -4,6 +4,8 @@ from general.config import ListValueConvertor, config
 from general.fileutil import from_main_path, summary_string
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
+from general.preview import pva
+from general.singular_or_plural import sop
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.general.new_aanvraag_processor import NewAanvraagProcessor, NewAanvragenProcessor
 from process.general.mail_sender import OutlookMail, OutlookMailDef
@@ -59,10 +61,10 @@ class NewFeedbackMailsCreator(NewAanvraagProcessor):
     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
         filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
         if preview:
-            print(f'\tKlaarzetten mail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
+            log_print(f'\tKlaarzetten feedbackmail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
         else:
             if not Path(filename).exists():
-                log_error(f'Kan feedback mail voor {aanvraag} niet maken:\n\tbeoordelingbestand {filename} ontbreekt.')
+                log_error(f'Kan feedbackmail voor {aanvraag} niet maken:\n\tbeoordelingbestand {filename} ontbreekt.')
                 return False            
             self.mailer.draft_mail(aanvraag, filename)
             log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
@@ -73,7 +75,6 @@ def new_create_feedback_mails(storage: AAPStorage, filter_func = None, preview=F
     log_print('--- Klaarzetten feedback mails...')
     file_creator = NewAanvragenProcessor(NewFeedbackMailsCreator(), storage)
     n_mails = file_creator.process(filter_func, preview=preview)
-    klaargezet = 'klaar te zetten' if preview else 'klaargezet'    
-    log_print(f'### {n_mails} mails {klaargezet} in Outlook {file_creator.get_draft_folder_name()}')
+    log_print(f'### {n_mails} {sop(n_mails,"mail", "mails")} {pva(preview, "klaar te zetten", "klaargezet")} in Outlook {file_creator.get_draft_folder_name()}')
     log_print('--- Einde klaarzetten feedback mails.')
 

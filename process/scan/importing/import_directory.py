@@ -5,6 +5,8 @@ import tkinter.simpledialog as tksimp
 from data.storage import AAPStorage
 from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagInfo, FileInfo, FileType
 from general.log import log_error, log_print, log_warning, log_info
+from general.preview import pva
+from general.singular_or_plural import sop
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import IntValueConvertor, config
 from general.fileutil import file_exists, summary_string
@@ -137,22 +139,22 @@ class ImportResult(Enum):
 def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=False):
     def import_status_str(result):
         match result:
-            case ImportResult.IMPORTED: return 'te importeren' if preview else 'geimporteerd'
-            case ImportResult.ERROR: return 'kan niet worden geimporteerd' if preview else 'fout bij importeren'
-            case ImportResult.ALREADY_IMPORTED: return 'eerder geimporteerd'
-            case ImportResult.COPIED_FILE: return 'kopie van aanvraag (eerder geimporteerd)'
-            case ImportResult.KNOWN_ERROR: return 'eerder gelezen, kan niet worden geimporteerd'
-            case _: return '???'
+            case ImportResult.IMPORTED: return pva(preview, "te importeren","geimporteerd")
+            case ImportResult.ERROR: return pva(preview, "kan niet worden geimporteerd","fout bij importeren")
+            case ImportResult.ALREADY_IMPORTED: return "eerder geimporteerd"
+            case ImportResult.COPIED_FILE: return "kopie van aanvraag (eerder geimporteerd)"
+            case ImportResult.KNOWN_ERROR: return "eerder gelezen, kan niet worden geimporteerd"
+            case _: return "???"
     def file_str(file,result):
         return f'{summary_string(file)} [{import_status_str(result)}]'
     log_info('Rapportage import:', to_console=True)
     if verbose:
-        log_info('\t---Gelezen bestand(en):---')
+        sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")
+        log_info(f'\t---Gelezen {sop_aanvragen}:---')
         log_print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
-    log_info('\t--- Nieuwe aanvragen --- :')
+    log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')
     log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
-    gelezen = 'te lezen' if preview else 'gelezen'
-    log_info(f'\t{len(new_aanvragen)} nieuwe aanvragen {gelezen}.', to_console=True)
+    log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te lezen", "gelezen")}.', to_console=True)
 
 class NewImportDirectoryProcessor(NewAanvragenFileProcessor): pass
 
@@ -171,15 +173,8 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     importer = NewImportDirectoryProcessor(AanvraagDataImporter(), storage, skip_directories=skip_directories)
     file_results = {}
     first_id = storage.aanvragen.max_id() + 1
-    #TODO: hier eventueel de files sorteren op (omgekeerde) datum
     #TODO: hier zorgen voor resultaten bij het importeren, misschien
     n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
-    # for file in Path(directory).glob(_get_pattern(recursive)):
-    #     if file.parent == output_directory:
-    #         continue
-    #     import_result = _import_aanvraag(file, importer)
-    #     file_results[file] = import_result
-    # max_id = storage.aanvragen.max_id()    
     report_imports(file_results, importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
-    log_info(f'...Import afgerond ({n_processed} bestanden)', to_console=True)
+    log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

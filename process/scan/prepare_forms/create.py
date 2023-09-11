@@ -1,13 +1,12 @@
 from pathlib import Path
+from mailmerge import MailMerge
 from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
-from general.fileutil import file_exists, summary_string
-from general.log import log_error, log_info, log_print, log_warning
-from general.fileutil import created_directory, file_exists, summary_string
-from general.log import log_error, log_info, log_print, log_warning
-from mailmerge import MailMerge
-from process.scan.prepare_forms.copy_aanvraag import CopyAanvraagProcessor
-from process.scan.prepare_forms.create_diff_file import NewDifferenceProcessor
+from general.log import log_error, log_info, log_print
+from general.fileutil import created_directory, file_exists
+from general.preview import pva
+from process.scan.create_forms.copy_request import CopyAanvraagProcessor
+from process.scan.create_forms.create_diff_file import NewDifferenceProcessor
 from process.general.new_aanvraag_processor import NewAanvraagProcessor, NewAanvragenProcessor
 
 class MailMergeException(Exception): pass
@@ -52,8 +51,7 @@ class BeoordelingFormsCreator(NewAanvraagProcessor):
             return not file_exists(filename)
     def process(self, aanvraag: AanvraagInfo, preview=False, previous_aanvraag: AanvraagInfo=None, **kwdargs)->bool:
         doc_path = self.__merge_document(aanvraag, preview=preview)
-        aangemaakt = 'aanmaken' if preview else 'aangemaakt'
-        log_print(f'{aanvraag}\n\tFormulier {aangemaakt}: {Path(doc_path).name}.')
+        log_print(f'{aanvraag}\n\tFormulier {pva(preview, "aanmaken", "aangemaakt")}: {Path(doc_path).name}.')
         aanvraag.status = AanvraagStatus.NEEDS_GRADING
         aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
         return True

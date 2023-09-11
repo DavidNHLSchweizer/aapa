@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 from pathlib import Path
 from data.classes import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from general.preview import pva
+from general.singular_or_plural import sop
 from process.general.aanvraag_processor import AanvraagProcessor
 from general.fileutil import path_with_suffix
 from process.general.word_processor import DocxWordDocument
@@ -39,8 +41,7 @@ class BeoordelingenProcessor(AanvraagProcessor):
         if not preview:
             pdf_file_name = self.reader.save_as_pdf(pdf_file_name)
         aanvraag.files.set_info(FileInfo(pdf_file_name, filetype=FileType.GRADED_PDF, aanvraag_id=aanvraag.id))
-        aangemaakt = 'aan te maken' if preview else 'aangemaakt'
-        log_print(f'\tFeedback file {aangemaakt}: {pdf_file_name}.')
+        log_print(f'\tFeedback file {pva(preview, "aan te maken", "aangemaakt")}: {pdf_file_name}.')
     def __adapt_files(self, aanvraag: AanvraagInfo, docpath: str, preview = False):
         self.__reset_to_be_graded_file(aanvraag)
         self.__store_graded_file(aanvraag, docpath)
@@ -117,6 +118,5 @@ def verwerk_beoordelingen(BP: BeoordelingenProcessor, storage: AAPStorage, filte
     log_info('--- Verwerken beoordelingen...', to_console=True)
     # BP=BeoordelingenFromWordDocument(storage)
     n_graded = BP.process_all(filter_func, preview=preview)
-    verwerkt = 'te verwerken' if preview else 'verwerkt'
-    log_info(f'### {n_graded} beooordeelde aanvragen {verwerkt}', to_console=True)
+    log_info(f'### {n_graded} beooordeelde {sop(n_graded, "aanvraag", "aanvragen")}) {pva(preview, "te verwerken", "verwerkt")}', to_console=True)
     log_info('--- Einde verwerken beoordelingen.', to_console=True)

@@ -22,3 +22,5 @@ class Preview:
             console_info('*** end  PREVIEW ***')
 
     
+def pva(preview: bool, action_preview: str, action_actual: str)->str: 
+    return action_preview if preview else action_actual
