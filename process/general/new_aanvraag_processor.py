@@ -37,7 +37,7 @@ class NewAanvragenProcessorBase:
         self.storage = storage
         self.known_files = self.storage.file_info.find_all_for_filetype({filetype for filetype in FileType})
     def is_known_file(self, filename: str)->bool:        
-        return filename in self.known_files
+        return filename in {fileinfo.filename for fileinfo in self.known_files}
 
 class NewAanvragenProcessor(NewAanvragenProcessorBase):
     def __init__(self, processors: NewAanvraagProcessor|list[NewAanvraagProcessor], storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
@@ -89,7 +89,7 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
     def _skip_file(self, filename: Path)->bool:
         for pattern in self.skip_files:
             if pattern.match(str(filename)):
-                return True
+                return not self.is_known_file(str(filename))
         return False
     def _process_file(self, processor: NewAanvraagFileProcessor, filename: str, storage: AAPStorage, preview=False, **kwargs)->bool:
         if processor.must_process_file(filename, storage, **kwargs):
@@ -102,12 +102,16 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
         return False    
     def process_files(self, files: Iterable[Path], preview=False, **kwargs)->int:
         n_processed = 0
+        must_commit = False
         with Preview(preview, self.storage, 'process_files'):
             for filename in sorted(files, key=os.path.getmtime):
                 if self._in_skip_directory(filename): 
                     continue
                 if self._skip_file(filename):
                     log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
+                    if not preview:
+                        must_commit = True
+                        self.storage.file_info.store_invalid(str(filename))
                     continue
                 file_processed = True
                 for processor in self._processors:
@@ -116,4 +120,6 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
                         break                
                 if file_processed:
                     n_processed += 1
+            # if must_commit:
+            #     self.storage.commit()
         return n_processed
