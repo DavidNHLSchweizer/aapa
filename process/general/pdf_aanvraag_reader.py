@@ -11,7 +11,7 @@ init_config()
 
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'
-EMPTY_TITLE = 'NO TITLE FOUND'
+EMPTY_TITLE = '---NO TITLE FOUND...---'
 
 class PDFtoTablesReader:
     def __init__(self, pdf_file: str, expected_tables=0, expected_pages=0, max_pages=0):
@@ -158,9 +158,9 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
                          {'start':'\d.*Titel van de afstudeeropdracht', 'end': '\d.*Korte omschrijving van de opdracht.*'},                        
                          {'start':'.*Titel van de afstudeeropdracht', 'end': '.*Korte omschrijving van de opdracht.*'},                        
                         ]
-        for versie in regex_versies:
+        for n, versie in enumerate(regex_versies):
             aanvraag_data.titel = ' '.join(self.__get_strings_from_table(table, versie['start'], versie['end'])).strip()
-            if aanvraag_data.titel:
+            if aanvraag_data.titel != EMPTY_TITLE:
                 break
         if aanvraag_data.titel == EMPTY_TITLE:
             aanvraag_data.titel = ""
@@ -170,8 +170,10 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
         if row2 > row1 + 1:
             for row in range(row1, row2-1):
                 result.append(table[row])
+        elif row2 == row1+1 and table[row2-1] != '':
+            result.append(table[row2-1])
         else:
-            return [EMPTY_TITLE]
+            result.append(EMPTY_TITLE)
         return result
     def __find_range_from_table(self, table: list[str], start_paragraph_regex:str, end_paragraph_regex:str, must_find_both = False, ignore_case=False)->tuple[int,int]:
         def row_matches(table, row, pattern:re.Pattern):

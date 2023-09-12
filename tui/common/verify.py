@@ -46,7 +46,6 @@ class DialogForm(Static):
     def on_mount(self):
         w = 2 + max(self.__total_button_width(), self.__label_width())
         bw = self.__button_width()
-        logging.debug(f'label: {self.__label_width()} button: {bw} totalbuttons: {self.__total_button_width()} -> {w=}')
         self.styles.min_width = w
         self.styles.width = w
         for button in self.query(Button):
@@ -115,20 +114,16 @@ if __name__ == "__main__":
         async def action_verify(self) -> None:
             """An action to test verify."""
             result = verify(self, 'Wat is daarop uw antwoord? Wat is daarop uw antwoord? Wat is \ndaarop uw antwoord? Wat is daarop uw antwoord? ')
-            logging.debug(f'returned: {result}')            
 
         async def action_verifyOK(self) -> None:
             """An action to test verify."""
             result = verify(self, 'Wat is daarop uw antwoord?', buttons = ['OK','Cancel'], originator_key='OKC')
-            logging.debug(f'returned: {result}')            
 
         async def action_verify_cancel(self) -> None:
             """An action to test verify."""
             result = verify_cancel(self, 'Wat is daarop uw antwoord?')
-            logging.debug(f'returned: {result}')            
 
         def on_dialog_message(self, event: DialogMessage):
-            logging.debug(f'resultaat: {event.result_str} {event.originator_key}')
             match event.originator_key:
                 case 'verify':
                     message_box(self, f'Het antwoord is resultaat: {event.result_str} {event.originator_key}')

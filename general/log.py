@@ -16,6 +16,7 @@ class PrintFuncs:
     info:PrintFunc=print
     warning:PrintFunc=print
     error:PrintFunc=print
+    debug:PrintFunc=print
     
 class ConsoleFactory:
     def create(self)->PrintFuncs:
@@ -50,31 +51,41 @@ class ConsolePrinter(Singleton):
         self.__check_func('warning', msg)
     def error(self, msg: str):
         self.__check_func('error', msg)
+    def debug(self, msg: str):
+        self.__check_func('debug', msg)
 
 class AAPAlogger(Singleton):
-    def __init__(self, filename):        
-        logpath = from_main_path('logs')
-        if not (test_directory_exists(logpath) or created_directory(logpath)):
-            print(f'ERROR: can not create logfile {filename} in {logpath}')            
-            logpath = Path('.').resolve()
-            print(f'Creating log in {logpath}')        
-        filename = path_with_suffix(logpath.joinpath(Path(filename).name), '.log')
-        debug = get_debug()
-        logging.basicConfig(handlers=[TimedRotatingFileHandler(str(filename),'D', 1, 7, encoding='utf-8')], 
-                            format='%(asctime)s- %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG if debug else logging.INFO)
+    def __init__(self, filename, debug=False):        
+        log_path = from_main_path('logs')
+        if not (test_directory_exists(log_path) or created_directory(log_path)):
+            print(f'ERROR: can not create logfile {filename} in {log_path}')            
+            log_path = Path('.').resolve()
+            print(f'Creating log in {log_path}')        
+        date_fmt = '%Y-%m-%d %H:%M:%S'
+        format = '%(asctime)s- %(message)s'
+        if debug:
+            log_name = Path(filename).stem + '_debug'
+            logging.basicConfig(filename=path_with_suffix(log_path.joinpath(log_name), '.log'),  encoding='utf-8', filemode='w',
+                                format=format, datefmt=date_fmt, level=logging.DEBUG)
+        else:
+            log_name = Path(filename).name
+            logging.basicConfig(handlers=[TimedRotatingFileHandler(str(path_with_suffix(log_path.joinpath(log_name), '.log')),'D', 1, 7, 
+                                encoding='utf-8')], format=format, datefmt=date_fmt, level=logging.INFO)
     def info(self, msg):
         logging.info(msg)
     def warning(self, msg):
         logging.warning(msg)
     def error(self, msg):
         logging.error(msg)
+    def debug(self, msg):
+        logging.debug(msg)
 
 _logger: AAPAlogger = None
 _console: ConsolePrinter = None
 
-def init_logging(filename: str):
+def init_logging(filename: str, debug = False):
     global _logger, _console
-    _logger = AAPAlogger(filename)
+    _logger = AAPAlogger(filename, debug)
     _console = ConsolePrinter()
 
 def console_info(msg: str):
@@ -125,9 +136,21 @@ def log_error(msg: str):
         _logger.error(msg)
     console_error(msg)
 
+def console_debug(msg: str):
+    print_str = f'DEBUG: {msg}'
+    if _console:
+        _console.debug(print_str)
+    else:
+        print(print_str)
+
+def log_debug(msg: str):
+    if _logger:
+        _logger.debug(f'DEBUG: {msg}')
+    console_debug(msg)
+
 class DefaultConsoleFactory(ConsoleFactory):
     def create(self)->PrintFuncs:
-        return PrintFuncs(console_print, console_info, console_warning, console_error)
+        return PrintFuncs(console_print, console_info, console_warning, console_error, console_debug)
     
 #functions to switch printing to other channels, e.g. a terminal widget
 def push_console(funcs: PrintFuncs):

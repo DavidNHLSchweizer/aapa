@@ -162,7 +162,6 @@ class AAPAApp(App):
     async def on_mount(self):
         await init_console(self)
     async def on_button_pressed(self, message: Button.Pressed):
-        # logging.debug(f'button {message.button.id}')
         match message.button.id:
             case 'scan': await self.action_scan()
             case 'mail': await self.action_mail()

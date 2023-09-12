@@ -16,6 +16,8 @@ class TerminalWrite(Message):
         INFO    = auto()
         WARNING = auto()
         ERROR   = auto()
+        DEBUG   = auto()
+
     def __init__(self, line: str, write_class: Level = Level.NORMAL, no_newline=False) -> None:
         self.line = line
         self.write_class = write_class
@@ -67,6 +69,7 @@ class TerminalScreen(Screen):
         self._running = False
         self._info_color = 'white'
         self._error_color = 'red1'
+        self._debug_color = 'yellow'
         self._warning_color = 'dark_orange'
         super().__init__(**kwdargs)
     def compose(self) -> ComposeResult:
@@ -98,6 +101,8 @@ class TerminalScreen(Screen):
         self.write_line(Text(message, self._warning_color))
     def error(self, message: str):
         self.write_line(Text(message, self._error_color))
+    def debug(self, message: str):
+        self.write_line(Text(message, self._debug_color))
     def close(self):
         if not self._running:
             self.dismiss(True)
@@ -126,3 +131,4 @@ class TerminalScreen(Screen):
             case TerminalWrite.Level.INFO: self.info(message.line)
             case TerminalWrite.Level.WARNING: self.warning(message.line)
             case TerminalWrite.Level.ERROR: self.error(message.line)
+            case TerminalWrite.Level.DEBUG: self.debug(message.line)

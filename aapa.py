@@ -1,5 +1,4 @@
-from general.args import AAPAoptions, get_arguments
-from general.config import config
+from general.args import AAPAoptions, get_arguments, get_debug
 from general.log import init_logging
 from general.preview import Preview
 from process.aapa_processor.aapa_config import AAPAconfiguration, LOGFILENAME
@@ -15,6 +14,6 @@ class AAPARunner:
                 AAPAProcessor().process(self.configuration)
 
 if __name__=='__main__':
-    init_logging(LOGFILENAME)
+    init_logging(LOGFILENAME, get_debug())
     aapa_runner = AAPARunner(get_arguments())
     aapa_runner.process() 

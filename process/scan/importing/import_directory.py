@@ -174,11 +174,10 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     else:
         skip_directories = {}
     skip_files = config.get('import', 'skip_files')
-    # {'.*Aanvraag toelating afstuderen.*', '.*Beoordeling.*verslag.*', '.*Plan van aanpak.*', '.*Beoordeling aanvraag.*', '.*Onderzoeksverslag.*', '.*Technisch verslag.*'}
-    importer = NewImportDirectoryProcessor(AanvraagDataImporter(), storage, skip_directories=skip_directories, skip_files =skip_files)
+    importer = NewImportDirectoryProcessor(AanvraagDataImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     file_results = {}
     first_id = storage.aanvragen.max_id() + 1
-    #TODO: hier zorgen voor resultaten bij het importeren, misschien
+    #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben
     n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
     report_imports(file_results, importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)

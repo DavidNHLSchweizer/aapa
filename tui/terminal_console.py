@@ -34,6 +34,9 @@ class Console(Singleton):
     def error(self, message: str):
         if self._active:
             self._terminal.post_message(TerminalWrite(message, TerminalWrite.Level.ERROR))
+    def debug(self, message: str):
+        if self._active:
+            self._terminal.post_message(TerminalWrite(message, TerminalWrite.Level.DEBUG))
 
 _global_console: Console = None
 async def init_console(app: App)->Console:
@@ -62,9 +65,14 @@ def console_error(message: str):
     if _global_console:
         _global_console.error(message)
 
+def console_debug(message: str):
+    global _global_console
+    if _global_console:
+        _global_console.debug(message)
+
 class TerminalConsoleFactory(ConsoleFactory):
     def create(self)->PrintFuncs:
-        return PrintFuncs(console_print, console_info, console_warning, console_error)
+        return PrintFuncs(console_print, console_info, console_warning, console_error, console_debug)
 
 
 async def console_run(script, **kwdargs)->bool:

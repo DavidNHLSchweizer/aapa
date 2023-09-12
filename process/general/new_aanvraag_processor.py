@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import re
 from typing import Iterable
-from data.classes import AanvraagInfo, FileInfo, FileType
+from data.classes import AanvraagInfo, FileType
 from data.storage import AAPStorage
 from general.fileutil import summary_string
 from general.log import log_info, log_print
@@ -37,7 +37,7 @@ class NewAanvragenProcessorBase:
         self.storage = storage
         self.known_files = self.storage.file_info.find_all_for_filetype({filetype for filetype in FileType})
     def is_known_file(self, filename: str)->bool:        
-        return filename in {fileinfo.filename for fileinfo in self.known_files}
+        return filename in {fileinfo.filename for fileinfo in self.known_files} or self.storage.file_info.is_known_invalid(str(filename))
 
 class NewAanvragenProcessor(NewAanvragenProcessorBase):
     def __init__(self, processors: NewAanvraagProcessor|list[NewAanvraagProcessor], storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
@@ -77,10 +77,10 @@ class NewAanvragenProcessor(NewAanvragenProcessorBase):
         return n_processed
 
 class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
-    def __init__(self, processors: NewAanvraagProcessorBase|list[NewAanvraagProcessorBase], storage: AAPStorage, skip_directories: set[Path] = {}, skip_files: list[str]= []):
+    def __init__(self, processors: NewAanvraagProcessorBase|list[NewAanvraagProcessorBase], storage: AAPStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
         super().__init__(processors, storage)
         self.skip_directories:list[Path] = skip_directories
-        self.skip_files:list[re.Pattern] = [re.compile(f'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]
+        self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
     def _in_skip_directory(self, filename: Path)->bool:
         for skip in self.skip_directories:
             if filename.is_relative_to(skip):
@@ -89,7 +89,7 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
     def _skip_file(self, filename: Path)->bool:
         for pattern in self.skip_files:
             if pattern.match(str(filename)):
-                return not self.is_known_file(str(filename))
+                return True 
         return False
     def _process_file(self, processor: NewAanvraagFileProcessor, filename: str, storage: AAPStorage, preview=False, **kwargs)->bool:
         if processor.must_process_file(filename, storage, **kwargs):
@@ -104,9 +104,9 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
         n_processed = 0
         with Preview(preview, self.storage, 'process_files'):
             for filename in sorted(files, key=os.path.getmtime):
-                if self._in_skip_directory(filename): 
-                    continue
-                if self._skip_file(filename):
+                if self._in_skip_directory(filename):
+                    continue                    
+                if self._skip_file(filename) and not self.is_known_file(filename):
                     log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
                     if not preview:
                         self.storage.file_info.store_invalid(str(filename))
