@@ -6,7 +6,7 @@ from typing import Iterable
 from data.classes import AanvraagInfo, FileType
 from data.storage import AAPStorage
 from general.fileutil import summary_string
-from general.log import log_info, log_print
+from general.log import log_debug, log_info, log_print
 from general.preview import Preview
 
 class NewAanvraagProcessorBase:
@@ -101,6 +101,7 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
             return True
         return False    
     def process_files(self, files: Iterable[Path], preview=False, **kwargs)->int:
+        log_debug('testing 123')
         n_processed = 0
         with Preview(preview, self.storage, 'process_files'):
             for filename in sorted(files, key=os.path.getmtime):

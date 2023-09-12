@@ -1,3 +1,4 @@
+import logging
 from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, create_root
 from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase
@@ -6,7 +7,7 @@ from database.dbConst import EMPTY_ID
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import log_info, log_warning
+from general.log import log_debug, log_info, log_warning
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
