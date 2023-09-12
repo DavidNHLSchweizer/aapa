@@ -11,7 +11,7 @@ from general.valid_email import is_valid_email, try_extract_email
 from general.config import IntValueConvertor, ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
 from process.general.new_aanvraag_processor import NewAanvraagFileProcessor, NewAanvragenFileProcessor
-from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException
+from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException, is_valid_title
 
 def init_config():
     config.register('import', 'skip_files', ListValueConvertor)
@@ -50,11 +50,11 @@ class AanvraagValidator:
                 return False
         return True
     def __check_titel(self)->bool:
-        if not self.validated_aanvraag.titel:
+        if not is_valid_title(self.validated_aanvraag.titel):
             self.validated_aanvraag.titel=self.__ask_titel(self.validated_aanvraag)
         return True
     def __ask_titel(self, aanvraag: AanvraagInfo)->str:
-        return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}')
+        return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
     def __check_sourcefile(self)->bool:
         fileinfo = FileInfo(self.source_file, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.AANVRAAG_PDF)
         if self.storage.file_info.is_duplicate(fileinfo):            

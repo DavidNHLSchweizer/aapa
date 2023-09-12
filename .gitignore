@@ -33,3 +33,4 @@ aapa.dist/**
 aapa.onefile-build/**
 aapa.exe
 temp_work.py
+process/general/pdf_aanvraag_reader.py

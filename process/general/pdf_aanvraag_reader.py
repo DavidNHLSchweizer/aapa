@@ -3,6 +3,7 @@ import re
 import pdfplumber
 from data.classes import AanvraagInfo, Bedrijf, StudentInfo
 from general.config import IntValueConvertor, config
+from general.log import log_debug
 
 def init_config():
     config.register('pdf_read', 'x_tolerance', IntValueConvertor)
@@ -11,7 +12,10 @@ init_config()
 
 class PDFReaderException(Exception): pass
 NOTFOUND = 'NOT FOUND'
-EMPTY_TITLE = '---NO TITLE FOUND...---'
+TITLE_NOT_FOUND = (1,0)
+EMPTY_TITLE = 'Titel niet gevonden'
+def is_valid_title(title: str)->bool:
+    return title != EMPTY_TITLE
 
 class PDFtoTablesReader:
     def __init__(self, pdf_file: str, expected_tables=0, expected_pages=0, max_pages=0):
@@ -101,6 +105,12 @@ class _AanvraagData:
         if self.student == NOTFOUND or self.bedrijf == NOTFOUND or self.email == NOTFOUND:
             return False      
         return True
+    
+def debug_table_report_string(table: list[str], r1:int=None, r2:int=None)->str:
+    rr1 = r1 if r1 is not None else 0
+    rr2 = r2 if r2 is not None else len(table)
+    log_debug(f'{rr1=}, {rr2=}')
+    return "\n".join([f'{n}: {line}' for n,line in enumerate(table[rr1:rr2])])
 
 class AanvraagReaderFromPDF(PDFaanvraagReader):
     def __init__(self, pdf_file: str):
@@ -159,29 +169,27 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
                          {'start':'.*Titel van de afstudeeropdracht', 'end': '.*Korte omschrijving van de opdracht.*'},                        
                         ]
         for n, versie in enumerate(regex_versies):
-            aanvraag_data.titel = ' '.join(self.__get_strings_from_table(table, versie['start'], versie['end'])).strip()
-            if aanvraag_data.titel != EMPTY_TITLE:
+            table_strings = self.__get_strings_from_table(table, versie['start'], versie['end'])            
+            if table_strings:
+                aanvraag_data.titel = ' '.join(table_strings).strip()
                 break
-        if aanvraag_data.titel == EMPTY_TITLE:
-            aanvraag_data.titel = ""
     def __get_strings_from_table(self, table: list[str], start_paragraph_regex:str, end_paragraph_regex:str)->list[str]:
         row1, row2 = self.__find_range_from_table(table, start_paragraph_regex, end_paragraph_regex, must_find_both=True)
+        if (row1,row2)==TITLE_NOT_FOUND:
+            return None
         result = []
-        if row2 > row1 + 1:
+        if row2 == row1+1:
+            result.append(EMPTY_TITLE)
+        elif row2 > row1 + 1:
             for row in range(row1, row2-1):
                 result.append(table[row])
-        elif row2 == row1+1 and table[row2-1] != '':
-            result.append(table[row2-1])
-        else:
-            result.append(EMPTY_TITLE)
         return result
     def __find_range_from_table(self, table: list[str], start_paragraph_regex:str, end_paragraph_regex:str, must_find_both = False, ignore_case=False)->tuple[int,int]:
         def row_matches(table, row, pattern:re.Pattern):
-            flags = re.IGNORECASE if ignore_case else 0
             if isinstance(table[row], str):
-                return pattern.match(table[row], flags) is not None
+                return pattern.match(table[row]) is not None
             elif isinstance(table[row], list):
-                return pattern.match(table[row][0], flags) is not None
+                return pattern.match(table[row][0]) is not None
             else:
                 return False
         def find_pattern(regex, row0):
@@ -189,16 +197,16 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
                 return row0
             else:
                 row = row0
-                pattern = re.compile(regex)
+                pattern = re.compile(regex, re.IGNORECASE if ignore_case else 0)
                 while row < len(table) and not row_matches(table, row, pattern):
                     row+=1 
-                return min(row + 1, len(table))
+                return min(row+1, len(table))
         row1 = find_pattern(start_paragraph_regex, 0)
         if row1 == len(table) and not must_find_both:
             row1 = 0
         row2 = find_pattern(end_paragraph_regex, row1)
         if row2 == len(table):
-            return (1, 0)
+            return TITLE_NOT_FOUND
         else:
             return (row1,row2)
 
