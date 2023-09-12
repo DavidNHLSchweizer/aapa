@@ -101,7 +101,6 @@ class NewAanvragenFileProcessor(NewAanvragenProcessorBase):
             return True
         return False    
     def process_files(self, files: Iterable[Path], preview=False, **kwargs)->int:
-        log_debug('testing 123')
         n_processed = 0
         with Preview(preview, self.storage, 'process_files'):
             for filename in sorted(files, key=os.path.getmtime):
