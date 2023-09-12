@@ -1,4 +1,3 @@
-import logging
 from data.AAPdatabase import AanvraagTableDefinition, BedrijfTableDefinition, FileTableDefinition, StudentTableDefinition, create_root
 from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
 from database.crud import CRUDbase

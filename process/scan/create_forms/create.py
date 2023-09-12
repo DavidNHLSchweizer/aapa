@@ -1,10 +1,8 @@
 from pathlib import Path
 from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
-from general.fileutil import file_exists, summary_string
-from general.log import log_error, log_info, log_print, log_warning
-from general.fileutil import created_directory, file_exists, summary_string
-from general.log import log_error, log_info, log_print, log_warning
+from general.log import log_error, log_info, log_print
+from general.fileutil import created_directory, file_exists
 from mailmerge import MailMerge
 from general.preview import pva
 from process.scan.create_forms.copy_request import CopyAanvraagProcessor

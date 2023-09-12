@@ -1,7 +1,7 @@
 from pathlib import Path
 from data.classes import AanvraagInfo, AanvraagStatus, FileType
 from general.fileutil import file_exists, summary_string
-from general.log import log_info, log_print
+from general.log import log_print
 from general.preview import pva
 from process.general.difference import DifferenceGenerator
 from process.general.new_aanvraag_processor import NewAanvraagProcessor

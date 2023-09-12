@@ -3,7 +3,6 @@ from data.classes import AanvraagInfo
 from general.config import ListValueConvertor, config
 from general.fileutil import from_main_path, summary_string
 from general.preview import pva
-from process.general.aanvraag_processor import AanvraagProcessor
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from data.storage import AAPStorage
 from general.substitutions import FieldSubstitution, FieldSubstitutions

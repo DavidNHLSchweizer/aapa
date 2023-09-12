@@ -110,7 +110,6 @@ class AAPAlogger(Singleton):
             if caller == '__main__':
                 return True
             else:
-                # print(f'{caller}  ({caller.__class__}): disabled {caller in self.disabled_loggers}  enabled: {caller in self.enabled_loggers}')
                 return not (caller in self.disabled_loggers) and (caller in self.enabled_loggers)
     def info(self, msg):
         if self.check_caller_module_enabled():

@@ -1,5 +1,4 @@
 from enum import Enum
-import logging
 from pathlib import Path
 from copy import deepcopy
 import tkinter.simpledialog as tksimp
@@ -9,7 +8,7 @@ from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.valid_email import is_valid_email, try_extract_email
-from general.config import IntValueConvertor, ListValueConvertor, config
+from general.config import ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
 from process.general.new_aanvraag_processor import NewAanvraagFileProcessor, NewAanvragenFileProcessor
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException, is_valid_title
