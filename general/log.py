@@ -6,6 +6,7 @@ from typing import Protocol
 from general.args import get_debug
 from general.fileutil import created_directory, from_main_path, path_with_suffix, test_directory_exists
 from general.singleton import Singleton
+from general. import load_debug_config
 
 class PrintFunc(Protocol):
     def __call__(msg: str):pass
@@ -87,7 +88,8 @@ def init_logging(filename: str, debug = False):
     global _logger, _console
     _logger = AAPAlogger(filename, debug)
     _console = ConsolePrinter()
-
+    if debug:
+        load_debug_config()
 def console_info(msg: str):
     if _console:
         _console.info(msg)
