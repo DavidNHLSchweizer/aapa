@@ -3,10 +3,10 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from typing import Protocol
-from general.args import get_debug
 from general.fileutil import created_directory, from_main_path, path_with_suffix, test_directory_exists
 from general.singleton import Singleton
-from general. import load_debug_config
+from debug.debug import load_debug_config
+from general.config import config
 
 class PrintFunc(Protocol):
     def __call__(msg: str):pass
@@ -90,6 +90,11 @@ def init_logging(filename: str, debug = False):
     _console = ConsolePrinter()
     if debug:
         load_debug_config()
+        for name, logger in logging.root.manager.loggerDict.items():
+            disabled_loggers = config.get('debug', 'disabled_loggers')
+            logger.disabled = disabled_loggers and name in disabled_loggers
+        log_info(f'debug loaded. Disabled packages: {str(config.get("debug", "disabled_loggers"))}')
+
 def console_info(msg: str):
     if _console:
         _console.info(msg)

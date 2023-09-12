@@ -1,0 +1,24 @@
+#loggers from external packages
+#block because some still have debugging calls
+rich
+concurrent.futures
+concurrent
+asyncio
+pdfminer.lzw
+pdfminer
+charset_normalizer
+pdfminer.psparser
+pdfminer.pdftypes
+pdfminer.encodingdb
+pdfminer.cmapdb
+pdfminer.pdffont
+pdfminer.pdfparser
+pdfminer.pdfdocument
+pdfminer.pdfpage
+pdfminer.pdfinterp
+pdfminer.layout
+pdfminer.converter
+pdfplumber.pdf
+pdfplumber
+tqdm.cli
+tqdm
