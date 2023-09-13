@@ -7,8 +7,8 @@ import re
 from typing import Protocol
 from general.fileutil import created_directory, from_main_path, path_with_suffix, test_directory_exists
 from general.singleton import Singleton
-from debug.debug import load_debug_config
-from general.config import config
+from debug.debug import check_caller_is_enabled, get_disabled_loggers, get_enabled_loggers
+
 
 class PrintFunc(Protocol):
     def __call__(msg: str):pass
@@ -76,50 +76,20 @@ class AAPAlogger(Singleton):
         log_name = Path(filename).stem + '_debug'
         logging.basicConfig(filename=path_with_suffix(log_path.joinpath(log_name), '.log'),  encoding='utf-8', filemode='w',
                             format=format, datefmt=date_fmt, level=logging.DEBUG)
-        self.disabled_loggers = config.get('debug', 'disabled_loggers')
-        if self.disabled_loggers is None:
-            self.disabled_loggers = []
-        self.enabled_loggers = config.get('debug', 'enabled_loggers')
-        if self.enabled_loggers is None:
-            self.enabled_loggers = []
     def __init_normal_config(self, filename: str, log_path: str, date_fmt: str, format: str):
         log_name = Path(filename).name
         logging.basicConfig(handlers=[TimedRotatingFileHandler(str(path_with_suffix(log_path.joinpath(log_name), '.log')),'D', 1, 7, 
                             encoding='utf-8')], format=format, datefmt=date_fmt, level=logging.INFO)
         self.disabled_loggers = []
         self.enabled_loggers = []
-    def find_calling_module(self)->str:
-        def find_module_name(module_str: str)->str:
-            if (m := re.match("\<module '(?P<module>.*)' from (?P<file>.*)\>", module_str)):
-                return m.group("module")
-            return ""
-        def _caller_(stack_level: int)->str:
-            stack = inspect.stack()[stack_level]
-            return find_module_name(str(inspect.getmodule(stack[0])))
-        stack_level = 1
-        module_name = self.__module__
-        while module_name == self.__module__:
-            module_name = _caller_(stack_level)
-            stack_level+=1
-        return module_name
-    def check_caller_module_enabled(self)->bool:
-        if not self.is_debug:            
-            return True
-        else:
-            caller = self.find_calling_module()
-            if caller == '__main__':
-                return True
-            else:
-                return not (caller in self.disabled_loggers) and (caller in self.enabled_loggers)
     def info(self, msg):
-        if self.check_caller_module_enabled():
-            logging.info(msg)
+        logging.info(msg)
     def warning(self, msg):
         logging.warning(msg)
     def error(self, msg):
         logging.error(msg)
     def debug(self, msg):
-        if self.check_caller_module_enabled():
+        if check_caller_is_enabled(self.__module__):
             logging.debug(msg)
 
 _logger: AAPAlogger = None
@@ -127,14 +97,10 @@ _console: ConsolePrinter = None
 
 def init_logging(filename: str, debug = False):
     global _logger, _console
-    if debug:
-        load_debug_config()
-        for name, logger in logging.root.manager.loggerDict.items():
-            disabled_loggers = config.get('debug', 'disabled_loggers')
-            logger.disabled = disabled_loggers and name in disabled_loggers
     _logger = AAPAlogger(filename, debug)
-    log_info(f'debug loaded. Disabled packages: {str(config.get("debug", "disabled_loggers"))}')
-    log_info(f'enabled packages are {str(config.get("debug", "enabled_loggers"))}')
+    if debug:
+        log_debug(f'Debug loaded.\nDisabled packages: {str(get_disabled_loggers())}' + 
+                    f'\nEnabled packages: {str(get_enabled_loggers())}')
     _console = ConsolePrinter()
 
 def console_info(msg: str):

@@ -172,7 +172,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
         log_warning(f'Directory {summary_string(output_directory)}\n\tis onderdeel van {summary_string(directory)}.\n\tWordt overgeslagen.', to_console=True)           
         skip_directories = {Path(output_directory)}
     else:
-        skip_directories = {}
+        skip_directories = set()
     skip_files = config.get('import', 'skip_files')
     importer = NewImportDirectoryProcessor(AanvraagDataImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     file_results = {}
