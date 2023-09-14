@@ -62,7 +62,7 @@ tqdm
 #process.general.aanvraag_processor
 #process.general.difference
 #process.general.mail_sender
-process.general.new_aanvraag_processor
+process.general.aanvraag_processor
 process.general.pdf_aanvraag_reader
 #process.general.word_processor
 #process.mail.mail

@@ -1,7 +1,7 @@
 from enum import Enum
 import pandas as pd
 from general.log import log_print
-from process.general.aanvraag_processor import AanvraagProcessor
+from process.general.old_aanvraag_processor import OldAanvraagProcessor
 from data.classes import AanvraagInfo
 from data.storage import AAPStorage
 from general.fileutil import writable_filename
@@ -63,13 +63,13 @@ class AanvraagDataXLS:
         log_print(f'Rapport  ({self.number_rows()-1} aanvragen) geschreven naar {self.xls_filename}.')
         self.writer.close()
 
-class AanvraagDataXLSReporter(AanvraagProcessor):
+class AanvraagDataXLSReporter(OldAanvraagProcessor):
     def process(self, xls_filename: str, filter_func=None):
         reporter = AanvraagDataXLS(xls_filename)
         reporter.report(self.filtered_aanvragen(filter_func))
         reporter.close()
 
-class AanvraagDataConsoleReporter(AanvraagProcessor):
+class AanvraagDataConsoleReporter(OldAanvraagProcessor):
     def process(self, filter_func=None):
         for aanvraag in self.filtered_aanvragen(filter_func):
             log_print(aanvraag)

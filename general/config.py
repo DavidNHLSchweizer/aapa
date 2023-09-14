@@ -1,6 +1,6 @@
 from __future__ import annotations
 import atexit
-from configparser import ConfigParser, NoOptionError
+from configparser import ConfigParser, NoOptionError, NoSectionError
 from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
 
@@ -17,13 +17,22 @@ class ValueConvertor:
 
 class IntValueConvertor(ValueConvertor):
     def get(self, section_key: str, key_value: str, **kwargs)->str:
-        return self._parser.getint(section_key, key_value, **kwargs)
+        try:
+            return self._parser.getint(section_key, key_value, **kwargs)
+        except (NoSectionError, NoOptionError):
+            return None
 class FloatValueConvertor(ValueConvertor):
     def get(self, section_key: str, key_value: str, **kwargs)->str:
-        return self._parser.getfloat(section_key, key_value, **kwargs)
+        try:
+            return self._parser.getfloat(section_key, key_value, **kwargs)
+        except (NoSectionError, NoOptionError):
+            return None
 class BoolValueConvertor(ValueConvertor):
     def get(self, section_key: str, key_value: str, **kwargs)->str:
-        return self._parser.getboolean(section_key, key_value, **kwargs)
+        try:
+            return self._parser.getboolean(section_key, key_value, **kwargs)
+        except (NoSectionError, NoOptionError):
+            return None
 
 class ListValueConvertor(ValueConvertor):
     def __init__(self, parser: ConfigParser, itemConvertor: type[ValueConvertor] = None):
@@ -35,7 +44,7 @@ class ListValueConvertor(ValueConvertor):
                 return self.itemConvertor.get(section_key, item_key, **kwargs)
             else:
                 return super(ListValueConvertor, self).get(section_key, item_key, **kwargs)
-        except NoOptionError:
+        except (NoSectionError, NoOptionError):
             return None 
     def get(self, section_key: str, key_value: str, **kwargs)->str:
         result = []

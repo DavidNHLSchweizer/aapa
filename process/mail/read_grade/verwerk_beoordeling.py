@@ -3,7 +3,7 @@ from pathlib import Path
 from data.classes import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.preview import pva
 from general.singular_or_plural import sop
-from process.general.aanvraag_processor import AanvraagProcessor
+from process.general.old_aanvraag_processor import OldAanvraagProcessor
 from general.fileutil import path_with_suffix
 from process.general.word_processor import DocxWordDocument
 from data.storage import AAPStorage
@@ -24,7 +24,7 @@ class GradeInputReader(DocxWordDocument):
     def flush(self):
         pass
 
-class BeoordelingenProcessor(AanvraagProcessor):
+class BeoordelingenProcessor(OldAanvraagProcessor):
     def __init__(self, reader: GradeInputReader, storage: AAPStorage, aanvragen: list[AanvraagInfo] = None, graded_status = AanvraagStatus.GRADED):
         super().__init__(storage, aanvragen)
         self.reader = reader
@@ -113,6 +113,8 @@ class BeoordelingenProcessor(AanvraagProcessor):
             if self.process(aanvraag, preview):
                 n_processed  += 1
         return n_processed
+
+
 
 def verwerk_beoordelingen(BP: BeoordelingenProcessor, storage: AAPStorage, filter_func = None, preview=False):
     log_info('--- Verwerken beoordelingen...', to_console=True)

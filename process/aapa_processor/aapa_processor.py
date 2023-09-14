@@ -2,7 +2,7 @@ from datetime import datetime
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print
 from process.aapa_processor.aapa_config import AAPAconfiguration
-from process.scan.create_forms.create_diff_file import NewDifferenceProcessor
+from process.scan.create_forms.create_diff_file import DifferenceProcessor
 # from process.read_grade.history import read_beoordelingen_from_files
 from general.config import config
 from data.report_data import report_aanvragen_XLS
@@ -18,7 +18,7 @@ class AAPAProcessor:
         log_print(f'CONFIGURATION:\n{tabify(report_options(options,1))}')
         log_print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
     def __create_diff_file(self, configuration: AAPAconfiguration):
-        DP = NewDifferenceProcessor(configuration.storage)
+        DP = DifferenceProcessor(configuration.storage)
         pass
         # DP.process_student(configuration.options.diff_file, configuration.forms_directory)
     # def __read_history_file(self, configuration: AAPAconfiguration):

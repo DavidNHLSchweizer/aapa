@@ -7,7 +7,7 @@ from data.storage import AAPStorage
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.substitutions import FieldSubstitution, FieldSubstitutions
-from process.general.new_aanvraag_processor import NewAanvraagProcessor, NewAanvragenProcessor
+from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
 from process.general.mail_sender import OutlookMail, OutlookMailDef
 from general.log import log_error, log_print
 
@@ -51,12 +51,12 @@ class FeedbackMailCreator:
     def draft_mail(self, aanvraag: AanvraagInfo, attachment: str):
         self.outlook.draft_item(self._create_mail_def(aanvraag, attachment))
 
-class NewFeedbackMailsCreator(NewAanvraagProcessor):
+class FeedbackMailProcessor(AanvraagProcessor):
     def __init__(self):
         self.mailer = FeedbackMailCreator()
     def get_draft_folder_name(self):
         return self.mailer.draft_folder_name
-    def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:
+    def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:        
         return aanvraag.status == AanvraagStatus.GRADED
     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
         filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
@@ -71,10 +71,10 @@ class NewFeedbackMailsCreator(NewAanvraagProcessor):
             aanvraag.status = AanvraagStatus.MAIL_READY
         return True
 
-def new_create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
+def create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
     log_print('--- Klaarzetten feedback mails...')
-    file_creator = NewAanvragenProcessor(NewFeedbackMailsCreator(), storage)
-    n_mails = file_creator.process(filter_func, preview=preview)
-    log_print(f'### {n_mails} {sop(n_mails,"mail", "mails")} {pva(preview, "klaar te zetten", "klaargezet")} in Outlook {file_creator.get_draft_folder_name()}')
+    processor = AanvragenProcessor(FeedbackMailProcessor(), storage)
+    n_mails = processor.process_aanvragen(filter_func, preview=preview)
+    log_print(f'### {n_mails} {sop(n_mails,"mail", "mails")} {pva(preview, "klaar te zetten", "klaargezet")} in Outlook {processor.get_draft_folder_name()}')
     log_print('--- Einde klaarzetten feedback mails.')
 

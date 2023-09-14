@@ -12,10 +12,10 @@ class Word2PdfConvertor:
         return output_file               
 
 class DocxWordDocument:
-    def __init__(self, doc_path=None):
-        self.doc_path = doc_path
+    def __init__(self):
+        self.doc_path = None
         CoInitialize() #needed for TUI interface, else async or multithreading problems
-        self._document = Document(doc_path)
+        self._document = None
         self.pdf_convertor = Word2PdfConvertor()
         self._modified = False
     @property 

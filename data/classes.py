@@ -229,6 +229,8 @@ class AanvraagInfo:
         return self.files.get_digest(FileType.AANVRAAG_PDF)
     def aanvraag_source_file_name(self):
         return Path(self.files.get_filename(FileType.AANVRAAG_PDF))
+    def summary(self)->str:
+        return f'{str(self.student)} ({self.bedrijf.bedrijfsnaam})-{self.titel}'    
     def __str__(self):
         versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
         s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.bedrijfsnaam} - "{self.titel}" [{str(self.status)}]'        

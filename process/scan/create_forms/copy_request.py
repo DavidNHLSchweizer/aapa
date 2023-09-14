@@ -4,10 +4,10 @@ from data.classes import AanvraagInfo, AanvraagStatus, FileType
 from general.fileutil import file_exists, summary_string
 from general.log import log_print
 from general.preview import pva
-from process.general.new_aanvraag_processor import NewAanvraagProcessor
+from process.general.aanvraag_processor import AanvraagProcessor
 
 
-class CopyAanvraagProcessor(NewAanvraagProcessor):
+class CopyAanvraagProcessor(AanvraagProcessor):
     def __init__(self,  output_directory: str):
         self.output_directory = Path(output_directory)
     @staticmethod

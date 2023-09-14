@@ -4,9 +4,9 @@ from general.fileutil import file_exists, summary_string
 from general.log import log_print
 from general.preview import pva
 from process.general.difference import DifferenceGenerator
-from process.general.new_aanvraag_processor import NewAanvraagProcessor
+from process.general.aanvraag_processor import AanvraagProcessor
 
-class NewDifferenceProcessor(NewAanvraagProcessor):
+class DifferenceProcessor(AanvraagProcessor):
     def __init__(self, all_aanvragen: list[AanvraagInfo], output_directory: str):
         self.output_directory = Path(output_directory)
         self.all_aanvragen = all_aanvragen

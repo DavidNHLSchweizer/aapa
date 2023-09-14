@@ -1,17 +1,14 @@
 from pathlib import Path
-from data.storage import AAPStorage
 from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.log import log_error, log_info, log_print
-from general.fileutil import created_directory, file_exists
+from general.fileutil import file_exists
 from mailmerge import MailMerge
 from general.preview import pva
-from process.scan.create_forms.copy_request import CopyAanvraagProcessor
-from process.scan.create_forms.create_diff_file import NewDifferenceProcessor
-from process.general.new_aanvraag_processor import NewAanvraagProcessor, NewAanvragenProcessor
+from process.general.aanvraag_processor import AanvraagProcessor
 
 class MailMergeException(Exception): pass
 
-class BeoordelingFormsCreator(NewAanvraagProcessor):
+class FormCreator(AanvraagProcessor):
     def __init__(self, template_doc: str, output_directory: str):
         self.output_directory = Path(output_directory)
         if not Path(template_doc).exists():
@@ -55,17 +52,3 @@ class BeoordelingFormsCreator(NewAanvraagProcessor):
         aanvraag.status = AanvraagStatus.NEEDS_GRADING
         aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
         return True
-
-def new_create_beoordelingen_files(storage: AAPStorage, template_doc, output_directory, filter_func = None, preview=False)->int:
-    log_info('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')
-    log_info(f'Formulieren worden aangemaakt in {output_directory}')
-    if not preview:
-        if created_directory(output_directory):
-            log_print(f'Map {output_directory} aangemaakt.')
-        storage.add_file_root(str(output_directory))
-    file_creator = NewAanvragenProcessor([BeoordelingFormsCreator(template_doc, output_directory), 
-                                            CopyAanvraagProcessor(output_directory), 
-                                            NewDifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage)
-    result = file_creator.process_aanvragen(preview=preview, filter_func=filter_func, output_directory=output_directory) 
-    log_info('--- Einde maken beoordelingsformulieren.')
-    return result

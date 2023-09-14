@@ -10,7 +10,7 @@ from general.singular_or_plural import sop
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
-from process.general.new_aanvraag_processor import NewAanvraagFileProcessor, NewAanvragenFileProcessor
+from process.general.aanvraag_processor import AanvraagCreator, AanvragenCreator
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException, is_valid_title
 
 def init_config():
@@ -64,9 +64,7 @@ class AanvraagValidator:
         self.validated_aanvraag.files.set_info(fileinfo)
         return True
 
-class AanvraagDataImporter(NewAanvraagFileProcessor):
-    def is_known_invalid_file(self, filename: str, storage: AAPStorage):
-        return storage.file_info.is_known_invalid(filename)
+class AanvraagPDFImporter(AanvraagCreator):
     def must_process_file(self, filename: str, storage: AAPStorage, **kwargs)->bool:
         if self.is_known_invalid_file(filename, storage):
             return False
@@ -159,7 +157,7 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
         log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te lezen", "gelezen")}.', to_console=True)
 
-class NewImportDirectoryProcessor(NewAanvragenFileProcessor): pass
+class DirectoryImporter(AanvragenCreator): pass
 
 def import_directory(directory: str, output_directory: str, storage: AAPStorage, recursive = True, preview=False)->int:
     def _get_pattern(recursive: bool):
@@ -174,7 +172,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     else:
         skip_directories = set()
     skip_files = config.get('import', 'skip_files')
-    importer = NewImportDirectoryProcessor(AanvraagDataImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
+    importer = DirectoryImporter(AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     file_results = {}
     first_id = storage.aanvragen.max_id() + 1
     #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben
