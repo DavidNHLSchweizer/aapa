@@ -57,12 +57,19 @@ class DebugConfig(Singleton):
         else:
             self._disabled_loggers.add(module_name)
             self._enabled_loggers.discard(module_name)
-        if (logger := logging.root.manager.loggerDict.get(module_name, None)):
-            logger.disabled = not value
+        self.__set_root_logger_enabled(module_name, value)
     def enable_module(self, module_name):
         self._set_module_enabled(module_name, True)
     def disable_module(self, module_name):
         self._set_module_enabled(module_name, False)
+    def __set_root_logger_enabled(self, module_name: str, value: bool):
+        if (logger := logging.root.manager.loggerDict.get(module_name, None)):
+            logger.disabled = not value
+    def _initialize_disabled_loggers(self):
+        #synchronizing disabled loggers after logging is initialized or otherwise
+        for module_name in self._disabled_loggers:
+            self.__set_root_logger_enabled(module_name, False)
+
 
 DEBUG_CONFIG_FILE_NAME = 'debug/debug_config.'
 _debug_config =  DebugConfig()
@@ -95,3 +102,5 @@ def get_disabled_loggers()->list[str]:
     return list(_debug_config._disabled_loggers)
 def get_enabled_loggers()->list[str]:
     return list(_debug_config._enabled_loggers)
+def initialize_disabled_loggers():
+    _debug_config._initialize_disabled_loggers()

@@ -114,7 +114,9 @@ class AanvragenCreator(AanvragenProcessorBase):
                 aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
                 if aanvraag is None:
                     return False
+                log_debug(f'{aanvraag.summary()} before {aanvraag.id}')
                 self.storage.aanvragen.create(aanvraag)
+                log_debug(f'{aanvraag.summary()} {aanvraag.id}')
                 self.storage.commit()
                 return True
             except Exception as E:
@@ -133,6 +135,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                     continue
                 file_processed = True
                 for processor in self._processors:
+                    # log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
                     if not self._process_file(processor, str(filename), preview, **kwargs):
                         file_processed = False
                         break                

@@ -114,8 +114,9 @@ class CRUD_aanvragen(CRUDbase):
         result = [docInfo.id] if include_key else []
         result.extend([docInfo.student.studnr, docInfo.bedrijf.id, docInfo.datum_str, docInfo.titel, docInfo.aanvraag_nr, CRUD_aanvragen.__beoordeling_to_value(docInfo.beoordeling), CRUD_aanvragen.__status_to_value(docInfo.status)])
         return result
-    def create(self, docInfo: AanvraagInfo):
+    def create(self, docInfo: AanvraagInfo):        
         docInfo.id = get_next_key(AanvraagTableDefinition.KEY_FOR_ID)
+        log_debug(f'Hier gaat de id ({AanvraagTableDefinition.KEY_FOR_ID}): {docInfo.id}')
         super().create(columns=self.__get_all_columns(False), values=self.__get_all_values(docInfo, False))
     def __build_aanvraag(self, row)->AanvraagInfo:
         student = CRUD_studenten(self.database).read(row['stud_nr'])

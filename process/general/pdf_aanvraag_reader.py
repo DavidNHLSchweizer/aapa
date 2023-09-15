@@ -33,7 +33,7 @@ class PDFtoTablesReader:
                 raise PDFReaderException(f"Fout bij lezen document: {E}")    
     def __init_tables(self, pdf: pdfplumber.PDF, expected_tables=0)->list[list[str]]:
         tables = []
-        for page in pdf.pages:
+        for n,page in enumerate(pdf.pages):
             tables.append(page.extract_text(use_text_flow=True,split_at_punctuation=False,x_tolerance=config.get('pdf_read', 'x_tolerance')).split('\n'))
             #note: this works better than the pdf_plumber table extraction methods, it is fairly easy to get the right data this way
         if len(tables) < expected_tables:

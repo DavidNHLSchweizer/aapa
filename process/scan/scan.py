@@ -43,6 +43,7 @@ def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directo
 def process_directory(input_directory, storage: AAPStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):
         n_imported = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
+        print(f'EINDE: {n_imported}')
         log_info(f'### {n_imported} {sop(n_imported, "bestand", "bestanden")} {pva(preview, "importeren", "geimporteerd")} van {input_directory}.', to_console=True)
         n_forms = create_beoordelingen_files(storage, get_template_doc(), output_directory, preview=preview)
         log_info(f'### {n_forms} {sop(n_forms, "aanvraag", "aanvragen")} {pva(preview, "klaarzetten", "klaargezet")} voor beoordeling in {output_directory}', to_console=True)

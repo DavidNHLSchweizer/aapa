@@ -1,13 +1,11 @@
 from dataclasses import dataclass
-import inspect
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
-import re
 from typing import Protocol
 from general.fileutil import created_directory, from_main_path, path_with_suffix, test_directory_exists
 from general.singleton import Singleton
-from debug.debug import check_caller_is_enabled, get_disabled_loggers, get_enabled_loggers
+from debug.debug import check_caller_is_enabled, get_disabled_loggers, get_enabled_loggers, initialize_disabled_loggers
 
 
 class PrintFunc(Protocol):
@@ -74,8 +72,10 @@ class AAPAlogger(Singleton):
             self.__init_normal_config(filename, log_path, date_fmt, format)
     def __init_debug_config(self, filename: str, log_path: str, date_fmt: str, format: str):
         log_name = Path(filename).stem + '_debug'
+        
         logging.basicConfig(filename=path_with_suffix(log_path.joinpath(log_name), '.log'),  encoding='utf-8', filemode='w',
                             format=format, datefmt=date_fmt, level=logging.DEBUG)
+        initialize_disabled_loggers()
     def __init_normal_config(self, filename: str, log_path: str, date_fmt: str, format: str):
         log_name = Path(filename).name
         logging.basicConfig(handlers=[TimedRotatingFileHandler(str(path_with_suffix(log_path.joinpath(log_name), '.log')),'D', 1, 7, 

@@ -147,6 +147,7 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
     def file_str(file,result):
         return f'{summary_string(file)} [{import_status_str(result)}]'
     log_info('Rapportage import:', to_console=True)
+    print(len(new_aanvragen), verbose)
     sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")    
     if verbose:
         log_info(f'\t---Gelezen {sop_aanvragen}:---')
@@ -177,6 +178,8 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     first_id = storage.aanvragen.max_id() + 1
     #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben
     n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
+    print('rapporting', first_id)    
     report_imports(file_results, importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
+    print('rapported')
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

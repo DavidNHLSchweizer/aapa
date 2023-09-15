@@ -33,7 +33,7 @@ tqdm
 #data.report_data
 #data.reset
 #data.roots
-#data.storage
+data.storage
 #database.crud
 #database.database
 #database.dbargparser
@@ -59,10 +59,9 @@ tqdm
 #process.aapa_processor.aapa_config
 #process.aapa_processor.aapa_processor
 #process.aapa_processor.initialize
-#process.general.aanvraag_processor
+process.general.aanvraag_processor
 #process.general.difference
 #process.general.mail_sender
-process.general.aanvraag_processor
 process.general.pdf_aanvraag_reader
 #process.general.word_processor
 #process.mail.mail
@@ -74,7 +73,7 @@ process.scan.scan
 process.scan.create_forms.copy_request
 process.scan.create_forms.create
 process.scan.create_forms.create_diff_file
-#process.scan.importing.import_directory
+process.scan.importing.import_directory
 #process.send_mail.mail_feedback
 #tests.data.test_roots
 #tests.database.test_argparser
