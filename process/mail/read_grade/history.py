@@ -4,7 +4,8 @@ from data.classes import  AanvraagInfo, FileType, AanvraagStatus
 from data.storage import AAPStorage
 from general.log import log_print
 from data.report_data import COLMAP
-from process.mail.read_grade.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
+#TODO: HISTORY bijwerken
+# from process.mail.read_grade.verwerk_beoordeling import BeoordelingenProcessor, GradeInputReader, verwerk_beoordelingen
 
 def nrows(table: pd.DataFrame)->int:
     return table.shape[0]

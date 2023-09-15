@@ -34,7 +34,7 @@ class GradeForm(DocxWordDocument):
         else:
             raise WordReaderException(f'Tabel niet gevonden in document {self.doc_path}')        
     def read_grade(self)->AanvraagBeoordeling:
-        return aanvraag_beoordeling(self.read_grader_str())
+        return aanvraag_beoordeling(self.read_grade_str())
     def write_grade(self, grade: AanvraagBeoordeling | str):
         if (table := self.find_table(self.table_nr)):
             self.write_table_cell(table, self.table_row,self.table_col, str(grade))
