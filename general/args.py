@@ -72,12 +72,12 @@ def _get_arguments():
     return parser.parse_args()
 
 class AAPAoptions:
-    def __init__(self, actions: list[AAPAaction], root_directory: str, forms_directory: str, database_file: str, 
+    def __init__(self, actions: list[AAPAaction], root_directory: str, output_directory: str, database_file: str, 
                  preview = False, filename:str = None, config_file:str = None, history_file:str = None, 
                  diff_file:str = None, force=False, debug=False):
         self.actions = actions
         self.root_directory = root_directory
-        self.forms_directory: str= forms_directory
+        self.output_directory: str= output_directory
         self.database_file: str = database_file if database_file else config.get('configuration', 'database')
         self.preview: bool = preview
         if AAPAaction.REPORT in self.actions:
@@ -93,8 +93,8 @@ class AAPAoptions:
         result = f'ACTIONS: {AAPAaction.get_actions_str(self.actions)}\n'
         if self.root_directory is not None:
             result = result + f'ROOT DIRECTORY: {self.root_directory}\n'
-        if self.forms_directory is not None:
-            result = result + f'FORMULIEREN naar directory: {self.forms_directory}\n'
+        if self.output_directory is not None:
+            result = result + f'FORMULIEREN naar directory: {self.output_directory}\n'
         if self.database_file:
             result = result + f'DATABASE: {self.database_file}\n'
         result = result + f'PREVIEW MODE: {self.preview}\n'
@@ -123,7 +123,7 @@ def report_options(options: AAPAoptions, parts=0)->str:
         result += f'preview: {options.preview}\n'
     if parts == 0 or parts == 1:
         result += _report_str('root directory', options.root_directory, config.get('configuration', 'root'))
-        result +=  _report_str('forms directory', options.forms_directory, config.get('configuration', 'forms'))
+        result +=  _report_str('forms directory', options.output_directory, config.get('configuration', 'forms'))
         result +=  _report_str('database', options.database_file, config.get('configuration', 'database'))
     if parts == 1: 
         return result
@@ -152,7 +152,7 @@ def get_arguments()->AAPAoptions:
         if not actions:
             actions=[AAPAaction.FULL]
             preview = True
-        return AAPAoptions(actions=actions, root_directory=args.root, forms_directory=args.forms, database_file=args.database, 
+        return AAPAoptions(actions=actions, root_directory=args.root, output_directory=args.forms, database_file=args.database, 
                            preview=preview, filename=args.file, config_file=args.config, history_file=args.history, 
                            diff_file=args.difference, force=args.force, debug=args.debug)
     except IndexError as E:

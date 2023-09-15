@@ -30,10 +30,10 @@ def AAPArun_script(options: AAPAoptions)->bool:
     return True
 
 ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvragen',
-            'forms': 'De directory waar beoordelingsformulieren worden aangemaakt',
+            'output': 'De directory waar beoordelingsformulieren worden aangemaakt',
             'database':'De database voor het programma',
-            'root-input-button': 'Kies de directory',
-            'forms-input-button': 'Kies de directory',
+            'root-input-button': 'Kies de root-directory',
+            'output-input-button': 'Kies de output-directory',
             'database-input-button': 'Kies de database',
             'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories, maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
@@ -44,35 +44,41 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
 @dataclass
 class AAPATuiParams:
     root_directory: str = ''
-    forms_directory: str = ''
+    output_directory: str = ''
     database: str = ''
     preview: bool = True
     def get_options(self, action: AAPAaction)->AAPAoptions:
-        return AAPAoptions([action], self.root_directory, self.forms_directory, self.database, self.preview)
+        return AAPAoptions([action], self.root_directory, self.output_directory, self.database, self.preview)
       
 class AapaConfiguration(Static):
     def compose(self)->ComposeResult:
         with Vertical():
             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
-            yield LabeledInput('Forms directory', id='forms', validators=Required(), button=True)
+            yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
             yield LabeledInput('Database', id='database', validators=Required(), button=True)
     def on_mount(self):
         self.border_title = 'AAPA Configuratie'
-        for id in ['root', 'forms', 'database']:
+        for id in ['root', 'output', 'database']:
             self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips[id]
-        for id in ['root-input-button', 'forms-input-button', 'database-input-button']:
+        for id in ['root-input-button', 'output-input-button', 'database-input-button']:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         self._load_config()
     def _load_config(self):        
-        self.query_one('#root', LabeledInput).value = config.get('configuration', 'root')
-        self.query_one('#forms', LabeledInput).value = config.get('configuration', 'forms')
-        self.query_one('#database', LabeledInput).value = config.get('configuration', 'database')
+        for id in {'root', 'output', 'database'}:
+            self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
+    def _store_config_id(self, id: str):
+        for id in {'root', 'output', 'database'}:
+            config.set('configuration', id, self.query_one(f'#{id}', LabeledInput).value)
+    def _store_config(self):
+        for id in {'root', 'output', 'database'}:
+            self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
         if (result := tkifd.askdirectory(mustexist=True, title=title, initialdir=input.value)):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
+            self._store_config_id(input_id)
     def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
         if (result := tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
@@ -80,27 +86,28 @@ class AapaConfiguration(Static):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
+            self._store_config_id(input_id)
     def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
             case 'root-input-button': self.edit_root()
-            case 'forms-input-button': self.edit_forms()
+            case 'output-input-button': self.edit_output_directory()
             case 'database-input-button': self.edit_database()
         message.stop()
     def edit_root(self):
-        self._select_directory('root', 'Select root directory')
-    def edit_forms(self):
-        self._select_directory('forms', 'Select forms directory')
+        self._select_directory('root', 'Selecteer root directory voor aanvragen)')
+    def edit_output_directory(self):
+        self._select_directory('output', 'Selecteer de output directory voor nieuwe formulieren')
     def edit_database(self):
         self._select_file('database','Select databasefile', 'database files', '.db')
     @property
     def params(self)-> AAPATuiParams:
         return AAPATuiParams(root_directory= self.query_one('#root', LabeledInput).input.value, 
-                             forms_directory= self.query_one('#forms', LabeledInput).input.value,
+                             output_directory= self.query_one('#output', LabeledInput).input.value,
                              database=self.query_one('#database', LabeledInput).input.value)
     @params.setter
     def params(self, value: AAPATuiParams):
         self.query_one('#root', LabeledInput).input.value = value.root_directory
-        self.query_one('#forms', LabeledInput).input.value = value.forms_directory
+        self.query_one('#output', LabeledInput).input.value = value.output_directory
         self.query_one('#database', LabeledInput).input.value = value.database
         
 class AapaButtons(Static):
@@ -137,7 +144,7 @@ class AAPAApp(App):
                 Binding('ctrl+o', 'mail', 'Zet mails klaar', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
                 Binding('ctrl+p', 'toggle_preview', 'Toggle preview mode', priority=True),
                 Binding('ctrl+r', 'edit_root', 'Bewerk root directory', priority = True, show=False),
-                Binding('ctrl+f', 'edit_forms', 'Bewerk forms directory', priority = True, show=False),
+                Binding('ctrl+f', 'edit_output_directory', 'Bewerk output directory', priority = True, show=False),
                 Binding('ctrl+d', 'edit_database', 'Kies database file', priority = True, show=False),
                 Binding('ctrl+q', 'barbie', '', priority = True, show=False),
                ]
@@ -202,7 +209,7 @@ class AAPAApp(App):
     def action_edit_root(self):
         self.query_one(AapaConfiguration).edit_root()
     def action_edit_forms(self):
-        self.query_one(AapaConfiguration).edit_forms()
+        self.query_one(AapaConfiguration).edit_output_directory()
     def action_edit_database(self):
         self.query_one(AapaConfiguration).edit_database()
     def action_einde(self):

@@ -1,5 +1,5 @@
 from general.args import AAPAoptions, get_arguments, get_debug
-from general.log import init_logging
+from general.log import init_logging, log_error
 from general.preview import Preview
 from process.aapa_processor.aapa_config import AAPAconfiguration, LOGFILENAME
 from process.aapa_processor.aapa_processor import AAPAProcessor, AAPARunnerContext
@@ -8,7 +8,9 @@ class AAPARunner:
     def __init__(self, options: AAPAoptions):
         self.configuration = AAPAconfiguration(options)
     def process(self):
-        self.configuration.initialize()        
+        if not self.configuration.initialize():
+            log_error(f'Kan AAPA niet initialiseren: {self.configuration.validation_error}')
+            return
         with AAPARunnerContext(self.configuration.options):
             with Preview(self.configuration.preview, self.configuration.storage, 'main'):
                 AAPAProcessor().process(self.configuration)

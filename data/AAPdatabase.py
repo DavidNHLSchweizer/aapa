@@ -143,7 +143,6 @@ class AAPDatabase(Database):
     def create_from_schema(cls, schema: Schema, filename: str):
         result = super().create_from_schema(schema, filename)
         if result:
-            print('kadoootje: ', result)
             result.check_version(True)
             result.load_roots(True)
         return result

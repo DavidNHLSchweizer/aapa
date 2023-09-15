@@ -20,7 +20,7 @@ class AAPAProcessor:
     def __create_diff_file(self, configuration: AAPAconfiguration):
         DP = DifferenceProcessor(configuration.storage)
         pass
-        # DP.process_student(configuration.options.diff_file, configuration.forms_directory)
+        #TODO: dit bijwerken DP.process_student(configuration.options.diff_file, configuration.output_directory)
     # def __read_history_file(self, configuration: AAPAconfiguration):
     #     if not Path(configuration.options.history_file).is_file():
     #         log_error(f'History file ({configuration.options.history_file}) not found.')
@@ -40,8 +40,8 @@ class AAPAProcessor:
             if not must_process(configuration.options):
                 return
             if AAPAaction.SCAN in configuration.actions or AAPAaction.FULL in configuration.actions:
-                process_directory(configuration.root, configuration.storage, configuration.forms_directory, preview=configuration.preview)
-            # if configuration.options.history_file:
+                process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=configuration.preview)
+            #TODO: dit bijwerken if configuration.options.history_file:
             #     self.__read_history_file(configuration)
             if AAPAaction.MAIL in configuration.actions or AAPAaction.FULL in configuration.actions:
                 process_graded(configuration.storage, preview=configuration.preview)
