@@ -44,11 +44,14 @@ class AAPAconfiguration:
         else:
             database = config.get('configuration','database') 
         return from_main_path(path_with_suffix(database, '.db'))
-    def __initialize_database(self):
+    def __initialize_database(self)->bool:
         database = self.get_database_name()
         recreate = (AAPAaction.NEW in self.actions and (not Path(database).is_file() or verifyRecreate()))
         self.database = initialize_database(database, recreate)
+        if not self.database:
+            return False
         self.storage  = initialize_storage(self.database)
+        return True
     def __prepare_storage_roots(self):
         # initialize file roots BEFORE processing to cover for cases where aanvraagformulieren 
         # (stored in the forms_directory) are created with the wrong root
@@ -83,11 +86,13 @@ class AAPAconfiguration:
             return option_history
         else:
             return tkifd.askopenfilename(initialfile=option_history,initialdir='.', defaultextension='.xlsx')
-    def initialize(self):
-        self.__initialize_database()
+    def initialize(self)->bool:
+        if not self.__initialize_database():
+            return False
         self.__initialize_directories()
         if self.options.history_file is not None:
             self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')
+        return True
 
 class AAPAprocessor:
     def __report_info(self, options):
@@ -143,7 +148,9 @@ class AAPA:
     def __init__(self, options: AAPAoptions):
         self.configuration = AAPAconfiguration(options)
     def process(self):
-        self.configuration.initialize()        
+        if not self.configuration.initialize():
+            log_error('Kan AAPA niet initialiseren.')
+            return
         with AAPARunnerContext(self.configuration.options):
             with Preview(self.configuration.preview, self.configuration.storage, 'main'):
                 AAPAprocessor().process(self.configuration)

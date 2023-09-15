@@ -122,7 +122,8 @@ class AAPSchema(Schema):
 
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False):
-        super().__init__(filename, _reset_flag)
+        if not super().__init__(filename, _reset_flag):
+            return None
         self.schema = Schema()
         self.schema.read_from_database(self)        
         if not self._reset_flag:
@@ -141,8 +142,10 @@ class AAPDatabase(Database):
     @classmethod
     def create_from_schema(cls, schema: Schema, filename: str):
         result = super().create_from_schema(schema, filename)
-        result.check_version(True)
-        result.load_roots(True)
+        if result:
+            print('kadoootje: ', result)
+            result.check_version(True)
+            result.load_roots(True)
         return result
     def __version_error(self, db_versie, errorStr):
         log_error (errorStr)

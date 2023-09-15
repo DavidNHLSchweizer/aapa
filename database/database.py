@@ -4,7 +4,10 @@ import database.dbConst as dbc
 from database.tabledef import TableDefinition
 from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
+from general.fileutil import file_exists
 from general.log import log_error, log_info
+
+class DatabaseException(Exception): pass
 
 class SchemaTableDef(TableDefinition):
     def __init__(self):
@@ -19,24 +22,37 @@ def one_line(value: str)->str:
     return value.replace('\n', ' ')
 class Database:
     def __init__(self, filename: str, _reset_flag = False):
+        if not _reset_flag and not file_exists(filename):
+            log_error(f'Database {filename} niet gevonden.')
+            return None
         self.raise_error = True
         self._reset_flag = _reset_flag
         self._commit_level = 0
-        self.connection = self.open_database(filename)
-        self.log_info('database logging started...') 
-        self.log_info(f'connection ({filename}) opened...')
-        self.connection.row_factory = sql3.Row
-        self.enable_foreign_keys()
+        self.connection = None
+        try:
+            self.connection = self.open_database(filename)
+            if not self.connection:
+                raise DatabaseException('Connectie niet geopend')
+            self.log_info('database logging started...') 
+            self.log_info(f'connection ({filename}) opened...')
+            self.connection.row_factory = sql3.Row
+            self.enable_foreign_keys()
+        except Exception as E:
+            log_error(f'Kan database {filename} niet initialiseren:\n\t{E}')
     @classmethod
-    def create_from_schema(cls, schema: Schema, filename: str):
-        result = cls(filename, _reset_flag = True)
-        result.__clear()        
-        result._reset_flag = False
-        log_info('Start reading and creating schema')
-        for table in schema.tables():
-            result.create_table(table)
-        log_info('End reading and creating schema')
-        return result
+    def create_from_schema(cls, schema: Schema, filename: str):        
+        result = cls(filename, _reset_flag = True)        
+        if result and result.connection:
+            result.__clear()        
+            result._reset_flag = False
+            log_info('Start reading and creating schema')
+            for table in schema.tables():
+                result.create_table(table)
+                log_info('End reading and creating schema')
+            return result
+        else:
+            # log_error(f'Kan database {filename} niet initialiseren...') is waarschijnlijk al gemeld
+            return None           
     def __clear(self):
         try:
             schema = Schema.read_from_database(self)
@@ -64,7 +80,7 @@ class Database:
             conn = sql3.connect(filename)#, isolation_level=None)
             return conn
         except sql3.Error as e:
-            self.log_error('***ERROR***: '+str(e))
+            self.log_error(f'SQLITE error: {str(e)}')
             if self.raise_error:
                 raise e
             return None
