@@ -7,7 +7,7 @@ from database.sqlexpr import Ops, SQLexpression as SQE
 from general.fileutil import summary_string
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
-from general.log import log_debug, log_info, log_warning
+from general.log import log_info, log_warning
 
 class CRUD_bedrijven(CRUDbase):
     def __init__(self, database: Database):
@@ -116,7 +116,6 @@ class CRUD_aanvragen(CRUDbase):
         return result
     def create(self, docInfo: AanvraagInfo):        
         docInfo.id = get_next_key(AanvraagTableDefinition.KEY_FOR_ID)
-        log_debug(f'Hier gaat de id ({AanvraagTableDefinition.KEY_FOR_ID}): {docInfo.id}')
         super().create(columns=self.__get_all_columns(False), values=self.__get_all_values(docInfo, False))
     def __build_aanvraag(self, row)->AanvraagInfo:
         student = CRUD_studenten(self.database).read(row['stud_nr'])

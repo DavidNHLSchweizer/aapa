@@ -86,7 +86,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
             for aanvraag in self.filtered_aanvragen(filter_func):
                 processed = 0
                 for processor in self._processors:
-                    log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
+                    #log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
                     if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
                         processed += 1
                 if processed > 0:
@@ -114,9 +114,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                 aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
                 if aanvraag is None:
                     return False
-                log_debug(f'{aanvraag.summary()} before {aanvraag.id}')
                 self.storage.aanvragen.create(aanvraag)
-                log_debug(f'{aanvraag.summary()} {aanvraag.id}')
                 self.storage.commit()
                 return True
             except Exception as E:

@@ -33,7 +33,7 @@ tqdm
 #data.report_data
 #data.reset
 #data.roots
-data.storage
+#data.storage
 #database.crud
 #database.database
 #database.dbargparser
@@ -62,7 +62,7 @@ data.storage
 process.general.aanvraag_processor
 #process.general.difference
 #process.general.mail_sender
-process.general.pdf_aanvraag_reader
+#process.general.pdf_aanvraag_reader
 #process.general.word_processor
 #process.mail.mail
 #process.mail.read_grade.history

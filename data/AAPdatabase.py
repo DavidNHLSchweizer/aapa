@@ -50,7 +50,7 @@ def create_roots(database: Database):
 def load_roots(database: Database):
     reset_roots()
     if row := database._execute_sql_command('select code, root from fileroot', [], True): 
-        for record in row:            
+        for record in row:   
             add_root(record['root'], record['code']) 
             
 
@@ -122,12 +122,11 @@ class AAPSchema(Schema):
 
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False):
-        if not super().__init__(filename, _reset_flag):
-            return None
+        super().__init__(filename, _reset_flag)
         self.schema = Schema()
         self.schema.read_from_database(self)        
+        self.reset_keys()
         if not self._reset_flag:
-            self.reset_keys()
             self.check_version(False)
             self.load_roots(False)
     def reset_keys(self):
@@ -145,6 +144,7 @@ class AAPDatabase(Database):
         if result:
             result.check_version(True)
             result.load_roots(True)
+            result.reset_keys()
         return result
     def __version_error(self, db_versie, errorStr):
         log_error (errorStr)
