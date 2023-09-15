@@ -6,7 +6,7 @@ from typing import Iterable
 from data.classes import AanvraagInfo, FileInfo, FileType
 from data.storage import AAPStorage
 from general.fileutil import summary_string
-from general.log import log_info, log_print
+from general.log import log_debug, log_error, log_info, log_print
 from general.preview import Preview
 
 class AanvraagProcessorBase:
@@ -71,17 +71,24 @@ class AanvragenProcessor(AanvragenProcessorBase):
             return list(filter(filter_func, self.aanvragen))
         else:
             return(self.aanvragen)
+    def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: AanvraagInfo, preview=False, **kwargs)->bool:
+        try:
+            if processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs):                                                
+                self.storage.aanvragen.update(aanvraag)
+                self.storage.commit()
+                return True
+        except Exception as E:
+            log_error(f'Fout bij processing {aanvraag.summary()}:\n\t{E}')
+        return False
     def process_aanvragen(self, preview=False, filter_func = None, **kwargs)->int:
         n_processed = 0
         with Preview(preview, self.storage, 'process_aanvragen'):
             for aanvraag in self.filtered_aanvragen(filter_func):
                 processed = 0
                 for processor in self._processors:
-                    # log_print(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
-                    if processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs):                                                
-                        self.storage.aanvragen.update(aanvraag)
-                        self.storage.commit()
-                        processed+=1
+                    log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
+                    if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
+                        processed += 1
                 if processed > 0:
                     n_processed += 1
         return n_processed
@@ -101,14 +108,17 @@ class AanvragenCreator(AanvragenProcessorBase):
             if pattern.match(str(filename)):
                 return True 
         return False
-    def _process_file(self, processor: AanvraagCreator, filename: str, storage: AAPStorage, preview=False, **kwargs)->bool:
-        if processor.must_process_file(filename, storage, **kwargs):
-            aanvraag = processor.process_file(filename, storage, preview, **kwargs)
-            if aanvraag is None:
-                return False
-            self.storage.aanvragen.create(aanvraag)
-            self.storage.commit()
-            return True
+    def _process_file(self, processor: AanvraagCreator, filename: str, preview=False, **kwargs)->bool:
+        if processor.must_process_file(filename, self.storage, **kwargs):
+            try:
+                aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
+                if aanvraag is None:
+                    return False
+                self.storage.aanvragen.create(aanvraag)
+                self.storage.commit()
+                return True
+            except Exception as E:
+                log_error(f'Fout bij processing {summary_string(filename, 96)}:\n\t{E}')
         return False    
     def process_files(self, files: Iterable[Path], preview=False, **kwargs)->int:
         n_processed = 0
@@ -123,7 +133,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                     continue
                 file_processed = True
                 for processor in self._processors:
-                    if not self._process_file(processor, str(filename), self.storage, preview, **kwargs):
+                    if not self._process_file(processor, str(filename), preview, **kwargs):
                         file_processed = False
                         break                
                 if file_processed:

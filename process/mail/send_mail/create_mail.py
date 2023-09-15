@@ -56,16 +56,16 @@ class FeedbackMailProcessor(AanvraagProcessor):
         self.mailer = FeedbackMailCreator()
     def get_draft_folder_name(self):
         return self.mailer.draft_folder_name
-    def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:        
-        return aanvraag.status == AanvraagStatus.GRADED
+    def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:    
+        return aanvraag.status  in {AanvraagStatus.ARCHIVED}
     def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
         filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
         if preview:
             log_print(f'\tKlaarzetten feedbackmail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
         else:
-            if not Path(filename).exists():
-                log_error(f'Kan feedbackmail voor {aanvraag} niet maken:\n\tbeoordelingbestand {filename} ontbreekt.')
-                return False            
+            if not filename or not Path(filename).exists():
+                log_error(f'Kan feedbackmail voor {aanvraag} niet maken:\n\tbeoordelingbestand "{filename}" ontbreekt.')
+                return False 
             self.mailer.draft_mail(aanvraag, filename)
             log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
             aanvraag.status = AanvraagStatus.MAIL_READY

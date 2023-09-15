@@ -6,6 +6,7 @@ from pathlib import Path
 from database.dbConst import EMPTY_ID
 from general.date_parser import DateParser
 from general.filehash import hash_file_digest
+from general.fileutil import summary_string
 from general.valid_email import is_valid_email
 
 
@@ -66,7 +67,9 @@ class FileInfo:
         self.filetype = filetype
         self.aanvraag_id = aanvraag_id
     def __str__(self): 
-        return f'{self.filename}: {str(self.filetype)} [{FileInfo.timestamp_to_str(self.timestamp)}]'    
+        return f'{self.filename}: {str(self.filetype)} [{FileInfo.timestamp_to_str(self.timestamp)}]'   
+    def summary(self, len_filename = 72)->str:
+        return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)} [{FileInfo.timestamp_to_str(self.timestamp)}]'     
     @property    
     def timestamp(self):
         return self._timestamp
@@ -167,11 +170,14 @@ class AanvraagStatus(Enum):
     INITIAL         = 0
     NEEDS_GRADING   = 1
     GRADED          = 2
+    ARCHIVED        = 6 # logischer is doornummeren, maar dan moet de database worden aangepast
     MAIL_READY      = 3
     READY           = 4
     READY_IMPORTED  = 5
     def __str__(self):
-        STRS = {AanvraagStatus.INITIAL: 'ontvangen',  AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'verwerkt', AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
+        STRS = {AanvraagStatus.INITIAL: 'ontvangen',  AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', 
+                AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'verwerkt', 
+                AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)', AanvraagStatus.ARCHIVED: 'gearchiveerd'}
         return STRS[self]
         
 class AanvraagBeoordeling(Enum):

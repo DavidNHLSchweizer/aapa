@@ -4,6 +4,7 @@ from database.crud import CRUDbase
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sqlexpr import Ops, SQLexpression as SQE
+from general.fileutil import summary_string
 from general.keys import get_next_key
 from data.roots import add_root, decode_path, encode_path
 from general.log import log_debug, log_info, log_warning
@@ -195,8 +196,8 @@ class FileInfoStorage:
                 self.delete(cur_info.filename)
         elif info.filename:            
             if (cur_info := self.read(info.filename)):
-                #file is known in database, not linked to aanvraag
-                log_warning(f'bestand {info.filename} is bekend in database: {cur_info}')
+                #file is known in database, PROBABLY (!?) not linked to aanvraag 
+                log_warning(f'bestand {summary_string(info.filename, maxlen=80)} is bekend in database:\n\t{cur_info.summary()}.\nWordt vervangen door\n\t{info.summary()}')
                 self.update(info)
             else:
                 #new file
@@ -261,7 +262,7 @@ class AanvraagStorage:
         self.studenten = StudentenStorage(database)
         self.crud_aanvragen = CRUD_aanvragen(database)
     def create(self, aanvraag: AanvraagInfo):#, source_file: FileInfo):
-        self.__create_references(aanvraag)
+        self.__create_table_references(aanvraag)
         # aanvraag.files.set_info(source_file)
         aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
         self.crud_aanvragen.create(aanvraag)
@@ -276,7 +277,7 @@ class AanvraagStorage:
         aanvraag.files = self.file_info.find_all(aanvraag.id)
         return aanvraag
     def update(self, aanvraag: AanvraagInfo):
-        self.__create_references(aanvraag)        
+        self.__create_table_references(aanvraag)        
         self.crud_aanvragen.update(aanvraag)
         self.sync_files(aanvraag)
     def delete(self, id: int):
@@ -309,7 +310,7 @@ class AanvraagStorage:
             return row[0][0]
         else:
             return 0    
-    def __create_references(self, aanvraag: AanvraagInfo):
+    def __create_table_references(self, aanvraag: AanvraagInfo):
         if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
             (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.bedrijfsnaam], True)):
             aanvraag.bedrijf.id = row[0]['id']
