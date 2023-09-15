@@ -7,9 +7,10 @@ def __create_database(name, recreate = False)->Database:
     exists = Path(name).is_file()
     basename = Path(name).name
     if recreate or not exists:
-        action = 'REINITIALISATIE' if exists else 'INITIALISATIE'
+        action = 'REINITIALISATIE' if exists else 'INITIALISATIE nieuwe'
         print(f'--- {action} DATABASE {basename} ---')
-        return  db.AAPDatabase.create_from_schema(db.AAPSchema(), name)
+        result = db.AAPDatabase.create_from_schema(db.AAPSchema(), name)
+        return result
     else:
         print(f'--- OPENEN DATABASE {basename} ---')
         return  db.AAPDatabase(name)
