@@ -50,5 +50,5 @@ class FormCreator(AanvraagProcessor):
         doc_path = self.__merge_document(aanvraag, preview=preview)
         log_print(f'{aanvraag}\n\tFormulier {pva(preview, "aanmaken", "aangemaakt")}: {Path(doc_path).name}.')
         aanvraag.status = AanvraagStatus.NEEDS_GRADING
-        aanvraag.files.set_info(FileInfo(doc_path, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
+        aanvraag.register_file(doc_path, FileType.TO_BE_GRADED_DOCX)
         return True

@@ -21,7 +21,7 @@ class ArchiveGradedFileProcessor(AanvraagProcessor):
         except Exception as E:
             log_error(f'Fout bij archiveren {summary_string(pdf_file_name, 80)}:\n\t{E}')
             return False
-        aanvraag.files.set_info(FileInfo(pdf_file_name, filetype=FileType.GRADED_PDF, aanvraag_id=aanvraag.id))
+        aanvraag.register_file(pdf_file_name, FileType.GRADED_PDF)
         aanvraag.status = AanvraagStatus.ARCHIVED
         if not preview:
             log_print(f'\tFeedback file aangemaakt en gearchiveerd')

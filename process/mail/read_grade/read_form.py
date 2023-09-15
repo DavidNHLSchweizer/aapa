@@ -1,4 +1,4 @@
-from data.classes import AUTOTIMESTAMP, AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileInfo, FileType
 from general.fileutil import file_exists, summary_string
 from general.log import log_error, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor
@@ -17,8 +17,8 @@ class ReadFormGradeProcessor(AanvraagProcessor):
             if (beoordeling:=aanvraag_beoordeling(grade_str)) in {AanvraagBeoordeling.VOLDOENDE, AanvraagBeoordeling.ONVOLDOENDE}:
                 aanvraag.beoordeling = beoordeling
                 aanvraag.status= AanvraagStatus.GRADED
-                aanvraag.files.reset_info(FileType.TO_BE_GRADED_DOCX)
-                aanvraag.files.set_info(FileInfo(doc_path, timestamp=AUTOTIMESTAMP, filetype=FileType.GRADED_DOCX, aanvraag_id=aanvraag.id))
+                aanvraag.unregister_file(FileType.TO_BE_GRADED_DOCX)
+                aanvraag.register_file(doc_path, FileType.GRADED_DOCX)
                 log_print(f'Beoordeling {summary_string(aanvraag.summary(), maxlen=80)}: {beoordeling}')
                 return True
             else:

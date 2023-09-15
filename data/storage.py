@@ -222,8 +222,7 @@ class FileInfoStorage:
         if (stored:=self.read(filename)):
             return stored.filetype == FileType.INVALID_PDF
         else:
-            return False
-           
+            return False     
 
 class BedrijvenStorage:
     def __init__(self, database: Database):

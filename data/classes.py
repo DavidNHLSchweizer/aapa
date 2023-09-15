@@ -274,3 +274,7 @@ class AanvraagInfo:
         self.__datum,self.__versie = self._dateparser.parse_date(self.datum_str)
         if self.__versie and self.__versie.find('/') >= 0:
             self.__versie = self.__versie.replace('/','').strip()
+    def register_file(self, filename: str, filetype: FileType):
+        self.files.set_info(FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
+    def unregister_file(self, filetype: FileType):
+        self.files.reset_info(filetype)

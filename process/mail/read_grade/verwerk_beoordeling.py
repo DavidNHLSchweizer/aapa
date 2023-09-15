@@ -30,17 +30,17 @@ class BeoordelingenProcessor(OldAanvraagProcessor):
         self.reader = reader
         self.graded_status = graded_status
     def __reset_to_be_graded_file(self, aanvraag: AanvraagInfo):
-        aanvraag.files.reset_info(FileType.TO_BE_GRADED_DOCX)
+        aanvraag.unregister_file(FileType.TO_BE_GRADED_DOCX)
     def __store_graded_file(self, aanvraag: AanvraagInfo, docpath: str):
         self.reader.flush()
-        aanvraag.files.set_info(FileInfo(docpath, timestamp=AUTOTIMESTAMP, filetype=FileType.GRADED_DOCX, aanvraag_id=aanvraag.id))
+        aanvraag.register_file(docpath, FileType.GRADED_DOCX)
     def __create_graded_file_pdf(self, aanvraag: AanvraagInfo, preview=False):
         aanvraag_path = aanvraag.aanvraag_source_file_name().parent
         graded_name = Path(aanvraag.files.get_filename(FileType.GRADED_DOCX)).name
         pdf_file_name = str(path_with_suffix(aanvraag_path.joinpath(graded_name), '.pdf').resolve())
         if not preview:
             pdf_file_name = self.reader.save_as_pdf(pdf_file_name)
-        aanvraag.files.set_info(FileInfo(pdf_file_name, filetype=FileType.GRADED_PDF, aanvraag_id=aanvraag.id))
+        aanvraag.register_file(pdf_file_name, FileType.GRADED_PDF)
         log_print(f'\tFeedback file {pva(preview, "aan te maken", "aangemaakt")}: {pdf_file_name}.')
     def __adapt_files(self, aanvraag: AanvraagInfo, docpath: str, preview = False):
         self.__reset_to_be_graded_file(aanvraag)
