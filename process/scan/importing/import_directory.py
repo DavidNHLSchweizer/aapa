@@ -61,7 +61,7 @@ class AanvraagValidator:
             log_warning(f'Duplikaat: {summary_string(self.source_file)}.\nal in database: {str(self.aanvraag)}')
             self.storage.file_info.store_invalid(self.source_file)
             return False
-        self.validated_aanvraag.files.set_info(fileinfo)
+        self.validated_aanvraag.register_file(self.source_file)
         return True
 
 class AanvraagPDFImporter(AanvraagCreator):

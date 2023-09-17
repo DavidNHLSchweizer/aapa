@@ -30,7 +30,9 @@ class Database:
         self._commit_level = 0
         self.connection = None
         try:
+            print('8080)')
             self.connection = self.open_database(filename)
+            print('808011)')
             if not self.connection:
                 raise DatabaseException('Connectie niet geopend')
             self.log_info('database logging started...') 

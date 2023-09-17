@@ -140,7 +140,9 @@ class AAPDatabase(Database):
             return 0
     @classmethod
     def create_from_schema(cls, schema: Schema, filename: str):
+        print('1')
         result = super().create_from_schema(schema, filename)
+        print('1b', result)
         if result:
             result.check_version(True)
             result.load_roots(True)
