@@ -170,10 +170,10 @@ class AanvraagStatus(Enum):
     INITIAL         = 0
     NEEDS_GRADING   = 1
     GRADED          = 2
-    ARCHIVED        = 6 # logischer is doornummeren, maar dan moet de database worden aangepast
-    MAIL_READY      = 3
-    READY           = 4
-    READY_IMPORTED  = 5
+    ARCHIVED        = 3 
+    MAIL_READY      = 4
+    READY           = 5
+    READY_IMPORTED  = 6
     def __str__(self):
         STRS = {AanvraagStatus.INITIAL: 'ontvangen',  AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', 
                 AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'verwerkt', 

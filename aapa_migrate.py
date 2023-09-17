@@ -1,7 +1,9 @@
-from data.migrate import migrate_version_114_115
+from data.migrate import migrate_version_114_115, migrate_version_115_116
 import argparse
 
-migration_table = [{'old': '1.14', 'new': '1.15', 'script': migrate_version_114_115},]
+migration_table = [{'old': '1.14', 'new': '1.15', 'script': migrate_version_114_115},
+                   {'old': '1.15', 'new': '1.16', 'script': migrate_version_115_116},
+                   ]
 
 def migrate(database, old_version, new_version):
     for migration in migration_table:

@@ -10,7 +10,7 @@ from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.15'
+DBVERSION = '1.16'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -37,7 +37,7 @@ def create_version_info(database: Database, versie: DBVersie):
 class FileRootTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('FILEROOT', autoid=True)
-        self.add_column('code', dbc.TEXT)
+        self.add_column('code', dbc.TEXT, unique=True)
         self.add_column('root', dbc.TEXT)
 
 def create_root(database: Database, code, root: str):
@@ -122,12 +122,12 @@ class AAPSchema(Schema):
         #
 
 class AAPDatabase(Database):
-    def __init__(self, filename, _reset_flag = False):
+    def __init__(self, filename, _reset_flag = False, ignore_version=False):
         super().__init__(filename, _reset_flag)
         self.schema = Schema()
         self.schema.read_from_database(self)  
         if not self._reset_flag: 
-            self.check_version(False)
+            self.check_version(False,ignore_error=ignore_version)
             self.load_roots(False)
             self.reset_keys()
     def reset_keys(self):
@@ -148,9 +148,9 @@ class AAPDatabase(Database):
             result.reset_keys()
         return result
     def __version_error(self, db_versie, errorStr):
-        log_error (errorStr)
+        log_error(errorStr)
         raise AAPaException()
-    def check_version(self, recreate = False):
+    def check_version(self, recreate = False, ignore_error = False):
         log_info('--- Controle versies database en programma')
         try:
             if recreate:
@@ -158,9 +158,9 @@ class AAPDatabase(Database):
             else:
                 versie = read_version_info(self)
                 if  versie.db_versie != DBVERSION:
-                    self.__version_error(versie.db_versie, f"Database version {versie.db_versie} does not match current program (expected {DBVERSION}).")
+                    self.__version_error(versie.db_versie, f"Database versie {versie.db_versie} komt niet overeen met verwachte versie in programma (verwacht: {DBVERSION}).")
                 elif versie.versie != config.get('versie', 'versie'):
-                    log_warning(f"Program version ({config.get('versie', 'versie')}) does not match version in database (expected {versie.versie}). Updating database en configuratie.")
+                    log_warning(f"Programma versie ({config.get('versie', 'versie')}) komt niet overeen met versie in database (verwacht: {versie.versie}).\nDatabase en configuratie worden bijgewerkt.")
                     versie.versie = config.get('versie', 'versie')
                     versie.datum = Versie.datetime_str()
                     create_version_info(self, versie)
@@ -168,7 +168,9 @@ class AAPDatabase(Database):
                     config.set('versie', 'datum', versie.datum)
             log_info('--- Einde controle versies database en programma')
         except AAPaException as E:
-            log_error('This version of the program can not open this database. Use -init or migrate the data to the new database structure.')
+            if not ignore_error:
+                log_error('Deze versie van het programma kan deze database niet openen.\nGebruik commando "new" of migreer de data naar de juiste databaseversie.')
+                raise E
     def load_roots(self, recreate = False):
         log_info('--- Laden paden voor File Encoding')
         if recreate:
