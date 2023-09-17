@@ -1,3 +1,4 @@
+import sqlite3 as sql3
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
@@ -124,11 +125,11 @@ class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False):
         super().__init__(filename, _reset_flag)
         self.schema = Schema()
-        self.schema.read_from_database(self)        
-        self.reset_keys()
-        if not self._reset_flag:
+        self.schema.read_from_database(self)  
+        if not self._reset_flag: 
             self.check_version(False)
             self.load_roots(False)
+            self.reset_keys()
     def reset_keys(self):
         reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
         reset_key(AanvraagTableDefinition.KEY_FOR_ID, self.__find_max_key('AANVRAGEN'))
@@ -140,9 +141,7 @@ class AAPDatabase(Database):
             return 0
     @classmethod
     def create_from_schema(cls, schema: Schema, filename: str):
-        print('1')
         result = super().create_from_schema(schema, filename)
-        print('1b', result)
         if result:
             result.check_version(True)
             result.load_roots(True)

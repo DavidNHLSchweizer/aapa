@@ -30,9 +30,7 @@ class Database:
         self._commit_level = 0
         self.connection = None
         try:
-            print('8080)')
             self.connection = self.open_database(filename)
-            print('808011)')
             if not self.connection:
                 raise DatabaseException('Connectie niet geopend')
             self.log_info('database logging started...') 
@@ -42,8 +40,8 @@ class Database:
         except Exception as E:
             log_error(f'Kan database {filename} niet initialiseren:\n\t{E}')
     @classmethod
-    def create_from_schema(cls, schema: Schema, filename: str):        
-        result = cls(filename, _reset_flag = True)        
+    def create_from_schema(cls, schema: Schema, filename: str):  
+        result = cls(filename, _reset_flag = True)  
         if result and result.connection:
             result.__clear()        
             result._reset_flag = False
@@ -78,9 +76,9 @@ class Database:
     def disable_foreign_keys(self):
         self._execute_sql_command('pragma foreign_keys=OFF')
     def open_database(self, filename):
-        if not file_exists(filename):
-            log_error(f'Database {filename} niet gevonden.')
-            return None
+        # if not file_exists(filename):
+        #     log_error(f'Database {filename} niet gevonden.')
+        #     return None
         try:
             conn = sql3.connect(filename)#, isolation_level=None)
             return conn

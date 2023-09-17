@@ -43,7 +43,7 @@ class AAPAconfiguration:
         self.database = initialize_database(database, recreate)
         self.storage  = initialize_storage(self.database)
         if not self.database or not self.database.connection:
-            self.validation_error = 'Probleem met database'
+            self.validation_error = f'Database {database} gecorrumpeerd of ander probleem met database'
             return False
         return True
     def __prepare_storage_roots(self):

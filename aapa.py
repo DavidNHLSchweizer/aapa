@@ -9,7 +9,7 @@ class AAPARunner:
         self.configuration = AAPAconfiguration(options)
     def process(self):
         if not self.configuration.initialize():
-            log_error(f'Kan AAPA niet initialiseren: {self.configuration.validation_error}')
+            log_error(f'{self.configuration.validation_error}\nKan AAPA niet initialiseren.')
             return
         with AAPARunnerContext(self.configuration.options):
             with Preview(self.configuration.preview, self.configuration.storage, 'main'):
