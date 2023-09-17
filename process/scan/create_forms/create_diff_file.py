@@ -26,7 +26,7 @@ class DifferenceProcessor(AanvraagProcessor):
             difference_filename= self.get_difference_filename(output_directory, aanvraag.student.student_name)            
             if not preview:
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)                
-                aanvraag.files.set_filename(FileType.DIFFERENCE_HTML, difference_filename)
+            aanvraag.register_file(difference_filename, FileType.DIFFERENCE_HTML)
             log_print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {pva(preview, "aan te maken", "aangemaakt")}.')
             log_print(f'\t\tNieuwste versie "{summary_string(version2, maxlen=80)}" {pva(preview, "te vergelijken", "vergeleken")} met\n\t\tvorige versie "{summary_string(version1, maxlen=80)}".')
     def must_process(self, aanvraag: AanvraagInfo, preview=False, **kwargs)->bool:      

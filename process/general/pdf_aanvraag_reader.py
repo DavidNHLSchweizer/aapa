@@ -7,7 +7,13 @@ from general.log import log_debug
 
 def init_config():
     config.register('pdf_read', 'x_tolerance', IntValueConvertor)
+    config.register('pdf_read', 'min_pages', IntValueConvertor)
+    config.register('pdf_read', 'expected_tables', IntValueConvertor)
+    config.register('pdf_read', 'max_pages', IntValueConvertor)
     config.init('pdf_read', 'x_tolerance', 3)
+    config.init('pdf_read', 'min_pages', 3)
+    config.init('pdf_read', 'max_pages', 8)
+    config.init('pdf_read', 'expected_tables', 3)
 init_config()
 
 class PDFReaderException(Exception): pass
@@ -54,7 +60,9 @@ class PDFaanvraagReader(PDFtoTablesReader):
     student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
     END_ROW = len(student_dict_fields) + 12 # een beetje langer ivm bedrijfsnaam en sommige aanvragen met "extra" regels
     def __init__(self,pdf_file: str):
-        super().__init__(pdf_file, expected_tables=3, expected_pages=3, max_pages=5)
+        super().__init__(pdf_file, expected_tables=config.get('pdf_read', 'expected_tables'), 
+                         expected_pages=config.get('pdf_read', 'min_pages'), 
+                         max_pages=config.get('pdf_read', 'max_pages'))
         self.tables = [self.rectify_table(self.tables[0], PDFaanvraagReader.END_ROW, PDFaanvraagReader.student_dict_fields.keys()), self.all_lines(first_table = 1)]   
     def rectify_table(self, table: list[str], rows_to_rectify: int, field_keys: list[str])->list[str]:
         # some students manage to cause table keys (e.g. Studentnummer) to split over multiple lines (Studentnumme\nr)
