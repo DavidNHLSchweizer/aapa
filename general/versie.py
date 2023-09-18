@@ -1,6 +1,8 @@
 from __future__ import annotations
-from dataclasses import dataclass
+
 import datetime
+from dataclasses import dataclass
+
 from general.config import config
 
 AAPAVERSION = '1.21'
@@ -18,5 +20,21 @@ def init_config():
         config.set('versie', 'versie', AAPAVERSION)
 init_config()
 
-def banner():
-    return f'AAPA-Afstudeer Aanvragen Proces Applicatie  versie {AAPAVERSION}'
+BANNER_FULL = 0
+BANNER_TITLE = 1
+BANNER_VERSION = 2
+
+def banner(part:int = BANNER_FULL)->str:
+    def banner_title()->str:
+        return 'AAPA-Afstudeer Aanvragen Proces Applicatie'
+    def banner_version()->str:
+        return f'versie {AAPAVERSION}'
+    
+    if part == BANNER_FULL:
+        return f'{banner_title()} {banner_version()}'
+    elif part == BANNER_TITLE:
+        return banner_title()
+    elif part == BANNER_VERSION:
+        return banner_version()
+    return None
+    
