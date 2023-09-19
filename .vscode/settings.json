@@ -1,5 +1,8 @@
 {
     "python.analysis.extraPaths": [
-        "./data"
-    ]
+        
+    ],
+    "editor.codeActionsOnSave": {
+
+    }
 }

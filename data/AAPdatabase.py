@@ -10,7 +10,7 @@ from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.16'
+DBVERSION = '1.17'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -93,6 +93,21 @@ class FileTableDefinition(TableDefinition):
         self.add_column('filetype', dbc.INTEGER)
         self.add_column('aanvraag_id', dbc.INTEGER)
 
+class ProcessLogTableDefinition(TableDefinition):
+    KEY_FOR_ID = 'ProcessLog' # key in general.keys used to generate IDs
+    def __init__(self):
+        super().__init__('PROCESSLOG')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('activity', dbc.INTEGER)    
+        self.add_column('user', dbc.TEXT)    
+        self.add_column('date', dbc.DATE)   
+
+class ProcessLogAanvragenTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('PROLOG_AANVRAGEN')
+        self.add_column('log_id', dbc.INTEGER, primary = True)
+        self.add_column('aanvraag_id', dbc.INTEGER, primary = True)    
+
 class AAPSchema(Schema):
     def __init__(self):
         super().__init__()
@@ -102,11 +117,15 @@ class AAPSchema(Schema):
         self.add_table(BedrijfTableDefinition())
         self.add_table(AanvraagTableDefinition())
         self.add_table(FileTableDefinition())
+        self.add_table(ProcessLogTableDefinition())
+        self.add_table(ProcessLogAanvragenTableDefinition())
         self.__define_foreign_keys()
     def __define_foreign_keys(self):
         self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-
+        self.table('PROLOG_AANVRAGEN').add_foreign_key('log_id', 'PROCESSLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('PROLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    
         # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (FileType.InvalidPDF) die om efficientieredenen toch worden opgeslagen
         # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 
         #

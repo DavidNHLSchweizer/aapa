@@ -62,21 +62,8 @@ def migrate_version_115_116(database_name):
     if not (database := init_database(database_name, '1.15')):
         return
     print(f'Migrating database {database_name} from version 1.15 to 1.16.')
-    # storage = AAPStorage(database)    
     add_unique_constraint_to_fileroot()
-    update_aanvraag_status(database)
-    # for row in rows:
-    #     info = storage.file_info.read(row['filename'])
-    #     if not info:
-    #         f_name = row['filename']
-    #         print(f'\tWARNING: "{f_name}" could not be loaded from database')
-    #     elif not Path(info.filename).is_file():
-    #         print(f'\tWARNING: "{info.filename}" does not exist')
-    #     else:
-    #         print(f'\t{info.filename}')
-    #         info.digest = FileInfo.get_digest(info.filename)
-    #         storage.file_info.update(info)
-    
+    update_aanvraag_status(database)   
     print('updating database versie')
     update_versie(database, '1.16')    
     database.commit()

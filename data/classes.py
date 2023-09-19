@@ -10,6 +10,9 @@ from general.fileutil import summary_string
 from general.valid_email import is_valid_email
 
 
+
+
+
 @dataclass
 class Bedrijf:        
     bedrijfsnaam: str = ''
@@ -278,3 +281,5 @@ class AanvraagInfo:
         self.files.set_info(FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
     def unregister_file(self, filetype: FileType):
         self.files.reset_info(filetype)
+
+

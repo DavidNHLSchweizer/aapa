@@ -9,7 +9,7 @@ from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from general.args import AAPAaction, AAPAoptions
 from general.log import pop_console, push_console
-from general.versie import BANNER_TITLE, BANNER_VERSION, banner
+from general.versie import BannerPart, banner
 from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
@@ -168,8 +168,8 @@ class AAPAApp(App):
             global_terminal = self._terminal
         return self._terminal
     async def on_mount(self):
-        self.title = banner(BANNER_TITLE)
-        self.sub_title = banner(BANNER_VERSION)
+        self.title = banner(BannerPart.BANNER_TITLE)
+        self.sub_title = banner(BannerPart.BANNER_VERSION)
         await init_console(self)
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
