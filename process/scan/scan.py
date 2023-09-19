@@ -1,3 +1,4 @@
+from data.state_log import ProcessLog
 from general.fileutil import created_directory, from_main_path, test_directory_exists
 from general.log import log_error, log_info, log_print
 from general.preview import Preview, pva
@@ -31,7 +32,7 @@ def create_beoordelingen_files(storage: AAPStorage, template_doc, output_directo
     if exists:       
         processor = AanvragenProcessor([FormCreator(template_doc, output_directory), 
                                         CopyAanvraagProcessor(output_directory), 
-                                        DifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage)
+                                        DifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage, ProcessLog.Activity.SCAN)
         result = processor.process_aanvragen(preview=preview, filter_func=filter_func, output_directory=output_directory) 
     else:
         log_error(f'Output directory "{output_directory}" bestaat niet. Kan geen formulieren aanmaken')

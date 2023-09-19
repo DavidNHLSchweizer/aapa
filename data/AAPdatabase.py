@@ -104,7 +104,7 @@ class ProcessLogTableDefinition(TableDefinition):
 
 class ProcessLogAanvragenTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('PROLOG_AANVRAGEN')
+        super().__init__('PROCESSLOG_AANVRAGEN')
         self.add_column('log_id', dbc.INTEGER, primary = True)
         self.add_column('aanvraag_id', dbc.INTEGER, primary = True)    
 
@@ -123,8 +123,8 @@ class AAPSchema(Schema):
     def __define_foreign_keys(self):
         self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('PROLOG_AANVRAGEN').add_foreign_key('log_id', 'PROCESSLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('PROLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('PROCESSLOG_AANVRAGEN').add_foreign_key('log_id', 'PROCESSLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('PROCESSLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     
         # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (FileType.InvalidPDF) die om efficientieredenen toch worden opgeslagen
         # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 
@@ -152,6 +152,7 @@ class AAPDatabase(Database):
     def reset_keys(self):
         reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
         reset_key(AanvraagTableDefinition.KEY_FOR_ID, self.__find_max_key('AANVRAGEN'))
+        reset_key(ProcessLogTableDefinition.KEY_FOR_ID, self.__find_max_key('PROCESSLOG'))
     def __find_max_key(self, table_name: str):
         if (row := self._execute_sql_command(f'select max(ID) from {table_name};', return_values = True)) and \
                                             (r0 := list(row[0])[0]):

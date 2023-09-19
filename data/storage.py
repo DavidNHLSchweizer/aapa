@@ -1,19 +1,21 @@
 from data.AAPdatabase import  create_root
-from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagInfo, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
+from data.classes import AUTODIGEST, TSC, AanvraagInfo, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
+from data.state_log import ProcessLog
 from data.tables.aanvragen import CRUD_aanvragen
 from data.tables.bedrijven import  CRUD_bedrijven
 from data.tables.files import CRUD_files
+from data.tables.process_log import CRUD_process_log, CRUD_process_log_aanvragen
 from data.tables.studenten import CRUD_studenten
 from database.crud import CRUDbase
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from data.roots import add_root, encode_path
-from general.log import log_info, log_warning
+from general.log import log_debug, log_info, log_warning
 
 AAPAClass = type[Bedrijf|StudentInfo|FileInfo|FileInfos|AanvraagInfo]
 KeyClass = type[int|str]
-class StorageBase:
+class ObjectStorage:
     def __init__(self, database: Database, crud: CRUDbase):
         self.database = database
         self.crud  = crud
@@ -26,7 +28,7 @@ class StorageBase:
     def delete(self, key: KeyClass):
         self.crud.delete(key)
         
-class BedrijvenStorage(StorageBase):
+class BedrijvenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_bedrijven(database))
     def create(self, bedrijf: Bedrijf):
@@ -35,11 +37,11 @@ class BedrijvenStorage(StorageBase):
         else:
             super().create(bedrijf)
 
-class StudentenStorage(StorageBase):
+class StudentenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_studenten(database))
 
-class FileInfoStorage(StorageBase):
+class FileInfoStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_files(database))
     def find(self, aanvraag_id: int, filetype: FileType)->FileInfo:
@@ -115,7 +117,7 @@ class FileInfoStorage(StorageBase):
             stored.aanvraag_id=EMPTY_ID
             self.update(stored)
         else:
-            self.create(FileInfo(filename, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.INVALID_PDF, aanvraag_id=EMPTY_ID))
+            self.create(FileInfo(filename, timestamp=TSC.AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.INVALID_PDF, aanvraag_id=EMPTY_ID))
         self.database.commit()
     def is_known_invalid(self, filename):
         if (stored:=self.read(filename)):
@@ -123,7 +125,7 @@ class FileInfoStorage(StorageBase):
         else:
             return False     
 
-class AanvraagStorage(StorageBase):
+class AanvraagStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_aanvragen(database))
         self.file_info = FileInfoStorage(database)
@@ -186,11 +188,30 @@ class AanvraagStorage(StorageBase):
         if not (self.studenten.read(aanvraag.student.studnr)):
             self.studenten.create(aanvraag.student)
 
+class ProcessLogStorage(ObjectStorage):
+    def __init__(self, database: Database):
+        super().__init__(database, CRUD_process_log(database))
+        self.process_log_aanvragen = CRUD_process_log_aanvragen(database)
+    def create(self, process_log: ProcessLog):
+        for aanvraag in process_log.aanvragen:
+            log_debug(f'{aanvraag.id}: {aanvraag.summary()}')
+        super().create(process_log)
+        self.process_log_aanvragen.create(process_log)
+    def read(self, id: int)->ProcessLog:
+        return self.process_log_aanvragen.read(super().read(id))
+    def update(self, process_log: ProcessLog):
+        super().update(process_log)
+        self.process_log_aanvragen.update(process_log)
+    def delete(self, id: int):
+        self.process_log_aanvragen.update(id)
+        super().delete(id)
+
 class AAPStorage: 
     #main interface with the database
     def __init__(self, database: Database):
         self.database: Database = database
         self.aanvragen = AanvraagStorage(database)
+        self.process_log = ProcessLogStorage(database)
     @property
     def file_info(self)->FileInfoStorage:
         return self.aanvragen.file_info

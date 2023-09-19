@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 from typing import Iterable
 from data.classes import AanvraagInfo, FileInfo, FileType
+from data.state_log import ProcessLog
 from data.storage import AAPStorage
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print
@@ -38,20 +39,21 @@ class AanvraagCreator(AanvraagProcessorBase):
         return None
 
 class AanvragenProcessorBase:
-    def __init__(self, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage):
+    def __init__(self, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage, activity: ProcessLog.Activity):
         self._processors:list[AanvraagProcessorBase] = []
         if isinstance(processors, list):
             for processor in processors: self._processors.append(processor)
         else:
             self._processors.append(processors)
         self.storage = storage
+        self.process_log = ProcessLog(activity)
         self.known_files = self.storage.file_info.find_all_for_filetype({filetype for filetype in FileType})
     def is_known_file(self, filename: str)->bool:        
         return filename in {fileinfo.filename for fileinfo in self.known_files} or self.storage.file_info.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
-    def __init__(self, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPStorage, aanvragen: list[AanvraagInfo] = None):
-        super().__init__(processors, storage)
+    def __init__(self, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPStorage, activity: ProcessLog.Activity, aanvragen: list[AanvraagInfo] = None):
+        super().__init__(processors, storage, activity=activity)
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
     def __read_from_storage(self):
@@ -85,17 +87,20 @@ class AanvragenProcessor(AanvragenProcessorBase):
         with Preview(preview, self.storage, 'process_aanvragen'):
             for aanvraag in self.filtered_aanvragen(filter_func):
                 processed = 0
+                self.process_log.add_aanvraag(aanvraag) HIER NOG EVEN WAT EXTRA LOGICA INBOUWEN, nu komen er dubbele records in en iets met de tijd klopt ook niet.
                 for processor in self._processors:
                     #log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
                     if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
                         processed += 1
                 if processed > 0:
-                    n_processed += 1
+                    n_processed += 1            
+            self.storage.process_log.create(self.process_log)
+            self.storage.commit()
         return n_processed
 
 class AanvragenCreator(AanvragenProcessorBase):
     def __init__(self, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
-        super().__init__(processors, storage)
+        super().__init__(processors, storage, activity=ProcessLog.Activity.CREATE)
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
     def _in_skip_directory(self, filename: Path)->bool:

@@ -9,9 +9,20 @@ from general.filehash import hash_file_digest
 from general.fileutil import summary_string
 from general.valid_email import is_valid_email
 
-
-
-
+class TimeStringConversion:
+    AUTOTIMESTAMP = 0
+    DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
+    @staticmethod
+    def rounded_timestamp(value):
+        #remove possible milliseconds so that the string can be read uniformly from the database if needed
+        return TSC.str_to_timestamp(TSC.timestamp_to_str(value)) if value != TSC.AUTOTIMESTAMP else TSC.AUTOTIMESTAMP
+    @staticmethod
+    def timestamp_to_str(value):        
+        return datetime.datetime.strftime(value, TSC.DATETIME_FORMAT) if value != TSC.AUTOTIMESTAMP else '' 
+    @staticmethod
+    def str_to_timestamp(value):
+        return datetime.datetime.strptime(value, TSC.DATETIME_FORMAT) if value else TSC.AUTOTIMESTAMP
+TSC = TimeStringConversion
 
 @dataclass
 class Bedrijf:        
@@ -44,19 +55,17 @@ class FileType(Enum):
                     }
         return STR_DICT.get(self, '!unknown')
 
-AUTOTIMESTAMP = 0
 class FileInfo:
     @staticmethod
     def get_timestamp(filename: str)-> datetime.datetime:
-        return FileInfo.__rounded_timestamp(datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime))
+        return TSC.rounded_timestamp(datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime))
     @staticmethod
     def get_digest(filename: str)->str:
         return hash_file_digest(filename)
-    DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
-    def __init__(self, filename: str, timestamp: datetime.datetime = AUTOTIMESTAMP, digest = AUTODIGEST, filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
+    def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file():
-            if timestamp == AUTOTIMESTAMP:
+            if timestamp == TSC.AUTOTIMESTAMP:
                 self.timestamp = FileInfo.get_timestamp(filename)
             else:
                 self.timestamp = timestamp
@@ -70,25 +79,15 @@ class FileInfo:
         self.filetype = filetype
         self.aanvraag_id = aanvraag_id
     def __str__(self): 
-        return f'{self.filename}: {str(self.filetype)} [{FileInfo.timestamp_to_str(self.timestamp)}]'   
+        return f'{self.filename}: {str(self.filetype)} [{TSC.timestamp_to_str(self.timestamp)}]'   
     def summary(self, len_filename = 72)->str:
-        return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)} [{FileInfo.timestamp_to_str(self.timestamp)}]'     
+        return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)} [{TSC.timestamp_to_str(self.timestamp)}]'     
     @property    
     def timestamp(self):
         return self._timestamp
     @timestamp.setter
     def timestamp(self, value):
-        self._timestamp = FileInfo.__rounded_timestamp(value)
-    @staticmethod
-    def __rounded_timestamp(value):
-        #remove possible milliseconds so that the string can be read uniformly from the database if needed
-        return FileInfo.str_to_timestamp(FileInfo.timestamp_to_str(value)) if value != AUTOTIMESTAMP else AUTOTIMESTAMP
-    @staticmethod
-    def timestamp_to_str(value):        
-        return datetime.datetime.strftime(value, FileInfo.DATETIME_FORMAT) if value != AUTOTIMESTAMP else '' 
-    @staticmethod
-    def str_to_timestamp(value):
-        return datetime.datetime.strptime(value, FileInfo.DATETIME_FORMAT) if value else AUTOTIMESTAMP
+        self._timestamp = TSC.rounded_timestamp(value)
     def __eq__(self, value: FileInfo):
         if  self.filename != value.filename:
             return False
@@ -105,7 +104,7 @@ class FileInfo:
 class FileInfos:
     def __init__(self, aanvraag_id=EMPTY_ID):
         self.aanvraag_id = aanvraag_id
-        self.__files = {ft:{'filename': '', 'timestamp':AUTOTIMESTAMP, 'digest':AUTODIGEST} for ft in FileType if ft != FileType.UNKNOWN}
+        self.__files = {ft:{'filename': '', 'timestamp':TSC.AUTOTIMESTAMP, 'digest':AUTODIGEST} for ft in FileType if ft != FileType.UNKNOWN}
     def get_filename(self, ft: FileType)->str:
         return self.__files[ft]['filename']
     def set_filename(self, ft: FileType, value: str):
@@ -137,9 +136,9 @@ class FileInfos:
     def reset_info(self, file_type: FileType | set[FileType]):
         if isinstance(file_type, set):
             for ft in file_type:
-                self.set_info(FileInfo('', AUTOTIMESTAMP, '', ft))
+                self.set_info(FileInfo('', TSC.AUTOTIMESTAMP, '', ft))
         else:
-            self.set_info(FileInfo('', AUTOTIMESTAMP, '', file_type))
+            self.set_info(FileInfo('', TSC.AUTOTIMESTAMP, '', file_type))
     def reset(self):
         self.reset_info({ft for ft in FileType if ft != FileType.UNKNOWN})
 
@@ -232,7 +231,7 @@ class AanvraagInfo:
     def timestamp(self):
         return self.files.get_timestamp(FileType.AANVRAAG_PDF)
     def timestamp_str(self):
-        return FileInfo.timestamp_to_str(self.timestamp)
+        return TSC.timestamp_to_str(self.timestamp)
     @property
     def digest(self):
         return self.files.get_digest(FileType.AANVRAAG_PDF)
@@ -278,7 +277,7 @@ class AanvraagInfo:
         if self.__versie and self.__versie.find('/') >= 0:
             self.__versie = self.__versie.replace('/','').strip()
     def register_file(self, filename: str, filetype: FileType):
-        self.files.set_info(FileInfo(filename, timestamp=AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
+        self.files.set_info(FileInfo(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
     def unregister_file(self, filetype: FileType):
         self.files.reset_info(filetype)
 

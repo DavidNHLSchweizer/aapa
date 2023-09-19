@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from enum import Enum
 import pandas as pd
+from data.state_log import ProcessLog
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
 from data.classes import AanvraagInfo
@@ -48,7 +49,7 @@ class AanvraagXLSReporter(AanvraagProcessor):
 
 class AanvragenXLSReporter(AanvragenProcessor):       
     def __init__(self, storage: AAPStorage):
-        super().__init__(AanvraagXLSReporter(), storage)
+        super().__init__(AanvraagXLSReporter(), storage, ProcessLog.Activity.NOLOG)
         self.writer = None
         self.sheet = None
     @contextmanager

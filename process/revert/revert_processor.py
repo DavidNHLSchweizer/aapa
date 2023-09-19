@@ -31,7 +31,7 @@ class AanvraagRevertProcessor(AanvraagProcessor):
 
 def revert_log(storage: AAPStorage, process_log: ProcessLog, preview=False)->int:
     log_info('--- Terugdraaien verwerking aanvragen ...')
-    processor = AanvragenProcessor(AanvraagRevertProcessor(process_log.activity), storage, aanvragen=process_log.aanvragen)
+    processor = AanvragenProcessor(AanvraagRevertProcessor(process_log.activity), storage, ProcessLog.Activity.REVERT, aanvragen=process_log.aanvragen)
     result = processor.process_aanvragen(preview=preview) 
     log_info('--- Einde terugdraaien verwerking aanvragen.')
     return result

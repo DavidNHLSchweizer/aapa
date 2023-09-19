@@ -3,6 +3,7 @@ import datetime
 from enum import Enum
 import os
 from data.classes import AanvraagInfo, AanvraagStatus, FileType, AanvraagBeoordeling
+from database.dbConst import EMPTY_ID
 from general.singleton import Singleton
 
 class StateChangeSummary:
@@ -35,12 +36,19 @@ class StateChangeFactory(Singleton):
             
 class ProcessLog:
     class Activity(Enum):
-        SCAN = 1
-        MAIL = 2
-    def __init__(self, activity: Activity):
-        self.date: datetime = datetime.datetime.now()
-        self.user: str = os.getlogin()
+        NOLOG   = 0
+        CREATE  = 1
+        SCAN    = 2
+        MAIL    = 3
+        REVERT  = 4
+        
+    def __init__(self, activity: Activity, id=EMPTY_ID, date=datetime.datetime.now(), user: str = os.getlogin()):
         self.activity = activity        
+        self.id = id #KEY
+        self.date = date
+        self.user = user
+        self.clear()
+    def clear(self):
         self.aanvragen: list[AanvraagInfo] = []
     def add_aanvraag(self, aanvraag: AanvraagInfo):
         self.aanvragen.append(aanvraag)
