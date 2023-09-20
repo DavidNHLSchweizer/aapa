@@ -2,8 +2,9 @@ from __future__ import annotations
 import datetime
 from enum import Enum
 import os
-from data.classes import AanvraagInfo, AanvraagStatus, FileType, AanvraagBeoordeling
+from data.classes import AanvraagInfo, AanvraagStatus, FileType, AanvraagBeoordeling, TSC
 from database.dbConst import EMPTY_ID
+from general.fileutil import summary_string
 from general.singleton import Singleton
 
 class StateChangeSummary:
@@ -33,7 +34,7 @@ class StateChangeFactory(Singleton):
                 return MailStateChange()
             case _:
                 return None
-            
+         
 class ProcessLog:
     class Activity(Enum):
         NOLOG   = 0
@@ -48,7 +49,7 @@ class ProcessLog:
         self.description = description
         self.date = date
         self.user = user
-        self.aanvragen: list[AanvraagInfo]=None
+        self.aanvragen: list[AanvraagInfo]=[]
     def start(self):
         self.aanvragen = []
         self.date = datetime.datetime.now()
@@ -61,3 +62,8 @@ class ProcessLog:
         return len(self.aanvragen)
     def is_empty(self)->bool:
         return self.nr_aanvragen == 0
+    def __str__(self)->str:
+        result = f'{self.activity} {TSC.timestamp_to_str(self.date)} [{self.user}] ({self.id}):'
+        if self.is_empty():
+            return result + ' (geen aanvragen)'
+        return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])

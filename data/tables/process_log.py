@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from data.classes import TSC, FileInfo
 from data.tables.aanvragen import CRUD_aanvragen
 from database.sqlexpr import Ops, SQLexpression as SQE
@@ -35,6 +36,11 @@ class CRUD_process_log(CRUDbase):
         super().update(columns=self.__get_all_columns(False), values=self.__get_all_values(process_log, False), where=SQE('id', Ops.EQ, process_log.id))
     def delete(self, id: int):
         super().delete(where=SQE('id', Ops.EQ, id))
+@dataclass
+class ProcessLogAanvraagRec:
+    log_id: int 
+    aanvraag_id: int
+ProcessLogAanvraagRecs = list[ProcessLogAanvraagRec]
 
 class CRUD_process_log_aanvragen(CRUDbase):
     def __init__(self, database: Database):
@@ -46,16 +52,20 @@ class CRUD_process_log_aanvragen(CRUDbase):
     def __get_all_values(self, log_id: int, aanvraag_id: int, include_key = True):
         result = [log_id, aanvraag_id] if include_key else []
         return result
+    def get_aanvraag_records(self, process_log: ProcessLog)->ProcessLogAanvraagRecs:
+        return [ProcessLogAanvraagRec(process_log.id, aanvraag.id) 
+                for aanvraag in sorted(process_log.aanvragen, key=lambda a: a.id)]
+                #gesorteerd om dat het anders in omgekeerde volgorde wordt gedaan
     def create(self, process_log: ProcessLog):
-        for aanvraag in sorted(process_log.aanvragen, key=lambda a: a.id): #gesorteerd om dat het anders in omgekeerde volgorde wordt gedaan
-            super().create(columns=self.__get_all_columns(), values=self.__get_all_values(process_log.id, aanvraag.id))   
-    def read(self, process_log: ProcessLog)->ProcessLog:
-        process_log.clear()
-        for row in super().read(where=SQE('log_id', Ops.EQ, process_log.id)):
-            process_log.add_aanvraag(self.crud_aanvragen.read(row['aanvraag_id']))
-        return process_log
+        for record in self.get_aanvraag_records(process_log):
+            super().create(columns=self.__get_all_columns(), values=self.__get_all_values(record.log_id, record.aanvraag_id))   
+    def read(self, process_log_id: int)->list[ProcessLogAanvraagRecs]: 
+        result = []
+        for row in super().read(where=SQE('log_id', Ops.EQ, process_log_id), multiple=True):
+            result.append(ProcessLogAanvraagRec(log_id=process_log_id, aanvraag_id = self.crud_aanvragen.read(row['aanvraag_id'])))
+        return result
     def update(self, process_log: ProcessLog):
         self.delete(process_log.id)    
-        self.create(process_log)
-    def delete(self, log_id: int):
-        super().delete(where=SQE('log_id', Ops.EQ, log_id))
+        self.create(self.get_aanvraag_records(process_log))
+    def delete(self, process_log_id: int):
+        super().delete(where=SQE('log_id', Ops.EQ, process_log_id))

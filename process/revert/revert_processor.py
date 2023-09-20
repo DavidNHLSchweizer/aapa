@@ -3,10 +3,15 @@ from data.classes import AanvraagInfo
 from data.state_log import ProcessLog, StateChangeFactory
 from data.storage import AAPStorage
 from general.fileutil import file_exists, summary_string
-from general.log import log_info, log_print, log_warning
-from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
+from general.log import log_error, log_info, log_print, log_warning
+from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase, AanvragenProcessor
 
 class RevertException(Exception): pass
+
+class StateLogProcessor(AanvraagProcessorBase):
+    def process_log(self, log: ProcessLog, storage: AAPStorage, preview = False, **kwargs)->bool: 
+        return False
+
 class AanvraagRevertProcessor(AanvraagProcessor):
     def __init__(self, activity: ProcessLog.Activity):
         super().__init__()
@@ -29,8 +34,12 @@ class AanvraagRevertProcessor(AanvraagProcessor):
         log_info(f'{aanvraag.summary()} teruggedraaid. Status is nu: {aanvraag.status}')
         return True
 
-def revert_log(storage: AAPStorage, process_log: ProcessLog, preview=False)->int:
-    log_info('--- Terugdraaien verwerking aanvragen ...')
+def revert_log(storage: AAPStorage, preview=False)->int:
+    log_info('--- Terugdraaien verwerking aanvragen ...', True)
+    if not (process_log:=storage.process_log.find_log()):
+        log_error(f'Kan terug te draaien aanvragen niet laden uit database ')
+        return 0
+    print(process_log)
     processor = AanvragenProcessor('Terugdraaien verwerking aanvragen', AanvraagRevertProcessor(process_log.activity), storage, ProcessLog.Activity.REVERT, aanvragen=process_log.aanvragen)
     result = processor.process_aanvragen(preview=preview) 
     log_info('--- Einde terugdraaien verwerking aanvragen.')

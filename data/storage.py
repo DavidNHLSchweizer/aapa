@@ -27,6 +27,11 @@ class ObjectStorage:
         self.crud.update(object)
     def delete(self, key: KeyClass):
         self.crud.delete(key)
+    def max_id(self):
+        if (row := self.database._execute_sql_command(f'select max(id) from {self.crud.table.table_name}', [], True)) and row[0][0]:
+            return row[0][0]           
+        else:
+            return 0                    
         
 class BedrijvenStorage(ObjectStorage):
     def __init__(self, database: Database):
@@ -169,11 +174,6 @@ class AanvraagStorage(ObjectStorage):
             for row in rows:
                 result.append(self.read(row['id']))
         return result
-    def max_id(self):
-        if (row := self.database._execute_sql_command('select max(id) from AANVRAGEN', [], True)) and row[0][0]:
-            return row[0][0]           
-        else:
-            return 0                    
     def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
         if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.studnr], True)):
             return row[0][0]
@@ -192,19 +192,25 @@ class ProcessLogStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_process_log(database))
         self.process_log_aanvragen = CRUD_process_log_aanvragen(database)
+        self.aanvragen = AanvraagStorage(database)
     def create(self, process_log: ProcessLog):
-        for aanvraag in process_log.aanvragen:
-            log_debug(f'{aanvraag.id}: {aanvraag.summary()}')
         super().create(process_log)
         self.process_log_aanvragen.create(process_log)
     def read(self, id: int)->ProcessLog:
-        return self.process_log_aanvragen.read(super().read(id))
+        result: ProcessLog = super().read(id)
+        self.__read_aanvragen(result)
+        return result
     def update(self, process_log: ProcessLog):
         super().update(process_log)
         self.process_log_aanvragen.update(process_log)
     def delete(self, id: int):
-        self.process_log_aanvragen.update(id)
+        self.process_log_aanvragen.delete(id)
         super().delete(id)
+    def find_log(self, id: int = EMPTY_ID)->ProcessLog:
+        return self.read(id if id != EMPTY_ID else self.max_id())
+    def __read_aanvragen(self, process_log: ProcessLog):
+        for record in self.process_log_aanvragen.read(process_log.id):
+            process_log.add_aanvraag(self.aanvragen.read(record.aanvraag_id))
 
 class AAPStorage: 
     #main interface with the database
