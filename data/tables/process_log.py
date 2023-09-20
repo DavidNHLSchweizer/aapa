@@ -13,21 +13,22 @@ class CRUD_process_log(CRUDbase):
         super().__init__(database, ProcessLogTableDefinition())
     def __get_all_columns(self, include_key = True):
         result = ['id'] if include_key else []
-        result.extend(['activity', 'user', 'date'])
+        result.extend(['description', 'activity', 'user', 'date', 'aantal'])
         return result
     @staticmethod
     def __activity_to_value(activity: ProcessLog.Activity):
         return activity.value
     def __get_all_values(self, process_log: ProcessLog, include_key = True):
         result = [process_log.id] if include_key else []
-        result.extend([CRUD_process_log.__activity_to_value(process_log.activity), process_log.user, TSC.timestamp_to_str(process_log.date)])
+        result.extend([process_log.description, CRUD_process_log.__activity_to_value(process_log.activity), process_log.user, TSC.timestamp_to_str(process_log.date), process_log.nr_aanvragen])
         return result
     def create(self, process_log: ProcessLog):
         process_log.id = get_next_key(ProcessLogTableDefinition.KEY_FOR_ID)
         super().create(columns=self.__get_all_columns(), values=self.__get_all_values(process_log))   
     def read(self, id: int)->ProcessLog:
         if row:=super().read(where=SQE('id', Ops.EQ, id)):
-            return ProcessLog(id=id, activity=ProcessLog.Activity(row['activity']), user=row['user'], date=TSC.str_to_timestamp(row['date']))
+            return ProcessLog(id=id, description=row['description'], activity=ProcessLog.Activity(row['activity']), user=row['user'], date=TSC.str_to_timestamp(row['date'])) 
+            #note: aantal hoeft niet te worden gelezen, komt uit aantal aanvragen (bij lezen process_log_aanvragen)
         else:
             return None
     def update(self, process_log: ProcessLog):

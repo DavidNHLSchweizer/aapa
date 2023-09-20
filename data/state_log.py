@@ -42,14 +42,22 @@ class ProcessLog:
         MAIL    = 3
         REVERT  = 4
         
-    def __init__(self, activity: Activity, id=EMPTY_ID, date=datetime.datetime.now(), user: str = os.getlogin()):
+    def __init__(self, activity: Activity, description='', id=EMPTY_ID, date=None, user: str=os.getlogin()):
         self.activity = activity        
         self.id = id #KEY
+        self.description = description
         self.date = date
         self.user = user
-        self.clear()
-    def clear(self):
-        self.aanvragen: list[AanvraagInfo] = []
+        self.aanvragen: list[AanvraagInfo]=None
+    def start(self):
+        self.aanvragen = []
+        self.date = datetime.datetime.now()
+    def stop(self):
+        pass # voor latere toevoegingen
     def add_aanvraag(self, aanvraag: AanvraagInfo):
         self.aanvragen.append(aanvraag)
-
+    @property
+    def nr_aanvragen(self)->int:
+        return len(self.aanvragen)
+    def is_empty(self)->bool:
+        return self.nr_aanvragen == 0

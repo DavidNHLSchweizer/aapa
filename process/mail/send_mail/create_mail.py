@@ -1,14 +1,10 @@
 from pathlib import Path
 from data.classes import AanvraagInfo
-from data.state_log import ProcessLog
 from general.config import ListValueConvertor, config
 from general.fileutil import from_main_path, summary_string
 from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
-from data.storage import AAPStorage
-from general.preview import pva
-from general.singular_or_plural import sop
 from general.substitutions import FieldSubstitution, FieldSubstitutions
-from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
+from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.mail_sender import OutlookMail, OutlookMailDef
 from general.log import log_error, log_print
 
@@ -71,11 +67,3 @@ class FeedbackMailProcessor(AanvraagProcessor):
             log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
             aanvraag.status = AanvraagStatus.MAIL_READY
         return True
-
-# def create_feedback_mails(storage: AAPStorage, filter_func = None, preview=False):
-#     log_print('--- Klaarzetten feedback mails...')
-#     processor = AanvragenProcessor(FeedbackMailProcessor(), storage, ProcessLog.Activity.MAIL)
-#     n_mails = processor.process_aanvragen(filter_func, preview=preview)
-#     log_print(f'### {n_mails} {sop(n_mails,"mail", "mails")} {pva(preview, "klaar te zetten", "klaargezet")} in Outlook {processor.get_draft_folder_name()}')
-#     log_print('--- Einde klaarzetten feedback mails.')
-

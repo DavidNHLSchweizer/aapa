@@ -172,7 +172,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     else:
         skip_directories = set()
     skip_files = config.get('import', 'skip_files')
-    importer = DirectoryImporter(AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
+    importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     file_results = {}
     first_id = storage.aanvragen.max_id() + 1
     #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben
