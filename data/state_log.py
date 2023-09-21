@@ -1,6 +1,6 @@
 from __future__ import annotations
 import datetime
-from enum import Enum
+from enum import IntEnum
 import os
 from data.classes import AanvraagInfo, AanvraagStatus, FileType, AanvraagBeoordeling, TSC
 from database.dbConst import EMPTY_ID
@@ -36,7 +36,7 @@ class StateChangeFactory(Singleton):
                 return None
          
 class ProcessLog:
-    class Action(Enum):
+    class Action(IntEnum):
         NOLOG   = 0
         CREATE  = 1
         SCAN    = 2

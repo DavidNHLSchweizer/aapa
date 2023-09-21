@@ -104,6 +104,7 @@ class TableDefinition:
         self.table_name = name
         self.columns:list[ColumnDefinition] = []
         self.foreign_keys = []
+        self.keys = []
         self.__has_primary = False
         self.__has_compound_primary = False
         TableFlags().execute(self, **args)
@@ -112,6 +113,7 @@ class TableDefinition:
     def add_column(self, column_name, column_type, **args):
         self.columns.append(column:=ColumnDefinition(column_name, column_type, **args))
         if column.is_primary():
+            self.keys.append(column.name)
             if self.__has_compound_primary:
                 column._compound_primary = True
             elif self.__has_primary:

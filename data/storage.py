@@ -53,7 +53,7 @@ class FileInfoStorage(ObjectStorage):
         super().__init__(database, CRUD_files(database))
     def find(self, aanvraag_id: int, filetype: FileType)->FileInfo:
         if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
-                [aanvraag_id, CRUD_files._filetype_to_value(filetype)], True):
+                [aanvraag_id, filetype], True):
             info = self.read(row[0]["filename"])
             log_info(f'success: {info}')
             return info
@@ -63,7 +63,7 @@ class FileInfoStorage(ObjectStorage):
         return self.crud
     def __load(self, aanvraag_id: int, filetypes: set[FileType])->list[FileInfo]:
         params = [aanvraag_id]
-        params.extend([CRUD_files._filetype_to_value(ft) for ft in filetypes])
+        params.extend([ft for ft in filetypes])
         if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
             filenames=[]
             filenames.extend([row["filename"] for row in rows])
@@ -82,10 +82,10 @@ class FileInfoStorage(ObjectStorage):
     def find_all_for_filetype(self, filetypes: FileType | set[FileType])->list[FileInfo]:
         if isinstance(filetypes, set):
             place_holders = f' in ({",".join("?"*len(filetypes))})' 
-            params = [CRUD_files._filetype_to_value(ft) for ft in filetypes]
+            params = [ft for ft in filetypes]
         else:
             place_holders = '=?'
-            params = [CRUD_files._filetype_to_value(filetypes)]
+            params = [filetypes]
         result = []
         for row in self.database._execute_sql_command('select filename from FILES where filetype' + place_holders, params, True):
             result.append(self.read(row['filename']))
