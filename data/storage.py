@@ -11,7 +11,9 @@ from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from data.roots import add_root, encode_path
-from general.log import log_debug, log_info, log_warning
+from general.log import log_debug, log_error, log_info, log_warning
+
+class StorageException(Exception): pass
 
 AAPAClass = type[Bedrijf|StudentInfo|FileInfo|FileInfos|AanvraagInfo]
 KeyClass = type[int|str]
@@ -206,7 +208,15 @@ class ProcessLogStorage(ObjectStorage):
     def delete(self, id: int):
         self.process_log_aanvragen.delete(id)
         super().delete(id)
-    def find_log(self, id: int = EMPTY_ID)->ProcessLog:
+    def find_log(self, id: int = EMPTY_ID)->ProcessLog:        
+        ATV = CRUD_process_log.action_to_value
+        if id == EMPTY_ID:
+            if (row := self.database._execute_sql_command('select max(id) from PROCESSLOG where rolled_back = ? and action in (?,?,?)', 
+                                                [0, ATV(ProcessLog.Action.CREATE), ATV(ProcessLog.Action.SCAN), ATV(ProcessLog.Action.MAIL)], True)):
+                id = row[0][0]
+            else:
+                log_error(f'Geen terug te draaien actie in database.')
+                return None
         return self.read(id if id != EMPTY_ID else self.max_id())
     def __read_aanvragen(self, process_log: ProcessLog):
         for record in self.process_log_aanvragen.read(process_log.id):

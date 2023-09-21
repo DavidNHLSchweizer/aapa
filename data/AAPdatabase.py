@@ -99,10 +99,11 @@ class ProcessLogTableDefinition(TableDefinition):
         super().__init__('PROCESSLOG')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('description', dbc.TEXT)
-        self.add_column('activity', dbc.INTEGER)    
+        self.add_column('action', dbc.INTEGER)    
         self.add_column('user', dbc.TEXT)    
         self.add_column('date', dbc.DATE)   
         self.add_column('aantal', dbc.INTEGER)
+        self.add_column('rolled_back', dbc.INTEGER)
 
 class ProcessLogAanvragenTableDefinition(TableDefinition):
     def __init__(self):

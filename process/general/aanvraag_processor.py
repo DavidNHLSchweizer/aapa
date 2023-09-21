@@ -41,7 +41,7 @@ class AanvraagCreator(AanvraagProcessorBase):
         return None
 
 class AanvragenProcessorBase:
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage, activity: ProcessLog.Activity):
+    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage, activity: ProcessLog.Action):
         self._processors:list[AanvraagProcessorBase] = []
         if isinstance(processors, list):
             for processor in processors: self._processors.append(processor)
@@ -65,7 +65,7 @@ class AanvragenProcessorBase:
         return filename in {fileinfo.filename for fileinfo in self.known_files} or self.storage.file_info.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
-    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPStorage, activity: ProcessLog.Activity, aanvragen: list[AanvraagInfo] = None):
+    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPStorage, activity: ProcessLog.Action, aanvragen: list[AanvraagInfo] = None):
         super().__init__(description, processors, storage, activity=activity)
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
@@ -113,7 +113,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
 
 class AanvragenCreator(AanvragenProcessorBase):
     def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
-        super().__init__(description, processors, storage, activity=ProcessLog.Activity.CREATE)
+        super().__init__(description, processors, storage, activity=ProcessLog.Action.CREATE)
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
     def _in_skip_directory(self, filename: Path)->bool:

@@ -26,30 +26,31 @@ class MailStateChange(StateChangeSummary):
                          [FileType.GRADED_PDF])
         
 class StateChangeFactory(Singleton):
-    def create(self, activity: ProcessLog.Activity):
+    def create(self, activity: ProcessLog.Action):
         match activity:
-            case ProcessLog.Activity.SCAN:
+            case ProcessLog.Action.SCAN:
                 return ScanStateChange()
-            case ProcessLog.Activity.MAIL:
+            case ProcessLog.Action.MAIL:
                 return MailStateChange()
             case _:
                 return None
          
 class ProcessLog:
-    class Activity(Enum):
+    class Action(Enum):
         NOLOG   = 0
         CREATE  = 1
         SCAN    = 2
         MAIL    = 3
         REVERT  = 4
         
-    def __init__(self, activity: Activity, description='', id=EMPTY_ID, date=None, user: str=os.getlogin()):
-        self.activity = activity        
+    def __init__(self, action: Action, description='', id=EMPTY_ID, date=None, user: str=os.getlogin(), rolled_back=False):
+        self.action = action        
         self.id = id #KEY
         self.description = description
         self.date = date
         self.user = user
         self.aanvragen: list[AanvraagInfo]=[]
+        self.rolled_back = rolled_back
     def start(self):
         self.aanvragen = []
         self.date = datetime.datetime.now()
@@ -62,8 +63,12 @@ class ProcessLog:
         return len(self.aanvragen)
     def is_empty(self)->bool:
         return self.nr_aanvragen == 0
+    def is_rolled_back(self)->bool:
+        return self.rolled_back
     def __str__(self)->str:
-        result = f'{self.activity} {TSC.timestamp_to_str(self.date)} [{self.user}] ({self.id}):'
+        result = f'{self.action} {TSC.timestamp_to_str(self.date)} [{self.user}] ({self.id}):'
         if self.is_empty():
             return result + ' (geen aanvragen)'
+        if self.is_rolled_back():
+            result = result + ' [teruggedraaid]'
         return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])

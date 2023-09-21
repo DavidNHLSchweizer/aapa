@@ -13,7 +13,7 @@ class StateLogProcessor(AanvraagProcessorBase):
         return False
 
 class AanvraagRevertProcessor(AanvraagProcessor):
-    def __init__(self, activity: ProcessLog.Activity):
+    def __init__(self, activity: ProcessLog.Action):
         super().__init__()
         self._state_log = StateChangeFactory().create(activity)
     def process(self, aanvraag: AanvraagInfo, preview = False, **kwargs)->bool:
@@ -40,8 +40,12 @@ def revert_log(storage: AAPStorage, preview=False)->int:
         log_error(f'Kan terug te draaien aanvragen niet laden uit database ')
         return 0
     print(process_log)
-    processor = AanvragenProcessor('Terugdraaien verwerking aanvragen', AanvraagRevertProcessor(process_log.activity), storage, ProcessLog.Activity.REVERT, aanvragen=process_log.aanvragen)
+    processor = AanvragenProcessor('Terugdraaien verwerking aanvragen', AanvraagRevertProcessor(process_log.action), storage, ProcessLog.Action.REVERT, aanvragen=process_log.aanvragen)
     result = processor.process_aanvragen(preview=preview) 
+    if result == process_log.nr_aanvragen:
+        process_log.rolled_back = True
+        storage.process_log.update(process_log)
+        storage.commit()
     log_info('--- Einde terugdraaien verwerking aanvragen.')
     return result
 
