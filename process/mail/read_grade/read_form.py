@@ -1,4 +1,5 @@
-from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
+from data.classes.aanvragen import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus
+from data.classes.files import FileType
 from general.fileutil import file_exists, summary_string
 from general.log import log_error, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor

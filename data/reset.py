@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from data.classes import TSC, FileInfo, FileType, AanvraagStatus, AanvraagInfo, AanvraagBeoordeling
+from general.timeutil import TSC
+from data.classes.files import FileInfo, FileType
+from data.classes.aanvragen import AanvraagStatus, AanvraagInfo, AanvraagBeoordeling
 from general.log import logError
 from storage import AAPStorage
 from general.preview import Preview

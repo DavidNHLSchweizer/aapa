@@ -1,5 +1,6 @@
 from pathlib import Path
-from data.classes import AanvraagInfo, AanvraagStatus, FileInfo, FileType
+from data.classes.aanvragen import AanvraagInfo, AanvraagStatus
+from data.classes.files import FileInfo, FileType
 from general.log import log_error, log_info, log_print
 from general.fileutil import file_exists
 from mailmerge import MailMerge
@@ -27,11 +28,11 @@ class FormCreator(AanvraagProcessor):
             log_error(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
             return None
     def __get_output_filename(self, info: AanvraagInfo):
-        return f'Beoordeling aanvraag {info.student} ({info.bedrijf.bedrijfsnaam})-{info.aanvraag_nr}.docx'
+        return f'Beoordeling aanvraag {info.student} ({info.bedrijf.name})-{info.aanvraag_nr}.docx'
     def __merge_document(self, aanvraag: AanvraagInfo, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)
         return self.merge_document(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_name().name, timestamp=aanvraag.timestamp_str(), 
-                        student=aanvraag.student.student_name,bedrijf=aanvraag.bedrijf.bedrijfsnaam,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
+                        student=aanvraag.student.full_name,bedrijf=aanvraag.bedrijf.name,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
                         preview=preview)
     def must_process(self, aanvraag: AanvraagInfo, preview=False, **kwargs)->bool:
         log_info(f'aanvraag status {aanvraag.status}')

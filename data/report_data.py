@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 from enum import Enum
 import pandas as pd
-from data.state_log import ProcessLog
+from data.classes.process_log import ProcessLog
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
-from data.classes import AanvraagInfo
+from data.classes.aanvragen import AanvraagInfo
 from data.storage import AAPStorage
 from general.fileutil import writable_filename
 from general.config import config
@@ -44,8 +44,8 @@ class AanvraagXLSReporter(AanvraagProcessor):
         sheet.append(self.__to_sheet_row(aanvraag))
         return True
     def __to_sheet_row(self, aanvraag: AanvraagInfo):
-        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
-                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.bedrijfsnaam, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
+        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.full_name, aanvraag.student.stud_nr, aanvraag.student.first_name, aanvraag.student.tel_nr, aanvraag.student.email, 
+                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
 
 class AanvragenXLSReporter(AanvragenProcessor):       
     def __init__(self, storage: AAPStorage):

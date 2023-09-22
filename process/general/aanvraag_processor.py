@@ -3,8 +3,9 @@ import os
 from pathlib import Path
 import re
 from typing import Iterable
-from data.classes import AanvraagInfo, FileInfo, FileType
-from data.state_log import ProcessLog
+from data.classes.aanvragen import AanvraagInfo
+from data.classes.files import FileInfo, FileType
+from data.classes.process_log import ProcessLog
 from data.storage import AAPStorage
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print
@@ -62,8 +63,6 @@ class AanvragenProcessorBase:
         self.storage.commit()
 
     def is_known_file(self, filename: str)->bool: 
-        print('is known: {filename}')
-        print(f'storage zeg: {self.storage.file_info.is_known_invalid(str(filename))}')
         return filename in {fileinfo.filename for fileinfo in self.known_files} or self.storage.file_info.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
@@ -129,10 +128,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                 return True 
         return False
     def _process_file(self, processor: AanvraagCreator, filename: str, preview=False, **kwargs)->bool:
-        print('x9')
-
         if processor.must_process_file(filename, self.storage, **kwargs):
-            print('x9b')
             try:
                 aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
                 if aanvraag is None:
@@ -149,13 +145,12 @@ class AanvragenCreator(AanvragenProcessorBase):
         with Preview(preview, self.storage, 'process_files'):
             self.start_logging()
             for filename in sorted(files, key=os.path.getmtime):
-                print(filename)
                 if self._in_skip_directory(filename):
                     continue                    
                 if self._skip_file(filename) and not self.is_known_file(filename):
                     log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
-                    if not preview:
-                        self.storage.file_info.store_invalid(str(filename))
+                    # if not preview: #kan volgens mij wel weg hier
+                    self.storage.file_info.store_invalid(str(filename))
                     continue
                 file_processed = True
                 for processor in self._processors:

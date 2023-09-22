@@ -131,7 +131,6 @@ class Database:
         self.execute_sql_command(sql)
     def read_record(self, tabledef, **args):
         sql = SQLselect(tabledef, **args)        
-        log_debug(f'sql: {sql}')
         return self.execute_select(sql)
     def update_record(self, tabledef, **args):
         sql = SQLupdate(tabledef, **args)

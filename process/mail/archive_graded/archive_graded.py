@@ -1,5 +1,6 @@
 from pathlib import Path
-from data.classes import AanvraagInfo, AanvraagStatus, FileType
+from data.classes.aanvragen import AanvraagInfo, AanvraagStatus
+from data.classes.files import FileType
 from general.fileutil import path_with_suffix, summary_string
 from general.log import log_error, log_print
 from general.preview import pva

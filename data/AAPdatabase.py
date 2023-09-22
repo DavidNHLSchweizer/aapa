@@ -102,7 +102,7 @@ class ProcessLogTableDefinition(TableDefinition):
         self.add_column('action', dbc.INTEGER)    
         self.add_column('user', dbc.TEXT)    
         self.add_column('date', dbc.DATE)   
-        self.add_column('aantal', dbc.INTEGER)
+        self.add_column('nr_aanvragen', dbc.INTEGER)
         self.add_column('rolled_back', dbc.INTEGER)
 
 class ProcessLogAanvragenTableDefinition(TableDefinition):

@@ -1,8 +1,8 @@
 from pathlib import Path
-from data.classes import AanvraagInfo
+from data.classes.aanvragen import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus
+from data.classes.files import FileType
 from general.config import ListValueConvertor, config
 from general.fileutil import from_main_path, summary_string
-from data.classes import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus, FileType
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.mail_sender import OutlookMail, OutlookMailDef
@@ -41,7 +41,7 @@ class FeedbackMailCreator:
             result[index2beoordeling[n]] = body 
         return result
     def __create_mail_body(self, aanvraag: AanvraagInfo)->str:
-        return self.field_substitutions.translate(self.htm_bodies[aanvraag.beoordeling], voornaam=aanvraag.student.first_name, bedrijf=aanvraag.bedrijf.bedrijfsnaam, titel=aanvraag.titel) 
+        return self.field_substitutions.translate(self.htm_bodies[aanvraag.beoordeling], voornaam=aanvraag.student.first_name, bedrijf=aanvraag.bedrijf.name, titel=aanvraag.titel) 
     def _create_mail_def(self, aanvraag: AanvraagInfo, attachment: str)->OutlookMailDef:
         subject = self.field_substitutions.translate(self.subject_template, titel=aanvraag.titel)
         return OutlookMailDef(subject=subject, mailto=aanvraag.student.email, mailbody=self.__create_mail_body(aanvraag), onbehalfof = self.onbehalfof, cc=config.get('mail', 'cc'), bcc=config.get('mail', 'bcc'), attachments=[attachment])
@@ -64,6 +64,6 @@ class FeedbackMailProcessor(AanvraagProcessor):
                 log_error(f'Kan feedbackmail voor {aanvraag} niet maken:\n\tbeoordelingbestand "{filename}" ontbreekt.')
                 return False 
             self.mailer.draft_mail(aanvraag, filename)
-            log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.student_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
+            log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.full_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
             aanvraag.status = AanvraagStatus.MAIL_READY
         return True

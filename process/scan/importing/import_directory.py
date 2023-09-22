@@ -3,10 +3,12 @@ from pathlib import Path
 from copy import deepcopy
 import tkinter.simpledialog as tksimp
 from data.storage import AAPStorage
-from data.classes import AUTODIGEST, TSC, AanvraagInfo, FileInfo, FileType
+from data.classes.aanvragen import AanvraagInfo
+from data.classes.files import AUTODIGEST, FileInfo, FileType
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
+from general.timeutil import TSC
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
@@ -178,6 +180,8 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     first_id = storage.aanvragen.max_id() + 1
     #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben
     n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
+    print('start report imports')
     report_imports(file_results, importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
+    print('end report imports')
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

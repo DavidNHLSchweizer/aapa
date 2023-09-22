@@ -1,7 +1,7 @@
 from pathlib import Path
 from data.AAPdatabase import AAPDatabase, FileRootTableDefinition, create_version_info, read_version_info
 from data.storage import AAPStorage
-from data.classes import FileInfo
+from data.classes.files import FileInfo
 from database.SQL import SQLcreate
 from database.database import Database
 from process.aapa_processor.initialize import initialize_database

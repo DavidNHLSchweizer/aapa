@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from data.state_log import ProcessLog
+from data.classes.process_log import ProcessLog
 from general.log import log_info
 from general.preview import Preview, pva
 from general.singular_or_plural import sop

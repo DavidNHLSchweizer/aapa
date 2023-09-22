@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
-from data.classes import AanvraagInfo, AanvraagStatus, FileType
+from data.classes.aanvragen import AanvraagInfo, AanvraagStatus
+from data.classes.files import FileType
 from general.fileutil import file_exists, summary_string
 from general.log import log_print
 from general.preview import pva
@@ -12,7 +13,7 @@ class CopyAanvraagProcessor(AanvraagProcessor):
         self.output_directory = Path(output_directory)
     @staticmethod
     def _get_copy_filename(output_directory:Path, aanvraag: AanvraagInfo, copy_filename: str = None):
-        rootname = f'Aanvraag {aanvraag.student.student_name} ({aanvraag.student.studnr})-{aanvraag.aanvraag_nr}' if not copy_filename else copy_filename
+        rootname = f'Aanvraag {aanvraag.student.full_name} ({aanvraag.student.stud_nr})-{aanvraag.aanvraag_nr}' if not copy_filename else copy_filename
         copy_filename = output_directory.joinpath(f'{rootname}.pdf')
         if file_exists(str(copy_filename)):
             return CopyAanvraagProcessor._get_copy_filename(output_directory, aanvraag, rootname+'(copy)')

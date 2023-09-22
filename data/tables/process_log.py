@@ -1,19 +1,18 @@
 from dataclasses import dataclass
-from data.classes import TSC, FileInfo
 from data.tables.aanvragen import CRUD_aanvragen
 from database.sqlexpr import Ops, SQLexpression as SQE
 from data.AAPdatabase import ProcessLogAanvragenTableDefinition, ProcessLogTableDefinition
-from data.state_log  import ProcessLog
+from data.classes.process_log  import ProcessLog
 from database.crud import CRUDbase
 from database.database import Database
 from database.sqlexpr import Ops
 from general.keys import get_next_key
+from general.timeutil import TSC
 
 class CRUD_process_log(CRUDbase):
     def __init__(self, database: Database):
-        super().__init__(database, ProcessLogTableDefinition())
+        super().__init__(database, ProcessLogTableDefinition(), ProcessLog)
         self._db_map['date']['db2obj'] = TSC.timestamp_to_str
-        self._db_map['aantal']['attrib'] = 'nr_aanvragen'
 
     @staticmethod
     def action_to_value(action: ProcessLog.Action):
@@ -49,7 +48,7 @@ ProcessLogAanvraagRecs = list[ProcessLogAanvraagRec]
 
 class CRUD_process_log_aanvragen(CRUDbase):
     def __init__(self, database: Database):
-        super().__init__(database, ProcessLogAanvragenTableDefinition())
+        super().__init__(database, ProcessLogAanvragenTableDefinition(), None) #TBD
     # def __get_all_values(self, log_id: int, aanvraag_id: int, include_key = True):
     #     result = [log_id, aanvraag_id] if include_key else []
     #     return result

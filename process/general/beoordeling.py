@@ -1,4 +1,4 @@
-from data.classes import AanvraagBeoordeling
+from data.classes.aanvragen import AanvraagBeoordeling
 from general.config import config, IntValueConvertor
 from process.general.word_processor import DocxWordDocument, WordReaderException
 

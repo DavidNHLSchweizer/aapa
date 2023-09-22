@@ -1,6 +1,9 @@
 from data.AAPdatabase import  create_root
-from data.classes import AUTODIGEST, TSC, AanvraagInfo, Bedrijf, FileInfo, FileInfos, FileType, StudentInfo
-from data.state_log import ProcessLog
+from data.classes.aanvragen import AanvraagInfo
+from data.classes.bedrijven import Bedrijf
+from data.classes.files import AUTODIGEST, FileInfo, FileInfos, FileType
+from data.classes.studenten import StudentInfo
+from data.classes.process_log import ProcessLog
 from data.tables.aanvragen import CRUD_aanvragen
 from data.tables.bedrijven import  CRUD_bedrijven
 from data.tables.files import CRUD_files
@@ -12,6 +15,7 @@ from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from data.roots import add_root, encode_path
 from general.log import log_debug, log_error, log_info, log_warning
+from general.timeutil import TSC
 
 class StorageException(Exception): pass
 
@@ -39,7 +43,7 @@ class BedrijvenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_bedrijven(database))
     def create(self, bedrijf: Bedrijf):
-        if row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [bedrijf.bedrijfsnaam], True):
+        if row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [bedrijf.name], True):
             bedrijf.id = row[0]['id']
         else:
             super().create(bedrijf)
@@ -65,10 +69,10 @@ class FileInfoStorage(ObjectStorage):
         params = [aanvraag_id]
         params.extend([ft for ft in filetypes])
         if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
-            filenames=[]
-            filenames.extend([row["filename"] for row in rows])
+            filenames=[row["filename"] for row in rows]
+            log_debug(f'FILENAMES: {filenames}')
             result = self.crud_files.read_all(filenames)
-            log_info(f'success: {[str(info) for info in result]}')
+            log_info(f'success: {len(result)} {result}  {[str(info) for info in result]}')
             return result
         return None
     def find_all(self, aanvraag_id: int)->FileInfos:
@@ -169,25 +173,25 @@ class AanvraagStorage(ObjectStorage):
         else:
             return result
     def find_student_bedrijf(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
-        return self.read_all(lambda a: a.student.studnr == student.studnr and a.bedrijf.id == bedrijf.id)
+        return self.read_all(lambda a: a.student.stud_nr == student.stud_nr and a.bedrijf.id == bedrijf.id)
     def find_student(self, student: StudentInfo):
         result = []
-        if (rows := self.database._execute_sql_command('select id from AANVRAGEN where stud_nr=?', [student.studnr], True)):
+        if (rows := self.database._execute_sql_command('select id from AANVRAGEN where stud_nr=?', [student.stud_nr], True)):
             for row in rows:
                 result.append(self.read(row['id']))
         return result
     def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
-        if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.studnr], True)):
+        if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.stud_nr], True)):
             return row[0][0]
         else:
             return 0    
     def __create_table_references(self, aanvraag: AanvraagInfo):
         if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
-            (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.bedrijfsnaam], True)):
+            (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.name], True)):
             aanvraag.bedrijf.id = row[0]['id']
         else:
             self.bedrijven.create(aanvraag.bedrijf)
-        if not (self.studenten.read(aanvraag.student.studnr)):
+        if not (self.studenten.read(aanvraag.student.stud_nr)):
             self.studenten.create(aanvraag.student)
 
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'

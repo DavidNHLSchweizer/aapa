@@ -2,7 +2,9 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 import os
-from data.classes import AanvraagInfo, AanvraagStatus, FileType, AanvraagBeoordeling, TSC
+from data.classes.aanvragen import AanvraagInfo, AanvraagStatus, AanvraagBeoordeling
+from data.classes.files import FileType
+from general.timeutil import TSC
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from general.singleton import Singleton
