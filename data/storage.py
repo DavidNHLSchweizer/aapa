@@ -214,10 +214,9 @@ class ProcessLogStorage(ObjectStorage):
         self.process_log_aanvragen.delete(id)
         super().delete(id)
     def find_log(self, id: int = EMPTY_ID)->ProcessLog:        
-        ATV = CRUD_process_log.action_to_value
         if id == EMPTY_ID:
             if (row := self.database._execute_sql_command('select max(id) from PROCESSLOG where rolled_back = ? and action in (?,?,?)', 
-                                                [0, ATV(ProcessLog.Action.CREATE), ATV(ProcessLog.Action.SCAN), ATV(ProcessLog.Action.MAIL)], True)):
+                                                [0, ProcessLog.Action.CREATE, ProcessLog.Action.SCAN, ProcessLog.Action.MAIL], True)):
                 id = row[0][0]
             if id is None or id == EMPTY_ID:
                 log_warning(NoUNDOwarning)

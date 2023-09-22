@@ -178,10 +178,8 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     file_results = {}
     first_id = storage.aanvragen.max_id() + 1
-    #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben
+    #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben met de nieuwe procesgang
     n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
-    print('start report imports')
     report_imports(file_results, importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
-    print('end report imports')
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

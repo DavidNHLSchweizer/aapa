@@ -15,11 +15,20 @@ class StateChangeSummary:
         self.initial_beoordeling = initial_beoordeling
         self._final_states = final_states
         self._created_file_types = created_file_types
+    def expected_file(self, filetype: FileType):
+        return filetype in self._created_file_types
      
+
+class CreateStateChange(StateChangeSummary):
+    def __init__(self):
+        super().__init__(None, {AanvraagStatus.INITIAL}, [])
+
 class ScanStateChange(StateChangeSummary):
     def __init__(self):
         super().__init__(AanvraagStatus.INITIAL, {AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING},
                          [FileType.TO_BE_GRADED_DOCX, FileType.COPIED_PDF, FileType.DIFFERENCE_HTML])
+    def expected_file(self, filetype: FileType):
+        return super().expected_file(filetype) and filetype != FileType.DIFFERENCE_HTML
 
 class MailStateChange(StateChangeSummary):
     def __init__(self):
@@ -28,8 +37,10 @@ class MailStateChange(StateChangeSummary):
                          [FileType.GRADED_PDF])
         
 class StateChangeFactory(Singleton):
-    def create(self, activity: ProcessLog.Action):
+    def create(self, activity: ProcessLog.Action)->StateChangeSummary:
         match activity:
+            case ProcessLog.Action.CREATE:
+                return CreateStateChange()
             case ProcessLog.Action.SCAN:
                 return ScanStateChange()
             case ProcessLog.Action.MAIL:
@@ -45,7 +56,7 @@ class ProcessLog:
         MAIL    = 3
         REVERT  = 4
         
-    def __init__(self, action: Action, description='', id=EMPTY_ID, date=None, user: str=os.getlogin(), rolled_back=False):
+    def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), nr_aanvragen = 0, rolled_back=False):
         self.action = action        
         self.id = id #KEY
         self.description = description

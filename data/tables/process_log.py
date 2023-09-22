@@ -9,37 +9,22 @@ from database.sqlexpr import Ops
 from general.keys import get_next_key
 from general.timeutil import TSC
 
+def BTV(value: bool)->int:
+    return 1 if value else 0
+def VTB(value: int)->bool:
+    return value == 1
+
 class CRUD_process_log(CRUDbase):
     def __init__(self, database: Database):
         super().__init__(database, ProcessLogTableDefinition(), ProcessLog)
-        self._db_map['date']['db2obj'] = TSC.timestamp_to_str
-
-    @staticmethod
-    def action_to_value(action: ProcessLog.Action):
-        return action.value
-    @staticmethod
-    def __int_to_bool(value: int):
-        return value != 0
-    # def __get_all_values(self, process_log: ProcessLog, include_key = True):
-    #     result = [process_log.id] if include_key else []
-    #     result.extend([process_log.description, CRUD_process_log.action_to_value(process_log.action), process_log.user, TSC.timestamp_to_str(process_log.date), 
-    #                    process_log.nr_aanvragen, process_log.rolled_back])
-    #     self.controle2(result, process_log,  include_key)
-    #     return result
+        self._db_map['date']['db2obj'] = TSC.str_to_timestamp
+        self._db_map['date']['obj2db'] = TSC.timestamp_to_str
+        self._db_map['rolled_back']['db2obj'] = VTB
+        self._db_map['rolled_back']['obj2db'] = BTV        
     def create(self, process_log: ProcessLog):
         process_log.id = get_next_key(ProcessLogTableDefinition.KEY_FOR_ID)
-        super().create(process_log)   
-    # def read(self, id: int)->ProcessLog:
-    #     if row:=super().read(where=SQE('id', Ops.EQ, id)):
-    #         return ProcessLog(id=id, description=row['description'], action=ProcessLog.Action(row['action']), user=row['user'], 
-    #                         date=TSC.str_to_timestamp(row['date']), rolled_back=CRUD_process_log.__int_to_bool(row['rolled_back']))
-    #         #note: aantal hoeft niet te worden gelezen, komt uit aantal aanvragen (bij lezen process_log_aanvragen)
-    #     else:
-    #         return None
-    def update(self, process_log: ProcessLog):
-        super().update(columns=self._get_all_columns(False), values=self._get_all_values(process_log, False), where=SQE('id', Ops.EQ, process_log.id))
-    # def delete(self, id: int):
-    #     super().delete(where=SQE('id', Ops.EQ, id))
+        super().create(process_log)                          
+
 @dataclass
 class ProcessLogAanvraagRec:
     log_id: int 
@@ -49,9 +34,6 @@ ProcessLogAanvraagRecs = list[ProcessLogAanvraagRec]
 class CRUD_process_log_aanvragen(CRUDbase):
     def __init__(self, database: Database):
         super().__init__(database, ProcessLogAanvragenTableDefinition(), None) #TBD
-    # def __get_all_values(self, log_id: int, aanvraag_id: int, include_key = True):
-    #     result = [log_id, aanvraag_id] if include_key else []
-    #     return result
     def get_aanvraag_records(self, process_log: ProcessLog)->ProcessLogAanvraagRecs:
         return [ProcessLogAanvraagRec(process_log.id, aanvraag.id) 
                 for aanvraag in sorted(process_log.aanvragen, key=lambda a: a.id)]

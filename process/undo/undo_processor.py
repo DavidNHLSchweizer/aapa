@@ -1,36 +1,41 @@
 import os
 from data.classes.aanvragen import AanvraagInfo
-from data.classes.process_log import ProcessLog, StateChangeFactory
+from data.classes.process_log import ProcessLog, StateChangeFactory, StateChangeSummary
+from data.classes.files import FileType
 from data.storage import AAPStorage
-from general.fileutil import file_exists, summary_string
+from general.fileutil import delete_if_exists, file_exists, summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase, AanvragenProcessor
 
 class UndoException(Exception): pass
 
 class StateLogProcessor(AanvraagProcessorBase):
-    def process_log(self, log: ProcessLog, storage: AAPStorage, preview = False, **kwargs)->bool: 
+    def state_change(self, log: ProcessLog, storage: AAPStorage, preview = False, **kwargs)->bool: 
         return False
 
 class UndoActionProcessor(AanvraagProcessor):
+    #TODO: zorgen dat de laatste stap (CREATE) het juiste resultaat heeft. Aanvraag moet worden verwijderd, aanvraagfiles uit de database maar niet uit de werkelijkheid.
     def __init__(self, activity: ProcessLog.Action):
         super().__init__()
-        self.process_log = StateChangeFactory().create(activity)
+        self.state_change: StateChangeSummary = StateChangeFactory().create(activity)
     def process(self, aanvraag: AanvraagInfo, preview = False, **kwargs)->bool:
         log_info(f'Ongedaan maken voor aanvraag {aanvraag.summary()}. Status is {aanvraag.status}')
-        log_print(f'\tVerwijderen nieuwe bestanden.')
-        if not aanvraag.status in self._classes.process_log._final_states:
+        log_print(f'{aanvraag.summary()}\n\tVerwijderen nieuwe bestanden.')
+        if not aanvraag.status in self.state_change._final_states:
             raise UndoException(f'Status aanvraag {aanvraag.summary()} niet in een van de verwachte toestanden')
-        for filetype in self._classes.process_log._created_file_types:
-            if not (filename := aanvraag.files.get_filename(filetype)) and not file_exists(filename):
+        for filetype in self.state_change._created_file_types:
+            filename = aanvraag.files.get_filename(filetype)
+            if filename is not None and self.state_change.expected_file(filetype) and not file_exists(filename):
                 log_warning(f'\t\tBestand {summary_string(filename)} ({filetype}) niet aangemaakt of niet gevonden.')
-                continue
-            log_print(f'\t\t{summary_string(filename)}')
-            if not preview:
-                os.unlink(filename)
+                continue           
+            if self.state_change.expected_file(filetype) or file_exists(filename):
+                log_print(f'\t\t{summary_string(filename)}')
+                if not preview:
+                    delete_if_exists(filename)
+            print(f'unregistering: {filetype}')
             aanvraag.unregister_file(filetype) # als het goed is wordt de file nu ook uit de database geschrapt!
-        aanvraag.status = self.process_log.initial_state
-        aanvraag.beoordeling = self.process_log.initial_beoordeling
+        aanvraag.status = self.state_change.initial_state
+        aanvraag.beoordeling = self.state_change.initial_beoordeling
         log_info(f'{aanvraag.summary()} teruggedraaid. Status is nu: {aanvraag.status}')
         return True
 

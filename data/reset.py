@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+from general.fileutil import delete_if_exists
 from general.timeutil import TSC
 from data.classes.files import FileInfo, FileType
 from data.classes.aanvragen import AanvraagStatus, AanvraagInfo, AanvraagBeoordeling
@@ -7,6 +8,8 @@ from general.log import logError
 from storage import AAPStorage
 from general.preview import Preview
 
+#TODO: REMOVE/obsolete this.
+ 
 RESETCODE = ':'
 class ResetCommandBase(ABC):
     def __init__(self, reset_arg: str, expected_code: str):
@@ -46,7 +49,7 @@ class ResetAanvraagForMailCommand(ResetCommandBase):
                 aanvraag.files.set_info(FileInfo(info.filename, timestamp=TSC.AUTOTIMESTAMP, filetype=FileType.TO_BE_GRADED_DOCX, aanvraag_id=aanvraag.id))
                 aanvraag.files.reset_info(FileType.GRADED_DOCX)
             if (info := aanvraag.files.get_info(FileType.GRADED_PDF)):
-                Path(info.filename).unlink(missing_ok=True)
+                delete_if_exists(info.filename)
                 aanvraag.files.reset_info(FileType.GRADED_PDF)         
             storage.aanvragen.update(aanvraag)
             storage.commit()

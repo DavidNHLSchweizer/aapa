@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -62,6 +63,9 @@ def pathname_one_directory_up(path):
 
 def file_exists(filename: str)->bool: 
     return Path(filename).is_file()
+
+def delete_if_exists(filename: str):
+    Path(filename).unlink(missing_ok=True)
 
 def test_file_exists(directory, filename: str)->Path: 
     p = Path(directory).joinpath(filename)

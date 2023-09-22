@@ -12,12 +12,5 @@ class CRUD_bedrijven(CRUDbase):
     def create(self, bedrijf: Bedrijf):
         bedrijf.id = get_next_key(BedrijfTableDefinition.KEY_FOR_ID)
         super().create(bedrijf)   
-    # def read(self, id: int)->Bedrijf:
-    #     if row:=super().read(id):
-    #         return Bedrijf(row['name'], id)
-    #     else:
-    #         return None
-    def update(self, bedrijf: Bedrijf):
-        super().update(columns=self._get_all_columns(False), values=self._get_all_values(bedrijf, False), where=SQE('id', Ops.EQ, bedrijf.id))
-    # def delete(self, id: int):
-    #     super().delete(where=SQE(self.table.keys[0], Ops.EQ, id))
+    # def update(self, bedrijf: Bedrijf):
+    #     super().update(columns=self._get_all_columns(False), values=self._get_all_values(bedrijf, False), where=SQE('id', Ops.EQ, bedrijf.id))

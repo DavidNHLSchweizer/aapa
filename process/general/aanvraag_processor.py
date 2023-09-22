@@ -20,7 +20,7 @@ class AanvraagProcessorBase:
         return None
     def must_process_file(self, filename: str, storage: AAPStorage, **kwargs)->bool:
         return True
-    def process_log(self, log: ProcessLog, storage: AAPStorage, preview = False, **kwargs)->bool: 
+    def state_change(self, log: ProcessLog, storage: AAPStorage, preview = False, **kwargs)->bool: 
         return False
 
 class AanvraagProcessor(AanvraagProcessorBase):
