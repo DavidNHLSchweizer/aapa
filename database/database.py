@@ -5,7 +5,7 @@ from database.tabledef import TableDefinition
 from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.fileutil import file_exists
-from general.log import log_error, log_info
+from general.log import log_debug, log_error, log_info
 
 class DatabaseException(Exception): pass
 
@@ -130,7 +130,8 @@ class Database:
         sql = SQLinsert(tabledef, **args)
         self.execute_sql_command(sql)
     def read_record(self, tabledef, **args):
-        sql = SQLselect(tabledef, **args)
+        sql = SQLselect(tabledef, **args)        
+        log_debug(f'sql: {sql}')
         return self.execute_select(sql)
     def update_record(self, tabledef, **args):
         sql = SQLupdate(tabledef, **args)

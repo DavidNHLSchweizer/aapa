@@ -30,13 +30,13 @@ class CRUD_process_log(CRUDbase):
     def create(self, process_log: ProcessLog):
         process_log.id = get_next_key(ProcessLogTableDefinition.KEY_FOR_ID)
         super().create(process_log)   
-    def read(self, id: int)->ProcessLog:
-        if row:=super().read(where=SQE('id', Ops.EQ, id)):
-            return ProcessLog(id=id, description=row['description'], action=ProcessLog.Action(row['action']), user=row['user'], 
-                            date=TSC.str_to_timestamp(row['date']), rolled_back=CRUD_process_log.__int_to_bool(row['rolled_back']))
-            #note: aantal hoeft niet te worden gelezen, komt uit aantal aanvragen (bij lezen process_log_aanvragen)
-        else:
-            return None
+    # def read(self, id: int)->ProcessLog:
+    #     if row:=super().read(where=SQE('id', Ops.EQ, id)):
+    #         return ProcessLog(id=id, description=row['description'], action=ProcessLog.Action(row['action']), user=row['user'], 
+    #                         date=TSC.str_to_timestamp(row['date']), rolled_back=CRUD_process_log.__int_to_bool(row['rolled_back']))
+    #         #note: aantal hoeft niet te worden gelezen, komt uit aantal aanvragen (bij lezen process_log_aanvragen)
+    #     else:
+    #         return None
     def update(self, process_log: ProcessLog):
         super().update(columns=self._get_all_columns(False), values=self._get_all_values(process_log, False), where=SQE('id', Ops.EQ, process_log.id))
     # def delete(self, id: int):
@@ -62,7 +62,7 @@ class CRUD_process_log_aanvragen(CRUDbase):
             self.database.create_record(self.table, columns=self._get_all_columns(), values=[record.log_id, record.aanvraag_id])   
     def read(self, process_log_id: int)->ProcessLogAanvraagRecs: 
         result = []
-        for row in super().read(where=SQE(self.table.keys[0], Ops.EQ, process_log_id), multiple=True):
+        for row in super().read(process_log_id, multiple=True):
             result.append(ProcessLogAanvraagRec(log_id=process_log_id, aanvraag_id=row['aanvraag_id']))
         return result
     def update(self, process_log: ProcessLog):

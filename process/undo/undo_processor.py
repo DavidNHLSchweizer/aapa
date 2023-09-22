@@ -6,21 +6,21 @@ from general.fileutil import file_exists, summary_string
 from general.log import log_error, log_info, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase, AanvragenProcessor
 
-class RevertException(Exception): pass
+class UndoException(Exception): pass
 
 class StateLogProcessor(AanvraagProcessorBase):
     def process_log(self, log: ProcessLog, storage: AAPStorage, preview = False, **kwargs)->bool: 
         return False
 
-class AanvraagRevertProcessor(AanvraagProcessor):
+class UndoActionProcessor(AanvraagProcessor):
     def __init__(self, activity: ProcessLog.Action):
         super().__init__()
         self._state_log = StateChangeFactory().create(activity)
     def process(self, aanvraag: AanvraagInfo, preview = False, **kwargs)->bool:
-        log_info(f'Terugdraaien aanvraag {aanvraag.summary()}. Status is {aanvraag.status}')
+        log_info(f'Ongedaan maken voor aanvraag {aanvraag.summary()}. Status is {aanvraag.status}')
         log_print(f'\tVerwijderen nieuwe bestanden.')
         if not aanvraag.status in self._state_log._final_states:
-            raise RevertException(f'Status aanvraag {aanvraag.summary()} niet in een van de verwachte toestanden')
+            raise UndoException(f'Status aanvraag {aanvraag.summary()} niet in een van de verwachte toestanden')
         for filetype in self._state_log._created_file_types:
             if not (filename := aanvraag.files.get_filename(filetype)) and not file_exists(filename):
                 log_warning(f'\t\tBestand {summary_string(filename)} ({filetype}) niet aangemaakt of niet gevonden.')
@@ -34,13 +34,13 @@ class AanvraagRevertProcessor(AanvraagProcessor):
         log_info(f'{aanvraag.summary()} teruggedraaid. Status is nu: {aanvraag.status}')
         return True
 
-def revert_log(storage: AAPStorage, preview=False)->int:
-    log_info('--- Terugdraaien verwerking aanvragen ...', True)
+def undo_last(storage: AAPStorage, preview=False)->int:
+    log_info('--- Ongedaan maken verwerking aanvragen ...', True)
     if not (process_log:=storage.process_log.find_log()):
-        log_error(f'Kan terug te draaien aanvragen niet laden uit database ')
+        log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return 0
     print(process_log)
-    processor = AanvragenProcessor('Terugdraaien verwerking aanvragen', AanvraagRevertProcessor(process_log.action), storage, ProcessLog.Action.REVERT, aanvragen=process_log.aanvragen)
+    processor = AanvragenProcessor('Ongedaan maken verwerking aanvragen', UndoActionProcessor(process_log.action), storage, ProcessLog.Action.REVERT, aanvragen=process_log.aanvragen)
     result = processor.process_aanvragen(preview=preview) 
     if result == process_log.nr_aanvragen:
         process_log.rolled_back = True

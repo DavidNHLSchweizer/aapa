@@ -3,6 +3,7 @@ from database.sqlexpr import Ops, SQLexpression as SQE
 from general.deep_attr import get_deep_attr
 from database.database import Database
 from database.tabledef import TableDefinition
+from general.log import log_debug
 
 DBtype = type[str|int|float]
 class CRUDbase:
@@ -22,7 +23,7 @@ class CRUDbase:
         result = []
         for column in self.table.columns:
             if include_key or not column.is_primary():
-                result.append(self.map_object_to_db(column.name, 
+                result.append(self.map_db_to_object(column.name, 
                                                     get_deep_attr(obj, self._db_map[column.name]['attrib'], '???')))
         return result
     def controle(self, oldarray: list[str], include_key=True):
@@ -45,14 +46,17 @@ class CRUDbase:
         for r, v in zip(oldarray, vergelijk):
             if r!= v:
                 print(f'shit {self.table.table_name}: {r} != {v}')
-    def map_object_to_db(self, column_name: str, value)->DBtype:
-        converter = self._db_map[column_name]['db2obj']
+    def __map_column(self, column_name: str, value, map_name):
+        converter = self._db_map[column_name][map_name]        
         return converter(value) if converter else value
+    def map_object_to_db(self, column_name: str, value)->DBtype:
+        return self.__map_column(column_name, value, 'obj2db')        
+    def map_db_to_object(self, column_name: str, value):
+        return self.__map_column(column_name, value, 'db2obj')
     def create(self, obj: object):
         self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(obj)) 
-    def read(self, **kwargs):
-        multiple = kwargs.pop('multiple', False)
-        if rows := self.database.read_record(self.table, **kwargs):
+    def read(self, key, multiple=False):
+        if rows := self.database.read_record(self.table, where=SQE(self.table.keys[0], Ops.EQ, self.map_object_to_db(self.table.keys[0], key))):
             if multiple:
                 return rows
             else:
@@ -65,4 +69,4 @@ class CRUDbase:
     def delete(self, value: DBtype):
         key = self.table.keys[0]
         attrib = self._db_map[key]['attrib']
-        self.database.delete_record(where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value)))
+        self.database.delete_record(self.table, where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value)))

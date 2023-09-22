@@ -190,6 +190,7 @@ class AanvraagStorage(ObjectStorage):
         if not (self.studenten.read(aanvraag.student.studnr)):
             self.studenten.create(aanvraag.student)
 
+NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 class ProcessLogStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_process_log(database))
@@ -214,10 +215,10 @@ class ProcessLogStorage(ObjectStorage):
             if (row := self.database._execute_sql_command('select max(id) from PROCESSLOG where rolled_back = ? and action in (?,?,?)', 
                                                 [0, ATV(ProcessLog.Action.CREATE), ATV(ProcessLog.Action.SCAN), ATV(ProcessLog.Action.MAIL)], True)):
                 id = row[0][0]
-            else:
-                log_error(f'Geen terug te draaien actie in database.')
+            if id is None or id == EMPTY_ID:
+                log_warning(NoUNDOwarning)
                 return None
-        return self.read(id if id != EMPTY_ID else self.max_id())
+        return self.read(id)
     def __read_aanvragen(self, process_log: ProcessLog):
         for record in self.process_log_aanvragen.read(process_log.id):
             process_log.add_aanvraag(self.aanvragen.read(record.aanvraag_id))

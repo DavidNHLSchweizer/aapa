@@ -2,7 +2,7 @@ from datetime import datetime
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print
 from process.aapa_processor.aapa_config import AAPAconfiguration
-from process.revert.revert_processor import revert_log
+from process.undo.undo_processor import undo_last
 from process.scan.create_forms.create_diff_file import DifferenceProcessor
 # from process.read_grade.history import read_beoordelingen_from_files
 from general.config import config
@@ -29,7 +29,7 @@ class AAPAProcessor:
     #         read_beoordelingen_from_files(configuration.options.history_file, configuration.storage)
     def process(self, configuration: AAPAconfiguration):
         def must_process(options: AAPAoptions)->bool:
-            if any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.NEW, AAPAaction.REVERT, AAPAaction.REPORT]]) or\
+            if any([a in options.actions for a in [AAPAaction.FULL, AAPAaction.MAIL, AAPAaction.SCAN, AAPAaction.NEW, AAPAaction.UNDO, AAPAaction.REPORT]]) or\
                 options.history_file:
                 return True
             return False
@@ -46,8 +46,8 @@ class AAPAProcessor:
             #     self.__read_history_file(configuration)
             if AAPAaction.MAIL in configuration.actions or AAPAaction.FULL in configuration.actions:
                 process_graded(configuration.storage, preview=configuration.preview)
-            if AAPAaction.REVERT in configuration.actions:
-                revert_log(configuration.storage, preview=configuration.preview)
+            if AAPAaction.UNDO in configuration.actions:
+                undo_last(configuration.storage, preview=configuration.preview)
             if AAPAaction.REPORT in configuration.actions:
                 report_aanvragen_XLS(configuration.storage, path_with_suffix(configuration.options.filename, '.xlsx'))
         except Exception as E:

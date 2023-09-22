@@ -61,7 +61,9 @@ class AanvragenProcessorBase:
             self.storage.process_log.create(self.process_log)
         self.storage.commit()
 
-    def is_known_file(self, filename: str)->bool:        
+    def is_known_file(self, filename: str)->bool: 
+        print('is known: {filename}')
+        print(f'storage zeg: {self.storage.file_info.is_known_invalid(str(filename))}')
         return filename in {fileinfo.filename for fileinfo in self.known_files} or self.storage.file_info.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
@@ -120,14 +122,17 @@ class AanvragenCreator(AanvragenProcessorBase):
         for skip in self.skip_directories:
             if filename.is_relative_to(skip):
                 return True
-            return False
+        return False
     def _skip_file(self, filename: Path)->bool:
         for pattern in self.skip_files:
             if pattern.match(str(filename)):
                 return True 
         return False
     def _process_file(self, processor: AanvraagCreator, filename: str, preview=False, **kwargs)->bool:
+        print('x9')
+
         if processor.must_process_file(filename, self.storage, **kwargs):
+            print('x9b')
             try:
                 aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
                 if aanvraag is None:
@@ -144,6 +149,7 @@ class AanvragenCreator(AanvragenProcessorBase):
         with Preview(preview, self.storage, 'process_files'):
             self.start_logging()
             for filename in sorted(files, key=os.path.getmtime):
+                print(filename)
                 if self._in_skip_directory(filename):
                     continue                    
                 if self._skip_file(filename) and not self.is_known_file(filename):
@@ -153,7 +159,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                     continue
                 file_processed = True
                 for processor in self._processors:
-                    # log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
+                    log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
                     if not self._process_file(processor, str(filename), preview, **kwargs):
                         file_processed = False
                         break                
@@ -161,38 +167,3 @@ class AanvragenCreator(AanvragenProcessorBase):
                     n_processed += 1
             self.stop_logging()            
         return n_processed
-
-# class LogAanvraagProcessor(AanvraagProcessorBase):
-#     pass
-
-# class ProcessLogProcessor(AanvragenProcessorBase):
-#     def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage):
-#         super().__init__(description, processors, storage, activity=ProcessLog.Activity.REVERT)
-#     def _process_aanvraag(self, processor: LogAanvraagProcessor, filename: str, preview=False, **kwargs)->bool:
-#         if processor.must_process_file(filename, self.storage, **kwargs):
-#             try:
-#                 aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
-#                 if aanvraag is None:
-#                     return False
-#                 self.storage.aanvragen.create(aanvraag)
-#                 self.storage.commit()
-#                 self.log_aanvraag(aanvraag)
-#                 return True
-#             except Exception as E:
-#                 log_error(f'Fout bij processing {summary_string(filename, 96)}:\n\t{E}')
-#         return False    
-#     def process_log(self, log: ProcessLog, preview=False, **kwargs)->int:
-#         n_processed = 0
-#         with Preview(preview, self.storage, 'process_log'):
-#             self.start_logging()
-#             for aanvraag in log.aanvragen:
-#                 aanvraag_processed = True
-#                 for processor in self._processors:
-#                     log_debug(f'processor: {processor.__class__} {aanvraag.summary()} {kwargs}')
-#                     if not self._process_aanvraag(processor, aanvraag, preview, **kwargs):
-#                         aanvraag_processed = False
-#                         break                
-#                 if aanvraag_processed:
-#                     n_processed += 1
-#             self.stop_logging()            
-#         return n_processed

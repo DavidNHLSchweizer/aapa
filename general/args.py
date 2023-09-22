@@ -21,7 +21,7 @@ class AAPAaction(Enum):
     NEW      = 4
     INFO     = 5
     REPORT   = 6
-    REVERT   = 7
+    UNDO     = 7
 
     def help_str(self):
         match self:
@@ -31,7 +31,7 @@ class AAPAaction(Enum):
             case AAPAaction.NEW: return 'Maak een nieuwe database of verwijder alle data uit de database (als deze reeds bestaat).'
             case AAPAaction.INFO: return 'Laat configuratie (directories en database) zien'
             case AAPAaction.REPORT: return 'Rapporteer alle aanvragen in een .XLSX-bestand'
-            case AAPAaction.REVERT: return 'Terugdraaien (ongedaan maken) van de laatste procesgang'
+            case AAPAaction.UNDO: return 'Ongedaan maken van de laatste procesgang'
             case _: return ''
     @staticmethod
     def all_help_str():

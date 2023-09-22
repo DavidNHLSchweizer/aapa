@@ -4,7 +4,7 @@ from copy import deepcopy
 import tkinter.simpledialog as tksimp
 from data.storage import AAPStorage
 from data.classes import AUTODIGEST, TSC, AanvraagInfo, FileInfo, FileType
-from general.log import log_error, log_print, log_warning, log_info
+from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.valid_email import is_valid_email, try_extract_email
@@ -66,6 +66,7 @@ class AanvraagValidator:
 
 class AanvraagPDFImporter(AanvraagCreator):
     def must_process_file(self, filename: str, storage: AAPStorage, **kwargs)->bool:
+        log_debug(f'must process file {filename}?')
         if self.is_known_invalid_file(filename, storage):
             return False
         if (stored := storage.file_info.find_digest(FileInfo.get_digest(filename))) and filename != stored.filename:

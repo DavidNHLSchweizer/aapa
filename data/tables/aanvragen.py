@@ -22,7 +22,7 @@ class CRUD_aanvragen(CRUDbase):
         result =  AanvraagInfo(student, bedrijf=bedrijf, datum_str=row['datum_str'], titel=row['titel'],beoordeling=AanvraagBeoordeling(row['beoordeling']), status=AanvraagStatus(row['status']), id=row['id'], aanvraag_nr=row['aanvraag_nr'])
         return result
     def read(self, id: int)->AanvraagInfo:
-        if row:=super().read(where=SQE(self.table.keys[0], Ops.EQ, id)):
+        if row:=super().read(id):
             return self.__build_aanvraag(row)
         else:
             return None

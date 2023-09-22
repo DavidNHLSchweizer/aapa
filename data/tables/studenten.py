@@ -13,11 +13,11 @@ class CRUD_studenten(CRUDbase):
         self._db_map['tel_nr']['attrib'] = 'telno'
     # def create(self, studInfo: StudentInfo):
     #     super().create(columns=self._get_all_columns(), values=self._get_all_values(studInfo))   
-    def read(self, studnr: str)->StudentInfo:
-        if row:=super().read(where=SQE(self.table.keys[0], Ops.EQ, studnr)):
-            return StudentInfo(student_name=row['full_name'], studnr=studnr, telno=row['tel_nr'], email=row['email']) 
-        else:
-            return None
+    # def read(self, studnr: str)->StudentInfo:
+    #     if row:=super().read(where=SQE(self.table.keys[0], Ops.EQ, studnr)):
+    #         return StudentInfo(student_name=row['full_name'], studnr=studnr, telno=row['tel_nr'], email=row['email']) 
+    #     else:
+    #         return None
     def update(self, studInfo: StudentInfo):
         super().update(columns=self._get_all_columns(False), values=self._get_all_values(studInfo, False), 
                        where=SQE(self.table.keys[0], Ops.EQ, studInfo.studnr))
