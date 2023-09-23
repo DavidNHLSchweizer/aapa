@@ -8,40 +8,40 @@ from general.filehash import hash_file_digest
 from general.fileutil import summary_string
 from general.timeutil import TSC
 
-AUTODIGEST = ''
-class FileType(IntEnum):
-    INVALID_PDF         = -2
-    UNKNOWN             = -1
-    AANVRAAG_PDF        = 0
-    TO_BE_GRADED_DOCX   = 1
-    COPIED_PDF          = 2
-    DIFFERENCE_HTML     = 3
-    GRADED_DOCX         = 4
-    GRADED_PDF          = 5
-    def __str__(self):
-        STR_DICT = {FileType.UNKNOWN: '?', FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
-                    FileType.TO_BE_GRADED_DOCX: 'Formulier beoordeling (Word format)', FileType.GRADED_DOCX: 'Ingevuld formulier beoordeling (Word format)', 
-                    FileType.GRADED_PDF: 'Ingevuld formulier beoordeling (PDF format)', FileType.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
-                    FileType.DIFFERENCE_HTML: 'verschilbestand met vorige versie aanvraag'
-                    }
-        return STR_DICT.get(self, '!unknown')
+class File:
+    AUTODIGEST = ''
+    class Type(IntEnum):
+        INVALID_PDF         = -2
+        UNKNOWN             = -1
+        AANVRAAG_PDF        = 0
+        TO_BE_GRADED_DOCX   = 1
+        COPIED_PDF          = 2
+        DIFFERENCE_HTML     = 3
+        GRADED_DOCX         = 4
+        GRADED_PDF          = 5
+        def __str__(self):
+            STR_DICT = {File.Type.UNKNOWN: '?', File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
+                        File.Type.TO_BE_GRADED_DOCX: 'Formulier beoordeling (Word format)', File.Type.GRADED_DOCX: 'Ingevuld formulier beoordeling (Word format)', 
+                        File.Type.GRADED_PDF: 'Ingevuld formulier beoordeling (PDF format)', File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
+                        File.Type.DIFFERENCE_HTML: 'verschilbestand met vorige versie aanvraag'
+                        }
+            return STR_DICT.get(self, '!unknown')
 
-class FileInfo:
     @staticmethod
     def get_timestamp(filename: str)-> datetime.datetime:
         return TSC.rounded_timestamp(datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime))
     @staticmethod
     def get_digest(filename: str)->str:
         return hash_file_digest(filename)
-    def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, filetype: FileType=FileType.UNKNOWN, aanvraag_id=EMPTY_ID):
+    def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, filetype=Type.UNKNOWN, aanvraag_id=EMPTY_ID):
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file():
             if timestamp == TSC.AUTOTIMESTAMP:
-                self.timestamp = FileInfo.get_timestamp(filename)
+                self.timestamp = File.get_timestamp(filename)
             else:
                 self.timestamp = timestamp
-            if digest == AUTODIGEST:
-                self.digest = FileInfo.get_digest(filename)
+            if digest == File.AUTODIGEST:
+                self.digest = File.get_digest(filename)
             else:
                 self.digest = digest
         else:
@@ -59,7 +59,7 @@ class FileInfo:
     @timestamp.setter
     def timestamp(self, value):
         self._timestamp = TSC.rounded_timestamp(value)
-    def __eq__(self, value: FileInfo):
+    def __eq__(self, value: File):
         if  self.filename != value.filename:
             return False
         if  self.timestamp != value.timestamp:            
@@ -72,44 +72,44 @@ class FileInfo:
             return False
         return True
 
-class FileInfos:
+class Files:
     def __init__(self, aanvraag_id=EMPTY_ID):
         self.aanvraag_id = aanvraag_id
-        self.__files = {ft:{'filename': '', 'timestamp':TSC.AUTOTIMESTAMP, 'digest':AUTODIGEST} for ft in FileType if ft != FileType.UNKNOWN}
-    def get_filename(self, ft: FileType)->str:
+        self.__files = {ft:{'filename': '', 'timestamp':TSC.AUTOTIMESTAMP, 'digest':File.AUTODIGEST} for ft in File.Type if ft != File.Type.UNKNOWN}
+    def get_filename(self, ft: File.Type)->str:
         return self.__files[ft]['filename']
-    def set_filename(self, ft: FileType, value: str):
+    def set_filename(self, ft: File.Type, value: str):
         self.__files[ft]['filename'] = value
-    def get_timestamp(self, ft: FileType)->datetime.datetime:
+    def get_timestamp(self, ft: File.Type)->datetime.datetime:
         return self.__files[ft]['timestamp']
-    def set_timestamp(self, ft: FileType, value:datetime.datetime):
+    def set_timestamp(self, ft: File.Type, value:datetime.datetime):
         self.__files[ft]['timestamp'] = value
-    def get_digest(self, ft: FileType)->str:
+    def get_digest(self, ft: File.Type)->str:
         return self.__files[ft]['digest']
-    def set_digest(self, ft: FileType, value: str):
+    def set_digest(self, ft: File.Type, value: str):
         self.__files[ft]['digest'] = value
-    def get_infos(self)->list[FileInfo]:
+    def get_files(self)->list[File]:
         result = []
-        for ft in FileType:
-            if (info:=self.get_info(ft)):
-                result.append(info)
+        for ft in File.Type:
+            if (file:=self.get_file(ft)):
+                result.append(file)
         return result
-    def get_info(self, ft: FileType)->FileInfo:
-        if ft == FileType.UNKNOWN:
+    def get_file(self, ft: File.Type)->File:
+        if ft == File.Type.UNKNOWN:
             return None
         else:
-            return FileInfo(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
-    def set_info(self, fi: FileInfo):
-        if fi.filetype != FileType.UNKNOWN:
-            self.set_filename(fi.filetype, fi.filename)
-            self.set_timestamp(fi.filetype, fi.timestamp)
-            self.set_digest(fi.filetype, fi.digest)
-    def reset_info(self, file_type: FileType | set[FileType]):
+            return File(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
+    def set_file(self, file: File):
+        if file.filetype != File.Type.UNKNOWN:
+            self.set_filename(file.filetype, file.filename)
+            self.set_timestamp(file.filetype, file.timestamp)
+            self.set_digest(file.filetype, file.digest)
+    def reset_file(self, file_type: File.Type | set[File.Type]):
         if isinstance(file_type, set):
             for ft in file_type:
-                self.set_info(FileInfo('', TSC.AUTOTIMESTAMP, '', ft))
+                self.set_file(File('', TSC.AUTOTIMESTAMP, '', ft))
         else:
-            self.set_info(FileInfo('', TSC.AUTOTIMESTAMP, '', file_type))
+            self.set_file(File('', TSC.AUTOTIMESTAMP, '', file_type))
     def reset(self):
-        self.reset_info({ft for ft in FileType if ft != FileType.UNKNOWN})
+        self.reset_file({ft for ft in File.Type if ft != File.Type.UNKNOWN})
 

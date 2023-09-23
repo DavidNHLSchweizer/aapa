@@ -3,8 +3,8 @@ from pathlib import Path
 from copy import deepcopy
 import tkinter.simpledialog as tksimp
 from data.storage import AAPStorage
-from data.classes.aanvragen import AanvraagInfo
-from data.classes.files import AUTODIGEST, FileInfo, FileType
+from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
@@ -27,7 +27,7 @@ class ImportException(Exception): pass
 NOTFOUND = 'NOT FOUND'
 
 class AanvraagValidator:
-    def __init__(self, storage: AAPStorage, source_file: str, aanvraag: AanvraagInfo):
+    def __init__(self, storage: AAPStorage, source_file: str, aanvraag: Aanvraag):
         self.storage = storage
         self.source_file = source_file
         self.validated_aanvraag = deepcopy(aanvraag)
@@ -55,15 +55,15 @@ class AanvraagValidator:
         if not is_valid_title(self.validated_aanvraag.titel):
             self.validated_aanvraag.titel=self.__ask_titel(self.validated_aanvraag)
         return True
-    def __ask_titel(self, aanvraag: AanvraagInfo)->str:
+    def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
     def __check_sourcefile(self)->bool:
-        fileinfo = FileInfo(self.source_file, timestamp=TSC.AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.AANVRAAG_PDF)
-        if self.storage.file_info.is_duplicate(fileinfo):            
+        file = File(self.source_file, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=File.Type.AANVRAAG_PDF)
+        if self.storage.files.is_duplicate(file):            
             log_warning(f'Duplikaat: {summary_string(self.source_file)}.\nal in database: {str(self.aanvraag)}')
-            self.storage.file_info.store_invalid(self.source_file)
+            self.storage.files.store_invalid(self.source_file)
             return False
-        self.validated_aanvraag.register_file(self.source_file, FileType.AANVRAAG_PDF)
+        self.validated_aanvraag.register_file(self.source_file, File.Type.AANVRAAG_PDF)
         return True
 
 class AanvraagPDFImporter(AanvraagCreator):
@@ -71,12 +71,12 @@ class AanvraagPDFImporter(AanvraagCreator):
         log_debug(f'must process file {filename}?')
         if self.is_known_invalid_file(filename, storage):
             return False
-        if (stored := storage.file_info.find_digest(FileInfo.get_digest(filename))) and filename != stored.filename:
+        if (stored := storage.files.find_digest(File.get_digest(filename))) and filename != stored.filename:
             log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=True)
-            storage.file_info.store_invalid(filename)
+            storage.files.store_invalid(filename)
             return False
-        return not stored or stored.filetype not in {FileType.AANVRAAG_PDF, FileType.COPIED_PDF}
-    def process_file(self, filename: str, storage: AAPStorage = None, preview=False)->AanvraagInfo:
+        return not stored or stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
+    def process_file(self, filename: str, storage: AAPStorage = None, preview=False)->Aanvraag:
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
@@ -92,7 +92,7 @@ class AanvraagPDFImporter(AanvraagCreator):
             else:
                 return None
         except PDFReaderException as reader_exception:
-            storage.file_info.store_invalid(filename)
+            storage.files.store_invalid(filename)
             log_warning(f'{reader_exception}\n\t{ERRCOMMENT}.')           
         return None
 
@@ -108,19 +108,19 @@ class ImportResult(Enum):
 
 # def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResult:
 #     def known_import_result(filename)->ImportResult:
-#         def not_changed(filename, fileinfo):
-#             return FileInfo.get_timestamp(filename) == fileinfo.timestamp and FileInfo.get_digest(filename) == fileinfo.digest
-#         if (fileinfo := importer.known_file_info(filename)):
-#             match fileinfo.filetype:
-#                 case FileType.AANVRAAG_PDF | FileType.COPIED_PDF:
-#                     if not_changed(filename, fileinfo): 
-#                         return ImportResult.ALREADY_IMPORTED if fileinfo.filetype == FileType.AANVRAAG_PDF else ImportResult.COPIED_FILE
+#         def not_changed(filename, file):
+#             return File.get_timestamp(filename) == file.timestamp and File.get_digest(filename) == file.digest
+#         if (file := importer.known_file_info(filename)):
+#             match file.filetype:
+#                 case File.Type.AANVRAAG_PDF | File.Type.COPIED_PDF:
+#                     if not_changed(filename, file): 
+#                         return ImportResult.ALREADY_IMPORTED if file.filetype == File.Type.AANVRAAG_PDF else ImportResult.COPIED_FILE
 #                     else:
 #                         return ImportResult.UNKNOWN
-#                 case FileType.GRADED_PDF:
+#                 case File.Type.GRADED_PDF:
 #                     return ImportResult.KNOWN_PDF
-#                 case FileType.INVALID_PDF:
-#                     if not_changed(filename, fileinfo): 
+#                 case File.Type.INVALID_PDF:
+#                     if not_changed(filename, file): 
 #                         return ImportResult.KNOWN_ERROR
 #                     else:
 #                         return ImportResult.UNKNOWN

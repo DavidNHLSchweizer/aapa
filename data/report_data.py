@@ -4,7 +4,7 @@ import pandas as pd
 from data.classes.process_log import ProcessLog
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
-from data.classes.aanvragen import AanvraagInfo
+from data.classes.aanvragen import Aanvraag
 from data.storage import AAPStorage
 from general.fileutil import writable_filename
 from general.config import config
@@ -40,10 +40,10 @@ class COLMAP(Enum):
         return None
 
 class AanvraagXLSReporter(AanvraagProcessor):
-    def process(self, aanvraag: AanvraagInfo, preview=False, sheet=None, **kwargs)->bool:
+    def process(self, aanvraag: Aanvraag, preview=False, sheet=None, **kwargs)->bool:
         sheet.append(self.__to_sheet_row(aanvraag))
         return True
-    def __to_sheet_row(self, aanvraag: AanvraagInfo):
+    def __to_sheet_row(self, aanvraag: Aanvraag):
         return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.full_name, aanvraag.student.stud_nr, aanvraag.student.first_name, aanvraag.student.tel_nr, aanvraag.student.email, 
                 aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
 

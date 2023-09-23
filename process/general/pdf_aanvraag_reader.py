@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 import re
 import pdfplumber
-from data.classes.aanvragen import AanvraagInfo
+from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
-from data.classes.studenten import StudentInfo
+from data.classes.studenten import Student
 from general.config import IntValueConvertor, config
 from general.log import log_debug
 
@@ -128,7 +128,7 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
         self.aanvraag = self.get_aanvraag()
     def __str__(self):
         return f'file:"{self.filename}" aanvraag: "{str(self.aanvraag)}"'
-    def get_aanvraag(self)->AanvraagInfo:            
+    def get_aanvraag(self)->Aanvraag:            
         aanvraag_data = _AanvraagData()
         try:
             self.__parse_main_data(self.tables[0], aanvraag_data)
@@ -139,12 +139,12 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
             return aanvraag
         except Exception as E:
             raise PDFReaderException(f"Fout bij lezen document: {E}")    
-    def __convert_data(self, aanvraag_data: _AanvraagData)->AanvraagInfo:
+    def __convert_data(self, aanvraag_data: _AanvraagData)->Aanvraag:
         if not aanvraag_data.valid():
             return None
         bedrijf = Bedrijf(aanvraag_data.bedrijf)
-        student = StudentInfo(full_name=aanvraag_data.full_name, stud_nr=aanvraag_data.stud_nr, tel_nr=aanvraag_data.tel_nr, email=aanvraag_data.email)
-        return AanvraagInfo(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
+        student = Student(full_name=aanvraag_data.full_name, stud_nr=aanvraag_data.stud_nr, tel_nr=aanvraag_data.tel_nr, email=aanvraag_data.email)
+        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
     def __parse_first_table(self, table: list[str], field_keys: list[str])->dict:
         def find_pattern(table_row: str)->tuple[str,str]:
             for key in field_keys:

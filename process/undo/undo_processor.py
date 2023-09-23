@@ -1,7 +1,7 @@
 import os
-from data.classes.aanvragen import AanvraagInfo
-from data.classes.process_log import ProcessLog, UndoRecipeFactory, UndoRecipeBase
-from data.classes.files import FileType
+from data.classes.aanvragen import Aanvraag
+from data.classes.process_log import ProcessLog
+from data.classes.files import File
 from data.storage import AAPStorage
 from general.fileutil import delete_if_exists, file_exists, summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
@@ -17,8 +17,8 @@ class UndoActionProcessor(AanvraagProcessor):
     #TODO: zorgen dat de laatste stap (CREATE) het juiste resultaat heeft. Aanvraag moet worden verwijderd, aanvraagfiles uit de database maar niet uit de werkelijkheid.
     def __init__(self, activity: ProcessLog.Action):
         super().__init__()
-        self.state_change: UndoRecipeBase = UndoRecipeFactory().create(activity)
-    def process(self, aanvraag: AanvraagInfo, preview = False, **kwargs)->bool:
+        # self.state_change: UndoRecipeBase = UndoRecipeFactory().create(activity)
+    def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         log_info(f'Ongedaan maken voor aanvraag {aanvraag.summary()}. Status is {aanvraag.status}')
         log_print(f'{aanvraag.summary()}\n\tVerwijderen nieuwe bestanden.')
         if not aanvraag.status in self.state_change._final_states:

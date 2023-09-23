@@ -1,4 +1,4 @@
-from data.classes.aanvragen import AanvraagBeoordeling
+from data.classes.aanvragen import Aanvraag
 from general.config import config, IntValueConvertor
 from process.general.word_processor import DocxWordDocument, WordReaderException
 
@@ -15,12 +15,12 @@ VOLDOENDE = 'voldoende'
 def is_voldoende(beoordeling: str)->bool:
     return beoordeling.lower() == VOLDOENDE
 
-def aanvraag_beoordeling(grade: str)->AanvraagBeoordeling:
+def aanvraag_beoordeling(grade: str)->Aanvraag.Beoordeling:
     match grade.split()[0].split(',')[0].lower():
-        case 'voldoende':   return AanvraagBeoordeling.VOLDOENDE
-        case 'onvoldoende': return AanvraagBeoordeling.ONVOLDOENDE
+        case 'voldoende':   return Aanvraag.Beoordeling.VOLDOENDE
+        case 'onvoldoende': return Aanvraag.Beoordeling.ONVOLDOENDE
         case _: 
-            return AanvraagBeoordeling.TE_BEOORDELEN
+            return Aanvraag.Beoordeling.TE_BEOORDELEN
 
 class GradeForm(DocxWordDocument):
     def __init__(self):
@@ -33,8 +33,8 @@ class GradeForm(DocxWordDocument):
             return self.read_table_cell(table, self.table_row,self.table_col)
         else:
             raise WordReaderException(f'Tabel niet gevonden in document {self.doc_path}')        
-    def read_grade(self)->AanvraagBeoordeling:
+    def read_grade(self)->Aanvraag.Beoordeling:
         return aanvraag_beoordeling(self.read_grade_str())
-    def write_grade(self, grade: AanvraagBeoordeling | str):
+    def write_grade(self, grade: Aanvraag.Beoordeling | str):
         if (table := self.find_table(self.table_nr)):
             self.write_table_cell(table, self.table_row,self.table_col, str(grade))

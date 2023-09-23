@@ -1,15 +1,15 @@
 from data.AAPdatabase import  create_root
-from data.classes.aanvragen import AanvraagInfo
+from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
-from data.classes.files import AUTODIGEST, FileInfo, FileInfos, FileType
-from data.classes.studenten import StudentInfo
+from data.classes.files import File, Files
+from data.classes.studenten import Student
 from data.classes.process_log import ProcessLog
 from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.bedrijven import  CRUD_bedrijven
 from data.crud.files import CRUD_files
 from data.crud.process_log import CRUD_process_log, CRUD_process_log_aanvragen
 from data.crud.studenten import CRUD_studenten
-from database.crud import CRUDbase
+from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
@@ -19,8 +19,6 @@ from general.timeutil import TSC
 
 class StorageException(Exception): pass
 
-AAPAClass = type[Bedrijf|StudentInfo|FileInfo|FileInfos|AanvraagInfo]
-KeyClass = type[int|str]
 class ObjectStorage:
     def __init__(self, database: Database, crud: CRUDbase):
         self.database = database
@@ -52,38 +50,38 @@ class StudentenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_studenten(database))
 
-class FileInfoStorage(ObjectStorage):
+class FilesStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_files(database))
-    def find(self, aanvraag_id: int, filetype: FileType)->FileInfo:
+    def find(self, aanvraag_id: int, filetype: File.Type)->File:
         if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, filetype], True):
-            info = self.read(row[0]["filename"])
-            log_info(f'success: {info}')
-            return info
+            file = self.read(row[0]["filename"])
+            log_info(f'success: {file}')
+            return file
         return None
     @property
     def crud_files(self)->CRUD_files:
         return self.crud
-    def __load(self, aanvraag_id: int, filetypes: set[FileType])->list[FileInfo]:
+    def __load(self, aanvraag_id: int, filetypes: set[File.Type])->list[File]:
         params = [aanvraag_id]
         params.extend([ft for ft in filetypes])
         if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
             filenames=[row["filename"] for row in rows]
             log_debug(f'FILENAMES: {filenames}')
             result = self.crud_files.read_all(filenames)
-            log_info(f'success: {len(result)} {result}  {[str(info) for info in result]}')
+            log_info(f'success: {len(result)} {result}  {[str(file) for file in result]}')
             return result
         return None
-    def find_all(self, aanvraag_id: int)->FileInfos:
-        result = FileInfos(aanvraag_id)
-        filetypes = {ft for ft in FileType if ft != FileType.UNKNOWN}
-        result.reset_info(filetypes)
-        for fileinfo in self.__load(aanvraag_id, filetypes):
-            if fileinfo:
-                result.set_info(fileinfo)
+    def find_all(self, aanvraag_id: int)->Files:
+        result = Files(aanvraag_id)
+        filetypes = {ft for ft in File.Type if ft != File.Type.UNKNOWN}
+        result.reset_file(filetypes)
+        for file in self.__load(aanvraag_id, filetypes):
+            if file:
+                result.set_file(file)
         return result        
-    def find_all_for_filetype(self, filetypes: FileType | set[FileType])->list[FileInfo]:
+    def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
         if isinstance(filetypes, set):
             place_holders = f' in ({",".join("?"*len(filetypes))})' 
             params = [ft for ft in filetypes]
@@ -94,76 +92,76 @@ class FileInfoStorage(ObjectStorage):
         for row in self.database._execute_sql_command('select filename from FILES where filetype' + place_holders, params, True):
             result.append(self.read(row['filename']))
         return result
-    def find_digest(self, digest)->FileInfo:
+    def find_digest(self, digest)->File:
         if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
-            info = self.read(row[0]["filename"])
-            log_info(f'success: {info}')
-            return info
-    def sync(self, aanvraag_id, info: FileInfo):
-        info.aanvraag_id = aanvraag_id
-        if (cur_info:=self.find(aanvraag_id, info.filetype)) is not None:
+            file = self.read(row[0]["filename"])
+            log_info(f'success: {file}')
+            return file
+    def sync(self, aanvraag_id, file: File):
+        file.aanvraag_id = aanvraag_id
+        if (cur_file:=self.find(aanvraag_id, file.filetype)) is not None:
             #file currently exists in database
-            if info.filename:
-                self.update(info)
+            if file.filename:
+                self.update(file)
             else:
-                self.delete(cur_info.filename)
-        elif info.filename:            
-            if (cur_info := self.read(info.filename)):
+                self.delete(cur_file.filename)
+        elif file.filename:            
+            if (cur_file := self.read(file.filename)):
                 #file is known in database, PROBABLY (!?) not linked to aanvraag 
-                log_warning(f'bestand {summary_string(info.filename, maxlen=80)} is bekend in database:\n\t{cur_info.summary()}.\nWordt vervangen door\n\t{info.summary()}')
-                self.update(info)
+                log_warning(f'bestand {summary_string(file.filename, maxlen=80)} is bekend in database:\n\t{cur_file.summary()}.\nWordt vervangen door\n\t{file.summary()}')
+                self.update(file)
             else:
                 #new file
-                self.create(info)
+                self.create(file)
     def delete_all(self, aanvraag_id):
-        for info in self.__load(aanvraag_id, {ft for ft in FileType if ft != FileType.UNKNOWN}):
-            self.delete(info.filename)
-    def is_duplicate(self, file: FileInfo):
+        for file in self.__load(aanvraag_id, {ft for ft in File.Type if ft != File.Type.UNKNOWN}):
+            self.delete(file.filename)
+    def is_duplicate(self, file: File):
         return (stored:=self.read(file.filename)) is not None and stored.digest == file.digest
-    def known_file(self, filename: str)->FileInfo:
-        return self.find_digest(FileInfo.get_digest(filename))
+    def known_file(self, filename: str)->File:
+        return self.find_digest(File.get_digest(filename))
     def store_invalid(self, filename):
         if (stored:=self.read(filename)):
-            stored.filetype = FileType.INVALID_PDF
+            stored.filetype = File.Type.INVALID_PDF
             stored.aanvraag_id=EMPTY_ID
             self.update(stored)
         else:
-            self.create(FileInfo(filename, timestamp=TSC.AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.INVALID_PDF, aanvraag_id=EMPTY_ID))
+            self.create(File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=File.Type.INVALID_PDF, aanvraag_id=EMPTY_ID))
         self.database.commit()
     def is_known_invalid(self, filename):
         if (stored:=self.read(filename)):
-            return stored.filetype == FileType.INVALID_PDF
+            return stored.filetype == File.Type.INVALID_PDF
         else:
             return False     
 
 class AanvraagStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_aanvragen(database))
-        self.file_info = FileInfoStorage(database)
+        self.files = FilesStorage(database)
         self.bedrijven = BedrijvenStorage(database)
         self.studenten = StudentenStorage(database)
-    def create(self, aanvraag: AanvraagInfo):#, source_file: FileInfo):
+    def create(self, aanvraag: Aanvraag):
         self.__create_table_references(aanvraag)
         # aanvraag.files.set_info(source_file)
         aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
         super().create(aanvraag)
-        self.sync_files(aanvraag, {FileType.AANVRAAG_PDF})
-    def sync_files(self, aanvraag: AanvraagInfo, filetypes: set[FileType]=None):
-        for info in aanvraag.files.get_infos():
-            if filetypes is None or info.filetype in filetypes:
-                self.file_info.sync(aanvraag.id, info)
-    def read(self, id: int)->AanvraagInfo:
+        self.sync_files(aanvraag, {File.Type.AANVRAAG_PDF})
+    def sync_files(self, aanvraag: Aanvraag, filetypes: set[File.Type]=None):
+        for file in aanvraag.files.get_files():
+            if filetypes is None or file.filetype in filetypes:
+                self.files.sync(aanvraag.id, file)
+    def read(self, id: int)->Aanvraag:
         aanvraag = super().read(id)
-        aanvraag.files = self.file_info.find_all(aanvraag.id)
+        aanvraag.files = self.files.find_all(aanvraag.id)
         return aanvraag
-    def update(self, aanvraag: AanvraagInfo):
+    def update(self, aanvraag: Aanvraag):
         self.__create_table_references(aanvraag)        
         super().update(aanvraag)
         self.sync_files(aanvraag)
     def delete(self, id: int):
-        self.file_info.delete_all(id)
+        self.files.delete_all(id)
         super().delete(id)
-    def read_all(self, filter_func = None)->list[AanvraagInfo]:
+    def read_all(self, filter_func = None)->list[Aanvraag]:
         if row:= self.database._execute_sql_command('select id from AANVRAGEN', [], True):
             result = [self.read(r['id']) for r in row]
         else:
@@ -172,20 +170,20 @@ class AanvraagStorage(ObjectStorage):
             return list(filter(filter_func, result))
         else:
             return result
-    def find_student_bedrijf(self, student: StudentInfo, bedrijf: Bedrijf)->list[AanvraagInfo]:
+    def find_student_bedrijf(self, student: Student, bedrijf: Bedrijf)->list[Aanvraag]:
         return self.read_all(lambda a: a.student.stud_nr == student.stud_nr and a.bedrijf.id == bedrijf.id)
-    def find_student(self, student: StudentInfo):
+    def find_student(self, student: Student):
         result = []
         if (rows := self.database._execute_sql_command('select id from AANVRAGEN where stud_nr=?', [student.stud_nr], True)):
             for row in rows:
                 result.append(self.read(row['id']))
         return result
-    def __count_student_aanvragen(self, aanvraag: AanvraagInfo):
+    def __count_student_aanvragen(self, aanvraag: Aanvraag):
         if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.stud_nr], True)):
             return row[0][0]
         else:
             return 0    
-    def __create_table_references(self, aanvraag: AanvraagInfo):
+    def __create_table_references(self, aanvraag: Aanvraag):
         if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
             (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.name], True)):
             aanvraag.bedrijf.id = row[0]['id']
@@ -233,8 +231,8 @@ class AAPStorage:
         self.aanvragen = AanvraagStorage(database)
         self.process_log = ProcessLogStorage(database)
     @property
-    def file_info(self)->FileInfoStorage:
-        return self.aanvragen.file_info
+    def files(self)->FilesStorage:
+        return self.aanvragen.files
     @property
     def studenten(self)->StudentenStorage:
         return self.aanvragen.studenten

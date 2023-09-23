@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 import re
 from typing import Iterable
-from data.classes.aanvragen import AanvraagInfo
-from data.classes.files import FileInfo, FileType
+from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
 from data.classes.process_log import ProcessLog
 from data.storage import AAPStorage
 from general.fileutil import summary_string
@@ -12,11 +12,11 @@ from general.log import log_debug, log_error, log_info, log_print
 from general.preview import Preview
 
 class AanvraagProcessorBase:
-    def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:
+    def must_process(self, aanvraag: Aanvraag, **kwargs)->bool:
         return True
-    def process(self, aanvraag: AanvraagInfo, preview = False, **kwargs)->bool:
+    def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         return False
-    def process_file(self, filename: str, storage: AAPStorage, preview = False, **kwargs)->AanvraagInfo:
+    def process_file(self, filename: str, storage: AAPStorage, preview = False, **kwargs)->Aanvraag:
         return None
     def must_process_file(self, filename: str, storage: AAPStorage, **kwargs)->bool:
         return True
@@ -24,21 +24,21 @@ class AanvraagProcessorBase:
         return False
 
 class AanvraagProcessor(AanvraagProcessorBase):
-    def file_is_modified(self, aanvraag: AanvraagInfo, filetype: FileType):        
+    def file_is_modified(self, aanvraag: Aanvraag, filetype: File.Type):        
         filename = aanvraag.files.get_filename(filetype)
         registered_timestamp = aanvraag.files.get_timestamp(filetype)
-        current_timestamp = FileInfo.get_timestamp(filename)
+        current_timestamp = File.get_timestamp(filename)
         registered_digest  = aanvraag.files.get_digest(filetype)
-        current_digest = FileInfo.get_digest(filename)        
+        current_digest = File.get_digest(filename)        
         return current_timestamp != registered_timestamp or current_digest != registered_digest
         #TODO: Er lijkt wel eens wat mis te gaan bij het opslaan van de digest, maar misschien valt dat mee. Gevolgen lijken mee te vallen.
-    def process(self, aanvraag: AanvraagInfo, preview = False, **kwargs)->bool:
+    def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         return False
 
 class AanvraagCreator(AanvraagProcessorBase):
     def is_known_invalid_file(self, filename: str, storage: AAPStorage):
-        return storage.file_info.is_known_invalid(filename)
-    def process_file(self, filename: str, storage: AAPStorage, preview = False, **kwargs)->AanvraagInfo:
+        return storage.files.is_known_invalid(filename)
+    def process_file(self, filename: str, storage: AAPStorage, preview = False, **kwargs)->Aanvraag:
         return None
 
 class AanvragenProcessorBase:
@@ -50,10 +50,10 @@ class AanvragenProcessorBase:
             self._processors.append(processors)
         self.storage = storage
         self.process_log = ProcessLog(activity, description)
-        self.known_files = self.storage.file_info.find_all_for_filetype({filetype for filetype in FileType})
+        self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type})
     def start_logging(self):
         self.process_log.start()
-    def log_aanvraag(self, aanvraag: AanvraagInfo):
+    def log_aanvraag(self, aanvraag: Aanvraag):
         if aanvraag:
             self.process_log.add_aanvraag(aanvraag)
     def stop_logging(self):
@@ -63,10 +63,10 @@ class AanvragenProcessorBase:
         self.storage.commit()
 
     def is_known_file(self, filename: str)->bool: 
-        return filename in {fileinfo.filename for fileinfo in self.known_files} or self.storage.file_info.is_known_invalid(str(filename))
+        return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
-    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPStorage, activity: ProcessLog.Action, aanvragen: list[AanvraagInfo] = None):
+    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPStorage, activity: ProcessLog.Action, aanvragen: list[Aanvraag] = None):
         super().__init__(description, processors, storage, activity=activity)
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
@@ -76,18 +76,18 @@ class AanvragenProcessor(AanvragenProcessorBase):
         log_info('End reading aanvragen from database')
         return result
     def __sort_aanvragen(self):
-        def comparekey(a: AanvraagInfo):
+        def comparekey(a: Aanvraag):
             if isinstance(a.timestamp, datetime.datetime):
                 return a.timestamp
             else:
                 return datetime.datetime.now()
         self.aanvragen.sort(key=comparekey, reverse=True)
-    def filtered_aanvragen(self, filter_func=None)->list[AanvraagInfo]:
+    def filtered_aanvragen(self, filter_func=None)->list[Aanvraag]:
         if filter_func:
             return list(filter(filter_func, self.aanvragen))
         else:
             return(self.aanvragen)
-    def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: AanvraagInfo, preview=False, **kwargs)->bool:
+    def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         try:
             if processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs):                                                
                 self.storage.aanvragen.update(aanvraag)
@@ -150,7 +150,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                 if self._skip_file(filename) and not self.is_known_file(filename):
                     log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
                     # if not preview: #kan volgens mij wel weg hier
-                    self.storage.file_info.store_invalid(str(filename))
+                    self.storage.files.store_invalid(str(filename))
                     continue
                 file_processed = True
                 for processor in self._processors:

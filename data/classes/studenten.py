@@ -1,9 +1,7 @@
 from __future__ import annotations
-from dataclasses import dataclass
-
 from general.valid_email import is_valid_email
 
-class StudentInfo:
+class Student:
     def __init__(self, full_name='', first_name = '', stud_nr='', tel_nr='', email=''):        
         self.full_name = full_name
         self.first_name = first_name if first_name else self._get_first_name()
@@ -12,7 +10,7 @@ class StudentInfo:
         self.email = email
     def __str__(self):
         return f'{self.full_name}({self.stud_nr})'
-    def __eq__(self, value: StudentInfo):
+    def __eq__(self, value: Student):
         if  self.full_name != value.full_name:
             return False
         if  self.stud_nr != value.stud_nr:

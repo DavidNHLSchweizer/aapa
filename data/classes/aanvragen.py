@@ -2,57 +2,55 @@ from __future__ import annotations
 from enum import IntEnum
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
-from data.classes.files import FileInfo, FileInfos, FileType
-from data.classes.studenten import StudentInfo
+from data.classes.files import File, Files
+from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.date_parser import DateParser
 from general.timeutil import TSC
 
-class AanvraagStatus(IntEnum):
-    INITIAL         = 0
-    NEEDS_GRADING   = 1
-    GRADED          = 2
-    ARCHIVED        = 3 
-    MAIL_READY      = 4
-    READY           = 5
-    READY_IMPORTED  = 6
-    def __str__(self):
-        STRS = {AanvraagStatus.INITIAL: 'ontvangen',  AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', 
-                AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'verwerkt', 
-                AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)', AanvraagStatus.ARCHIVED: 'gearchiveerd'}
-        return STRS[self]
-        
-class AanvraagBeoordeling(IntEnum):
-    TE_BEOORDELEN = 0
-    ONVOLDOENDE   = 1
-    VOLDOENDE     = 2
-    def __str__(self):
-        return _AB_STRS[self]
-    @staticmethod
-    def from_str(string)->AanvraagBeoordeling:
-        for key,value in _AB_STRS.items():
-            if string == value:
-                return key
-        return None
-_AB_STRS = {AanvraagBeoordeling.TE_BEOORDELEN: '', AanvraagBeoordeling.ONVOLDOENDE: 'onvoldoende', AanvraagBeoordeling.VOLDOENDE: 'voldoende'}
-
-class AanvraagInfo:
-    def __init__(self, student: StudentInfo, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: FileInfo = None, 
-                 beoordeling=AanvraagBeoordeling.TE_BEOORDELEN, status=AanvraagStatus.INITIAL, id=EMPTY_ID, aanvraag_nr = 1):        
+class Aanvraag:
+    class Status(IntEnum):
+        INITIAL         = 0
+        NEEDS_GRADING   = 1
+        GRADED          = 2
+        ARCHIVED        = 3 
+        MAIL_READY      = 4
+        READY           = 5
+        READY_IMPORTED  = 6
+        def __str__(self):
+            STRS = {Aanvraag.Status.INITIAL: 'ontvangen',  Aanvraag.Status.NEEDS_GRADING: 'te beoordelen', Aanvraag.Status.GRADED: 'beoordeeld', 
+                    Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'verwerkt', 
+                    Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
+            return STRS[self]
+    class Beoordeling(IntEnum):
+        TE_BEOORDELEN = 0
+        ONVOLDOENDE   = 1
+        VOLDOENDE     = 2
+        def __str__(self):
+            _AB_STRS = {Aanvraag.Beoordeling.TE_BEOORDELEN: '', Aanvraag.Beoordeling.ONVOLDOENDE: 'onvoldoende', Aanvraag.Beoordeling.VOLDOENDE: 'voldoende'}
+            return _AB_STRS[self]
+        @staticmethod
+        def from_str(string)->Aanvraag.Beoordeling:
+            for beoordeling in Aanvraag.Beoordeling:                
+                if string == str(beoordeling):
+                    return beoordeling
+            return None
+    def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, 
+                 beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.INITIAL, id=EMPTY_ID, aanvraag_nr = 1):        
         self._id = id
         self._dateparser = DateParser()
         self.student = student
         self.bedrijf = bedrijf
         self.datum_str = datum_str
-        self._files = FileInfos(id)
+        self._files = Files(id)
         if source_info:
-            self._files.set_info(source_info)
+            self._files.set_file(source_info)
         else:
             self._files.reset()
         self.titel = titel
         self.aanvraag_nr = aanvraag_nr
-        self.beoordeling:AanvraagBeoordeling=beoordeling
-        self.status:AanvraagStatus=status
+        self.beoordeling:Aanvraag.Beoordeling=beoordeling
+        self.status:Aanvraag.Status=status
     @property
     def id(self):
         return self._id
@@ -61,32 +59,32 @@ class AanvraagInfo:
         self._id = value
         self._files.aanvraag_id = value
     @property
-    def files(self)->FileInfos:
+    def files(self)->Files:
         return self._files
     @files.setter
-    def files(self, files: FileInfos):
-        for ft in FileType:
-            if ft != FileType.UNKNOWN:
-                self.files.set_info(files.get_info(ft))
+    def files(self, files: Files):
+        for ft in File.Type:
+            if ft != File.Type.UNKNOWN:
+                self.files.set_file(files.get_file(ft))
     @property
     def timestamp(self):
-        return self.files.get_timestamp(FileType.AANVRAAG_PDF)
+        return self.files.get_timestamp(File.Type.AANVRAAG_PDF)
     def timestamp_str(self):
         return TSC.timestamp_to_str(self.timestamp)
     @property
     def digest(self):
-        return self.files.get_digest(FileType.AANVRAAG_PDF)
+        return self.files.get_digest(File.Type.AANVRAAG_PDF)
     def aanvraag_source_file_name(self):
-        return Path(self.files.get_filename(FileType.AANVRAAG_PDF))
+        return Path(self.files.get_filename(File.Type.AANVRAAG_PDF))
     def summary(self)->str:
         return f'{str(self.student)} ({self.bedrijf.name})-{self.titel}'    
     def __str__(self):
         versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
         s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.name} - "{self.titel}" [{str(self.status)}]'        
-        if self.beoordeling != AanvraagBeoordeling.TE_BEOORDELEN:
+        if self.beoordeling != Aanvraag.Beoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
-    def __eq__(self, value: AanvraagInfo):
+    def __eq__(self, value: Aanvraag):
         if  self.datum_str != value.datum_str:
             return False
         if  self.titel != value.titel:
@@ -117,9 +115,9 @@ class AanvraagInfo:
         self.__datum,self.__versie = self._dateparser.parse_date(self.datum_str)
         if self.__versie and self.__versie.find('/') >= 0:
             self.__versie = self.__versie.replace('/','').strip()
-    def register_file(self, filename: str, filetype: FileType):
-        self.files.set_info(FileInfo(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
-    def unregister_file(self, filetype: FileType):
-        self.files.reset_info(filetype)
+    def register_file(self, filename: str, filetype: File.Type):
+        self.files.set_file(File(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
+    def unregister_file(self, filetype: File.Type):
+        self.files.reset_file(filetype)
 
 

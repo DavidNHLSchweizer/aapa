@@ -2,11 +2,10 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 import os
-from data.classes.aanvragen import AanvraagInfo
+from data.classes.aanvragen import Aanvraag
 from general.timeutil import TSC
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
-from general.singleton import Singleton
        
 class ProcessLog:
     class Action(IntEnum):
@@ -21,14 +20,14 @@ class ProcessLog:
         self.description = description
         self.date = date
         self.user = user
-        self.aanvragen: list[AanvraagInfo]=[]
+        self.aanvragen: list[Aanvraag]=[]
         self.rolled_back = rolled_back
     def start(self):
         self.aanvragen = []
         self.date = datetime.datetime.now()
     def stop(self):
         pass # voor latere toevoegingen
-    def add_aanvraag(self, aanvraag: AanvraagInfo):
+    def add_aanvraag(self, aanvraag: Aanvraag):
         self.aanvragen.append(aanvraag)
     @property
     def nr_aanvragen(self)->int:

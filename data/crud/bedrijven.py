@@ -1,6 +1,6 @@
 from data.AAPdatabase import BedrijfTableDefinition
 from data.classes.bedrijven import Bedrijf
-from database.crud import CRUDbase
+from data.crud.crud_base import CRUDbase
 from database.database import Database
 from general.keys import get_next_key
 

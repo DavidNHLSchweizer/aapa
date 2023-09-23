@@ -1,23 +1,24 @@
 from dataclasses import dataclass
 from data.AAPdatabase import ProcessLogAanvragenTableDefinition, ProcessLogTableDefinition
 from data.classes.process_log  import ProcessLog
-from database.crud import CRUDbase
+from data.crud.crud_base import CRUDbase
 from database.database import Database
 from general.keys import get_next_key
 from general.timeutil import TSC
 
-def BTV(value: bool)->int:
-    return 1 if value else 0
-def VTB(value: int)->bool:
-    return value == 1
-
 class CRUD_process_log(CRUDbase):
+    @staticmethod
+    def BTV(value: bool)->int:
+        return 1 if value else 0
+    @staticmethod
+    def VTB(value: int)->bool:
+        return value == 1
     def __init__(self, database: Database):
         super().__init__(database, ProcessLogTableDefinition(), ProcessLog)
         self._db_map['date']['db2obj'] = TSC.str_to_timestamp
         self._db_map['date']['obj2db'] = TSC.timestamp_to_str
-        self._db_map['rolled_back']['db2obj'] = VTB
-        self._db_map['rolled_back']['obj2db'] = BTV        
+        self._db_map['rolled_back']['db2obj'] = CRUD_process_log.VTB
+        self._db_map['rolled_back']['obj2db'] = CRUD_process_log.BTV        
     def create(self, process_log: ProcessLog):
         process_log.id = get_next_key(ProcessLogTableDefinition.KEY_FOR_ID)
         super().create(process_log)                          

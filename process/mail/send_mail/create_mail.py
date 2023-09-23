@@ -1,8 +1,8 @@
 from pathlib import Path
-from data.classes.aanvragen import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus
-from data.classes.files import FileType
+from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
 from general.config import ListValueConvertor, config
-from general.fileutil import from_main_path, summary_string
+from general.fileutil import file_exists, from_main_path, summary_string
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.mail_sender import OutlookMail, OutlookMailDef
@@ -31,7 +31,7 @@ class FeedbackMailCreator:
         self.outlook = OutlookMail()
         self.draft_folder_name = self.outlook.getDraftFolderName()
     def __init__template_bodies(self, templates)->dict:
-        index2beoordeling = [AanvraagBeoordeling.ONVOLDOENDE, AanvraagBeoordeling.VOLDOENDE]
+        index2beoordeling = [Aanvraag.Beoordeling.ONVOLDOENDE, Aanvraag.Beoordeling.VOLDOENDE]
         result = {}
         for n, template in enumerate(templates):             
             body = ''
@@ -40,12 +40,12 @@ class FeedbackMailCreator:
                     body = body + line
             result[index2beoordeling[n]] = body 
         return result
-    def __create_mail_body(self, aanvraag: AanvraagInfo)->str:
+    def __create_mail_body(self, aanvraag: Aanvraag)->str:
         return self.field_substitutions.translate(self.htm_bodies[aanvraag.beoordeling], voornaam=aanvraag.student.first_name, bedrijf=aanvraag.bedrijf.name, titel=aanvraag.titel) 
-    def _create_mail_def(self, aanvraag: AanvraagInfo, attachment: str)->OutlookMailDef:
+    def _create_mail_def(self, aanvraag: Aanvraag, attachment: str)->OutlookMailDef:
         subject = self.field_substitutions.translate(self.subject_template, titel=aanvraag.titel)
         return OutlookMailDef(subject=subject, mailto=aanvraag.student.email, mailbody=self.__create_mail_body(aanvraag), onbehalfof = self.onbehalfof, cc=config.get('mail', 'cc'), bcc=config.get('mail', 'bcc'), attachments=[attachment])
-    def draft_mail(self, aanvraag: AanvraagInfo, attachment: str):
+    def draft_mail(self, aanvraag: Aanvraag, attachment: str):
         self.outlook.draft_item(self._create_mail_def(aanvraag, attachment))
 
 class FeedbackMailProcessor(AanvraagProcessor):
@@ -53,17 +53,17 @@ class FeedbackMailProcessor(AanvraagProcessor):
         self.mailer = FeedbackMailCreator()
     def get_draft_folder_name(self):
         return self.mailer.draft_folder_name
-    def must_process(self, aanvraag: AanvraagInfo, **kwargs)->bool:    
-        return aanvraag.status  in {AanvraagStatus.ARCHIVED}
-    def process(self, aanvraag: AanvraagInfo, preview=False)->bool:
-        filename = aanvraag.files.get_filename(FileType.GRADED_PDF)
+    def must_process(self, aanvraag: Aanvraag, **kwargs)->bool:    
+        return aanvraag.status  in {Aanvraag.Status.ARCHIVED}
+    def process(self, aanvraag: Aanvraag, preview=False)->bool:
+        filename = aanvraag.files.get_filename(File.Type.GRADED_PDF)
         if preview:
             log_print(f'\tKlaarzetten feedbackmail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
         else:
-            if not filename or not Path(filename).exists():
+            if not filename or not file_exists(filename):
                 log_error(f'Kan feedbackmail voor {aanvraag} niet maken:\n\tbeoordelingbestand "{filename}" ontbreekt.')
                 return False 
             self.mailer.draft_mail(aanvraag, filename)
             log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.full_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
-            aanvraag.status = AanvraagStatus.MAIL_READY
+            aanvraag.status = Aanvraag.Status.MAIL_READY
         return True
