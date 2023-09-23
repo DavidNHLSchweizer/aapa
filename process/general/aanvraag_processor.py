@@ -1,3 +1,4 @@
+from copy import deepcopy
 import datetime
 import os
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.process_log import ProcessLog
-from data.storage import AAPStorage
+from data.storage import AAPAStorage
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print
 from general.preview import Preview
@@ -16,11 +17,11 @@ class AanvraagProcessorBase:
         return True
     def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         return False
-    def process_file(self, filename: str, storage: AAPStorage, preview = False, **kwargs)->Aanvraag:
+    def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Aanvraag:
         return None
-    def must_process_file(self, filename: str, storage: AAPStorage, **kwargs)->bool:
+    def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         return True
-    def state_change(self, log: ProcessLog, storage: AAPStorage, preview = False, **kwargs)->bool: 
+    def state_change(self, log: ProcessLog, storage: AAPAStorage, preview = False, **kwargs)->bool: 
         return False
 
 class AanvraagProcessor(AanvraagProcessorBase):
@@ -36,13 +37,13 @@ class AanvraagProcessor(AanvraagProcessorBase):
         return False
 
 class AanvraagCreator(AanvraagProcessorBase):
-    def is_known_invalid_file(self, filename: str, storage: AAPStorage):
+    def is_known_invalid_file(self, filename: str, storage: AAPAStorage):
         return storage.files.is_known_invalid(filename)
-    def process_file(self, filename: str, storage: AAPStorage, preview = False, **kwargs)->Aanvraag:
+    def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Aanvraag:
         return None
 
 class AanvragenProcessorBase:
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage, activity: ProcessLog.Action):
+    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, activity: ProcessLog.Action):
         self._processors:list[AanvraagProcessorBase] = []
         if isinstance(processors, list):
             for processor in processors: self._processors.append(processor)
@@ -54,7 +55,7 @@ class AanvragenProcessorBase:
     def start_logging(self):
         self.process_log.start()
     def log_aanvraag(self, aanvraag: Aanvraag):
-        if aanvraag:
+        if aanvraag and aanvraag.status != Aanvraag.Status.DELETED:
             self.process_log.add_aanvraag(aanvraag)
     def stop_logging(self):
         self.process_log.stop()
@@ -66,7 +67,7 @@ class AanvragenProcessorBase:
         return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
-    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPStorage, activity: ProcessLog.Action, aanvragen: list[Aanvraag] = None):
+    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ProcessLog.Action, aanvragen: list[Aanvraag] = None):
         super().__init__(description, processors, storage, activity=activity)
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
@@ -113,7 +114,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
         return n_processed
 
 class AanvragenCreator(AanvragenProcessorBase):
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
+    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
         super().__init__(description, processors, storage, activity=ProcessLog.Action.CREATE)
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
@@ -154,7 +155,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                     continue
                 file_processed = True
                 for processor in self._processors:
-                    log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
+                    #log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
                     if not self._process_file(processor, str(filename), preview, **kwargs):
                         file_processed = False
                         break                

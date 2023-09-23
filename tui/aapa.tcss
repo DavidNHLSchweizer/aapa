@@ -38,16 +38,17 @@ AapaButtons {
     align: center middle;
     max-height: 4;
     background: wheat;
-    border-top: double purple;    
+    border-top: double purple; 
+    width: 200;   
 }
 
 AapaButtons ButtonBar {
-    width: 40;
+    width: 100;
     margin: 0 2 0 2;
 }
 
 AapaButtons Button {
-    max-width: 20;
+    max-width: 12;
     outline: solid blue;
     margin: 0 1 0 1;
 }
@@ -66,7 +67,6 @@ AapaButtons RadioSet {
 AapaButtons RadioButton {
     color: black; 
 }
-
 
 .input--cursor {
     color: slategray;

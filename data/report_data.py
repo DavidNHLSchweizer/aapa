@@ -5,7 +5,7 @@ from data.classes.process_log import ProcessLog
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
 from data.classes.aanvragen import Aanvraag
-from data.storage import AAPStorage
+from data.storage import AAPAStorage
 from general.fileutil import writable_filename
 from general.config import config
 
@@ -48,7 +48,7 @@ class AanvraagXLSReporter(AanvraagProcessor):
                 aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
 
 class AanvragenXLSReporter(AanvragenProcessor):       
-    def __init__(self, storage: AAPStorage):
+    def __init__(self, storage: AAPAStorage):
         super().__init__('Maken XLS rapportage', AanvraagXLSReporter(), storage, ProcessLog.Action.NOLOG)
         self.writer = None
         self.sheet = None
@@ -81,7 +81,7 @@ class AanvragenXLSReporter(AanvragenProcessor):
                 result = None
         return result
     
-def report_aanvragen_XLS(storage: AAPStorage, xls_filename: str, filter_func = None):
+def report_aanvragen_XLS(storage: AAPAStorage, xls_filename: str, filter_func = None):
     xls_filename = writable_filename(xls_filename)
     if (result := AanvragenXLSReporter(storage).process_aanvragen(preview=False, filter_func=filter_func, xls_filename=xls_filename)) is not None:
         log_print(f'Rapport ({result} aanvragen) geschreven naar {xls_filename}.')

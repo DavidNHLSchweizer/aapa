@@ -60,3 +60,5 @@ class CRUD_process_log_aanvragen(CRUDbase):
     def _update(self, process_log: ProcessLog):        
         self.delete(process_log.id)    
         self.create(process_log)
+    def delete_aanvraag(self, aanvraag_id: int):
+        self.database._execute_sql_command(f'delete from {self.table.table_name} where aanvraag_id=?', [aanvraag_id])        

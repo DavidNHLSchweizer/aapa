@@ -1,10 +1,10 @@
 from pathlib import Path
 from data.classes.files import File
-from data.storage import AAPStorage
+from data.storage import AAPAStorage
 from database.database import Database
 
 def migrate_database(database: Database):
-    storage = AAPStorage(database)    
+    storage = AAPAStorage(database)    
     print('adding DIGEST column to FILES table.')
     database._execute_sql_command('alter table FILES add DIGEST text')
     print('filling the column with data')

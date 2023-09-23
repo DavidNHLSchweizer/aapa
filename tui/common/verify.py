@@ -7,8 +7,7 @@ from textual.containers import Center
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Static
 from textual.message import Message
-
-from button_bar import ButtonBar, ButtonDef
+from tui.common.button_bar import ButtonBar, ButtonDef
             
 def get_split_width(s: str)->int:
     return max(len(substr) for substr in s.split('\n'))
@@ -61,6 +60,7 @@ class DialogScreen(ModalScreen[str]):
     DEFAULT_CSS = """   
         DialogScreen {
             align: center middle;
+            text-align: center;
             background: wheat 50%;
         }
         DialogScreen DialogForm{

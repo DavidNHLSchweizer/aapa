@@ -8,13 +8,14 @@ from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButto
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from general.args import AAPAaction, AAPAoptions
-from general.log import pop_console, push_console
+from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
 from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
 from tui.common.required import Required
 from tui.common.terminal import TerminalScreen
+from tui.common.verify import DialogMessage, verify
 from tui.terminal_console import init_console, show_console
 import logging
 import tkinter.filedialog as tkifd
@@ -38,6 +39,7 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'database-input-button': 'Kies de database',
             'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories, maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
+            'undo': 'Maak de laatste actie (scan of mail) ongedaan',
             'mode_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database',
             'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid',
             'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',
@@ -115,14 +117,16 @@ class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
             yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan'),
-                             ButtonDef('Mail', variant= 'primary', id='mail')]) 
+                             ButtonDef('Mail', variant= 'primary', id='mail'), 
+                             ButtonDef('Undo', variant= 'error', id='undo')], 
+                             ) 
             with RadioSet():
                 yield RadioButton('preview', id='preview', value=True)
                 yield RadioButton('uitvoeren', id='uitvoeren')
             yield Button('Rapport', variant = 'primary', id='report')
     def on_mount(self):
-        self.query_one(ButtonBar).styles.width = 36
-        for id in {'scan', 'mail', 'report'}:
+        self.query_one(ButtonBar).styles.width = 42
+        for id in {'scan', 'mail', 'undo', 'report'}:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         for id in {'preview', 'uitvoeren'}:
             self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}']    
@@ -143,6 +147,7 @@ class AAPAApp(App):
                 Binding('ctrl-c', 'einde', 'Einde programma', priority=True),
                 Binding('ctrl+s', 'scan', 'Scan nieuwe aanvragen', priority = True),
                 Binding('ctrl+o', 'mail', 'Zet mails klaar', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
+                Binding('ctrl+z', 'undo', 'Maak laatste actie ongedaan', priority = True),
                 Binding('ctrl+p', 'toggle_preview', 'Toggle preview mode', priority=True),
                 Binding('ctrl+r', 'edit_root', 'Bewerk root directory', priority = True, show=False),
                 Binding('ctrl+f', 'edit_output_directory', 'Bewerk output directory', priority = True, show=False),
@@ -175,6 +180,7 @@ class AAPAApp(App):
         match message.button.id:
             case 'scan': await self.action_scan()
             case 'mail': await self.action_mail()
+            case 'undo': await self.action_undo()
             case 'report': await self.action_report()
         message.stop()
     def _create_options(self, **kwdargs)->AAPAoptions:
@@ -186,11 +192,22 @@ class AAPAApp(App):
         # logging.info(f'{options}')
         if await show_console():
             self.terminal.run(AAPArun_script,options=options)                
-    
+    async def on_dialog_message(self, event: DialogMessage):
+        match event.originator_key:
+            case 'verify_undo':                              
+                # self.app.title = f'{event.result_str.__class__} #{event.result_str}#'
+                if str(event.result_str) == 'Ja': 
+                    await self.run_AAPA(AAPAaction.UNDO)
     async def action_scan(self):    
         await self.run_AAPA(AAPAaction.SCAN)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
+    async def action_undo(self):
+        if self.query_one(AapaButtons).preview:
+            await self.run_AAPA(AAPAaction.UNDO)
+        else:
+            verify(self, 'WAARSCHUWING:\nAls je voor "Ja" kiest kunnen bestanden worden verwijderd en wordt de database aangepast.\nDit kan niet meer ongedaan worden gemaakt.\n\nWeet je zeker dat je dit wilt?', 
+                   originator_key='verify_undo')              
     async def action_report(self):
         if (filename := tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
                                            filetypes=[('*.xlsx', 'Excel bestanden'), ('*.*', 'Alle bestanden')],

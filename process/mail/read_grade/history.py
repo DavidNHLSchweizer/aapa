@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import pandas as pd
 from data.classes.aanvragen import  Aanvraag
 from data.classes.files import File
-from data.storage import AAPStorage
+from data.storage import AAPAStorage
 from general.log import log_print
 from data.report_data import COLMAP
 #TODO: HISTORY bijwerken
@@ -84,7 +84,7 @@ from data.report_data import COLMAP
 #     def must_process(self, aanvraag, docpath): 
 #         return self.file_is_modified(aanvraag, docpath)
 
-def read_beoordelingen_from_files(xls_filename: str, storage: AAPStorage, filter_func = None, preview=False):
+def read_beoordelingen_from_files(xls_filename: str, storage: AAPAStorage, filter_func = None, preview=False):
     log_print(f'--- Verwerken beoordeelde aanvragen (uit {xls_filename})...')
     # verwerk_beoordelingen(BeoordelingenFromExcelfile(xls_filename, storage), storage=storage, filter_func = filter_func, preview=preview)
     log_print(f'--- Einde verwerken beoordeelde aanvragen (uit {xls_filename}).')

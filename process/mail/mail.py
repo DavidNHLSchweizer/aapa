@@ -7,10 +7,10 @@ from process.general.aanvraag_processor import AanvragenProcessor
 from process.mail.archive_graded.archive_graded import ArchiveGradedFileProcessor
 from process.mail.read_grade.read_form import ReadFormGradeProcessor
 from process.mail.send_mail.create_mail import FeedbackMailProcessor
-from data.storage import AAPStorage
+from data.storage import AAPAStorage
 
 
-def process_graded(storage: AAPStorage, filter_func = None, preview=False)->int:
+def process_graded(storage: AAPAStorage, filter_func = None, preview=False)->int:
     class RappPva(Enum):
         LEZEN = auto()
         ARCHIVEREN = auto()

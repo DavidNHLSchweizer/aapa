@@ -14,7 +14,7 @@ from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from data.roots import add_root, encode_path
-from general.log import log_debug, log_info, log_warning
+from general.log import log_info, log_warning
 from general.timeutil import TSC
 
 class StorageException(Exception): pass
@@ -68,9 +68,7 @@ class FilesStorage(ObjectStorage):
         params.extend([ft for ft in filetypes])
         if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
             filenames=[row["filename"] for row in rows]
-            log_debug(f'FILENAMES: {filenames}')
             result = self.crud_files.read_all(filenames)
-            log_info(f'success: {len(result)} {result}  {[str(file) for file in result]}')
             return result
         return None
     def find_all(self, aanvraag_id: int)->Files:
@@ -114,8 +112,9 @@ class FilesStorage(ObjectStorage):
                 #new file
                 self.create(file)
     def delete_all(self, aanvraag_id):
-        for file in self.__load(aanvraag_id, {ft for ft in File.Type if ft != File.Type.UNKNOWN}):
-            self.delete(file.filename)
+        if (all_files := self.__load(aanvraag_id, {ft for ft in File.Type if ft != File.Type.UNKNOWN})) is not None:
+            for file in all_files:
+                self.delete(file.filename)
     def is_duplicate(self, file: File):
         return (stored:=self.read(file.filename)) is not None and stored.digest == file.digest
     def known_file(self, filename: str)->File:
@@ -162,7 +161,7 @@ class AanvraagStorage(ObjectStorage):
         self.files.delete_all(id)
         super().delete(id)
     def read_all(self, filter_func = None)->list[Aanvraag]:
-        if row:= self.database._execute_sql_command('select id from AANVRAGEN', [], True):
+        if row:= self.database._execute_sql_command('select id from AANVRAGEN where status != ?', [Aanvraag.Status.DELETED], True):
             result = [self.read(r['id']) for r in row]
         else:
             result = []
@@ -211,6 +210,9 @@ class ProcessLogStorage(ObjectStorage):
     def delete(self, id: int):
         self.process_log_aanvragen.delete(id)
         super().delete(id)
+    def delete_aanvraag(self, aanvraag_id: int):
+        self.process_log_aanvragen.delete_aanvraag(aanvraag_id)
+        super().delete(id)
     def find_log(self, id: int = EMPTY_ID)->ProcessLog:        
         if id == EMPTY_ID:
             if (row := self.database._execute_sql_command('select max(id) from PROCESSLOG where rolled_back = ? and action in (?,?,?)', 
@@ -224,7 +226,7 @@ class ProcessLogStorage(ObjectStorage):
         for record in self.process_log_aanvragen.read(process_log.id):
             process_log.add_aanvraag(self.aanvragen.read(record.aanvraag_id))
 
-class AAPStorage: 
+class AAPAStorage: 
     #main interface with the database
     def __init__(self, database: Database):
         self.database: Database = database

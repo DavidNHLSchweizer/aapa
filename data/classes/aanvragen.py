@@ -10,6 +10,7 @@ from general.timeutil import TSC
 
 class Aanvraag:
     class Status(IntEnum):
+        DELETED         = -1
         INITIAL         = 0
         NEEDS_GRADING   = 1
         GRADED          = 2
@@ -18,10 +19,10 @@ class Aanvraag:
         READY           = 5
         READY_IMPORTED  = 6
         def __str__(self):
-            STRS = {Aanvraag.Status.INITIAL: 'ontvangen',  Aanvraag.Status.NEEDS_GRADING: 'te beoordelen', Aanvraag.Status.GRADED: 'beoordeeld', 
+            STRS = {Aanvraag.Status.DELETED: 'verwijderd', Aanvraag.Status.INITIAL: 'ontvangen',  Aanvraag.Status.NEEDS_GRADING: 'te beoordelen', Aanvraag.Status.GRADED: 'beoordeeld', 
                     Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'verwerkt', 
                     Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
-            return STRS[self]
+            return STRS[self.value]
     class Beoordeling(IntEnum):
         TE_BEOORDELEN = 0
         ONVOLDOENDE   = 1
@@ -49,8 +50,8 @@ class Aanvraag:
             self._files.reset()
         self.titel = titel
         self.aanvraag_nr = aanvraag_nr
-        self.beoordeling:Aanvraag.Beoordeling=beoordeling
-        self.status:Aanvraag.Status=status
+        self.beoordeling = Aanvraag.Beoordeling(beoordeling)
+        self.status = Aanvraag.Status(status)
     @property
     def id(self):
         return self._id

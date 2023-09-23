@@ -2,7 +2,7 @@ from enum import Enum
 from pathlib import Path
 from copy import deepcopy
 import tkinter.simpledialog as tksimp
-from data.storage import AAPStorage
+from data.storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from general.log import log_debug, log_error, log_print, log_warning, log_info
@@ -27,7 +27,7 @@ class ImportException(Exception): pass
 NOTFOUND = 'NOT FOUND'
 
 class AanvraagValidator:
-    def __init__(self, storage: AAPStorage, source_file: str, aanvraag: Aanvraag):
+    def __init__(self, storage: AAPAStorage, source_file: str, aanvraag: Aanvraag):
         self.storage = storage
         self.source_file = source_file
         self.validated_aanvraag = deepcopy(aanvraag)
@@ -67,8 +67,7 @@ class AanvraagValidator:
         return True
 
 class AanvraagPDFImporter(AanvraagCreator):
-    def must_process_file(self, filename: str, storage: AAPStorage, **kwargs)->bool:
-        log_debug(f'must process file {filename}?')
+    def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         if self.is_known_invalid_file(filename, storage):
             return False
         if (stored := storage.files.find_digest(File.get_digest(filename))) and filename != stored.filename:
@@ -76,7 +75,7 @@ class AanvraagPDFImporter(AanvraagCreator):
             storage.files.store_invalid(filename)
             return False
         return not stored or stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
-    def process_file(self, filename: str, storage: AAPStorage = None, preview=False)->Aanvraag:
+    def process_file(self, filename: str, storage: AAPAStorage = None, preview=False)->Aanvraag:
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
@@ -162,7 +161,7 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
 
 class DirectoryImporter(AanvragenCreator): pass
 
-def import_directory(directory: str, output_directory: str, storage: AAPStorage, recursive = True, preview=False)->int:
+def import_directory(directory: str, output_directory: str, storage: AAPAStorage, recursive = True, preview=False)->int:
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
     if not Path(directory).is_dir():

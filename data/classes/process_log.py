@@ -29,6 +29,11 @@ class ProcessLog:
         pass # voor latere toevoegingen
     def add_aanvraag(self, aanvraag: Aanvraag):
         self.aanvragen.append(aanvraag)
+    def delete_aanvraag(self, aanvraag: Aanvraag):
+        try:
+            self.aanvragen.remove(aanvraag)
+        except ValueError as E:
+            pass
     @property
     def nr_aanvragen(self)->int:
         return len(self.aanvragen)
@@ -37,7 +42,7 @@ class ProcessLog:
     def is_rolled_back(self)->bool:
         return self.rolled_back
     def __str__(self)->str:
-        result = f'{self.action} {TSC.timestamp_to_str(self.date)} [{self.user}] ({self.id}):'
+        result = f'{self.action} {TSC.timestamp_to_str(self.date)} [{self.user}] ({self.id}) !{self.nr_aanvragen} aanvragen:'
         if self.is_empty():
             return result + ' (geen aanvragen)'
         if self.is_rolled_back():
