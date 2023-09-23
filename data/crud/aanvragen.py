@@ -1,11 +1,9 @@
-from data.tables.bedrijven import CRUD_bedrijven
-from data.tables.studenten import CRUD_studenten
-from database.sqlexpr import Ops, SQLexpression as SQE
+from data.crud.bedrijven import CRUD_bedrijven
+from data.crud.studenten import CRUD_studenten
 from data.AAPdatabase import AanvraagTableDefinition
-from data.classes.aanvragen import AanvraagBeoordeling, AanvraagInfo, AanvraagStatus
+from data.classes.aanvragen import AanvraagInfo
 from database.crud import CRUDbase, StoredClass
 from database.database import Database
-from database.sqlexpr import Ops
 from general.keys import get_next_key
 
 class CRUD_aanvragen(CRUDbase):
@@ -21,9 +19,5 @@ class CRUD_aanvragen(CRUDbase):
             case 'stud_nr': return CRUD_studenten(self.database).read(value)
             case 'id': return CRUD_bedrijven(self.database).read(value)
             case _: return None
-    # def update(self, aanvraag: AanvraagInfo):
-    #     super().update(columns=self._get_all_columns(False), 
-    #                 values=self._get_all_values(aanvraag, False), where=SQE('id', Ops.EQ, aanvraag.id))
-        
 
 

@@ -1,12 +1,8 @@
 from data.roots import decode_path, encode_path
-from database.sqlexpr import Ops, SQLexpression as SQE
 from data.AAPdatabase import FileTableDefinition
 from data.classes.files import FileInfo
 from database.crud import CRUDbase
 from database.database import Database
-from database.sqlexpr import Ops
-from general.fileutil import summary_string
-from general.log import log_info, log_warning
 from general.timeutil import TSC
 
 class CRUD_files(CRUDbase):

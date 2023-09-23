@@ -2,61 +2,20 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 import os
-from data.classes.aanvragen import AanvraagInfo, AanvraagStatus, AanvraagBeoordeling
-from data.classes.files import FileType
+from data.classes.aanvragen import AanvraagInfo
 from general.timeutil import TSC
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from general.singleton import Singleton
-
-class StateChangeSummary:
-    def __init__(self, initial_state: AanvraagStatus, final_states: set[AanvraagStatus], created_file_types: list[FileType], initial_beoordeling = AanvraagBeoordeling.TE_BEOORDELEN):
-        self.initial_state = initial_state
-        self.initial_beoordeling = initial_beoordeling
-        self._final_states = final_states
-        self._created_file_types = created_file_types
-    def expected_file(self, filetype: FileType):
-        return filetype in self._created_file_types
-     
-
-class CreateStateChange(StateChangeSummary):
-    def __init__(self):
-        super().__init__(None, {AanvraagStatus.INITIAL}, [])
-
-class ScanStateChange(StateChangeSummary):
-    def __init__(self):
-        super().__init__(AanvraagStatus.INITIAL, {AanvraagStatus.INITIAL, AanvraagStatus.NEEDS_GRADING},
-                         [FileType.TO_BE_GRADED_DOCX, FileType.COPIED_PDF, FileType.DIFFERENCE_HTML])
-    def expected_file(self, filetype: FileType):
-        return super().expected_file(filetype) and filetype != FileType.DIFFERENCE_HTML
-
-class MailStateChange(StateChangeSummary):
-    def __init__(self):
-        super().__init__(AanvraagStatus.NEEDS_GRADING, {AanvraagStatus.NEEDS_GRADING, AanvraagStatus.GRADED, 
-                                                        AanvraagStatus.ARCHIVED, AanvraagStatus.MAIL_READY},
-                         [FileType.GRADED_PDF])
-        
-class StateChangeFactory(Singleton):
-    def create(self, activity: ProcessLog.Action)->StateChangeSummary:
-        match activity:
-            case ProcessLog.Action.CREATE:
-                return CreateStateChange()
-            case ProcessLog.Action.SCAN:
-                return ScanStateChange()
-            case ProcessLog.Action.MAIL:
-                return MailStateChange()
-            case _:
-                return None
-         
+       
 class ProcessLog:
     class Action(IntEnum):
         NOLOG   = 0
         CREATE  = 1
         SCAN    = 2
         MAIL    = 3
-        REVERT  = 4
-        
-    def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), nr_aanvragen = 0, rolled_back=False):
+        REVERT  = 4      
+    def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), rolled_back=False):
         self.action = action        
         self.id = id #KEY
         self.description = description

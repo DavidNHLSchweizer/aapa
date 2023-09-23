@@ -10,14 +10,14 @@ from general.timeutil import TSC
 
 AUTODIGEST = ''
 class FileType(IntEnum):
+    INVALID_PDF         = -2
     UNKNOWN             = -1
     AANVRAAG_PDF        = 0
-    INVALID_PDF         = 1
-    TO_BE_GRADED_DOCX   = 2
-    GRADED_DOCX         = 3
-    GRADED_PDF          = 4
-    COPIED_PDF          = 5
-    DIFFERENCE_HTML     = 6
+    TO_BE_GRADED_DOCX   = 1
+    COPIED_PDF          = 2
+    DIFFERENCE_HTML     = 3
+    GRADED_DOCX         = 4
+    GRADED_PDF          = 5
     def __str__(self):
         STR_DICT = {FileType.UNKNOWN: '?', FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
                     FileType.TO_BE_GRADED_DOCX: 'Formulier beoordeling (Word format)', FileType.GRADED_DOCX: 'Ingevuld formulier beoordeling (Word format)', 

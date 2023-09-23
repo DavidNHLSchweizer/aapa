@@ -2,11 +2,12 @@ from pathlib import Path
 import data.AAPdatabase as db
 from database.database import Database
 from data.storage import AAPStorage
+from general.fileutil import file_exists
 from general.log import log_error
 
 def __create_database(name, recreate = False, ignore_version=False)->Database:
     try:
-        exists = Path(name).is_file()
+        exists = file_exists(name)
         basename = Path(name).name
         if recreate or not exists:
             action = 'REINITIALISATIE' if exists else 'INITIALISATIE nieuwe'

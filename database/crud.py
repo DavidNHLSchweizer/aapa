@@ -54,7 +54,6 @@ class CRUDbase:
     def read(self, key, multiple=False)->StoredClass:
         if rows := self.database.read_record(self.table, where=SQE(self.table.keys[0], Ops.EQ, self.map_object_to_db(self.table.keys[0], key), no_column_ref=self.no_column_ref_for_key)):
             if multiple:
-                # raise Exception(f'DOE IETS!!! RETURNING multiple {rows}')
                 return rows
             else:
                 class_dict = {self._db_map[column.name]['attrib']: self.map_db_to_object(column.name, rows[0][column.name]) for column in self.table.columns}

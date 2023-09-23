@@ -4,17 +4,17 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.files import AUTODIGEST, FileInfo, FileInfos, FileType
 from data.classes.studenten import StudentInfo
 from data.classes.process_log import ProcessLog
-from data.tables.aanvragen import CRUD_aanvragen
-from data.tables.bedrijven import  CRUD_bedrijven
-from data.tables.files import CRUD_files
-from data.tables.process_log import CRUD_process_log, CRUD_process_log_aanvragen
-from data.tables.studenten import CRUD_studenten
+from data.crud.aanvragen import CRUD_aanvragen
+from data.crud.bedrijven import  CRUD_bedrijven
+from data.crud.files import CRUD_files
+from data.crud.process_log import CRUD_process_log, CRUD_process_log_aanvragen
+from data.crud.studenten import CRUD_studenten
 from database.crud import CRUDbase
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from data.roots import add_root, encode_path
-from general.log import log_debug, log_error, log_info, log_warning
+from general.log import log_debug, log_info, log_warning
 from general.timeutil import TSC
 
 class StorageException(Exception): pass

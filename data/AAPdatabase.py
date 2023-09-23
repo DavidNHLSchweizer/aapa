@@ -24,14 +24,14 @@ class VersionTableDefinition(TableDefinition):
         self.add_column('datum', dbc.TEXT)
 
 def read_version_info(database: Database)->DBVersie:
-    if row := database._execute_sql_command('select id, db_versie, versie, datum from versie order by id desc', [], True):
+    if row := database._execute_sql_command('select * from VERSIE order by id desc', [], True):
         record = row[0]
         return DBVersie(db_versie = record['db_versie'], versie=record['versie'], datum=record['datum'])
     else:
         return DBVersie(db_versie = DBVERSION, versie=config.get('versie', 'versie'), datum=Versie.datetime_str())
 
 def create_version_info(database: Database, versie: DBVersie): 
-    database._execute_sql_command('insert into versie (db_versie, versie, datum) values (?,?,?)', [versie.db_versie, versie.versie, versie.datum])
+    database._execute_sql_command('insert into VERSIE (db_versie, versie, datum) values (?,?,?)', [versie.db_versie, versie.versie, versie.datum])
     database.commit()
 
 class FileRootTableDefinition(TableDefinition):
@@ -41,7 +41,7 @@ class FileRootTableDefinition(TableDefinition):
         self.add_column('root', dbc.TEXT)
 
 def create_root(database: Database, code, root: str):
-    database._execute_sql_command('insert into fileroot (code, root) values (?,?);', [code, root])
+    database._execute_sql_command('insert into FILEROOT (code, root) values (?,?);', [code, root])
     database.commit()
 
 def create_roots(database: Database):
@@ -102,7 +102,6 @@ class ProcessLogTableDefinition(TableDefinition):
         self.add_column('action', dbc.INTEGER)    
         self.add_column('user', dbc.TEXT)    
         self.add_column('date', dbc.DATE)   
-        self.add_column('nr_aanvragen', dbc.INTEGER)
         self.add_column('rolled_back', dbc.INTEGER)
 
 class ProcessLogAanvragenTableDefinition(TableDefinition):
@@ -149,9 +148,10 @@ class AAPDatabase(Database):
         self.schema = Schema()
         self.schema.read_from_database(self)  
         if not self._reset_flag: 
-            self.check_version(False,ignore_error=ignore_version)
-            self.load_roots(False)
-            self.reset_keys()
+            version_correct = self.check_version(recreate=False,ignore_error=ignore_version)
+            if version_correct:
+                self.load_roots(False)
+                self.reset_keys()
     def reset_keys(self):
         reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
         reset_key(AanvraagTableDefinition.KEY_FOR_ID, self.__find_max_key('AANVRAGEN'))
@@ -166,23 +166,26 @@ class AAPDatabase(Database):
     def create_from_schema(cls, schema: Schema, filename: str):
         result = super().create_from_schema(schema, filename)
         if result:
-            result.check_version(True)
+            result.check_version(recreate=True)
             result.load_roots(True)
             result.reset_keys()
         return result
     def __version_error(self, db_versie, errorStr):
         log_error(errorStr)
         raise AAPaException()
-    def check_version(self, recreate = False, ignore_error = False):
+    def check_version(self, recreate=False, ignore_error=False)->bool:
         log_info('--- Controle versies database en programma')
+        result = True
         try:
             if recreate:
                 create_version_info(self, DBVersie(db_versie=DBVERSION, versie=config.get('versie', 'versie'), datum=Versie.datetime_str()))
             else:
                 versie = read_version_info(self)
-                if  versie.db_versie != DBVERSION:
-                    self.__version_error(versie.db_versie, f"Database versie {versie.db_versie} komt niet overeen met verwachte versie in programma (verwacht: {DBVERSION}).")
-                elif versie.versie != config.get('versie', 'versie'):
+                if versie.db_versie != DBVERSION:
+                    result = False
+                    if not ignore_error:
+                        self.__version_error(versie.db_versie, f"Database versie {versie.db_versie} komt niet overeen met verwachte versie in programma (verwacht: {DBVERSION}).")
+                elif versie.versie != config.get('versie', 'versie') and not ignore_error:
                     log_warning(f"Programma versie ({config.get('versie', 'versie')}) komt niet overeen met versie in database (verwacht: {versie.versie}).\nDatabase en configuratie worden bijgewerkt.")
                     versie.versie = config.get('versie', 'versie')
                     versie.datum = Versie.datetime_str()
@@ -190,6 +193,7 @@ class AAPDatabase(Database):
                     config.set('versie', 'versie', versie.versie)
                     config.set('versie', 'datum', versie.datum)
             log_info('--- Einde controle versies database en programma')
+            return result
         except AAPaException as E:
             if not ignore_error:
                 log_error('Deze versie van het programma kan deze database niet openen.\nGebruik commando "new" of migreer de data naar de juiste databaseversie.')

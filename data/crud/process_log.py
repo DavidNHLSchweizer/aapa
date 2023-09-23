@@ -1,11 +1,8 @@
 from dataclasses import dataclass
-from data.tables.aanvragen import CRUD_aanvragen
-from database.sqlexpr import Ops, SQLexpression as SQE
 from data.AAPdatabase import ProcessLogAanvragenTableDefinition, ProcessLogTableDefinition
 from data.classes.process_log  import ProcessLog
 from database.crud import CRUDbase
 from database.database import Database
-from database.sqlexpr import Ops
 from general.keys import get_next_key
 from general.timeutil import TSC
 
@@ -62,5 +59,3 @@ class CRUD_process_log_aanvragen(CRUDbase):
     def _update(self, process_log: ProcessLog):        
         self.delete(process_log.id)    
         self.create(process_log)
-    # def delete(self, process_log_id: int):
-    #     super().delete(where=SQE('log_id', Ops.EQ, process_log_id))
