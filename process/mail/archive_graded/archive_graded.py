@@ -8,11 +8,13 @@ from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.word_processor import Word2PdfConvertor
 
 class ArchiveGradedFileProcessor(AanvraagProcessor):
-    def must_process(self, aanvraag: Aanvraag): 
-        return aanvraag.status in {Aanvraag.Status.GRADED} #and self.file_is_modified(aanvraag, File.Type.TO_BE_GRADED_DOCX)        
+    def __init__(self):
+        super().__init__(entry_states={Aanvraag.Status.GRADED}, exit_state=Aanvraag.Status.ARCHIVED)
+    # def must_process(self, aanvraag: Aanvraag): 
+    #     return aanvraag.status in {Aanvraag.Status.GRADED} #and self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)        
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
         aanvraag_path = aanvraag.aanvraag_source_file_name().parent
-        graded_file = Path(aanvraag.files.get_filename(File.Type.GRADED_DOCX))
+        graded_file = Path(aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX))
         pdf_file_name = str(path_with_suffix(aanvraag_path.joinpath(graded_file.name), '.pdf').resolve())
         try:            
             log_print(f'\tFeedback file {pva(preview, "aan te maken", "aanmaken")} en archiveren:\n\t{summary_string(pdf_file_name, maxlen=96)}.')
@@ -21,8 +23,7 @@ class ArchiveGradedFileProcessor(AanvraagProcessor):
         except Exception as E:
             log_error(f'Fout bij archiveren {summary_string(pdf_file_name, 80)}:\n\t{E}')
             return False
-        aanvraag.register_file(pdf_file_name, File.Type.GRADED_PDF)
-        aanvraag.status = Aanvraag.Status.ARCHIVED
+        aanvraag.register_file(pdf_file_name, File.Type.GRADE_FORM_PDF)
         if not preview:
             log_print(f'\tFeedback file aangemaakt en gearchiveerd')
         return True

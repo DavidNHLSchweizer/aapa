@@ -16,10 +16,10 @@ class StateLogProcessor(AanvraagProcessorBase):
 
 class UndoRecipeProcessor(AanvraagProcessor):
     def __init__(self, process_log: ProcessLog):
-        super().__init__()
+        self.recipe: UndoRecipe = UndoRecipeFactory().create(process_log.action)
         self.ids_to_delete = []
         self.process_log = process_log
-        self.recipe: UndoRecipe = UndoRecipeFactory().create(process_log.action)
+        super().__init__(exit_state = self.recipe.final_state)
     def __delete_file(self, filetype: File.Type, filename: str, preview=False):
         if (filename is None or not file_exists(filename)):            
             if not filetype in self.recipe.optional_files:
@@ -44,18 +44,15 @@ class UndoRecipeProcessor(AanvraagProcessor):
         for filetype in self.recipe.files_to_forget:
             log_print(f'\t\t{summary_string(aanvraag.files.get_filename(filetype))}')
             aanvraag.unregister_file(filetype) 
-        log_info(f'\tEinde verwijderen bestanden uit database:', to_console=True)
+        log_info(f'\tEinde verwijderen bestanden uit database', to_console=True)
     def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         log_info(f'Ongedaan maken voor aanvraag {aanvraag.summary()}.', to_console=True)
         self._process_files_to_delete(aanvraag, preview)
         self._process_files_to_forget(aanvraag, preview)
-        if self.recipe.final_beoordeling != aanvraag.beoordeling:
+        if self.recipe.final_beoordeling and self.recipe.final_beoordeling != aanvraag.beoordeling:
             aanvraag.beoordeling = self.recipe.final_beoordeling
-        if self.recipe.final_state != aanvraag.status:
-            aanvraag.status = self.recipe.final_state
-        log_info(f'Einde ongedaan maken voor aanvraag {aanvraag.summary()}.\n\tStatus is "{str(aanvraag.status)}"', to_console=True)
+        log_info(f'Einde ongedaan maken voor aanvraag {aanvraag.summary()}.', to_console=True)
         return True
-
 
 def undo_last(storage: AAPAStorage, preview=False)->int:
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)

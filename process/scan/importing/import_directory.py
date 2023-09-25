@@ -81,7 +81,7 @@ class AanvraagPDFImporter(AanvraagCreator):
             return None
         log_print(f'Lezen {summary_string(filename, maxlen=100)}')
         try:
-            if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
+            if (aanvraag := AanvraagReaderFromPDF(filename).read_aanvraag()):
                 validator = AanvraagValidator(storage, filename, aanvraag)
                 if not validator.validate():
                     return None
@@ -95,65 +95,9 @@ class AanvraagPDFImporter(AanvraagCreator):
             log_warning(f'{reader_exception}\n\t{ERRCOMMENT}.')           
         return None
 
-
-class ImportResult(Enum):
-    UNKNOWN  = 0
-    IMPORTED = 1
-    ERROR    = 2
-    ALREADY_IMPORTED = 3
-    KNOWN_ERROR = 4
-    KNOWN_PDF = 5
-    COPIED_FILE = 6
-
-# def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResult:
-#     def known_import_result(filename)->ImportResult:
-#         def not_changed(filename, file):
-#             return File.get_timestamp(filename) == file.timestamp and File.get_digest(filename) == file.digest
-#         if (file := importer.known_file_info(filename)):
-#             match file.filetype:
-#                 case File.Type.AANVRAAG_PDF | File.Type.COPIED_PDF:
-#                     if not_changed(filename, file): 
-#                         return ImportResult.ALREADY_IMPORTED if file.filetype == File.Type.AANVRAAG_PDF else ImportResult.COPIED_FILE
-#                     else:
-#                         return ImportResult.UNKNOWN
-#                 case File.Type.GRADED_PDF:
-#                     return ImportResult.KNOWN_PDF
-#                 case File.Type.INVALID_PDF:
-#                     if not_changed(filename, file): 
-#                         return ImportResult.KNOWN_ERROR
-#                     else:
-#                         return ImportResult.UNKNOWN
-                
-#         return ImportResult.UNKNOWN
-#     try:
-#         if (result := known_import_result(filename)) == ImportResult.UNKNOWN: 
-#             if importer.process_file(filename): 
-#                 return ImportResult.IMPORTED
-#             else:
-#                 return ImportResult.ERROR
-#         return result
-#     except ImportException as E:
-#         log_error(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
-#         importer.storage.file_info.store_invalid(filename)
-#         return ImportResult.ERROR
-
-def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=False):
-    def import_status_str(result):
-        match result:
-            case ImportResult.IMPORTED: return pva(preview, "te importeren","geimporteerd")
-            case ImportResult.ERROR: return pva(preview, "kan niet worden geimporteerd","fout bij importeren")
-            case ImportResult.ALREADY_IMPORTED: return "eerder geimporteerd"
-            case ImportResult.COPIED_FILE: return "kopie van aanvraag (eerder geimporteerd)"
-            case ImportResult.KNOWN_ERROR: return "eerder gelezen, kan niet worden geimporteerd"
-            case _: return "???"
-    def file_str(file,result):
-        return f'{summary_string(file)} [{import_status_str(result)}]'
+def report_imports(new_aanvragen, preview=False, verbose=False):
     log_info('Rapportage import:', to_console=True)
     sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")    
-    if verbose:
-        log_info(f'\t---Gelezen {sop_aanvragen}:---')
-        if len(new_aanvragen):
-            log_print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
     if len(new_aanvragen):
         log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')
         log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
@@ -175,10 +119,8 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
         skip_directories = set()
     skip_files = config.get('import', 'skip_files')
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
-    file_results = {}
     first_id = storage.aanvragen.max_id() + 1
-    #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben met de nieuwe procesgang
     n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
-    report_imports(file_results, importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
+    report_imports(importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

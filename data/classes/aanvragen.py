@@ -11,16 +11,18 @@ from general.timeutil import TSC
 class Aanvraag:
     class Status(IntEnum):
         DELETED         = -1
-        INITIAL         = 0
-        NEEDS_GRADING   = 1
-        GRADED          = 2
-        ARCHIVED        = 3 
-        MAIL_READY      = 4
-        READY           = 5
-        READY_IMPORTED  = 6
+        NEW             = 0
+        IMPORTED_PDF    = 1
+        NEEDS_GRADING   = 2
+        GRADED          = 3
+        ARCHIVED        = 4 
+        MAIL_READY      = 5
+        READY           = 6
+        READY_IMPORTED  = 7
         def __str__(self):
-            STRS = {Aanvraag.Status.DELETED: 'verwijderd', Aanvraag.Status.INITIAL: 'ontvangen',  Aanvraag.Status.NEEDS_GRADING: 'te beoordelen', Aanvraag.Status.GRADED: 'beoordeeld', 
-                    Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'verwerkt', 
+            STRS = {Aanvraag.Status.DELETED: 'verwijderd', Aanvraag.Status.NEW: 'nog niet bekend', Aanvraag.Status.IMPORTED_PDF: 'gelezen (PDF)',  
+                    Aanvraag.Status.NEEDS_GRADING: 'te beoordelen', Aanvraag.Status.GRADED: 'beoordeeld', 
+                    Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'geheel verwerkt', 
                     Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
             return STRS[self.value]
     class Beoordeling(IntEnum):
@@ -37,7 +39,7 @@ class Aanvraag:
                     return beoordeling
             return None
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, 
-                 beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.INITIAL, id=EMPTY_ID, aanvraag_nr = 1):        
+                 beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, aanvraag_nr = 1):        
         self._id = id
         self._dateparser = DateParser()
         self.student = student

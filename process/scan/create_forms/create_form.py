@@ -5,7 +5,7 @@ from general.log import log_error, log_info, log_print
 from general.fileutil import file_exists
 from mailmerge import MailMerge
 from general.preview import pva
-from process.general.aanvraag_processor import AanvraagProcessor
+from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase
 
 class MailMergeException(Exception): pass
 
@@ -15,6 +15,7 @@ class FormCreator(AanvraagProcessor):
         if not file_exists(template_doc):
             raise MailMergeException(f'kan template {template_doc} niet vinden.')
         self.template_doc = template_doc
+        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF}, exit_state=Aanvraag.Status.NEEDS_GRADING)
     def merge_document(self, template_doc: str, output_file_name: str, **kwds)->str:
         preview = kwds.pop('preview', False)
         try:
@@ -35,11 +36,8 @@ class FormCreator(AanvraagProcessor):
                         student=aanvraag.student.full_name,bedrijf=aanvraag.bedrijf.name,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
                         preview=preview)
     def must_process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
-        log_info(f'aanvraag status {aanvraag.status}')
-        if not aanvraag.status in [Aanvraag.Status.INITIAL, Aanvraag.Status.NEEDS_GRADING]:
-            return False
         if not preview:
-            filename = aanvraag.files.get_filename(File.Type.TO_BE_GRADED_DOCX)
+            filename = aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX)
             if filename != None:
                 return not file_exists(filename)                
             else:
@@ -47,9 +45,8 @@ class FormCreator(AanvraagProcessor):
         else:
             filename = self.output_directory.joinpath(self.__get_output_filename(aanvraag))
             return not file_exists(filename)
-    def process(self, aanvraag: Aanvraag, preview=False, previous_aanvraag: Aanvraag=None, **kwdargs)->bool:
+    def process(self, aanvraag: Aanvraag, preview=False, **kwdargs)->bool:
         doc_path = self.__merge_document(aanvraag, preview=preview)
         log_print(f'{aanvraag}\n\tFormulier {pva(preview, "aanmaken", "aangemaakt")}: {Path(doc_path).name}.')
-        aanvraag.status = Aanvraag.Status.NEEDS_GRADING
-        aanvraag.register_file(doc_path, File.Type.TO_BE_GRADED_DOCX)
+        aanvraag.register_file(doc_path, File.Type.GRADE_FORM_DOCX)
         return True

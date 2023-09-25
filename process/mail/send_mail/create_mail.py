@@ -51,12 +51,13 @@ class FeedbackMailCreator:
 class FeedbackMailProcessor(AanvraagProcessor):
     def __init__(self):
         self.mailer = FeedbackMailCreator()
+        super().__init__(entry_states={Aanvraag.Status.ARCHIVED}, exit_state=Aanvraag.Status.MAIL_READY)
     def get_draft_folder_name(self):
         return self.mailer.draft_folder_name
     def must_process(self, aanvraag: Aanvraag, **kwargs)->bool:    
         return aanvraag.status  in {Aanvraag.Status.ARCHIVED}
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
-        filename = aanvraag.files.get_filename(File.Type.GRADED_PDF)
+        filename = aanvraag.files.get_filename(File.Type.GRADE_FORM_PDF)
         if preview:
             log_print(f'\tKlaarzetten feedbackmail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
         else:
@@ -65,5 +66,4 @@ class FeedbackMailProcessor(AanvraagProcessor):
                 return False 
             self.mailer.draft_mail(aanvraag, filename)
             log_print(f'\tFeedbackmail ({str(aanvraag.beoordeling)}) aan {aanvraag.student.full_name} ({aanvraag.student.email}) klaargezet in {self.get_draft_folder_name()}.')
-            aanvraag.status = Aanvraag.Status.MAIL_READY
         return True

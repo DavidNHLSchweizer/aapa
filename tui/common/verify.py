@@ -12,6 +12,10 @@ from tui.common.button_bar import ButtonBar, ButtonDef
 def get_split_width(s: str)->int:
     return max(len(substr) for substr in s.split('\n'))
 
+def center_strings(s: str)->str:
+    w = get_split_width(s)
+    return '\n'.join([substr.center(w) for substr in s.split('\n')])
+
 class DialogMessage(Message):
     def __init__(self, result_str: str, originator_key: str):
         self.result_str = result_str
@@ -40,7 +44,7 @@ class DialogForm(Static):
         super().__init__()
     def compose(self) -> ComposeResult:
         with Center():
-            yield Label(self._label_str)
+            yield Label(center_strings(self._label_str))
             yield ButtonBar(self._buttons)
     def on_mount(self):
         w = 2 + max(self.__total_button_width(), self.__label_width())

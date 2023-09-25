@@ -15,16 +15,25 @@ class UndoRecipe:
         self.optional_files = optional_files
         self.forget_aanvraag = forget_aanvraag
         
+# NOG 1 dingetje: de beoordelingsfile moet niet worden verwijderd door undo van de MAIL! rest lijkt nu wel aardig te werken,
+
 class UndoRecipeFactory(Singleton):
     def create(self, activity: ProcessLog.Action)->UndoRecipe:
         match activity:
             case ProcessLog.Action.CREATE:
-                return UndoRecipe(final_state=Aanvraag.Status.DELETED, final_beoordeling=None, files_to_forget=[File.Type.AANVRAAG_PDF], forget_aanvraag=True) 
+                return UndoRecipe(final_state=Aanvraag.Status.DELETED, 
+                                  final_beoordeling=None, 
+                                  files_to_forget=[File.Type.AANVRAAG_PDF], forget_aanvraag=True) 
             case ProcessLog.Action.SCAN:
-                return UndoRecipe(final_state=Aanvraag.Status.INITIAL, final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
-                                  files_to_delete=[File.Type.TO_BE_GRADED_DOCX, File.Type.COPIED_PDF, File.Type.DIFFERENCE_HTML], optional_files = [File.Type.DIFFERENCE_HTML])                                      
+                return UndoRecipe(final_state=Aanvraag.Status.IMPORTED_PDF, 
+                                  final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
+                                  files_to_delete=[File.Type.GRADE_FORM_DOCX, File.Type.COPIED_PDF,
+                                                   File.Type.DIFFERENCE_HTML], 
+                                                   optional_files = [File.Type.DIFFERENCE_HTML])                                      
             case ProcessLog.Action.MAIL:
-                return UndoRecipe(final_state=Aanvraag.Status.NEEDS_GRADING, final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
-                                  files_to_delete=[File.Type.GRADED_DOCX, File.Type.GRADED_PDF])                       
+                return UndoRecipe(final_state=Aanvraag.Status.NEEDS_GRADING, 
+                                  final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
+                                  files_to_delete=[File.Type.GRADE_FORM_PDF],
+                                  files_to_forget=[File.Type.GRADED_DOCX])                 
             case _:
                 return None

@@ -11,10 +11,18 @@ from data.storage import AAPAStorage
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print
 from general.preview import Preview
-
+class AanvraagProcessorException(Exception): pass
 class AanvraagProcessorBase:
+    def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
+        self.entry_states = entry_states
+        self.exit_state = exit_state
+    def in_entry_states(self, status: Aanvraag.Status)->bool:
+        if self.entry_states is not None:
+            return status in self.entry_states
+        else:
+            return True
     def must_process(self, aanvraag: Aanvraag, **kwargs)->bool:
-        return True
+        return self.in_entry_states(aanvraag.status)
     def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         return False
     def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Aanvraag:
@@ -43,9 +51,12 @@ class AanvraagCreator(AanvraagProcessorBase):
         return None
 
 class AanvragenProcessorBase:
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, activity: ProcessLog.Action):
+    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], 
+                 storage: AAPAStorage, activity: ProcessLog.Action):
         self._processors:list[AanvraagProcessorBase] = []
         if isinstance(processors, list):
+            if not len(processors):
+                raise AanvraagProcessorException('Empty list of processors')
             for processor in processors: self._processors.append(processor)
         else:
             self._processors.append(processors)
@@ -62,7 +73,6 @@ class AanvragenProcessorBase:
         if not self.process_log.is_empty():
             self.storage.process_log.create(self.process_log)
         self.storage.commit()
-
     def is_known_file(self, filename: str)->bool: 
         return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
 
@@ -73,7 +83,9 @@ class AanvragenProcessor(AanvragenProcessorBase):
         self.__sort_aanvragen() 
     def __read_from_storage(self):
         log_info('Start reading aanvragen from database')
-        result = self.storage.aanvragen.read_all()
+        entry_states = self._processors[0].entry_states
+        filter_func = lambda a: a.status in entry_states if entry_states is not None else None
+        result = self.storage.aanvragen.read_all(filter_func=filter_func)
         log_info('End reading aanvragen from database')
         return result
     def __sort_aanvragen(self):
@@ -90,12 +102,9 @@ class AanvragenProcessor(AanvragenProcessorBase):
             return(self.aanvragen)
     def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         try:
-            if processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs):                                                
-                self.storage.aanvragen.update(aanvraag)
-                self.storage.commit()
-                return True
+            return processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
         except Exception as E:
-            log_error(f'Fout bij processing {aanvraag.summary()}:\n\t{E}')
+            log_error(f'Fout bij processing {aanvraag.summary()}\n\t{E}')
         return False
     def process_aanvragen(self, preview=False, filter_func = None, **kwargs)->int:
         n_processed = 0
@@ -104,9 +113,16 @@ class AanvragenProcessor(AanvragenProcessorBase):
             for aanvraag in self.filtered_aanvragen(filter_func):
                 processed = 0                
                 for processor in self._processors:
-                    #log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
+                    log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
+                    if not processor.in_entry_states(aanvraag.status):
+                        break
                     if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
                         processed += 1
+                        log_debug(f'processed. Exit state: {processor.exit_state}')
+                        if processor.exit_state:
+                            aanvraag.status = processor.exit_state                       
+                        self.storage.aanvragen.update(aanvraag)
+                        self.storage.commit()
                 if processed > 0:
                     n_processed += 1            
                     self.log_aanvraag(aanvraag) 

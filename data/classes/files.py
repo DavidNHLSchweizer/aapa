@@ -14,15 +14,15 @@ class File:
         INVALID_PDF         = -2
         UNKNOWN             = -1
         AANVRAAG_PDF        = 0
-        TO_BE_GRADED_DOCX   = 1
+        GRADE_FORM_DOCX     = 1
         COPIED_PDF          = 2
         DIFFERENCE_HTML     = 3
         GRADED_DOCX         = 4
-        GRADED_PDF          = 5
+        GRADE_FORM_PDF          = 5
         def __str__(self):
             STR_DICT = {File.Type.UNKNOWN: '?', File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
-                        File.Type.TO_BE_GRADED_DOCX: 'Formulier beoordeling (Word format)', File.Type.GRADED_DOCX: 'Ingevuld formulier beoordeling (Word format)', 
-                        File.Type.GRADED_PDF: 'Ingevuld formulier beoordeling (PDF format)', File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
+                        File.Type.GRADE_FORM_DOCX: 'Beoordelingsformulier', File.Type.GRADED_DOCX: 'Ingevuld beoordelingsformulier', 
+                        File.Type.GRADE_FORM_PDF: 'Ingevuld beoordelingsformulier (PDF format)', File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
                         File.Type.DIFFERENCE_HTML: 'verschilbestand met vorige versie aanvraag'
                         }
             return STR_DICT.get(self, '!unknown')

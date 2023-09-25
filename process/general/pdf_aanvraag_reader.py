@@ -123,12 +123,7 @@ def debug_table_report_string(table: list[str], r1:int=None, r2:int=None)->str:
     return "\n".join([f'{n}: {line}' for n,line in enumerate(table[rr1:rr2])])
 
 class AanvraagReaderFromPDF(PDFaanvraagReader):
-    def __init__(self, pdf_file: str):
-        super().__init__(pdf_file)
-        self.aanvraag = self.get_aanvraag()
-    def __str__(self):
-        return f'file:"{self.filename}" aanvraag: "{str(self.aanvraag)}"'
-    def get_aanvraag(self)->Aanvraag:            
+    def read_aanvraag(self)->Aanvraag:            
         aanvraag_data = _AanvraagData()
         try:
             self.__parse_main_data(self.tables[0], aanvraag_data)
@@ -144,7 +139,8 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
             return None
         bedrijf = Bedrijf(aanvraag_data.bedrijf)
         student = Student(full_name=aanvraag_data.full_name, stud_nr=aanvraag_data.stud_nr, tel_nr=aanvraag_data.tel_nr, email=aanvraag_data.email)
-        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
+        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel, 
+                        status = Aanvraag.Status.IMPORTED_PDF)
     def __parse_first_table(self, table: list[str], field_keys: list[str])->dict:
         def find_pattern(table_row: str)->tuple[str,str]:
             for key in field_keys:
