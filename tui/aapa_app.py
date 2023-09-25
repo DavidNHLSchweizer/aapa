@@ -144,11 +144,11 @@ class AapaButtons(Static):
   
 class AAPAApp(App):
     BINDINGS = [ 
-                Binding('ctrl-c', 'einde', 'Einde programma', priority=True),
-                Binding('ctrl+s', 'scan', 'Scan nieuwe aanvragen', priority = True),
-                Binding('ctrl+o', 'mail', 'Zet mails klaar', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
-                Binding('ctrl+z', 'undo', 'Maak laatste actie ongedaan', priority = True),
-                Binding('ctrl+p', 'toggle_preview', 'Toggle preview mode', priority=True),
+                Binding('ctrl-c', 'einde', 'Einde', priority=True),
+                Binding('ctrl+s', 'scan', 'Scan', priority = True),
+                Binding('ctrl+o', 'mail', 'Mail', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
+                Binding('ctrl+z', 'undo', 'Undo', priority = True),
+                Binding('ctrl+p', 'toggle_preview', 'Toggle preview', priority=True),
                 Binding('ctrl+r', 'edit_root', 'Bewerk root directory', priority = True, show=False),
                 Binding('ctrl+f', 'edit_output_directory', 'Bewerk output directory', priority = True, show=False),
                 Binding('ctrl+d', 'edit_database', 'Kies database file', priority = True, show=False),

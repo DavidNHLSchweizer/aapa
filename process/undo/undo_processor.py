@@ -52,9 +52,11 @@ class UndoRecipeProcessor(AanvraagProcessor):
         if self.recipe.final_beoordeling and self.recipe.final_beoordeling != aanvraag.beoordeling:
             aanvraag.beoordeling = self.recipe.final_beoordeling
         log_info(f'Einde ongedaan maken voor aanvraag {aanvraag.summary()}.', to_console=True)
+        if self.recipe.final_state == Aanvraag.Status.DELETED:
+            log_info(f'Verwijdering aanvraag {aanvraag.summary()} is voltooid.', to_console=True)
         return True
 
-def undo_last(storage: AAPAStorage, preview=False)->int:
+def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
     if not (process_log:=storage.process_log.find_log()):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
