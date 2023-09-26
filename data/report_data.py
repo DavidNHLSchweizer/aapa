@@ -75,7 +75,7 @@ class AanvragenXLSReporter(AanvragenProcessor):
         result = 0
         with self.open_xls(xls_filename):
             try:
-                result = super().process_aanvragen(False, filter_func, sheet = self.sheet, **kwargs)
+                result = super().process_aanvragen(preview=preview, filter_func=filter_func, sheet = self.sheet, **kwargs)
             except Exception as E:
                 log_error(f'Fout bij schrijven Excel-bestand {xls_filename}:\n\t{E}')
                 result = None

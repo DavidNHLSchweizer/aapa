@@ -19,6 +19,7 @@ class CRUD_process_log(CRUDbase):
         self._db_map['date']['obj2db'] = TSC.timestamp_to_str
         self._db_map['rolled_back']['db2obj'] = CRUD_process_log.VTB
         self._db_map['rolled_back']['obj2db'] = CRUD_process_log.BTV        
+        self._db_map['action']['db2obj'] = ProcessLog.Action
     def create(self, process_log: ProcessLog):
         process_log.id = get_next_key(ProcessLogTableDefinition.KEY_FOR_ID)
         super().create(process_log)                          

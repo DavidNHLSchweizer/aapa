@@ -12,6 +12,7 @@ class CRUD_files(CRUDbase):
         self._db_map['filename']['obj2db'] = encode_path
         self._db_map['timestamp']['db2obj'] = TSC.str_to_timestamp
         self._db_map['timestamp']['obj2db'] = TSC.timestamp_to_str
+        self._db_map['filetype']['db2obj'] = File.Type
     def read_all(self, filenames: list[str])->list[File]:
         return [self.read(filename) for filename in filenames]
 

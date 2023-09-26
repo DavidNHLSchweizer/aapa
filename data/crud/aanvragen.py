@@ -13,6 +13,8 @@ class CRUD_aanvragen(CRUDbase):
         super().__init__(database, AanvraagTableDefinition(), Aanvraag)
         self._db_map['stud_nr']['attrib'] = 'student.stud_nr'
         self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
+        self._db_map['status']['db2obj'] = Aanvraag.Status
+        self._db_map['beoordeling']['db2obj'] = Aanvraag.Beoordeling
     def create(self, aanvraag: Aanvraag):        
         aanvraag.id = get_next_key(AanvraagTableDefinition.KEY_FOR_ID) #TODO: mogelijk kan dit anders, maar nodig is het niet erg
         super().create(aanvraag)

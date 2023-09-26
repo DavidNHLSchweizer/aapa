@@ -1,3 +1,4 @@
+from typing import Iterable
 from data.AAPdatabase import  create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
@@ -10,11 +11,12 @@ from data.crud.files import CRUD_files
 from data.crud.process_log import CRUD_process_log, CRUD_process_log_aanvragen
 from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
+from database.SQL import SQLselect
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from data.roots import add_root, encode_path
-from general.log import log_info, log_warning
+from general.log import log_debug, log_info, log_warning
 from general.timeutil import TSC
 
 class StorageException(Exception): pass
@@ -160,23 +162,29 @@ class AanvraagStorage(ObjectStorage):
     def delete(self, id: int):
         self.files.delete_all(id)
         super().delete(id)
-    def read_all(self, filter_func = None)->list[Aanvraag]:
-        if row:= self.database._execute_sql_command('select id from AANVRAGEN where status != ?', [Aanvraag.Status.DELETED], True):
-            result = [self.read(r['id']) for r in row]
+    def __read_all_filtered(self, aanvragen: Iterable[Aanvraag], filter_func = None)->Iterable[Aanvraag]:
+        if not filter_func:
+            return aanvragen
         else:
-            result = []
-        if result and filter_func:
-            return list(filter(filter_func, result))
+            return list(filter(filter_func, aanvragen))
+    def __read_all_all(self, filter_func = None)->Iterable[Aanvraag]:
+        if row:= self.database._execute_sql_command('select id from AANVRAGEN where status != ?', [Aanvraag.Status.DELETED], True):            
+            return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
         else:
-            return result
-    def find_student_bedrijf(self, student: Student, bedrijf: Bedrijf)->list[Aanvraag]:
-        return self.read_all(lambda a: a.student.stud_nr == student.stud_nr and a.bedrijf.id == bedrijf.id)
-    def find_student(self, student: Student):
-        result = []
-        if (rows := self.database._execute_sql_command('select id from AANVRAGEN where stud_nr=?', [student.stud_nr], True)):
-            for row in rows:
-                result.append(self.read(row['id']))
-        return result
+            return None
+    def __read_all_states(self, states:set[Aanvraag.Status]=None, filter_func = None)->Iterable[Aanvraag]:
+        params = [state.value for state in states]
+        if row:= self.database._execute_sql_command(f'select id from AANVRAGEN where status in ({",".join(["?"]*len(params))})', params, True):
+            return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
+    def read_all(self, filter_func = None, states:set[Aanvraag.Status]=None)->Iterable[Aanvraag]:
+        if not states:
+            return self.__read_all_all(filter_func=filter_func)        
+        else: 
+            return self.__read_all_states(filter_func=filter_func, states=states)
+    def find_student_bedrijf(self, student: Student, bedrijf: Bedrijf, filter_func=None)->Iterable[Aanvraag]:
+        return self.read_all(filter_func=lambda a: filter_func(a) and a.student.stud_nr == student.stud_nr and a.bedrijf.id == bedrijf.id)
+    def find_student(self, student: Student)->Iterable[Aanvraag]:
+        return self.read_all(filter_func = lambda a: a.student.stud_nr == student.stud_nr)
     def __count_student_aanvragen(self, aanvraag: Aanvraag):
         if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.stud_nr], True)):
             return row[0][0]

@@ -52,8 +52,8 @@ class Aanvraag:
             self._files.reset()
         self.titel = titel
         self.aanvraag_nr = aanvraag_nr
-        self.beoordeling = Aanvraag.Beoordeling(beoordeling)
-        self.status = Aanvraag.Status(status)
+        self.beoordeling = beoordeling
+        self.status = status
     @property
     def id(self):
         return self._id

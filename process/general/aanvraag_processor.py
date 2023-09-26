@@ -85,7 +85,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
         log_info('Start reading aanvragen from database')
         entry_states = self._processors[0].entry_states
         filter_func = lambda a: a.status in entry_states if entry_states is not None else None
-        result = self.storage.aanvragen.read_all(filter_func=filter_func)
+        result = self.storage.aanvragen.read_all(states=entry_states)
         log_info('End reading aanvragen from database')
         return result
     def __sort_aanvragen(self):

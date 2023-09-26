@@ -22,7 +22,7 @@ def migrate_version(database_name, old_version, new_version):
         if not (database := start_migratie(database_name, old_version, new_version)):
             return False
         migrate_database(database)
-        finish_migratie(database, old_version)    
+        finish_migratie(database, new_version)    
     except Exception as E:
         print(f'Fout bij migratie {migration_module_name}: {E}')
         return False
@@ -52,5 +52,5 @@ def start_migratie(database_name: str, old_version: str, new_version: str)->Data
 
 def finish_migratie(database: Database, new_version: str):
     print(f'Klaar!\nUpdating database version to {new_version}')
-    update_versie(database, '1.16')    
+    update_versie(database, new_version)    
     database.commit()
