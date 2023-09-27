@@ -3,7 +3,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
 from data.classes.studenten import Student
-from data.classes.process_log import ProcessLog
+from data.classes.action_log import ActionLog
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.deep_attr import deep_attr_main_part, deep_attr_sub_part, get_deep_attr, has_deep_attr
 from database.database import Database
@@ -11,7 +11,7 @@ from database.tabledef import TableDefinition
 from general.log import log_debug
 
 DBtype = type[str|int|float]
-AAPAClass = type[Bedrijf|Student|File|Files|Aanvraag|ProcessLog]
+AAPAClass = type[Bedrijf|Student|File|Files|Aanvraag|ActionLog]
 KeyClass = type[int|str]
 class CRUDbase:    
     def __init__(self, database: Database, table: TableDefinition, class_type: AAPAClass, no_column_ref_for_key = False):

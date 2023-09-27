@@ -1,5 +1,5 @@
 from enum import IntEnum
-from data.AAPdatabase import ProcessLogAanvragenTableDefinition, ProcessLogTableDefinition
+from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogTableDefinition
 from data.classes.files import File
 from database.SQL import SQLcreate
 from database.database import Database
@@ -8,16 +8,16 @@ from data.classes.aanvragen import Aanvraag
 
 # Wijzigingen in 1.17 voor migratie:
 #
-# toevoegen PROCESSLOG en PROCESSLOG_AANVRAGEN tabel
+# toevoegen ACTIONLOG en ACTIONLOG_AANVRAGEN tabel
 # hernummeren File.Type constantes
 #
 def create_new_tables(database: Database):
-    print('toevoegen nieuwe tabellen PROCESSLOG en PROCESSLOG_AANVRAGEN')
-    database.execute_sql_command(SQLcreate(ProcessLogTableDefinition()))
-    progress_log_aanvragen_table = ProcessLogAanvragenTableDefinition()        
-    progress_log_aanvragen_table.add_foreign_key('log_id', 'PROCESSLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-    progress_log_aanvragen_table.add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-    database.execute_sql_command(SQLcreate(progress_log_aanvragen_table))
+    print('toevoegen nieuwe tabellen ACTIONLOG en ACTIONLOG_AANVRAGEN')
+    database.execute_sql_command(SQLcreate(ActionLogTableDefinition()))
+    action_log_aanvragen_table = ActionLogAanvragenTableDefinition()        
+    action_log_aanvragen_table.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    action_log_aanvragen_table.add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    database.execute_sql_command(SQLcreate(action_log_aanvragen_table))
     print('--- klaar toevoegen nieuwe tabellen')
 
 def update_filetypes(database: Database):

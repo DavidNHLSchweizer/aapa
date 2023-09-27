@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from data.classes.process_log import ProcessLog
+from data.classes.action_log import ActionLog
 from general.log import log_info
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
@@ -23,7 +23,7 @@ def process_graded(storage: AAPAStorage, filter_func = None, preview=False)->int
         }       
     with Preview(preview, storage, 'graded'):
         log_info('--- Verwerken ingevulde beoordelingsformulieren ...', to_console=True)
-        processor = AanvragenProcessor('Verwerken ingevulde beoordelingsformulieren', [ReadFormGradeProcessor(),  ArchiveGradedFileProcessor(), FeedbackMailProcessor()], storage, ProcessLog.Action.MAIL)
+        processor = AanvragenProcessor('Verwerken ingevulde beoordelingsformulieren', [ReadFormGradeProcessor(),  ArchiveGradedFileProcessor(), FeedbackMailProcessor()], storage, ActionLog.Action.MAIL)
         result = processor.process_aanvragen(preview=preview, filter_func=filter_func) 
         log_info(f'{result} {sop(result, "aanvraag", "aanvragen")} volledig {PVA[RappPva.VERWERKEN]} (beoordeling {PVA[RappPva.LEZEN]}, {PVA[RappPva.ARCHIVEREN]} en mail {PVA[RappPva.KLAARZETTEN]}).', to_console=True)
         log_info('--- Einde verwerken beoordelingsformulieren.', to_console=True)

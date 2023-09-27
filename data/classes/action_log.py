@@ -7,7 +7,7 @@ from general.timeutil import TSC
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
        
-class ProcessLog:
+class ActionLog:
     class Action(IntEnum):
         NOLOG   = 0
         CREATE  = 1

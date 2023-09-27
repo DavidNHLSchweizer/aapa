@@ -1,4 +1,4 @@
-from data.classes.process_log import ProcessLog
+from data.classes.action_log import ActionLog
 from general.fileutil import created_directory, from_main_path, test_directory_exists
 from general.log import log_error, log_info, log_print
 from general.preview import Preview, pva
@@ -33,8 +33,7 @@ def create_beoordelingen_files(storage: AAPAStorage, template_doc, output_direct
         processor = AanvragenProcessor(f'Maken beoordelingsformulieren en kopiëren aanvragen ({output_directory})', 
                                        [FormCreator(template_doc, output_directory), 
                                         CopyAanvraagProcessor(output_directory), 
-                                        # DifferenceProcessor(storage.aanvragen.read_all(), output_directory)], storage, ProcessLog.Action.SCAN)
-                                        DifferenceProcessor(storage, output_directory)], storage, ProcessLog.Action.SCAN)
+                                        DifferenceProcessor(storage, output_directory)], storage, ActionLog.Action.SCAN)
         result = processor.process_aanvragen(preview=preview, filter_func=filter_func, output_directory=output_directory) 
     else:
         log_error(f'Output directory "{output_directory}" bestaat niet. Kan geen formulieren aanmaken')
@@ -42,10 +41,12 @@ def create_beoordelingen_files(storage: AAPAStorage, template_doc, output_direct
     log_info('--- Einde maken beoordelingsformulieren.')
     return result
 
-
 def process_directory(input_directory, storage: AAPAStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):
         n_imported = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
         log_info(f'### {n_imported} {sop(n_imported, "bestand", "bestanden")} {pva(preview, "importeren", "geimporteerd")} van {input_directory}.', to_console=True)
+
+def process_forms(storage: AAPAStorage, output_directory, recursive = True, preview=False):
+    with Preview(preview, storage, 'requests'):
         n_forms = create_beoordelingen_files(storage, get_template_doc(), output_directory, preview=preview)
         log_info(f'### {n_forms} {sop(n_forms, "aanvraag", "aanvragen")} {pva(preview, "klaarzetten", "klaargezet")} voor beoordeling in {output_directory}', to_console=True)

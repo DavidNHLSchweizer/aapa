@@ -37,7 +37,8 @@ class ButtonBar(Static):
     def compose(self)->ComposeResult:
         for button in self._buttons:
             yield Button(label=button.label, variant=button.variant, name=button.name, id=button.id, classes=button.classes, disabled=button.disabled)
-
+    def nr_buttons(self)->int:
+        return len(self.query(Button))
 
 if __name__== '__main__':
     from textual.widgets import Header, Footer

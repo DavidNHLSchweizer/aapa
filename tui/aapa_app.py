@@ -7,7 +7,7 @@ from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
-from general.args import AAPAaction, AAPAoptions
+from general.args import AAPAaction, AAPAOptions
 from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
 from tui.common.button_bar import ButtonBar, ButtonDef
@@ -22,7 +22,7 @@ import tkinter.filedialog as tkifd
 
 from tui.terminal_console import TerminalConsoleFactory
 
-def AAPArun_script(options: AAPAoptions)->bool:
+def AAPArun_script(options: AAPAOptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
         aapa_runner = AAPARunner(options)
@@ -37,7 +37,8 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'root-input-button': 'Kies de root-directory',
             'output-input-button': 'Kies de output-directory',
             'database-input-button': 'Kies de database',
-            'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories, maak aanvraagformulieren',
+            'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories',
+            'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
             'undo': 'Maak de laatste actie (scan of mail) ongedaan',
             'mode_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database',
@@ -50,8 +51,8 @@ class AAPATuiParams:
     output_directory: str = ''
     database: str = ''
     preview: bool = True
-    def get_options(self, action: AAPAaction)->AAPAoptions:
-        return AAPAoptions([action], self.root_directory, self.output_directory, self.database, self.preview)
+    def get_options(self, action: AAPAaction)->AAPAOptions:
+        return AAPAOptions([action], self.root_directory, self.output_directory, self.database, self.preview)
       
 class AapaConfiguration(Static):
     def compose(self)->ComposeResult:
@@ -117,6 +118,7 @@ class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
             yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan'),
+                             ButtonDef('Form', variant= 'primary', id='form'),
                              ButtonDef('Mail', variant= 'primary', id='mail'), 
                              ButtonDef('Undo', variant= 'error', id='undo')], 
                              ) 
@@ -125,8 +127,9 @@ class AapaButtons(Static):
                 yield RadioButton('uitvoeren', id='uitvoeren')
             yield Button('Rapport', variant = 'primary', id='report')
     def on_mount(self):
-        self.query_one(ButtonBar).styles.width = 42
-        for id in {'scan', 'mail', 'undo', 'report'}:
+        button_bar = self.query_one(ButtonBar)
+        button_bar.styles.width = 6 + button_bar.nr_buttons() * 12
+        for id in {'scan', 'form', 'mail', 'undo', 'report'}:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         for id in {'preview', 'uitvoeren'}:
             self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}']    
@@ -146,12 +149,13 @@ class AAPAApp(App):
     BINDINGS = [ 
                 Binding('ctrl-c', 'einde', 'Einde', priority=True),
                 Binding('ctrl+s', 'scan', 'Scan', priority = True),
+                Binding('ctrl+f', 'form', 'Form', priority = True),
                 Binding('ctrl+o', 'mail', 'Mail', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
                 Binding('ctrl+z', 'undo', 'Undo', priority = True),
                 Binding('ctrl+p', 'toggle_preview', 'Toggle preview', priority=True),
                 Binding('ctrl+r', 'edit_root', 'Bewerk root directory', priority = True, show=False),
-                Binding('ctrl+f', 'edit_output_directory', 'Bewerk output directory', priority = True, show=False),
-                Binding('ctrl+d', 'edit_database', 'Kies database file', priority = True, show=False),
+                Binding('ctrl+o', 'edit_output_directory', 'Bewerk output directory', priority = True, show=False),
+                Binding('ctrl+b', 'edit_database', 'Kies database file', priority = True, show=False),
                 Binding('ctrl+q', 'barbie', '', priority = True, show=False),
                ]
     CSS_PATH = ['aapa.tcss']
@@ -179,11 +183,12 @@ class AAPAApp(App):
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
             case 'scan': await self.action_scan()
+            case 'form': await self.action_form()
             case 'mail': await self.action_mail()
             case 'undo': await self.action_undo()
             case 'report': await self.action_report()
         message.stop()
-    def _create_options(self, **kwdargs)->AAPAoptions:
+    def _create_options(self, **kwdargs)->AAPAOptions:
         options = self.params.get_options(kwdargs.pop('action', None))
         options.filename = kwdargs.pop('filename', options.filename)
         return options
@@ -200,9 +205,12 @@ class AAPAApp(App):
                     await self.run_AAPA(AAPAaction.UNDO)
     async def action_scan(self):    
         await self.run_AAPA(AAPAaction.SCAN)
+    async def action_form(self):    
+        await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
     async def action_undo(self):
+        log_debug(f'Last action: {storage.action_log.last_action()}')
         if self.query_one(AapaButtons).preview:
             await self.run_AAPA(AAPAaction.UNDO)
         else:

@@ -1,6 +1,6 @@
 import os
 from data.classes.aanvragen import Aanvraag
-from data.classes.process_log import ProcessLog
+from data.classes.action_log import ActionLog
 from data.classes.files import File
 from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from data.storage import AAPAStorage
@@ -11,14 +11,14 @@ from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProces
 class UndoException(Exception): pass
 
 class StateLogProcessor(AanvraagProcessorBase):
-    def state_change(self, log: ProcessLog, storage: AAPAStorage, preview = False, **kwargs)->bool: 
+    def state_change(self, log: ActionLog, storage: AAPAStorage, preview = False, **kwargs)->bool: 
         return False
 
 class UndoRecipeProcessor(AanvraagProcessor):
-    def __init__(self, process_log: ProcessLog):
-        self.recipe: UndoRecipe = UndoRecipeFactory().create(process_log.action)
+    def __init__(self, action_log: ActionLog):
+        self.recipe: UndoRecipe = UndoRecipeFactory().create(action_log.action)
         self.ids_to_delete = []
-        self.process_log = process_log
+        self.action_log = action_log
         super().__init__(exit_state = self.recipe.final_state)
     def __delete_file(self, filetype: File.Type, filename: str, preview=False):
         if (filename is None or not file_exists(filename)):            
@@ -38,6 +38,7 @@ class UndoRecipeProcessor(AanvraagProcessor):
             aanvraag.unregister_file(filetype) # als het goed is wordt de file daarmee ook uit de database geschrapt!
         log_info(f'\tEinde verwijderen aangemaakte bestanden', to_console=True)
     def _process_files_to_forget(self, aanvraag: Aanvraag, preview=False):
+        # log_print(self.recipe.files_to_forget)
         if not self.recipe.files_to_forget:
             return
         log_info(f'\tVerwijderen bestanden uit database:', to_console=True)
@@ -58,15 +59,15 @@ class UndoRecipeProcessor(AanvraagProcessor):
 
 def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
-    if not (process_log:=storage.process_log.find_log()):
+    if not (action_log:=storage.action_log.find_log()):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return 0
-    nr_aanvragen = process_log.nr_aanvragen #NOTE als aanvragen worden verwijderd verwijderen ze ook uit de process_log 
-    processor = AanvragenProcessor('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(process_log), storage, ProcessLog.Action.REVERT, aanvragen=process_log.aanvragen)
+    nr_aanvragen = action_log.nr_aanvragen #NOTE als aanvragen worden verwijderd verwijderen ze ook uit de action_log 
+    processor = AanvragenProcessor('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(action_log), storage, ActionLog.Action.REVERT, aanvragen=action_log.aanvragen)
     result = processor.process_aanvragen(preview=preview) 
     if result == nr_aanvragen:
-        process_log.rolled_back = True
-        storage.process_log.update(process_log)
+        action_log.rolled_back = True
+        storage.action_log.update(action_log)
         storage.commit()
     log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
     return result

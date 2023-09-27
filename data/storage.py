@@ -4,11 +4,11 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
 from data.classes.studenten import Student
-from data.classes.process_log import ProcessLog
+from data.classes.action_log import ActionLog
 from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.bedrijven import  CRUD_bedrijven
 from data.crud.files import CRUD_files
-from data.crud.process_log import CRUD_process_log, CRUD_process_log_aanvragen
+from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen
 from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
 from database.SQL import SQLselect
@@ -33,8 +33,11 @@ class ObjectStorage:
         self.crud.update(object)
     def delete(self, key: KeyClass):
         self.crud.delete(key)
+    @property
+    def table_name(self)->str:
+        return self.crud.table.table_name
     def max_id(self):
-        if (row := self.database._execute_sql_command(f'select max(id) from {self.crud.table.table_name}', [], True)) and row[0][0]:
+        if (row := self.database._execute_sql_command(f'select max(id) from {self.table_name}', [], True)) and row[0][0]:
             return row[0][0]           
         else:
             return 0                    
@@ -43,7 +46,7 @@ class BedrijvenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_bedrijven(database))
     def create(self, bedrijf: Bedrijf):
-        if row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [bedrijf.name], True):
+        if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (name=?)', [bedrijf.name], True):
             bedrijf.id = row[0]['id']
         else:
             super().create(bedrijf)
@@ -56,7 +59,7 @@ class FilesStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_files(database))
     def find(self, aanvraag_id: int, filetype: File.Type)->File:
-        if row:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype=?', 
+        if row:= self.database._execute_sql_command(f'select filename from {self.table_name} where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, filetype], True):
             file = self.read(row[0]["filename"])
             log_info(f'success: {file}')
@@ -68,7 +71,7 @@ class FilesStorage(ObjectStorage):
     def __load(self, aanvraag_id: int, filetypes: set[File.Type])->list[File]:
         params = [aanvraag_id]
         params.extend([ft for ft in filetypes])
-        if rows:= self.database._execute_sql_command('select filename from FILES where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
+        if rows:= self.database._execute_sql_command(f'select filename from {self.table_name} where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
             filenames=[row["filename"] for row in rows]
             result = self.crud_files.read_all(filenames)
             return result
@@ -89,11 +92,11 @@ class FilesStorage(ObjectStorage):
             place_holders = '=?'
             params = [filetypes]
         result = []
-        for row in self.database._execute_sql_command('select filename from FILES where filetype' + place_holders, params, True):
+        for row in self.database._execute_sql_command(f'select filename from {self.table_name} where filetype' + place_holders, params, True):
             result.append(self.read(row['filename']))
         return result
     def find_digest(self, digest)->File:
-        if row:= self.database._execute_sql_command('select filename from FILES where digest=?', [digest], True):
+        if row:= self.database._execute_sql_command(f'select filename from {self.table_name} where digest=?', [digest], True):
             file = self.read(row[0]["filename"])
             log_info(f'success: {file}')
             return file
@@ -168,13 +171,13 @@ class AanvraagStorage(ObjectStorage):
         else:
             return list(filter(filter_func, aanvragen))
     def __read_all_all(self, filter_func = None)->Iterable[Aanvraag]:
-        if row:= self.database._execute_sql_command('select id from AANVRAGEN where status != ?', [Aanvraag.Status.DELETED], True):            
+        if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status != ?', [Aanvraag.Status.DELETED], True):            
             return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
         else:
             return None
     def __read_all_states(self, states:set[Aanvraag.Status]=None, filter_func = None)->Iterable[Aanvraag]:
         params = [state.value for state in states]
-        if row:= self.database._execute_sql_command(f'select id from AANVRAGEN where status in ({",".join(["?"]*len(params))})', params, True):
+        if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status in ({",".join(["?"]*len(params))})', params, True):
             return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
     def read_all(self, filter_func = None, states:set[Aanvraag.Status]=None)->Iterable[Aanvraag]:
         if not states:
@@ -186,13 +189,13 @@ class AanvraagStorage(ObjectStorage):
     def find_student(self, student: Student)->Iterable[Aanvraag]:
         return self.read_all(filter_func = lambda a: a.student.stud_nr == student.stud_nr)
     def __count_student_aanvragen(self, aanvraag: Aanvraag):
-        if (row := self.database._execute_sql_command('select count(id) from AANVRAGEN where stud_nr=?', [aanvraag.student.stud_nr], True)):
+        if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_nr=?', [aanvraag.student.stud_nr], True)):
             return row[0][0]
         else:
             return 0    
     def __create_table_references(self, aanvraag: Aanvraag):
         if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
-            (row:= self.database._execute_sql_command('select * from BEDRIJVEN where (name=?)', [aanvraag.bedrijf.name], True)):
+            (row:= self.database._execute_sql_command(f'select * from {self.bedrijven.table_name} where (name=?)', [aanvraag.bedrijf.name], True)):
             aanvraag.bedrijf.id = row[0]['id']
         else:
             self.bedrijven.create(aanvraag.bedrijf)
@@ -200,46 +203,50 @@ class AanvraagStorage(ObjectStorage):
             self.studenten.create(aanvraag.student)
 
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
-class ProcessLogStorage(ObjectStorage):
+class ActionLogStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_process_log(database))
-        self.process_log_aanvragen = CRUD_process_log_aanvragen(database)
+        super().__init__(database, CRUD_action_log(database))
+        self.process_log_aanvragen = CRUD_action_log_aanvragen(database)
         self.aanvragen = AanvraagStorage(database)
-    def create(self, process_log: ProcessLog):
-        super().create(process_log)
-        self.process_log_aanvragen.create(process_log)
-    def read(self, id: int)->ProcessLog:
-        result: ProcessLog = super().read(id)
+    def create(self, action_log: ActionLog):
+        super().create(action_log)
+        self.process_log_aanvragen.create(action_log)
+    def read(self, id: int)->ActionLog:
+        result: ActionLog = super().read(id)
         self.__read_aanvragen(result)
         return result
-    def update(self, process_log: ProcessLog):
-        super().update(process_log)
-        self.process_log_aanvragen.update(process_log)
+    def update(self, action_log: ActionLog):
+        super().update(action_log)
+        self.process_log_aanvragen.update(action_log)
     def delete(self, id: int):
         self.process_log_aanvragen.delete(id)
         super().delete(id)
     def delete_aanvraag(self, aanvraag_id: int):
         self.process_log_aanvragen.delete_aanvraag(aanvraag_id)
         super().delete(id)
-    def find_log(self, id: int = EMPTY_ID)->ProcessLog:        
+    def find_log(self, id: int = EMPTY_ID)->ActionLog:        
         if id == EMPTY_ID:
-            if (row := self.database._execute_sql_command('select max(id) from PROCESSLOG where rolled_back = ? and action in (?,?,?)', 
-                                                [0, ProcessLog.Action.CREATE, ProcessLog.Action.SCAN, ProcessLog.Action.MAIL], True)):
+            if (row := self.database._execute_sql_command(f'select max(id) from {self.table_name} where rolled_back = ? and action in (?,?,?)', 
+                                                [0, ActionLog.Action.CREATE, ActionLog.Action.SCAN, ActionLog.Action.MAIL], True)):
                 id = row[0][0]
             if id is None or id == EMPTY_ID:
                 log_warning(NoUNDOwarning)
                 return None
         return self.read(id)
-    def __read_aanvragen(self, process_log: ProcessLog):
-        for record in self.process_log_aanvragen.read(process_log.id):
-            process_log.add_aanvraag(self.aanvragen.read(record.aanvraag_id))
+    def last_action(self)->ActionLog.Action:
+        if (last_log := self.find_log()):
+            return last_log.action
+        return None
+    def __read_aanvragen(self, action_log: ActionLog):
+        for record in self.process_log_aanvragen.read(action_log.id):
+            action_log.add_aanvraag(self.aanvragen.read(record.aanvraag_id))
 
 class AAPAStorage: 
     #main interface with the database
     def __init__(self, database: Database):
         self.database: Database = database
         self.aanvragen = AanvraagStorage(database)
-        self.process_log = ProcessLogStorage(database)
+        self.action_log = ActionLogStorage(database)
     @property
     def files(self)->FilesStorage:
         return self.aanvragen.files

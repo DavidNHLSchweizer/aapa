@@ -97,6 +97,8 @@ class AanvraagPDFImporter(AanvraagCreator):
 
 def report_imports(new_aanvragen, preview=False, verbose=False):
     log_info('Rapportage import:', to_console=True)
+    if not new_aanvragen:
+        new_aanvragen = []
     sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")    
     if len(new_aanvragen):
         log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')

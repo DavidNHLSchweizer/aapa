@@ -6,7 +6,7 @@ import re
 from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.process_log import ProcessLog
+from data.classes.action_log import ActionLog
 from data.storage import AAPAStorage
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print
@@ -29,7 +29,7 @@ class AanvraagProcessorBase:
         return None
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         return True
-    def state_change(self, log: ProcessLog, storage: AAPAStorage, preview = False, **kwargs)->bool: 
+    def state_change(self, log: ActionLog, storage: AAPAStorage, preview = False, **kwargs)->bool: 
         return False
 
 class AanvraagProcessor(AanvraagProcessorBase):
@@ -52,7 +52,7 @@ class AanvraagCreator(AanvraagProcessorBase):
 
 class AanvragenProcessorBase:
     def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], 
-                 storage: AAPAStorage, activity: ProcessLog.Action):
+                 storage: AAPAStorage, activity: ActionLog.Action):
         self._processors:list[AanvraagProcessorBase] = []
         if isinstance(processors, list):
             if not len(processors):
@@ -61,23 +61,23 @@ class AanvragenProcessorBase:
         else:
             self._processors.append(processors)
         self.storage = storage
-        self.process_log = ProcessLog(activity, description)
+        self.action_log = ActionLog(activity, description)
         self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type})
     def start_logging(self):
-        self.process_log.start()
+        self.action_log.start()
     def log_aanvraag(self, aanvraag: Aanvraag):
         if aanvraag and aanvraag.status != Aanvraag.Status.DELETED:
-            self.process_log.add_aanvraag(aanvraag)
+            self.action_log.add_aanvraag(aanvraag)
     def stop_logging(self):
-        self.process_log.stop()
-        if not self.process_log.is_empty():
-            self.storage.process_log.create(self.process_log)
+        self.action_log.stop()
+        if not self.action_log.is_empty():
+            self.storage.action_log.create(self.action_log)
         self.storage.commit()
     def is_known_file(self, filename: str)->bool: 
         return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
-    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ProcessLog.Action, aanvragen: list[Aanvraag] = None):
+    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ActionLog.Action, aanvragen: list[Aanvraag] = None):
         super().__init__(description, processors, storage, activity=activity)
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
@@ -94,12 +94,13 @@ class AanvragenProcessor(AanvragenProcessorBase):
                 return a.timestamp
             else:
                 return datetime.datetime.now()
-        self.aanvragen.sort(key=comparekey, reverse=True)
+        if self.aanvragen:
+            self.aanvragen.sort(key=comparekey, reverse=True)
     def filtered_aanvragen(self, filter_func=None)->list[Aanvraag]:
-        if filter_func:
+        if self.aanvragen and filter_func:
             return list(filter(filter_func, self.aanvragen))
         else:
-            return(self.aanvragen)
+            return self.aanvragen
     def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         try:
             return processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
@@ -110,28 +111,29 @@ class AanvragenProcessor(AanvragenProcessorBase):
         n_processed = 0
         self.start_logging()
         with Preview(preview, self.storage, 'process_aanvragen'):
-            for aanvraag in self.filtered_aanvragen(filter_func):
-                processed = 0                
-                for processor in self._processors:
-                    log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
-                    if not processor.in_entry_states(aanvraag.status):
-                        break
-                    if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
-                        processed += 1
-                        log_debug(f'processed. Exit state: {processor.exit_state}')
-                        if processor.exit_state:
-                            aanvraag.status = processor.exit_state                       
-                        self.storage.aanvragen.update(aanvraag)
-                        self.storage.commit()
-                if processed > 0:
-                    n_processed += 1            
-                    self.log_aanvraag(aanvraag) 
+            if (aanvragen := self.filtered_aanvragen(filter_func)):
+                for aanvraag in aanvragen:
+                    processed = 0                
+                    for processor in self._processors:
+                        log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
+                        if not processor.in_entry_states(aanvraag.status):
+                            break
+                        if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
+                            processed += 1
+                            log_debug(f'processed. Exit state: {processor.exit_state}')
+                            if processor.exit_state:
+                                aanvraag.status = processor.exit_state                       
+                            self.storage.aanvragen.update(aanvraag)
+                            self.storage.commit()
+                    if processed > 0:
+                        n_processed += 1            
+                        self.log_aanvraag(aanvraag) 
             self.stop_logging()
         return n_processed
 
 class AanvragenCreator(AanvragenProcessorBase):
     def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
-        super().__init__(description, processors, storage, activity=ProcessLog.Action.CREATE)
+        super().__init__(description, processors, storage, activity=ActionLog.Action.CREATE)
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
     def _in_skip_directory(self, filename: Path)->bool:
