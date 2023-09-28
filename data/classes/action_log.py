@@ -10,18 +10,18 @@ from general.fileutil import summary_string
 class ActionLog:
     class Action(IntEnum):
         NOLOG   = 0
-        CREATE  = 1
-        SCAN    = 2
+        SCAN    = 1
+        FORM    = 2
         MAIL    = 3
-        REVERT  = 4      
-    def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), rolled_back=False):
+        UNDO  = 4      
+    def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), can_undo=True):
         self.action = action        
         self.id = id #KEY
         self.description = description
         self.date = date
         self.user = user
         self.aanvragen: list[Aanvraag]=[]
-        self.rolled_back = rolled_back
+        self.can_undo = can_undo
     def start(self):
         self.aanvragen = []
         self.date = datetime.datetime.now()
@@ -39,12 +39,10 @@ class ActionLog:
         return len(self.aanvragen)
     def is_empty(self)->bool:
         return self.nr_aanvragen == 0
-    def is_rolled_back(self)->bool:
-        return self.rolled_back
     def __str__(self)->str:
         result = f'{self.action} {TSC.timestamp_to_str(self.date)} [{self.user}] ({self.id}) !{self.nr_aanvragen} aanvragen:'
         if self.is_empty():
             return result + ' (geen aanvragen)'
-        if self.is_rolled_back():
-            result = result + ' [teruggedraaid]'
+        can_undo_str = 'kan worden' if self.can_undo else ''
+        result = f"{result} [{can_undo_str} teruggedraaid]"
         return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])

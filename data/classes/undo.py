@@ -20,11 +20,11 @@ class UndoRecipe:
 class UndoRecipeFactory(Singleton):
     def create(self, activity: ActionLog.Action)->UndoRecipe:
         match activity:
-            case ActionLog.Action.CREATE:
+            case ActionLog.Action.SCAN:
                 return UndoRecipe(final_state=Aanvraag.Status.DELETED, 
                                   final_beoordeling=None, 
                                   files_to_forget=[File.Type.AANVRAAG_PDF], forget_aanvraag=True) 
-            case ActionLog.Action.SCAN:
+            case ActionLog.Action.FORM:
                 return UndoRecipe(final_state=Aanvraag.Status.IMPORTED_PDF, 
                                   final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
                                   files_to_delete=[File.Type.GRADE_FORM_DOCX, File.Type.COPIED_PDF,

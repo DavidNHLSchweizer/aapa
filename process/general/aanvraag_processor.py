@@ -52,7 +52,7 @@ class AanvraagCreator(AanvraagProcessorBase):
 
 class AanvragenProcessorBase:
     def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], 
-                 storage: AAPAStorage, activity: ActionLog.Action):
+                 storage: AAPAStorage, activity: ActionLog.Action, can_undo = True):
         self._processors:list[AanvraagProcessorBase] = []
         if isinstance(processors, list):
             if not len(processors):
@@ -61,7 +61,7 @@ class AanvragenProcessorBase:
         else:
             self._processors.append(processors)
         self.storage = storage
-        self.action_log = ActionLog(activity, description)
+        self.action_log = ActionLog(activity, description, can_undo=can_undo)
         self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type})
     def start_logging(self):
         self.action_log.start()
@@ -71,7 +71,7 @@ class AanvragenProcessorBase:
     def stop_logging(self):
         self.action_log.stop()
         if not self.action_log.is_empty():
-            self.storage.action_log.create(self.action_log)
+            self.storage.action_logs.create(self.action_log)
         self.storage.commit()
     def is_known_file(self, filename: str)->bool: 
         return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
@@ -133,7 +133,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
 
 class AanvragenCreator(AanvragenProcessorBase):
     def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
-        super().__init__(description, processors, storage, activity=ActionLog.Action.CREATE)
+        super().__init__(description, processors, storage, activity=ActionLog.Action.SCAN)
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
     def _in_skip_directory(self, filename: Path)->bool:

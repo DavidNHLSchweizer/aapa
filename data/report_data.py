@@ -49,7 +49,7 @@ class AanvraagXLSReporter(AanvraagProcessor):
 
 class AanvragenXLSReporter(AanvragenProcessor):       
     def __init__(self, storage: AAPAStorage):
-        super().__init__('Maken XLS rapportage', AanvraagXLSReporter(), storage, ActionLog.Action.NOLOG)
+        super().__init__('Maken XLS rapportage', AanvraagXLSReporter(), storage, ActionLog.Action.NOLOG, can_undo=False)
         self.writer = None
         self.sheet = None
     @contextmanager

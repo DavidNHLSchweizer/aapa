@@ -7,22 +7,16 @@ from general.keys import get_next_key
 from general.timeutil import TSC
 
 class CRUD_action_log(CRUDbase):
-    @staticmethod
-    def BTV(value: bool)->int:
-        return 1 if value else 0
-    @staticmethod
-    def VTB(value: int)->bool:
-        return value == 1
     def __init__(self, database: Database):
         super().__init__(database, ActionLogTableDefinition(), ActionLog)
         self._db_map['date']['db2obj'] = TSC.str_to_timestamp
         self._db_map['date']['obj2db'] = TSC.timestamp_to_str
-        self._db_map['rolled_back']['db2obj'] = CRUD_action_log.VTB
-        self._db_map['rolled_back']['obj2db'] = CRUD_action_log.BTV        
+        self._db_map['can_undo']['db2obj'] = bool
+        self._db_map['can_undo']['obj2db'] = int
         self._db_map['action']['db2obj'] = ActionLog.Action
-    def create(self, process_log: ActionLog):
-        process_log.id = get_next_key(ActionLogTableDefinition.KEY_FOR_ID)
-        super().create(process_log)                          
+    def create(self, action_log: ActionLog):
+        action_log.id = get_next_key(ActionLogTableDefinition.KEY_FOR_ID)
+        super().create(action_log)                          
 
 @dataclass
 class ActionLogAanvraagRec:
@@ -33,9 +27,9 @@ ActionLogAanvraagRecs = list[ActionLogAanvraagRec]
 class CRUD_action_log_aanvragen(CRUDbase):
     def __init__(self, database: Database):
         super().__init__(database, ActionLogAanvragenTableDefinition(), None) #TBD
-    def get_aanvraag_records(self, process_log: ActionLog)->ActionLogAanvraagRecs:
-        return [ActionLogAanvraagRec(process_log.id, aanvraag.id) 
-                for aanvraag in sorted(process_log.aanvragen, key=lambda a: a.id)]
+    def get_aanvraag_records(self, action_log: ActionLog)->ActionLogAanvraagRecs:
+        return [ActionLogAanvraagRec(action_log.id, aanvraag.id) 
+                for aanvraag in sorted(action_log.aanvragen, key=lambda a: a.id)]
                 #gesorteerd om dat het anders in omgekeerde volgorde wordt gedaan en vergelijking ook lastig wordt (zie update)
     def create(self, action_log: ActionLog):
         for record in self.get_aanvraag_records(action_log):

@@ -59,15 +59,15 @@ class UndoRecipeProcessor(AanvraagProcessor):
 
 def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
-    if not (action_log:=storage.action_log.find_log()):
+    if not (action_log:=storage.action_logs.last_action()):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return 0
-    nr_aanvragen = action_log.nr_aanvragen #NOTE als aanvragen worden verwijderd verwijderen ze ook uit de action_log 
-    processor = AanvragenProcessor('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(action_log), storage, ActionLog.Action.REVERT, aanvragen=action_log.aanvragen)
+    nr_aanvragen = action_log.nr_aanvragen 
+    processor = AanvragenProcessor('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(action_log), storage, ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen)
     result = processor.process_aanvragen(preview=preview) 
     if result == nr_aanvragen:
-        action_log.rolled_back = True
-        storage.action_log.update(action_log)
+        action_log.can_undo = False
+        storage.action_logs.update(action_log)
         storage.commit()
     log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
     return result

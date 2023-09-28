@@ -102,7 +102,7 @@ class ActionLogTableDefinition(TableDefinition):
         self.add_column('action', dbc.INTEGER)    
         self.add_column('user', dbc.TEXT)    
         self.add_column('date', dbc.DATE)   
-        self.add_column('rolled_back', dbc.INTEGER)
+        self.add_column('can_undo', dbc.INTEGER)
 
 class ActionLogAanvragenTableDefinition(TableDefinition):
     def __init__(self):

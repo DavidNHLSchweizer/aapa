@@ -224,19 +224,17 @@ class ActionLogStorage(ObjectStorage):
     def delete_aanvraag(self, aanvraag_id: int):
         self.process_log_aanvragen.delete_aanvraag(aanvraag_id)
         super().delete(id)
-    def find_log(self, id: int = EMPTY_ID)->ActionLog:        
+    def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id == EMPTY_ID:
-            if (row := self.database._execute_sql_command(f'select max(id) from {self.table_name} where rolled_back = ? and action in (?,?,?)', 
-                                                [0, ActionLog.Action.CREATE, ActionLog.Action.SCAN, ActionLog.Action.MAIL], True)):
+            if (row := self.database._execute_sql_command(f'select id from {self.table_name} where can_undo = ? group by can_undo having max(id)', [1], True)):
+                print(id)
                 id = row[0][0]
             if id is None or id == EMPTY_ID:
                 log_warning(NoUNDOwarning)
                 return None
         return self.read(id)
     def last_action(self)->ActionLog.Action:
-        if (last_log := self.find_log()):
-            return last_log.action
-        return None
+        return self._find_action_log()
     def __read_aanvragen(self, action_log: ActionLog):
         for record in self.process_log_aanvragen.read(action_log.id):
             action_log.add_aanvraag(self.aanvragen.read(record.aanvraag_id))
@@ -246,7 +244,7 @@ class AAPAStorage:
     def __init__(self, database: Database):
         self.database: Database = database
         self.aanvragen = AanvraagStorage(database)
-        self.action_log = ActionLogStorage(database)
+        self.action_logs = ActionLogStorage(database)
     @property
     def files(self)->FilesStorage:
         return self.aanvragen.files
