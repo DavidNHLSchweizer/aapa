@@ -33,7 +33,8 @@ class File:
     @staticmethod
     def get_digest(filename: str)->str:
         return hash_file_digest(filename)
-    def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, filetype=Type.UNKNOWN, aanvraag_id=EMPTY_ID):
+    def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, filetype=Type.UNKNOWN, id=EMPTY_ID, aanvraag_id=EMPTY_ID):
+        self.id = id
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file():
             if timestamp == TSC.AUTOTIMESTAMP:
@@ -75,7 +76,9 @@ class File:
 class Files:
     def __init__(self, aanvraag_id=EMPTY_ID):
         self.aanvraag_id = aanvraag_id
-        self.__files = {ft:{'filename': '', 'timestamp':TSC.AUTOTIMESTAMP, 'digest':File.AUTODIGEST} for ft in File.Type if ft != File.Type.UNKNOWN}
+        self.__files = {ft:{'id': EMPTY_ID, 'filename': '', 'timestamp':TSC.AUTOTIMESTAMP, 'digest':File.AUTODIGEST} for ft in File.Type if ft != File.Type.UNKNOWN}
+    def get_id(self, ft: File.Type)->int:
+        return self.__files[ft]['id']
     def get_filename(self, ft: File.Type)->str:
         return self.__files[ft]['filename']
     def set_filename(self, ft: File.Type, value: str):

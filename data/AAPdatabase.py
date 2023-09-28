@@ -84,10 +84,12 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
 
-class FileTableDefinition(TableDefinition):
+class FilesTableDefinition(TableDefinition):
+    KEY_FOR_ID = 'Files'
     def __init__(self):
         super().__init__('FILES')
-        self.add_column('filename', dbc.TEXT, primary=True)
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('filename', dbc.TEXT)
         self.add_column('timestamp', dbc.TEXT)
         self.add_column('digest', dbc.TEXT)
         self.add_column('filetype', dbc.INTEGER)
@@ -118,7 +120,7 @@ class AAPSchema(Schema):
         self.add_table(StudentTableDefinition())
         self.add_table(BedrijfTableDefinition())
         self.add_table(AanvraagTableDefinition())
-        self.add_table(FileTableDefinition())
+        self.add_table(FilesTableDefinition())
         self.add_table(ActionLogTableDefinition())
         self.add_table(ActionLogAanvragenTableDefinition())
         self.__define_foreign_keys()
@@ -153,9 +155,12 @@ class AAPDatabase(Database):
                 self.load_roots(False)
                 self.reset_keys()
     def reset_keys(self):
-        reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
-        reset_key(AanvraagTableDefinition.KEY_FOR_ID, self.__find_max_key('AANVRAGEN'))
-        reset_key(ActionLogTableDefinition.KEY_FOR_ID, self.__find_max_key('ACTIONLOG'))
+        keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
+        for table in keyed_tables:
+            reset_key(getattr(table, 'KEY_FOR_ID'), self.__find_max_key(table.name))
+        # reset_key(ActionLogTableDefinition.KEY_FOR_ID, self.__find_max_key('ACTIONLOG'))
+        # reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
+        # reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
     def __find_max_key(self, table_name: str):
         if (row := self._execute_sql_command(f'select max(ID) from {table_name};', return_values = True)) and \
                                             (r0 := list(row[0])[0]):

@@ -40,6 +40,7 @@ class ColumnDefinition:
         self.name = name
         self.type = type
         self._compound_primary = False # SQLite doesn't support multiple PRIMARY KEY columns
+        #TODO: wat hier boven staat lijkt helemaal niet te kloppen, consequentie is niet helemaal duidelijk
         ColumnFlags().execute(self, **args)
     def is_primary(self):
         return hasattr(self, 'primary') and self.primary 

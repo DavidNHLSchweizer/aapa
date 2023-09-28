@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
@@ -19,6 +20,10 @@ def verifyRecreate():
     return tkimb.askyesno('Vraagje', 'Alle data wordt verwijderd. Is dat echt wat je wilt?', default = tkimb.NO, icon=tkimb.WARNING) 
 
 class AAPAConfiguration:
+    class PART(Enum):
+        DATABASE = auto()
+        DIRECTORIES = auto()     
+        BOTH    = auto()   
     def __init__(self, options: AAPAConfigOptions):
         self.validation_error = None
         if options.config_file:
@@ -89,8 +94,18 @@ class AAPAConfiguration:
         # print(f'{processing_options.actions}  |{AAPAaction.NEW in processing_options.actions} {result}   {self.get_database_name()} {file_exists(self.get_database_name())}  {self.options.force=}')
         # print(f'{not file_exists(self.get_database_name() or self.options.force or verifyRecreate())}')
         return result
-    def initialize(self, processing_options: AAPAProcessingOptions)->bool:
-        return self.__initialize_database(self.__must_recreate(processing_options)) and \
-               self.__initialize_directories(preview=processing_options.preview)
+    def __initialize_database_part(self, processing_options: AAPAProcessingOptions)->bool:
+        return self.__initialize_database(self.__must_recreate(processing_options))
+    def __initialize_directories_part(self, processing_options: AAPAProcessingOptions)->bool:
+        return self.__initialize_directories(preview=processing_options.preview)
+    def initialize(self, processing_options: AAPAProcessingOptions, part = PART.BOTH)->bool:
+        match part:
+            case AAPAConfiguration.PART.DATABASE:
+                return self.__initialize_database_part(processing_options)
+            case AAPAConfiguration.PART.DIRECTORIES:
+                return self.__initialize_directories_part(processing_options)
+            case AAPAConfiguration.PART.BOTH:
+                return self.__initialize_database_part(processing_options) and\
+                        self.__initialize_directories_part(processing_options)
         # if self.options.history_file is not None:
         #     self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')

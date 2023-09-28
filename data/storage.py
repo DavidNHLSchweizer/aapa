@@ -58,6 +58,13 @@ class StudentenStorage(ObjectStorage):
 class FilesStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_files(database))
+    def create(self, file: File):
+        if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (filename=?)', [self.crud_files.map_object_to_db('filename', file.filename)], True):
+            file.id = row[0]['id']
+            file.aanvraag_id = row[0]['aanvraag_id']
+        else:
+            log_debug('joepsie')
+            super().create(file)
     def find(self, aanvraag_id: int, filetype: File.Type)->File:
         if row:= self.database._execute_sql_command(f'select filename from {self.table_name} where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, filetype], True):
@@ -69,14 +76,16 @@ class FilesStorage(ObjectStorage):
     def crud_files(self)->CRUD_files:
         return self.crud
     def __load(self, aanvraag_id: int, filetypes: set[File.Type])->list[File]:
+        log_debug('__load')
         params = [aanvraag_id]
         params.extend([ft for ft in filetypes])
-        if rows:= self.database._execute_sql_command(f'select filename from {self.table_name} where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
-            filenames=[row["filename"] for row in rows]
-            result = self.crud_files.read_all(filenames)
+        if rows:= self.database._execute_sql_command(f'select id from {self.table_name} where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
+            file_IDs=[row["id"] for row in rows]
+            result = self.crud_files.read_all(file_IDs)
             return result
         return None
     def find_all(self, aanvraag_id: int)->Files:
+        log_debug('find_all')
         result = Files(aanvraag_id)
         filetypes = {ft for ft in File.Type if ft != File.Type.UNKNOWN}
         result.reset_file(filetypes)
@@ -85,6 +94,8 @@ class FilesStorage(ObjectStorage):
                 result.set_file(file)
         return result        
     def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
+        #TODO: CHECK!
+        log_debug('find_all_for_filetype')
         if isinstance(filetypes, set):
             place_holders = f' in ({",".join("?"*len(filetypes))})' 
             params = [ft for ft in filetypes]
@@ -92,40 +103,51 @@ class FilesStorage(ObjectStorage):
             place_holders = '=?'
             params = [filetypes]
         result = []
-        for row in self.database._execute_sql_command(f'select filename from {self.table_name} where filetype' + place_holders, params, True):
-            result.append(self.read(row['filename']))
+        for row in self.database._execute_sql_command(f'select id from {self.table_name} where filetype' + place_holders, params, True):
+            result.append(self.read(row['id']))
         return result
     def find_digest(self, digest)->File:
-        if row:= self.database._execute_sql_command(f'select filename from {self.table_name} where digest=?', [digest], True):
-            file = self.read(row[0]["filename"])
-            log_info(f'success: {file}')
+        log_debug('find_digest')
+        if row:= self.database._execute_sql_command(f'select id from {self.table_name} where digest=?', [digest], True):
+            file = self.read(row[0]["id"])
+            log_debug(f'success: {file}')
             return file
     def sync(self, aanvraag_id, file: File):
+        log_debug('sync')
         file.aanvraag_id = aanvraag_id
         if (cur_file:=self.find(aanvraag_id, file.filetype)) is not None:
+            log_debug('sync2')
             #file currently exists in database
             if file.filename:
+                log_debug('sync2a')
                 self.update(file)
             else:
-                self.delete(cur_file.filename)
+                log_debug('sync2b')
+                self.delete(cur_file.id)
         elif file.filename:            
-            if (cur_file := self.read(file.filename)):
+            log_debug('sync3')
+            if (cur_file := self.read_filename(file.filename)):
                 #file is known in database, PROBABLY (!?) not linked to aanvraag 
                 log_warning(f'bestand {summary_string(file.filename, maxlen=80)} is bekend in database:\n\t{cur_file.summary()}.\nWordt vervangen door\n\t{file.summary()}')
                 self.update(file)
             else:
                 #new file
+                log_debug('sync3b')
                 self.create(file)
+        log_debug('END sync')
     def delete_all(self, aanvraag_id):
         if (all_files := self.__load(aanvraag_id, {ft for ft in File.Type if ft != File.Type.UNKNOWN})) is not None:
             for file in all_files:
-                self.delete(file.filename)
+                self.delete(file.id)
     def is_duplicate(self, file: File):
-        return (stored:=self.read(file.filename)) is not None and stored.digest == file.digest
+        return (stored:=self.read_filename(file.filename)) is not None and stored.digest == file.digest
     def known_file(self, filename: str)->File:
         return self.find_digest(File.get_digest(filename))
-    def store_invalid(self, filename):
-        if (stored:=self.read(filename)):
+    def read_filename(self, filename: str)->File:
+        return self.crud_files.read_filename(filename) 
+    def store_invalid(self, filename: str):
+        log_debug('store_invalid')
+        if (stored:=self.read_filename(filename)):
             stored.filetype = File.Type.INVALID_PDF
             stored.aanvraag_id=EMPTY_ID
             self.update(stored)
@@ -133,7 +155,7 @@ class FilesStorage(ObjectStorage):
             self.create(File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=File.Type.INVALID_PDF, aanvraag_id=EMPTY_ID))
         self.database.commit()
     def is_known_invalid(self, filename):
-        if (stored:=self.read(filename)):
+        if (stored:=self.read_filename(filename)):
             return stored.filetype == File.Type.INVALID_PDF
         else:
             return False     
@@ -149,6 +171,7 @@ class AanvraagStorage(ObjectStorage):
         # aanvraag.files.set_info(source_file)
         aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
         super().create(aanvraag)
+        log_debug('sync_files (CREATE)')
         self.sync_files(aanvraag, {File.Type.AANVRAAG_PDF})
     def sync_files(self, aanvraag: Aanvraag, filetypes: set[File.Type]=None):
         for file in aanvraag.files.get_files():
@@ -161,6 +184,7 @@ class AanvraagStorage(ObjectStorage):
     def update(self, aanvraag: Aanvraag):
         self.__create_table_references(aanvraag)        
         super().update(aanvraag)
+        log_debug('sync_files (UPDATE)')
         self.sync_files(aanvraag)
     def delete(self, id: int):
         self.files.delete_all(id)

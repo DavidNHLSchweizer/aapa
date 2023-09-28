@@ -1,5 +1,5 @@
 from enum import IntEnum
-from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogTableDefinition
+from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogTableDefinition, FilesTableDefinition
 from data.classes.files import File
 from database.SQL import SQLcreate
 from database.database import Database
@@ -10,7 +10,7 @@ from data.classes.aanvragen import Aanvraag
 #
 # toevoegen ACTIONLOG en ACTIONLOG_AANVRAGEN tabel
 # hernummeren File.Type constantes
-#
+# toevoegen id aan FILES tabel
 def create_new_tables(database: Database):
     print('toevoegen nieuwe tabellen ACTIONLOG en ACTIONLOG_AANVRAGEN')
     database.execute_sql_command(SQLcreate(ActionLogTableDefinition()))
@@ -48,6 +48,15 @@ def update_filetypes(database: Database):
         database._execute_sql_command('update FILES set filetype=? where filename=?', [new_filetype[row['filetype']], row['filename']]) 
     print('end updating filetypes in FILES table.')
 
+def modify_files_table(database: Database):
+    print('adding primary key to FILES table.')
+    database._execute_sql_command('alter table FILES RENAME TO OLD_FILES')
+    print('creating the new table')
+    database.execute_sql_command(SQLcreate(FilesTableDefinition()))
+    database._execute_sql_command('insert into FILES(filename,timestamp,digest,filetype,aanvraag_id) select * from OLD_FILES', [])
+    database._execute_sql_command('drop table OLD_FILES')
+    print('end adding primary key to FILES table.')
+
 def update_aanvraag_status(database: Database):
     class OldAanvraagStatus(IntEnum):
         INITIAL         = 0
@@ -67,11 +76,9 @@ def update_aanvraag_status(database: Database):
         database._execute_sql_command('update AANVRAGEN set status=? WHERE ID=?', [new_status[row['status']], row['id']]) 
     print('end updating values in AANVRAGEN table.')
 
-
-
-
 def migrate_database(database: Database):
     create_new_tables(database)
     update_filetypes(database)
+    modify_files_table(database)
     update_aanvraag_status(database)
 

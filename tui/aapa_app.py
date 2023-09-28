@@ -7,9 +7,10 @@ from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
-from general.args import AAPAaction, AAPAOptions
-from general.log import log_debug, pop_console, push_console
+from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
+from general.log import log_debug, log_print, pop_console, push_console
 from general.versie import BannerPart, banner
+from process.aapa_processor.aapa_config import AAPAConfiguration
 from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
@@ -25,8 +26,8 @@ from tui.terminal_console import TerminalConsoleFactory
 def AAPArun_script(options: AAPAOptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
-        aapa_runner = AAPARunner(options)
-        aapa_runner.process() 
+        aapa_runner = AAPARunner(options.config_options)
+        aapa_runner.process(options.processing_options) 
     finally:
         pop_console()
     return True
@@ -52,7 +53,8 @@ class AAPATuiParams:
     database: str = ''
     preview: bool = True
     def get_options(self, action: AAPAaction)->AAPAOptions:
-        return AAPAOptions([action], self.root_directory, self.output_directory, self.database, self.preview)
+        return AAPAOptions(actions=[action], root_directory=self.root_directory, 
+                           output_directory=self.output_directory, database_file=self.database, preview=self.preview)
       
 class AapaConfiguration(Static):
     def compose(self)->ComposeResult:
@@ -190,7 +192,7 @@ class AAPAApp(App):
         message.stop()
     def _create_options(self, **kwdargs)->AAPAOptions:
         options = self.params.get_options(kwdargs.pop('action', None))
-        options.filename = kwdargs.pop('filename', options.filename)
+        options.processing_options.filename = kwdargs.pop('filename', options.processing_options.filename)
         return options
     async def run_AAPA(self, action: AAPAaction, **kwdargs):
         options = self._create_options(action=action, **kwdargs)
@@ -209,8 +211,14 @@ class AAPAApp(App):
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
+    def test_configuration(self):
+        options = self._create_options()
+        configuration = AAPAConfiguration(options.config_options)
+        configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE)
+        log_debug(f'TEST TEST: {configuration.storage.action_logs.last_action()}')
     async def action_undo(self):
-        log_debug(f'Last action: {storage.action_log.last_action()}')
+        self.test_configuration()
+        #   log_debug(f'Last action: {storage.action_log.last_action()}')
         if self.query_one(AapaButtons).preview:
             await self.run_AAPA(AAPAaction.UNDO)
         else:
@@ -232,6 +240,10 @@ class AAPAApp(App):
     def params(self, value: AAPATuiParams):
         self.query_one(AapaConfiguration).params = value
         self.query_one(AapaButtons).preview = value.preview
+    def __get_config_options(self)->AAPAConfigOptions:
+        return AAPAConfigOptions(root_directory=self.params.root_directory,
+                                 output_directory=self.params.output_directory, 
+                                 database_file=self.params.database)                                 
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):
