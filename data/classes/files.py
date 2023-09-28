@@ -6,6 +6,7 @@ from database.dbConst import EMPTY_ID
 
 from general.filehash import hash_file_digest
 from general.fileutil import summary_string
+from general.log import log_debug
 from general.timeutil import TSC
 
 class File:
@@ -101,12 +102,13 @@ class Files:
         if ft == File.Type.UNKNOWN:
             return None
         else:
-            return File(filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
+            return File(id=self.get_id(ft), filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
     def set_file(self, file: File):
         if file.filetype != File.Type.UNKNOWN:
             self.set_filename(file.filetype, file.filename)
             self.set_timestamp(file.filetype, file.timestamp)
             self.set_digest(file.filetype, file.digest)
+        log_debug(f'set_file: {file}')
     def reset_file(self, file_type: File.Type | set[File.Type]):
         if isinstance(file_type, set):
             for ft in file_type:

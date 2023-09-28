@@ -83,7 +83,7 @@ class FilesStorage(ObjectStorage):
             file_IDs=[row["id"] for row in rows]
             result = self.crud_files.read_all(file_IDs)
             return result
-        return None
+        return []
     def find_all(self, aanvraag_id: int)->Files:
         log_debug('find_all')
         result = Files(aanvraag_id)
@@ -112,29 +112,67 @@ class FilesStorage(ObjectStorage):
             file = self.read(row[0]["id"])
             log_debug(f'success: {file}')
             return file
-    def sync(self, aanvraag_id, file: File):
+
+        # for file in aanvraag.files.get_files():
+        #     if filetypes is None or file.filetype in filetypes:
+        #         self.files.sync(aanvraag.id, file)
+
+
+    def sync(self, aanvraag_id, new_files: Iterable[File], filetypes: set[File.Type]=None):
         log_debug('sync')
-        file.aanvraag_id = aanvraag_id
-        if (cur_file:=self.find(aanvraag_id, file.filetype)) is not None:
-            log_debug('sync2')
-            #file currently exists in database
-            if file.filename:
-                log_debug('sync2a')
-                self.update(file)
-            else:
-                log_debug('sync2b')
-                self.delete(cur_file.id)
-        elif file.filename:            
-            log_debug('sync3')
-            if (cur_file := self.read_filename(file.filename)):
+        for file in new_files:
+            file.aanvraag_id = aanvraag_id
+        log_debug(f'filetypes: {filetypes}')
+        stored_files_dict = {file.filetype: file for file in self.find_all_for_filetype(filetypes)}
+        log_debug(f'stored files: {stored_files_dict}')
+        new_files_dict = {file.filetype: file for file in new_files}
+        log_debug(f'new  files: {new_files_dict}')
+        for filetype in filetypes:
+            new_file = new_files_dict.get(filetype, None)
+            stored_file = stored_files_dict.get(filetype, None)
+            if not new_file and not stored_file: 
+                log_debug(f'sync1: {filetype}')
+                continue
+            if new_file and stored_file:
+                log_debug(f'sync2 {filetype}')
+                #file currently exists in database               
                 #file is known in database, PROBABLY (!?) not linked to aanvraag 
-                log_warning(f'bestand {summary_string(file.filename, maxlen=80)} is bekend in database:\n\t{cur_file.summary()}.\nWordt vervangen door\n\t{file.summary()}')
+                if stored_file != new_file and stored_file.filename:
+                    log_debug(f'[{stored_file.filename}]')
+                    log_warning(f'bestand {summary_string(file.filename, maxlen=80)} is bekend in database:\n\t{stored_file.summary()}.\nWordt vervangen door\n\t{new_file.summary()}')
                 self.update(file)
+            elif stored_file and not new_file:
+                log_debug(f'sync2b {filetype}')
+                self.delete(stored_file.id)
             else:
                 #new file
-                log_debug('sync3b')
-                self.create(file)
+                log_debug(f'sync3b: {filetype}')
+                self.create(new_file)
         log_debug('END sync')
+    # def sync(self, aanvraag_id, file: File):
+    #     log_debug('sync')
+    #     file.aanvraag_id = aanvraag_id
+        
+    #     if (cur_file:=self.find(aanvraag_id, file.filetype)) is not None:
+    #         log_debug('sync2')
+    #         #file currently exists in database
+    #         if file.filename:
+    #             log_debug('sync2a')
+    #             self.update(file)
+    #         else:
+    #             log_debug('sync2b')
+    #             self.delete(cur_file.id)
+    #     elif file.filename:            
+    #         log_debug('sync3')
+    #         if (cur_file := self.read_filename(file.filename)):
+    #             #file is known in database, PROBABLY (!?) not linked to aanvraag 
+    #             log_warning(f'bestand {summary_string(file.filename, maxlen=80)} is bekend in database:\n\t{cur_file.summary()}.\nWordt vervangen door\n\t{file.summary()}')
+    #             self.update(file)
+    #         else:
+    #             #new file
+    #             log_debug('sync3b')
+    #             self.create(file)
+    #     log_debug('END sync')
     def delete_all(self, aanvraag_id):
         if (all_files := self.__load(aanvraag_id, {ft for ft in File.Type if ft != File.Type.UNKNOWN})) is not None:
             for file in all_files:
@@ -174,9 +212,14 @@ class AanvraagStorage(ObjectStorage):
         log_debug('sync_files (CREATE)')
         self.sync_files(aanvraag, {File.Type.AANVRAAG_PDF})
     def sync_files(self, aanvraag: Aanvraag, filetypes: set[File.Type]=None):
-        for file in aanvraag.files.get_files():
-            if filetypes is None or file.filetype in filetypes:
-                self.files.sync(aanvraag.id, file)
+        # if filetypes is None:
+        #     filetypes = 
+        self.files.sync(aanvraag_id=aanvraag.id, new_files=aanvraag.files.get_files(), 
+                        filetypes=filetypes if filetypes else ({filetype for filetype in File.Type} - {File.Type.UNKNOWN, File.Type.INVALID_PDF}))
+        #     new_files: Iterable[File], filetypes: set[File.Type]=None):
+        # for file in :
+        #      if file.filetype in filetypes:
+        #         self.files.sync(aanvraag.id, filetypes, file)
     def read(self, id: int)->Aanvraag:
         aanvraag = super().read(id)
         aanvraag.files = self.files.find_all(aanvraag.id)
