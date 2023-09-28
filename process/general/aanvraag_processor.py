@@ -77,14 +77,13 @@ class AanvragenProcessorBase:
         return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
 
 class AanvragenProcessor(AanvragenProcessorBase):
-    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ActionLog.Action, aanvragen: list[Aanvraag] = None):
-        super().__init__(description, processors, storage, activity=activity)
+    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ActionLog.Action, can_undo=True, aanvragen: list[Aanvraag] = None):
+        super().__init__(description, processors, storage, activity=activity, can_undo=can_undo)
         self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
         self.__sort_aanvragen() 
     def __read_from_storage(self):
         log_info('Start reading aanvragen from database')
         entry_states = self._processors[0].entry_states
-        filter_func = lambda a: a.status in entry_states if entry_states is not None else None
         result = self.storage.aanvragen.read_all(states=entry_states)
         log_info('End reading aanvragen from database')
         return result

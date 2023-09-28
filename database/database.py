@@ -143,7 +143,7 @@ class Schema:
     def __init__(self):
         self.__tables = {}
     def add_table(self, table: TableDefinition):
-        self.__tables[table.table_name] = table
+        self.__tables[table.name] = table
     def table(self, table_name: str)->TableDefinition:
         return self.__tables.get(table_name, None)
     def tables(self):

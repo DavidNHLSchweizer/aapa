@@ -35,7 +35,7 @@ class ObjectStorage:
         self.crud.delete(key)
     @property
     def table_name(self)->str:
-        return self.crud.table.table_name
+        return self.crud.table.name
     def max_id(self):
         if (row := self.database._execute_sql_command(f'select max(id) from {self.table_name}', [], True)) and row[0][0]:
             return row[0][0]           
@@ -227,7 +227,6 @@ class ActionLogStorage(ObjectStorage):
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id == EMPTY_ID:
             if (row := self.database._execute_sql_command(f'select id from {self.table_name} where can_undo = ? group by can_undo having max(id)', [1], True)):
-                print(id)
                 id = row[0][0]
             if id is None or id == EMPTY_ID:
                 log_warning(NoUNDOwarning)

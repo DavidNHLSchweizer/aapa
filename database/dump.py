@@ -21,7 +21,7 @@ class DatabaseDumper:
         if include_schema:
             print(table)
         else:
-            print(f'{table.table_name.upper()}:')
+            print(f'{table.name.upper()}:')
         log_info(f'dumping {table.tablename}')
         sql = SQLselect(table)
         for record in self.database._execute_sql_command(sql.Query, parameters=sql.Parameters, return_values=True):

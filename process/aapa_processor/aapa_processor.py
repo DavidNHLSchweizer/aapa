@@ -35,7 +35,7 @@ class AAPAProcessor:
             return False
         try:
             actions = processing_options.actions
-            print(actions)
+            # print(actions)
             preview = processing_options.preview
             if AAPAaction.INFO in actions:
                 self.__report_info(configuration.options, processing_options)

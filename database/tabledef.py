@@ -101,7 +101,7 @@ class TableFlags(dbArgParser):
 
 class TableDefinition:
     def __init__(self, name, **args):
-        self.table_name = name
+        self.name = name
         self.columns:list[ColumnDefinition] = []
         self.foreign_keys = []
         self.keys = []
@@ -130,7 +130,7 @@ class TableDefinition:
     def has_foreign_keys(self):
         return len(self.foreign_keys) > 0
     def __str__(self):
-        result = f'TABLE {self.table_name}'
+        result = f'TABLE {self.name}'
         if len(self.columns):
             result = result + '\nCOLUMNS:\n\t' + '\n\t'.join([str(column) for column in self.columns])
         if self.is_compound_primary():

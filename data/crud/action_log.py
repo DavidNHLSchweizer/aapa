@@ -56,4 +56,4 @@ class CRUD_action_log_aanvragen(CRUDbase):
         self.delete(action_log.id)    
         self.create(action_log)
     def delete_aanvraag(self, aanvraag_id: int):
-        self.database._execute_sql_command(f'delete from {self.table.table_name} where aanvraag_id=?', [aanvraag_id])        
+        self.database._execute_sql_command(f'delete from {self.table.name} where aanvraag_id=?', [aanvraag_id])        
