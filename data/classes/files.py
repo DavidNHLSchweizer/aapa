@@ -61,6 +61,8 @@ class File:
     @timestamp.setter
     def timestamp(self, value):
         self._timestamp = TSC.rounded_timestamp(value)
+    def is_empty(self)->bool:
+        return self.filename==''
     def __eq__(self, value: File):
         if  self.filename != value.filename:
             return False
@@ -73,6 +75,10 @@ class File:
         if  self.aanvraag_id != value.aanvraag_id:
             return False
         return True
+    
+class EmptyFile(File):
+    def __init__(self, filetype: File.Type):
+        super().__init__(filename='', timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=filetype)
 
 class Files:
     def __init__(self, aanvraag_id=EMPTY_ID):
@@ -92,10 +98,10 @@ class Files:
         return self.__files[ft]['digest']
     def set_digest(self, ft: File.Type, value: str):
         self.__files[ft]['digest'] = value
-    def get_files(self)->list[File]:
+    def get_files(self, skip_empty: bool = True)->list[File]:
         result = []
         for ft in File.Type:
-            if (file:=self.get_file(ft)):
+            if (file:=self.get_file(ft)) and (not skip_empty or not file.is_empty()):
                 result.append(file)
         return result
     def get_file(self, ft: File.Type)->File:
@@ -108,13 +114,13 @@ class Files:
             self.set_filename(file.filetype, file.filename)
             self.set_timestamp(file.filetype, file.timestamp)
             self.set_digest(file.filetype, file.digest)
-        log_debug(f'set_file: {file}')
+            log_debug(f'set_file: {file}')
     def reset_file(self, file_type: File.Type | set[File.Type]):
         if isinstance(file_type, set):
             for ft in file_type:
-                self.set_file(File('', TSC.AUTOTIMESTAMP, '', ft))
+                self.set_file(EmptyFile(ft))
         else:
-            self.set_file(File('', TSC.AUTOTIMESTAMP, '', file_type))
+            self.set_file(EmptyFile(file_type))
     def reset(self):
         self.reset_file({ft for ft in File.Type if ft != File.Type.UNKNOWN})
 

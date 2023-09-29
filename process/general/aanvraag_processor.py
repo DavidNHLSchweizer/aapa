@@ -65,11 +65,13 @@ class AanvragenProcessorBase:
         self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type})
     def start_logging(self):
         self.action_log.start()
+        log_debug(f'STARTING aanvragenprocessor {self.action_log}')
     def log_aanvraag(self, aanvraag: Aanvraag):
         if aanvraag and aanvraag.status != Aanvraag.Status.DELETED:
             self.action_log.add_aanvraag(aanvraag)
     def stop_logging(self):
         self.action_log.stop()
+        log_debug(f'STOPPING aanvragenprocessor {self.action_log}')
         if not self.action_log.is_empty():
             self.storage.action_logs.create(self.action_log)
         self.storage.commit()
@@ -102,9 +104,11 @@ class AanvragenProcessor(AanvragenProcessorBase):
             return self.aanvragen
     def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         try:
-            return processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
+            result = processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
+            log_debug(f'_process_aanvraag: {result}')
         except Exception as E:
             log_error(f'Fout bij processing {aanvraag.summary()}\n\t{E}')
+        log_debug(f'_process_aanvraag: FALSE')
         return False
     def process_aanvragen(self, preview=False, filter_func = None, **kwargs)->int:
         n_processed = 0
@@ -119,11 +123,13 @@ class AanvragenProcessor(AanvragenProcessorBase):
                             break
                         if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
                             processed += 1
-                            log_debug(f'processed. Exit state: {processor.exit_state}')
+                            log_debug(f'processed. Exit state: {processor.exit_state}', to_console=True)
                             if processor.exit_state:
                                 aanvraag.status = processor.exit_state                       
                             self.storage.aanvragen.update(aanvraag)
                             self.storage.commit()
+                        else:
+                            log_debug(f'ERROR PROCESSING {self.action_log}', to_console=True)
                     if processed > 0:
                         n_processed += 1            
                         self.log_aanvraag(aanvraag) 

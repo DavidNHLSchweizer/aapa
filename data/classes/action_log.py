@@ -13,7 +13,14 @@ class ActionLog:
         SCAN    = 1
         FORM    = 2
         MAIL    = 3
-        UNDO  = 4      
+        UNDO  = 4    
+        def __str__(self):
+            return self.name
+            # STR_DICT = {ActionLog.Action.NOLOG: 'NOLOG', ActionLog.Action.SCAN: 'SCAN',  
+            #             ActionLog.Action.FORM: 'FORM', ActionLog.Action.MAIL: 'MAIL', 
+            #             ActionLog.Action.UNDO: 'UNDO'
+            #             }
+            # return STR_DICT.get(self, '!unknown')
     def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), can_undo=True):
         self.action = action        
         self.id = id #KEY
@@ -40,7 +47,8 @@ class ActionLog:
     def is_empty(self)->bool:
         return self.nr_aanvragen == 0
     def __str__(self)->str:
-        result = f'{self.action} {TSC.timestamp_to_str(self.date)} [{self.user}] ({self.id}) !{self.nr_aanvragen} aanvragen:'
+        date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
+        result = f'{self.action} {date_str} [{self.user}] ({self.id}) !{self.nr_aanvragen} aanvragen:'
         if self.is_empty():
             return result + ' (geen aanvragen)'
         can_undo_str = 'kan worden' if self.can_undo else ''

@@ -39,7 +39,7 @@ class UndoRecipeProcessor(AanvraagProcessor):
         log_info(f'\tEinde verwijderen aangemaakte bestanden', to_console=True)
     def _process_files_to_forget(self, aanvraag: Aanvraag, preview=False):
         # log_print(self.recipe.files_to_forget)
-        if not self.recipe.files_to_forget:
+        if not self.recipe.files_to_forget or self.recipe.files_to_forget == []:
             return
         log_info(f'\tVerwijderen bestanden uit database:', to_console=True)
         for filetype in self.recipe.files_to_forget:

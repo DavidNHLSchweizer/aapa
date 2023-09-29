@@ -62,7 +62,7 @@ class AAPAlogger(Singleton):
             print(f'ERROR: can not create logfile {filename} in {log_path}')            
             log_path = Path('.').resolve()
             print(f'Creating log in {log_path}')        
-        self.__init_config(filename, log_path, '%Y-%m-%d %H:%M:%S', '%(asctime)s- %(message)s', debug)
+        self.__init_config(filename, log_path, '%Y-%m-%d %H:%M:%S', '%(asctime)s-%(message)s', debug)
 
     def __init_config(self, filename: str, log_path: str, date_fmt: str, format: str, debug: bool):
         self.is_debug = debug
@@ -111,7 +111,7 @@ def console_info(msg: str):
 
 def log_info(msg: str, to_console=False):
     if _logger is not None:
-        _logger.info(msg)
+        _logger.info(f'INFO:{msg}')
     if to_console:
         console_info(msg)
 
@@ -135,7 +135,7 @@ def console_warning(msg: str):
 
 def log_warning(msg: str, to_console=True):
     if _logger is not None:
-        _logger.warning(msg)
+        _logger.warning(f'WARNING:{msg}')
     if to_console:
         console_warning(msg)
 
@@ -148,7 +148,7 @@ def console_error(msg: str):
 
 def log_error(msg: str):
     if _logger is not None:
-        _logger.error(msg)
+        _logger.error(f'ERROR:{msg}')
     console_error(msg)
 
 def console_debug(msg: str):
@@ -160,7 +160,7 @@ def console_debug(msg: str):
 
 def log_debug(msg: str, to_console=False):
     if _logger is not None:
-        _logger.debug(f'DEBUG: {msg}')
+        _logger.debug(f'DEBUG:{msg}')
     if to_console:
         console_debug(msg)
 

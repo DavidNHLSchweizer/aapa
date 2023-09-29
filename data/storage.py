@@ -58,29 +58,48 @@ class StudentenStorage(ObjectStorage):
 class FilesStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_files(database))
+    @property
+    def crud_files(self)->CRUD_files:
+        return self.crud
+    # def duplicate_warning(self, new_file: File, stored_file: File):pass
+    #     # log_warning(f'bestand {summary_string(new_file.filename,initial=20,maxlen=80, )} is bekend in database:\n\t{stored_file.summary()}.\nWordt vervangen door\n\t{new_file.summary()}')
     def create(self, file: File):
-        if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (filename=?)', [self.crud_files.map_object_to_db('filename', file.filename)], True):
-            file.id = row[0]['id']
-            file.aanvraag_id = row[0]['aanvraag_id']
+        if (ids := self._find_name_id(file.filename)):            
+            stored_file = self.read(ids[0])
+            if stored_file.aanvraag_id == file.aanvraag_id:
+                log_debug(f'file already there, doing nothing {stored_file}')
+                #this is probably an error!
+            else:
+                log_debug(f'already file in create: [{ids}]')
+                # self.duplicate_warning(file, stored_file)                
         else:
-            log_debug('joepsie')
+            log_debug(f'creating new file [{file}]')
             super().create(file)
+    def _find_name_id(self, filename: str)->Iterable[int]:
+        if rows := self.database._execute_sql_command(f'select id from {self.table_name} where filename=? order by id desc', [self.crud_files.map_object_to_db('filename', filename)], True):
+            result = []
+            for row in rows:
+                result.append(row['id'])
+            return result
+        return None                                    
+    def find_name(self, filename: str)->File:
+        if ids := self._find_name_id(filename):
+            return self.read(ids[0])
+        return None                                                     
     def find(self, aanvraag_id: int, filetype: File.Type)->File:
         if row:= self.database._execute_sql_command(f'select filename from {self.table_name} where aanvraag_id=? and filetype=?', 
                 [aanvraag_id, filetype], True):
             file = self.read(row[0]["filename"])
-            log_info(f'success: {file}')
+            log_debug(f'find success: {file}')
             return file
         return None
-    @property
-    def crud_files(self)->CRUD_files:
-        return self.crud
-    def __load(self, aanvraag_id: int, filetypes: set[File.Type])->list[File]:
+    def __load(self, aanvraag_id: int, filetypes: set[File.Type])->Iterable[File]:
         log_debug('__load')
         params = [aanvraag_id]
         params.extend([ft for ft in filetypes])
         if rows:= self.database._execute_sql_command(f'select id from {self.table_name} where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
             file_IDs=[row["id"] for row in rows]
+            log_debug(f'found: {file_IDs}')
             result = self.crud_files.read_all(file_IDs)
             return result
         return []
@@ -89,19 +108,22 @@ class FilesStorage(ObjectStorage):
         result = Files(aanvraag_id)
         filetypes = {ft for ft in File.Type if ft != File.Type.UNKNOWN}
         result.reset_file(filetypes)
-        for file in self.__load(aanvraag_id, filetypes):
-            if file:
+        if files := self.__load(aanvraag_id, filetypes):
+            for file in files:
                 result.set_file(file)
         return result        
-    def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
+    def find_all_for_filetype(self, filetypes: File.Type | set[File.Type], aanvraag_id:int = None)->list[File]:
         #TODO: CHECK!
-        log_debug('find_all_for_filetype')
+        log_debug(f'find_all_for_filetype {filetypes} {aanvraag_id}')
         if isinstance(filetypes, set):
             place_holders = f' in ({",".join("?"*len(filetypes))})' 
             params = [ft for ft in filetypes]
         else:
             place_holders = '=?'
             params = [filetypes]
+        if aanvraag_id:
+            place_holders += ' and aanvraag_id=?'
+            params.append(aanvraag_id)
         result = []
         for row in self.database._execute_sql_command(f'select id from {self.table_name} where filetype' + place_holders, params, True):
             result.append(self.read(row['id']))
@@ -112,67 +134,40 @@ class FilesStorage(ObjectStorage):
             file = self.read(row[0]["id"])
             log_debug(f'success: {file}')
             return file
-
-        # for file in aanvraag.files.get_files():
-        #     if filetypes is None or file.filetype in filetypes:
-        #         self.files.sync(aanvraag.id, file)
-
-
     def sync(self, aanvraag_id, new_files: Iterable[File], filetypes: set[File.Type]=None):
         log_debug('sync')
         for file in new_files:
             file.aanvraag_id = aanvraag_id
-        log_debug(f'filetypes: {filetypes}')
-        stored_files_dict = {file.filetype: file for file in self.find_all_for_filetype(filetypes)}
-        log_debug(f'stored files: {stored_files_dict}')
-        new_files_dict = {file.filetype: file for file in new_files}
-        log_debug(f'new  files: {new_files_dict}')
-        for filetype in filetypes:
-            new_file = new_files_dict.get(filetype, None)
-            stored_file = stored_files_dict.get(filetype, None)
-            if not new_file and not stored_file: 
-                log_debug(f'sync1: {filetype}')
-                continue
-            if new_file and stored_file:
-                log_debug(f'sync2 {filetype}')
-                #file currently exists in database               
-                #file is known in database, PROBABLY (!?) not linked to aanvraag 
-                if stored_file != new_file and stored_file.filename:
-                    log_debug(f'[{stored_file.filename}]')
-                    log_warning(f'bestand {summary_string(file.filename, maxlen=80)} is bekend in database:\n\t{stored_file.summary()}.\nWordt vervangen door\n\t{new_file.summary()}')
-                self.update(file)
-            elif stored_file and not new_file:
-                log_debug(f'sync2b {filetype}')
-                self.delete(stored_file.id)
+        new_file_dict = {}
+        type_has_changed = set()
+        for file in new_files:
+            if (stored_file := self.find_name(filename=file.filename)):
+                if stored_file != file:
+                    if (stored_file.aanvraag_id != EMPTY_ID and stored_file.aanvraag_id != aanvraag_id):
+                        raise StorageException(f'File {stored_file.summary()} already belongs to aanvraag id {stored_file.aanvraag_id}. Can NOT be linked with new aanvraagdata {file.aanvraag_id}' )
+                    if stored_file.filetype != file.filetype:
+                        if stored_file.filetype not in {File.Type.UNKNOWN, File.Type.INVALID_PDF}:
+                            raise StorageException(f'File {file.summary()} in database with a different filetype: {stored_file.filetype}.' )    
+                        log_debug(f'different filetype')
+                        type_has_changed.add(stored_file.filetype)
+                        # self.duplicate_warning(file, stored_file)                                        
+            new_file_dict[file.filetype] = file
+        new_files_handled = set()
+        for stored_file in self.find_all_for_filetype(filetypes, aanvraag_id=aanvraag_id):
+            if stored_file.filetype in new_file_dict.keys() or stored_file.filetype in type_has_changed:
+                log_debug(f'sync1 (update): {stored_file.summary()}')
+                self.update(new_file_dict[stored_file.filetype])                                
+                new_files_handled.add(stored_file.filetype)
             else:
+                log_debug(f'sync2 (delete): {stored_file.summary()}')
+                self.delete(stored_file.id)
+        for filetype,new_file in new_file_dict.items():
+            if not filetype in new_files_handled:
                 #new file
-                log_debug(f'sync3b: {filetype}')
+                log_debug(f'sync3: {new_file.summary()}')
                 self.create(new_file)
         log_debug('END sync')
-    # def sync(self, aanvraag_id, file: File):
-    #     log_debug('sync')
-    #     file.aanvraag_id = aanvraag_id
-        
-    #     if (cur_file:=self.find(aanvraag_id, file.filetype)) is not None:
-    #         log_debug('sync2')
-    #         #file currently exists in database
-    #         if file.filename:
-    #             log_debug('sync2a')
-    #             self.update(file)
-    #         else:
-    #             log_debug('sync2b')
-    #             self.delete(cur_file.id)
-    #     elif file.filename:            
-    #         log_debug('sync3')
-    #         if (cur_file := self.read_filename(file.filename)):
-    #             #file is known in database, PROBABLY (!?) not linked to aanvraag 
-    #             log_warning(f'bestand {summary_string(file.filename, maxlen=80)} is bekend in database:\n\t{cur_file.summary()}.\nWordt vervangen door\n\t{file.summary()}')
-    #             self.update(file)
-    #         else:
-    #             #new file
-    #             log_debug('sync3b')
-    #             self.create(file)
-    #     log_debug('END sync')
+
     def delete_all(self, aanvraag_id):
         if (all_files := self.__load(aanvraag_id, {ft for ft in File.Type if ft != File.Type.UNKNOWN})) is not None:
             for file in all_files:
@@ -214,7 +209,7 @@ class AanvraagStorage(ObjectStorage):
     def sync_files(self, aanvraag: Aanvraag, filetypes: set[File.Type]=None):
         # if filetypes is None:
         #     filetypes = 
-        self.files.sync(aanvraag_id=aanvraag.id, new_files=aanvraag.files.get_files(), 
+        self.files.sync(aanvraag_id=aanvraag.id, new_files=aanvraag.files.get_files(skip_empty=True), 
                         filetypes=filetypes if filetypes else ({filetype for filetype in File.Type} - {File.Type.UNKNOWN, File.Type.INVALID_PDF}))
         #     new_files: Iterable[File], filetypes: set[File.Type]=None):
         # for file in :
@@ -256,7 +251,7 @@ class AanvraagStorage(ObjectStorage):
     def find_student(self, student: Student)->Iterable[Aanvraag]:
         return self.read_all(filter_func = lambda a: a.student.stud_nr == student.stud_nr)
     def __count_student_aanvragen(self, aanvraag: Aanvraag):
-        if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_nr=?', [aanvraag.student.stud_nr], True)):
+        if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_nr=? and status!=?', [aanvraag.student.stud_nr,Aanvraag.Status.DELETED], True)):
             return row[0][0]
         else:
             return 0    

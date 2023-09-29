@@ -1,21 +1,25 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
+from data.storage import AAPAStorage
 from general.fileutil import path_with_suffix, summary_string
-from general.log import log_error, log_print
+from general.log import log_error, log_print, log_warning
 from general.preview import pva
 from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.word_processor import Word2PdfConvertor
 
 class ArchiveGradedFileProcessor(AanvraagProcessor):
-    def __init__(self):
+    def __init__(self, storage: AAPAStorage):
         super().__init__(entry_states={Aanvraag.Status.GRADED}, exit_state=Aanvraag.Status.ARCHIVED)
+        self.storage = storage
     # def must_process(self, aanvraag: Aanvraag): 
     #     return aanvraag.status in {Aanvraag.Status.GRADED} #and self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)        
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
         aanvraag_path = aanvraag.aanvraag_source_file_name().parent
         graded_file = Path(aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX))
         pdf_file_name = str(path_with_suffix(aanvraag_path.joinpath(graded_file.name), '.pdf').resolve())
+        if self.storage.files.is_known_invalid(pdf_file_name):
+            log_warning(f'Bestand {summary_string(pdf_file_name, maxlen=96)} is al bekend in database. Wordt overschreven door nieuw bestand.')
         try:            
             log_print(f'\tFeedback file {pva(preview, "aan te maken", "aanmaken")} en archiveren:\n\t{summary_string(pdf_file_name, maxlen=96)}.')
             if not preview:

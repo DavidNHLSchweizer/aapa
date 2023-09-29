@@ -109,6 +109,7 @@ class Database:
         return self._execute_sql_command(sql.Query, sql.Parameters, True)
     def commit(self):
         if self._commit_level > 0:
+            log_debug(f'Committing (level: {self._commit_level})')
             return
         self.log_info('Committing')
         self.connection.commit()

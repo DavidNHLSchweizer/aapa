@@ -34,6 +34,6 @@ class UndoRecipeFactory(Singleton):
                 return UndoRecipe(final_state=Aanvraag.Status.NEEDS_GRADING, 
                                   final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
                                   files_to_delete=[File.Type.GRADE_FORM_PDF],
-                                  files_to_forget=[File.Type.GRADED_DOCX])                 
+                                  files_to_forget=[])                 
             case _:
                 return None
