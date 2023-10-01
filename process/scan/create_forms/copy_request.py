@@ -11,7 +11,8 @@ from process.general.aanvraag_processor import AanvraagProcessor
 class CopyAanvraagProcessor(AanvraagProcessor):
     def __init__(self,  output_directory: str):
         self.output_directory = Path(output_directory)
-        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING})
+        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING}, 
+                         description='Kopieren aanvraag naar outputdirectory')
     @staticmethod
     def _get_copy_filename(output_directory:Path, aanvraag: Aanvraag, copy_filename: str = None):
         rootname = f'Aanvraag {aanvraag.student.full_name} ({aanvraag.student.stud_nr})-{aanvraag.aanvraag_nr}' if not copy_filename else copy_filename
@@ -35,6 +36,6 @@ class CopyAanvraagProcessor(AanvraagProcessor):
             shutil.copy2(aanvraag_filename, copy_filename)
         log_debug(f'registeringing file {copy_filename}')
         aanvraag.register_file(copy_filename, File.Type.COPIED_PDF)
-        log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {summary_string(aanvraag_filename)} to\n\t\t{summary_string(copy_filename)}.')      
+        log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {summary_string(aanvraag_filename)} naar\n\t\t{summary_string(copy_filename)}.')      
         return True
 

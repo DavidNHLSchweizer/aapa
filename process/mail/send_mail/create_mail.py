@@ -51,7 +51,9 @@ class FeedbackMailCreator:
 class FeedbackMailProcessor(AanvraagProcessor):
     def __init__(self):
         self.mailer = FeedbackMailCreator()
-        super().__init__(entry_states={Aanvraag.Status.ARCHIVED}, exit_state=Aanvraag.Status.MAIL_READY)
+        super().__init__(entry_states={Aanvraag.Status.ARCHIVED}, 
+                         exit_state=Aanvraag.Status.MAIL_READY,
+                         description='Zet feedbackmail klaar in Concepten')
     def get_draft_folder_name(self):
         return self.mailer.draft_folder_name
     def must_process(self, aanvraag: Aanvraag, **kwargs)->bool:    

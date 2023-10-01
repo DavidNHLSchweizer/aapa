@@ -19,7 +19,7 @@ class UndoRecipeProcessor(AanvraagProcessor):
         self.recipe: UndoRecipe = UndoRecipeFactory().create(action_log.action)
         self.ids_to_delete = []
         self.action_log = action_log
-        super().__init__(exit_state = self.recipe.final_state)
+        super().__init__(exit_state = self.recipe.final_state, description='Ongedaan maken')
     def __delete_file(self, filetype: File.Type, filename: str, preview=False):
         if (filename is None or not file_exists(filename)):            
             if not filetype in self.recipe.optional_files:

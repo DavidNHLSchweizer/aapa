@@ -67,6 +67,8 @@ class AanvraagValidator:
         return True
 
 class AanvraagPDFImporter(AanvraagCreator):
+    def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
+        super().__init__(entry_states=entry_states, exit_state=exit_state, description='PDF Importer')
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         if self.is_known_invalid_file(filename, storage):
             return False

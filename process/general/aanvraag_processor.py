@@ -1,3 +1,4 @@
+from __future__ import annotations
 from copy import deepcopy
 import datetime
 import os
@@ -13,9 +14,10 @@ from general.log import log_debug, log_error, log_info, log_print
 from general.preview import Preview
 class AanvraagProcessorException(Exception): pass
 class AanvraagProcessorBase:
-    def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
+    def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None, description: str = ''):
         self.entry_states = entry_states
         self.exit_state = exit_state
+        self.description = description
     def in_entry_states(self, status: Aanvraag.Status)->bool:
         if self.entry_states is not None:
             return status in self.entry_states
@@ -62,7 +64,10 @@ class AanvragenProcessorBase:
             self._processors.append(processors)
         self.storage = storage
         self.action_log = ActionLog(activity, description, can_undo=can_undo)
-        self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type})
+        self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type}).get_files()
+    @property
+    def description(self)->str:
+        return self.action_log.description
     def start_logging(self):
         self.action_log.start()
         log_debug(f'STARTING aanvragenprocessor {self.action_log}')
@@ -106,6 +111,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
         try:
             result = processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
             log_debug(f'_process_aanvraag: {result}')
+            return result
         except Exception as E:
             log_error(f'Fout bij processing {aanvraag.summary()}\n\t{E}')
         log_debug(f'_process_aanvraag: FALSE')
@@ -118,18 +124,18 @@ class AanvragenProcessor(AanvragenProcessorBase):
                 for aanvraag in aanvragen:
                     processed = 0                
                     for processor in self._processors:
-                        log_debug(f'processor: {processor.__class__} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
+                        log_debug(f'processor: {processor.description} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
                         if not processor.in_entry_states(aanvraag.status):
                             break
                         if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
                             processed += 1
-                            log_debug(f'processed. Exit state: {processor.exit_state}', to_console=True)
+                            log_debug(f'processed. Exit state: {processor.exit_state}')
                             if processor.exit_state:
                                 aanvraag.status = processor.exit_state                       
                             self.storage.aanvragen.update(aanvraag)
                             self.storage.commit()
                         else:
-                            log_debug(f'ERROR PROCESSING {self.action_log}', to_console=True)
+                            log_debug(f'Not processed: {processor.description} {self.action_log}')
                     if processed > 0:
                         n_processed += 1            
                         self.log_aanvraag(aanvraag) 
@@ -138,7 +144,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
 
 class AanvragenCreator(AanvragenProcessorBase):
     def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
-        super().__init__(description, processors, storage, activity=ActionLog.Action.SCAN)
+        super().__init__(description, processors, storage, activity=ActionLog.Action.SCAN)  
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
     def _in_skip_directory(self, filename: Path)->bool:
@@ -178,11 +184,12 @@ class AanvragenCreator(AanvragenProcessorBase):
                     continue
                 file_processed = True
                 for processor in self._processors:
-                    #log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
+                    log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
                     if not self._process_file(processor, str(filename), preview, **kwargs):
                         file_processed = False
                         break                
                 if file_processed:
                     n_processed += 1
-            self.stop_logging()            
+            self.stop_logging()     
+            log_debug('end process_files creator')       
         return n_processed

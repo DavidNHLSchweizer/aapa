@@ -10,7 +10,9 @@ from process.general.word_processor import Word2PdfConvertor
 
 class ArchiveGradedFileProcessor(AanvraagProcessor):
     def __init__(self, storage: AAPAStorage):
-        super().__init__(entry_states={Aanvraag.Status.GRADED}, exit_state=Aanvraag.Status.ARCHIVED)
+        super().__init__(entry_states={Aanvraag.Status.GRADED}, 
+                         exit_state=Aanvraag.Status.ARCHIVED, 
+                         description='Archiveer beoordeling')
         self.storage = storage
     # def must_process(self, aanvraag: Aanvraag): 
     #     return aanvraag.status in {Aanvraag.Status.GRADED} #and self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)        

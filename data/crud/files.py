@@ -24,5 +24,7 @@ class CRUD_files(CRUDbase):
         return [self.read(id) for id in file_IDs]
     def read_filename(self, filename: str)->File:
         if (rows:=self.database._execute_sql_command(f'select id from {self.table.name} where filename=?', [self.map_object_to_db('filename', filename)],True)):
-            return self.read(rows[0][0])
+            result =  self.read(rows[0][0])
+            print('kutzooi', result)
+            return result
         return None

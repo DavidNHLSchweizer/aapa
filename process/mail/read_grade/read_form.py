@@ -7,7 +7,10 @@ from process.general.beoordeling import GradeForm, aanvraag_beoordeling
 
 class ReadFormGradeProcessor(AanvraagProcessor):
     def __init__(self):
-        super().__init__(entry_states={Aanvraag.Status.NEEDS_GRADING}, exit_state=Aanvraag.Status.GRADED)
+        super().__init__(entry_states={Aanvraag.Status.NEEDS_GRADING}, 
+                         exit_state=Aanvraag.Status.GRADED,
+                         description='Lees beoordeling'
+                         )
     def must_process(self, aanvraag: Aanvraag): 
         return self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)
     def process(self, aanvraag: Aanvraag, preview=False)->bool:

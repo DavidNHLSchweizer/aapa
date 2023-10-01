@@ -2,6 +2,7 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 from pathlib import Path
+from typing import Iterable
 from database.dbConst import EMPTY_ID
 
 from general.filehash import hash_file_digest
@@ -98,7 +99,7 @@ class Files:
         return self.__files[ft]['digest']
     def set_digest(self, ft: File.Type, value: str):
         self.__files[ft]['digest'] = value
-    def get_files(self, skip_empty: bool = True)->list[File]:
+    def get_files(self, skip_empty: bool = True)->Iterable[File]:
         result = []
         for ft in File.Type:
             if (file:=self.get_file(ft)) and (not skip_empty or not file.is_empty()):
@@ -108,13 +109,14 @@ class Files:
         if ft == File.Type.UNKNOWN:
             return None
         else:
-            return File(id=self.get_id(ft), filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
+            return File(id=self.get_id(ft), filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), 
+                        digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
     def set_file(self, file: File):
         if file.filetype != File.Type.UNKNOWN:
             self.set_filename(file.filetype, file.filename)
             self.set_timestamp(file.filetype, file.timestamp)
             self.set_digest(file.filetype, file.digest)
-            log_debug(f'set_file: {file}')
+            # log_debug(f'set_file: {file}')
     def reset_file(self, file_type: File.Type | set[File.Type]):
         if isinstance(file_type, set):
             for ft in file_type:
@@ -123,4 +125,12 @@ class Files:
             self.set_file(EmptyFile(file_type))
     def reset(self):
         self.reset_file({ft for ft in File.Type if ft != File.Type.UNKNOWN})
-
+    def get_filetypes(self)->Iterable[File.Type]:
+        result = []
+        for ft in File.Type:
+            if ft != File.Type.UNKNOWN and self.get_filename(ft):
+                result.append(ft)
+        return result
+    def set_files(self, files: Iterable[File]):
+        for file in files:
+            self.set_file(file)

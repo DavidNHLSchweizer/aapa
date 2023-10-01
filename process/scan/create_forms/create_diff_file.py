@@ -13,7 +13,8 @@ class DifferenceProcessor(AanvraagProcessor):
     def __init__(self, storage: AAPAStorage, output_directory: str):
         self.output_directory = Path(output_directory)
         self.storage = storage
-        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING})
+        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING},
+                         description='Aanmaken verschilbestand')
     def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
         relevante_aanvragen = self.storage.aanvragen.find_student_bedrijf(aanvraag.student, aanvraag.bedrijf, filter_func=lambda a: a.id != aanvraag.id)
         if len(relevante_aanvragen)>=1:    
