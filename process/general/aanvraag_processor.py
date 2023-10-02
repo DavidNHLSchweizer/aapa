@@ -113,7 +113,7 @@ class AanvragenProcessor(AanvragenProcessorBase):
             log_debug(f'_process_aanvraag: {result}')
             return result
         except Exception as E:
-            log_error(f'Fout bij processing {aanvraag.summary()}\n\t{E}')
+            log_error(f'Fout bij processing aanvraag ({self.description}) {aanvraag.summary()}:\n\t{E}')
         log_debug(f'_process_aanvraag: FALSE')
         return False
     def process_aanvragen(self, preview=False, filter_func = None, **kwargs)->int:
@@ -168,7 +168,7 @@ class AanvragenCreator(AanvragenProcessorBase):
                 self.log_aanvraag(aanvraag)
                 return True
             except Exception as E:
-                log_error(f'Fout bij processing {summary_string(filename, 96)}:\n\t{E}')
+                log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
         return False    
     def process_files(self, files: Iterable[Path], preview=False, **kwargs)->int:
         n_processed = 0

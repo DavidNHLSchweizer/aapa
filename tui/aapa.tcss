@@ -6,30 +6,30 @@ Tooltip {
     border: solid purple;
 }
 
-AapaConfiguration {
+AapaConfigurationForm {
     height: 14;
     background: wheat;
     margin: 1;
     border: round purple;
 }
 
-AapaConfiguration LabeledInput {
+AapaConfigurationForm LabeledInput {
     margin: 0 0 0 1;
 }
 
-AapaConfiguration LabeledInput Label {
+AapaConfigurationForm LabeledInput Label {
     color: black;
 }
 
-AapaConfiguration LabeledInput Input:focus {
+AapaConfigurationForm LabeledInput Input:focus {
     outline: double black;
 }
 
-AapaConfiguration LabeledInput Input {
+AapaConfigurationForm LabeledInput Input {
     outline: solid black;
 }
 
-AapaConfiguration .small {
+AapaConfigurationForm .small {
     color: blue;
     background: darkgoldenrod;
 }

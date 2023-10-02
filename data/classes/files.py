@@ -87,6 +87,8 @@ class Files:
         self.__files = {ft:{'id': EMPTY_ID, 'filename': '', 'timestamp':TSC.AUTOTIMESTAMP, 'digest':File.AUTODIGEST} for ft in File.Type if ft != File.Type.UNKNOWN}
     def get_id(self, ft: File.Type)->int:
         return self.__files[ft]['id']
+    def set_id(self, ft: File.Type, value: int):
+        self.__files[ft]['id'] = value
     def get_filename(self, ft: File.Type)->str:
         return self.__files[ft]['filename']
     def set_filename(self, ft: File.Type, value: str):
@@ -116,7 +118,7 @@ class Files:
             self.set_filename(file.filetype, file.filename)
             self.set_timestamp(file.filetype, file.timestamp)
             self.set_digest(file.filetype, file.digest)
-            # log_debug(f'set_file: {file}')
+            self.set_id(file.filetype, file.id)
     def reset_file(self, file_type: File.Type | set[File.Type]):
         if isinstance(file_type, set):
             for ft in file_type:

@@ -56,7 +56,7 @@ class AAPAProcessor:
             if AAPAaction.REPORT in actions:
                 report_aanvragen_XLS(configuration.storage, path_with_suffix(processing_options.filename, '.xlsx'))
         except Exception as E:
-            log_error(f'Fout bij processing: {E}')
+            log_error(f'Fout bij processing (main): {E}')
 
 class AAPARunnerContext:
     def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions):
@@ -64,9 +64,9 @@ class AAPARunnerContext:
         self.processing_options = processing_options
         self.preview = self.needs_preview()
     def needs_preview(self)->bool:
-        return self.processing_options.preview and any([a in self.processing_options.actions for a in {AAPAaction.SCAN, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL}])
+        return self.processing_options.preview and any([a in self.processing_options.actions for a in {AAPAaction.SCAN, AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL}])
     def __enter__(self):
-        log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.configuration.options, self.processing_options)}', to_console=True)
+        log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.configuration.options, self.processing_options)}')
         log_print(banner())
         log_info(f'+++ AAPA started +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}', to_console=True)
         if not (self.configuration.initialize(self.processing_options)):

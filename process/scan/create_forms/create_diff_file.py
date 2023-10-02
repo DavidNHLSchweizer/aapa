@@ -16,8 +16,12 @@ class DifferenceProcessor(AanvraagProcessor):
         super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING},
                          description='Aanmaken verschilbestand')
     def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
-        relevante_aanvragen = self.storage.aanvragen.find_student_bedrijf(aanvraag.student, aanvraag.bedrijf, filter_func=lambda a: a.id != aanvraag.id)
+        relevante_aanvragen = self.storage.aanvragen.find_student_bedrijf(aanvraag.student, aanvraag.bedrijf, filter_func=lambda a: a.id != aanvraag.id and a.aanvraag_nr < aanvraag.aanvraag_nr)
         if len(relevante_aanvragen)>=1:    
+            result = sorted(relevante_aanvragen, key=lambda a: a.aanvraag_nr, reverse=True)
+            repstr = "\n\t".join([f'{str(aanvraag)}{aanvraag.id} {aanvraag.aanvraag_nr=}' for aanvraag in result])        
+            log_debug(f'relevante aanvragen: {repstr}')
+    
             return sorted(relevante_aanvragen, key=lambda a: a.aanvraag_nr, reverse=True)[0]
         else:
             return None
@@ -36,7 +40,7 @@ class DifferenceProcessor(AanvraagProcessor):
     def process(self, aanvraag: Aanvraag, preview = False, output_directory='.')->bool:
         if (previous_aanvraag := self.find_previous_aanvraag(aanvraag)):
             if not file_exists(self.get_difference_filename(self.output_directory, aanvraag.student.full_name)):
-                log_print(f'\tVerschilbestand met vorige versie {pva(preview, "aan te maken", "aangemaakt")}')
+                log_print(f'\tVerschilbestand met vorige versie aanmaken')
                 self.create_difference(previous_aanvraag, aanvraag, output_directory=output_directory, preview=preview)
                 return True
         else:

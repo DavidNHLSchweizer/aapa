@@ -56,7 +56,7 @@ class AAPATuiParams:
         return AAPAOptions(actions=[action], root_directory=self.root_directory, 
                            output_directory=self.output_directory, database_file=self.database, preview=self.preview)
       
-class AapaConfiguration(Static):
+class AapaConfigurationForm(Static):
     def compose(self)->ComposeResult:
         with Vertical():
             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
@@ -168,7 +168,7 @@ class AAPAApp(App):
         super().__init__(**kwdargs)
     def compose(self) -> ComposeResult:
         yield Header()
-        yield AapaConfiguration()
+        yield AapaConfigurationForm()
         yield AapaButtons()
         yield Footer()
     @property
@@ -198,7 +198,8 @@ class AAPAApp(App):
         options = self._create_options(action=action, **kwdargs)
         # logging.info(f'{options}')
         if await show_console():
-            self.terminal.run(AAPArun_script,options=options)                
+            self.terminal.run(AAPArun_script,options=options) 
+        self.test_configuration()
     async def on_dialog_message(self, event: DialogMessage):
         match event.originator_key:
             case 'verify_undo':                              
@@ -215,7 +216,7 @@ class AAPAApp(App):
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE)
-        log_debug(f'TEST TEST: {configuration.storage.action_logs.last_action()}')
+        self.app.title = f'TEST TEST: {configuration.storage.action_logs.last_action()}'
     async def action_undo(self):
         self.test_configuration()
         #   log_debug(f'Last action: {storage.action_log.last_action()}')
@@ -233,12 +234,12 @@ class AAPAApp(App):
     
     @property 
     def params(self)->AAPATuiParams:
-        result = self.query_one(AapaConfiguration).params
+        result = self.query_one(AapaConfigurationForm).params
         result.preview = self.query_one(AapaButtons).preview
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
-        self.query_one(AapaConfiguration).params = value
+        self.query_one(AapaConfigurationForm).params = value
         self.query_one(AapaButtons).preview = value.preview
     def __get_config_options(self)->AAPAConfigOptions:
         return AAPAConfigOptions(root_directory=self.params.root_directory,
@@ -247,11 +248,11 @@ class AAPAApp(App):
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):
-        self.query_one(AapaConfiguration).edit_root()
+        self.query_one(AapaConfigurationForm).edit_root()
     def action_edit_forms(self):
-        self.query_one(AapaConfiguration).edit_output_directory()
+        self.query_one(AapaConfigurationForm).edit_output_directory()
     def action_edit_database(self):
-        self.query_one(AapaConfiguration).edit_database()
+        self.query_one(AapaConfigurationForm).edit_database()
     def action_einde(self):
         self.exit()
     def _animate_widget_attribute(self, widget: Widget, attribute, target, duration):
