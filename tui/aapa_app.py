@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import random
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.events import ScreenResume, ScreenSuspend
+from textual.message import Message
 from textual.widget import Widget
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
@@ -121,9 +121,9 @@ class AapaDirectoriesForm(Static):
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
-            yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan'),
-                             ButtonDef('Form', variant= 'primary', id='form'),
-                             ButtonDef('Mail', variant= 'primary', id='mail'), 
+            yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan', classes = 'not_next'),
+                             ButtonDef('Form', variant= 'primary', id='form', classes = 'not_next'),
+                             ButtonDef('Mail', variant= 'primary', id='mail', classes = 'not_next'), 
                              ButtonDef('Undo', variant= 'error', id='undo')], 
                              ) 
             with RadioSet():
@@ -140,15 +140,16 @@ class AapaButtons(Static):
     def button(self, id: str)->Button:
         return self.query_one(f'#{id}', Button)
     def enable_action_buttons(self, action_log: ActionLog):
-        button_ids = {ActionLog.Action.SCAN: 'scan', ActionLog.Action.FORM: 'form', ActionLog.Action.MAIL: 'mail'}
-        if not action_log:
-            for action_log in {ActionLog.Action.FORM, ActionLog.Action.MAIL}:
-                self.button(button_ids[action_log]).classes = ''
-            self.button(button_ids[ActionLog.Action.SCAN]).classes = 'next'
-            self.button('undo').disabled = True
-        else:
-            self.button('undo').disabled = False
-            self.button(button_ids[action_log.action]).classes = 'next'
+        button_ids = {ActionLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
+                      ActionLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
+                      ActionLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
+                     } 
+        next_button_id = button_ids[action_log.action]['next'] if action_log else 'scan'
+        for button_id in {'scan', 'form', 'mail'} - {next_button_id}:
+            self.button(button_id).classes = 'not_next'
+        self.button(next_button_id).classes = 'next'
+        self.button(next_button_id).focus()
+        self.button('undo').disabled = not action_log
     def toggle(self):
         self.preview = not self.preview
     @property
@@ -161,6 +162,8 @@ class AapaButtons(Static):
         else:
             self.query_one('#uitvoeren', RadioButton).value= True
   
+class EnableButtons(Message): pass
+
 class AAPAApp(App):
     BINDINGS = [ 
                 Binding('ctrl-c', 'einde', 'Einde', priority=True),
@@ -192,11 +195,15 @@ class AAPAApp(App):
             global global_terminal 
             global_terminal = self._terminal
         return self._terminal
+    def callback(self, result: bool):
+        self.post_message(EnableButtons())
+    async def on_enable_buttons(self, message: EnableButtons):
+        await self.enable_buttons()
     async def on_mount(self):
         self.title = banner(BannerPart.BANNER_TITLE)
         self.sub_title = banner(BannerPart.BANNER_VERSION)
-        self.enable_buttons()
-        await init_console(self)
+        await init_console(self, self.callback)
+        self.post_message(EnableButtons())
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
             case 'scan': await self.action_scan()
@@ -227,7 +234,7 @@ class AAPAApp(App):
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
-    def enable_buttons(self):
+    async def enable_buttons(self):
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE)

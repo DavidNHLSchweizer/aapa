@@ -53,8 +53,32 @@ AapaButtons Button {
     margin: 0 1 0 1;
 }
 
+AapaButtons Button.not_next {
+    outline: solid blue;
+    background: $primary;
+    color: $text;
+    border-top: tall $primary-lighten-3;
+    border-bottom: tall $primary-darken-3;
+}
+AapaButtons Button.not_next :hover {
+    border-top: tall $panel;
+    background: $panel-darken-2;
+    color: $text;
+}
+
+
 AapaButtons Button.next {
     outline: double white;
+    background: $primary;
+    color: $text;
+    border-top: tall $primary-lighten-3;
+    border-bottom: tall $primary-darken-3;
+}
+
+AapaButtons Button.next :hover {
+    border-top: tall $panel;
+    background: $panel-darken-2;
+    color: $text;
 }
 
 AapaButtons Label {

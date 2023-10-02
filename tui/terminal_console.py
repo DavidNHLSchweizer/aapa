@@ -1,21 +1,25 @@
 import logging
 from textual.app import App
 from textual.message import Message
+from textual.screen import ScreenResultCallbackType
 from general.log import ConsoleFactory, PrintFuncs
 from general.singleton import Singleton
 from tui.common.terminal import TerminalScreen, TerminalWrite
 
 class Console(Singleton):
-    def __init__(self, app: App, name='terminal'):
+    def __init__(self, app: App, callback: ScreenResultCallbackType = None, name='terminal'):
         self._app: App = app
         self._app.install_screen(TerminalScreen(), name=name)
         self._name = name
         self._terminal: TerminalScreen = self._app.get_screen(name)
         self._run_result = None
         self._active = False
+        self._callback = callback
     def callback_run_terminal(self, result: bool):
         self._run_result = result
         self._active = False    
+        if self._callback:
+            self._callback(result)
     async def show(self)->bool:
         if self._active:
             return
@@ -40,10 +44,10 @@ class Console(Singleton):
             self._terminal.post_message(TerminalWrite(message, TerminalWrite.Level.DEBUG))
 
 _global_console: Console = None
-async def init_console(app: App)->Console:
+async def init_console(app: App, callback: ScreenResultCallbackType)->Console:
     global _global_console
     if _global_console is None:
-        _global_console = Console(app)
+        _global_console = Console(app, callback=callback)
     return _global_console
 
 def console_print(message: str):
