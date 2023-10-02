@@ -1,5 +1,6 @@
 import logging
 from textual.app import App
+from textual.message import Message
 from general.log import ConsoleFactory, PrintFuncs
 from general.singleton import Singleton
 from tui.common.terminal import TerminalScreen, TerminalWrite
@@ -78,7 +79,7 @@ class TerminalConsoleFactory(ConsoleFactory):
 async def console_run(script, **kwdargs)->bool:
     global _global_console
     if _global_console:
-        return _global_console._terminal.run(script, **kwdargs)
+        return await _global_console._terminal.run(script, **kwdargs)
     
 async def show_console()->bool:
     global _global_console

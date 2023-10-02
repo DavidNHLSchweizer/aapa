@@ -2,11 +2,13 @@ from dataclasses import dataclass
 import random
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.events import ScreenResume, ScreenSuspend
 from textual.widget import Widget
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
+from data.classes.action_log import ActionLog
 from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
 from general.log import log_debug, log_print, pop_console, push_console
 from general.versie import BannerPart, banner
@@ -15,7 +17,7 @@ from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
 from tui.common.required import Required
-from tui.common.terminal import TerminalScreen
+from tui.common.terminal import  TerminalScreen
 from tui.common.verify import DialogMessage, verify
 from tui.terminal_console import init_console, show_console
 import logging
@@ -56,7 +58,7 @@ class AAPATuiParams:
         return AAPAOptions(actions=[action], root_directory=self.root_directory, 
                            output_directory=self.output_directory, database_file=self.database, preview=self.preview)
       
-class AapaConfigurationForm(Static):
+class AapaDirectoriesForm(Static):
     def compose(self)->ComposeResult:
         with Vertical():
             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
@@ -134,7 +136,19 @@ class AapaButtons(Static):
         for id in {'scan', 'form', 'mail', 'undo', 'report'}:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         for id in {'preview', 'uitvoeren'}:
-            self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}']    
+            self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}'] 
+    def button(self, id: str)->Button:
+        return self.query_one(f'#{id}', Button)
+    def enable_action_buttons(self, action_log: ActionLog):
+        button_ids = {ActionLog.Action.SCAN: 'scan', ActionLog.Action.FORM: 'form', ActionLog.Action.MAIL: 'mail'}
+        if not action_log:
+            for action_log in {ActionLog.Action.FORM, ActionLog.Action.MAIL}:
+                self.button(button_ids[action_log]).classes = ''
+            self.button(button_ids[ActionLog.Action.SCAN]).classes = 'next'
+            self.button('undo').disabled = True
+        else:
+            self.button('undo').disabled = False
+            self.button(button_ids[action_log.action]).classes = 'next'
     def toggle(self):
         self.preview = not self.preview
     @property
@@ -168,7 +182,7 @@ class AAPAApp(App):
         super().__init__(**kwdargs)
     def compose(self) -> ComposeResult:
         yield Header()
-        yield AapaConfigurationForm()
+        yield AapaDirectoriesForm()
         yield AapaButtons()
         yield Footer()
     @property
@@ -181,6 +195,7 @@ class AAPAApp(App):
     async def on_mount(self):
         self.title = banner(BannerPart.BANNER_TITLE)
         self.sub_title = banner(BannerPart.BANNER_VERSION)
+        self.enable_buttons()
         await init_console(self)
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
@@ -198,27 +213,26 @@ class AAPAApp(App):
         options = self._create_options(action=action, **kwdargs)
         # logging.info(f'{options}')
         if await show_console():
-            self.terminal.run(AAPArun_script,options=options) 
-        self.test_configuration()
+            self.terminal.run(AAPArun_script,options=options)             
     async def on_dialog_message(self, event: DialogMessage):
         match event.originator_key:
             case 'verify_undo':                              
                 # self.app.title = f'{event.result_str.__class__} #{event.result_str}#'
                 if str(event.result_str) == 'Ja': 
                     await self.run_AAPA(AAPAaction.UNDO)
+
     async def action_scan(self):    
         await self.run_AAPA(AAPAaction.SCAN)
     async def action_form(self):    
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
-    def test_configuration(self):
+    def enable_buttons(self):
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE)
-        self.app.title = f'TEST TEST: {configuration.storage.action_logs.last_action()}'
+        self.query_one(AapaButtons).enable_action_buttons(configuration.storage.action_logs.last_action())
     async def action_undo(self):
-        self.test_configuration()
         #   log_debug(f'Last action: {storage.action_log.last_action()}')
         if self.query_one(AapaButtons).preview:
             await self.run_AAPA(AAPAaction.UNDO)
@@ -231,15 +245,17 @@ class AAPAApp(App):
                                            initialfile=config.get('report', 'filename'),
                                            confirmoverwrite=True)):
             await self.run_AAPA(AAPAaction.REPORT,filename=filename)
-    
+    @property 
+    def directories_form(self)->AapaDirectoriesForm:
+        return self.query_one(AapaDirectoriesForm)
     @property 
     def params(self)->AAPATuiParams:
-        result = self.query_one(AapaConfigurationForm).params
+        result = self.directories_form.params
         result.preview = self.query_one(AapaButtons).preview
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
-        self.query_one(AapaConfigurationForm).params = value
+        self.directories_form.params = value
         self.query_one(AapaButtons).preview = value.preview
     def __get_config_options(self)->AAPAConfigOptions:
         return AAPAConfigOptions(root_directory=self.params.root_directory,
@@ -248,11 +264,11 @@ class AAPAApp(App):
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):
-        self.query_one(AapaConfigurationForm).edit_root()
+        self.directories_form.edit_root()
     def action_edit_forms(self):
-        self.query_one(AapaConfigurationForm).edit_output_directory()
+        self.directories_form.edit_output_directory()
     def action_edit_database(self):
-        self.query_one(AapaConfigurationForm).edit_database()
+        self.directories_form.edit_database()
     def action_einde(self):
         self.exit()
     def _animate_widget_attribute(self, widget: Widget, attribute, target, duration):

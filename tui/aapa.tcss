@@ -6,30 +6,30 @@ Tooltip {
     border: solid purple;
 }
 
-AapaConfigurationForm {
+AapaDirectoriesForm {
     height: 14;
     background: wheat;
     margin: 1;
     border: round purple;
 }
 
-AapaConfigurationForm LabeledInput {
+AapaDirectoriesForm LabeledInput {
     margin: 0 0 0 1;
 }
 
-AapaConfigurationForm LabeledInput Label {
+AapaDirectoriesForm LabeledInput Label {
     color: black;
 }
 
-AapaConfigurationForm LabeledInput Input:focus {
+AapaDirectoriesForm LabeledInput Input:focus {
     outline: double black;
 }
 
-AapaConfigurationForm LabeledInput Input {
+AapaDirectoriesForm LabeledInput Input {
     outline: solid black;
 }
 
-AapaConfigurationForm .small {
+AapaDirectoriesForm .small {
     color: blue;
     background: darkgoldenrod;
 }
@@ -51,6 +51,10 @@ AapaButtons Button {
     max-width: 12;
     outline: solid blue;
     margin: 0 1 0 1;
+}
+
+AapaButtons Button.next {
+    outline: double white;
 }
 
 AapaButtons Label {
