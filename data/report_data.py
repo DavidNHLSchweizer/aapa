@@ -1,10 +1,11 @@
 from contextlib import contextmanager
 from enum import Enum
 import pandas as pd
+from data.classes.action_log import ActionLog
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
-from data.classes import AanvraagInfo
-from data.storage import AAPStorage
+from data.classes.aanvragen import Aanvraag
+from data.storage import AAPAStorage
 from general.fileutil import writable_filename
 from general.config import config
 
@@ -39,16 +40,16 @@ class COLMAP(Enum):
         return None
 
 class AanvraagXLSReporter(AanvraagProcessor):
-    def process(self, aanvraag: AanvraagInfo, preview=False, sheet=None, **kwargs)->bool:
+    def process(self, aanvraag: Aanvraag, preview=False, sheet=None, **kwargs)->bool:
         sheet.append(self.__to_sheet_row(aanvraag))
         return True
-    def __to_sheet_row(self, aanvraag: AanvraagInfo):
-        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.student_name, aanvraag.student.studnr, aanvraag.student.first_name, aanvraag.student.telno, aanvraag.student.email, 
-                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.bedrijfsnaam, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
+    def __to_sheet_row(self, aanvraag: Aanvraag):
+        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.full_name, aanvraag.student.stud_nr, aanvraag.student.first_name, aanvraag.student.tel_nr, aanvraag.student.email, 
+                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
 
 class AanvragenXLSReporter(AanvragenProcessor):       
-    def __init__(self, storage: AAPStorage):
-        super().__init__(AanvraagXLSReporter(), storage)
+    def __init__(self, storage: AAPAStorage):
+        super().__init__('Maken XLS rapportage', AanvraagXLSReporter(), storage, ActionLog.Action.NOLOG, can_undo=False)
         self.writer = None
         self.sheet = None
     @contextmanager
@@ -74,13 +75,13 @@ class AanvragenXLSReporter(AanvragenProcessor):
         result = 0
         with self.open_xls(xls_filename):
             try:
-                result = super().process_aanvragen(False, filter_func, sheet = self.sheet, **kwargs)
+                result = super().process_aanvragen(preview=preview, filter_func=filter_func, sheet = self.sheet, **kwargs)
             except Exception as E:
                 log_error(f'Fout bij schrijven Excel-bestand {xls_filename}:\n\t{E}')
                 result = None
         return result
     
-def report_aanvragen_XLS(storage: AAPStorage, xls_filename: str, filter_func = None):
+def report_aanvragen_XLS(storage: AAPAStorage, xls_filename: str, filter_func = None):
     xls_filename = writable_filename(xls_filename)
     if (result := AanvragenXLSReporter(storage).process_aanvragen(preview=False, filter_func=filter_func, xls_filename=xls_filename)) is not None:
         log_print(f'Rapport ({result} aanvragen) geschreven naar {xls_filename}.')

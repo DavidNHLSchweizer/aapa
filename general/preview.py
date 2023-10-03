@@ -1,10 +1,10 @@
-from data.storage import AAPStorage
-from general.log import console_info
+from data.storage import AAPAStorage
+from general.log import console_info, log_print
 
 class Preview:
     # preview context manager, may be nested
     level = 0
-    def __init__(self, preview:bool, storage: AAPStorage, msg):
+    def __init__(self, preview:bool, storage: AAPAStorage, msg):
         self.preview=preview
         self.storage = storage
         self.msg=msg

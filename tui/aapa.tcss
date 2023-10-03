@@ -6,30 +6,30 @@ Tooltip {
     border: solid purple;
 }
 
-AapaConfiguration {
+AapaDirectoriesForm {
     height: 14;
     background: wheat;
     margin: 1;
     border: round purple;
 }
 
-AapaConfiguration LabeledInput {
+AapaDirectoriesForm LabeledInput {
     margin: 0 0 0 1;
 }
 
-AapaConfiguration LabeledInput Label {
+AapaDirectoriesForm LabeledInput Label {
     color: black;
 }
 
-AapaConfiguration LabeledInput Input:focus {
+AapaDirectoriesForm LabeledInput Input:focus {
     outline: double black;
 }
 
-AapaConfiguration LabeledInput Input {
+AapaDirectoriesForm LabeledInput Input {
     outline: solid black;
 }
 
-AapaConfiguration .small {
+AapaDirectoriesForm .small {
     color: blue;
     background: darkgoldenrod;
 }
@@ -38,18 +38,46 @@ AapaButtons {
     align: center middle;
     max-height: 4;
     background: wheat;
-    border-top: double purple;    
+    border-top: double purple; 
+    width: 200;   
 }
 
 AapaButtons ButtonBar {
-    width: 40;
+    width: 100;
     margin: 0 2 0 2;
 }
 
 AapaButtons Button {
-    max-width: 20;
+    max-width: 12;
     outline: solid blue;
     margin: 0 1 0 1;
+}
+
+AapaButtons Button.not_next {
+    outline: solid blue;
+    background: $primary;
+    color: $text;
+    border-top: tall $primary-lighten-3;
+    border-bottom: tall $primary-darken-3;
+}
+AapaButtons Button.not_next :hover {
+    border-top: tall $panel;
+    background: $panel-darken-2;
+    color: $text;
+}
+
+AapaButtons Button.next {
+    outline: double white;
+    background: $primary;
+    color: $text;
+    border-top: tall $primary-lighten-3;
+    border-bottom: tall $primary-darken-3;
+}
+
+AapaButtons Button.next :hover {
+    border-top: tall $panel;
+    background: $panel-darken-2;
+    color: $text;
 }
 
 AapaButtons Label {
@@ -66,7 +94,6 @@ AapaButtons RadioSet {
 AapaButtons RadioButton {
     color: black; 
 }
-
 
 .input--cursor {
     color: slategray;

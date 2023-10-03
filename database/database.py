@@ -5,7 +5,7 @@ from database.tabledef import TableDefinition
 from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.fileutil import file_exists
-from general.log import log_error, log_info
+from general.log import log_debug, log_error, log_info
 
 class DatabaseException(Exception): pass
 
@@ -76,9 +76,6 @@ class Database:
     def disable_foreign_keys(self):
         self._execute_sql_command('pragma foreign_keys=OFF')
     def open_database(self, filename):
-        # if not file_exists(filename):
-        #     log_error(f'Database {filename} niet gevonden.')
-        #     return None
         try:
             conn = sql3.connect(filename)#, isolation_level=None)
             return conn
@@ -109,6 +106,7 @@ class Database:
         return self._execute_sql_command(sql.Query, sql.Parameters, True)
     def commit(self):
         if self._commit_level > 0:
+            log_debug(f'Committing (level: {self._commit_level})')
             return
         self.log_info('Committing')
         self.connection.commit()
@@ -130,7 +128,7 @@ class Database:
         sql = SQLinsert(tabledef, **args)
         self.execute_sql_command(sql)
     def read_record(self, tabledef, **args):
-        sql = SQLselect(tabledef, **args)
+        sql = SQLselect(tabledef, **args)        
         return self.execute_select(sql)
     def update_record(self, tabledef, **args):
         sql = SQLupdate(tabledef, **args)
@@ -143,7 +141,7 @@ class Schema:
     def __init__(self):
         self.__tables = {}
     def add_table(self, table: TableDefinition):
-        self.__tables[table.table_name] = table
+        self.__tables[table.name] = table
     def table(self, table_name: str)->TableDefinition:
         return self.__tables.get(table_name, None)
     def tables(self):

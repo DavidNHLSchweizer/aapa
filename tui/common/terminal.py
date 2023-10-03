@@ -10,6 +10,7 @@ from textual.widgets import Button, RichLog, Static
 from textual.message import Message
 from tui.common.button_bar import ButtonBar, ButtonDef
 
+
 class TerminalWrite(Message):
     class Level(Enum):
         NORMAL  = auto()

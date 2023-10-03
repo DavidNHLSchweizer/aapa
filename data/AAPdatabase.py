@@ -10,7 +10,7 @@ from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.16'
+DBVERSION = '1.17'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -24,14 +24,14 @@ class VersionTableDefinition(TableDefinition):
         self.add_column('datum', dbc.TEXT)
 
 def read_version_info(database: Database)->DBVersie:
-    if row := database._execute_sql_command('select id, db_versie, versie, datum from versie order by id desc', [], True):
+    if row := database._execute_sql_command('select * from VERSIE order by id desc', [], True):
         record = row[0]
         return DBVersie(db_versie = record['db_versie'], versie=record['versie'], datum=record['datum'])
     else:
         return DBVersie(db_versie = DBVERSION, versie=config.get('versie', 'versie'), datum=Versie.datetime_str())
 
 def create_version_info(database: Database, versie: DBVersie): 
-    database._execute_sql_command('insert into versie (db_versie, versie, datum) values (?,?,?)', [versie.db_versie, versie.versie, versie.datum])
+    database._execute_sql_command('insert into VERSIE (db_versie, versie, datum) values (?,?,?)', [versie.db_versie, versie.versie, versie.datum])
     database.commit()
 
 class FileRootTableDefinition(TableDefinition):
@@ -41,7 +41,7 @@ class FileRootTableDefinition(TableDefinition):
         self.add_column('root', dbc.TEXT)
 
 def create_root(database: Database, code, root: str):
-    database._execute_sql_command('insert into fileroot (code, root) values (?,?);', [code, root])
+    database._execute_sql_command('insert into FILEROOT (code, root) values (?,?);', [code, root])
     database.commit()
 
 def create_roots(database: Database):
@@ -65,14 +65,12 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('tel_nr', dbc.TEXT)
 
 class BedrijfTableDefinition(TableDefinition):
-    KEY_FOR_ID = 'Bedrijf' # key in general.keys used to generate IDs
     def __init__(self):
         super().__init__('BEDRIJVEN')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('name', dbc.TEXT)    
 
 class AanvraagTableDefinition(TableDefinition):
-    KEY_FOR_ID  = 'Aanvraag' 
     def __init__(self):
         super().__init__('AANVRAGEN')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -84,14 +82,31 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
 
-class FileTableDefinition(TableDefinition):
+class FilesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('FILES')
-        self.add_column('filename', dbc.TEXT, primary=True)
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('filename', dbc.TEXT)
         self.add_column('timestamp', dbc.TEXT)
         self.add_column('digest', dbc.TEXT)
         self.add_column('filetype', dbc.INTEGER)
         self.add_column('aanvraag_id', dbc.INTEGER)
+
+class ActionLogTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('ACTIONLOG')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('description', dbc.TEXT)
+        self.add_column('action', dbc.INTEGER)    
+        self.add_column('user', dbc.TEXT)    
+        self.add_column('date', dbc.DATE)   
+        self.add_column('can_undo', dbc.INTEGER)
+
+class ActionLogAanvragenTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('ACTIONLOG_AANVRAGEN')
+        self.add_column('log_id', dbc.INTEGER, primary = True)
+        self.add_column('aanvraag_id', dbc.INTEGER, primary = True)    
 
 class AAPSchema(Schema):
     def __init__(self):
@@ -101,13 +116,17 @@ class AAPSchema(Schema):
         self.add_table(StudentTableDefinition())
         self.add_table(BedrijfTableDefinition())
         self.add_table(AanvraagTableDefinition())
-        self.add_table(FileTableDefinition())
+        self.add_table(FilesTableDefinition())
+        self.add_table(ActionLogTableDefinition())
+        self.add_table(ActionLogAanvragenTableDefinition())
         self.__define_foreign_keys()
     def __define_foreign_keys(self):
         self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-
-        # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (FileType.InvalidPDF) die om efficientieredenen toch worden opgeslagen
+        self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    
+        # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (File.Type.InvalidPDF) die om efficientieredenen toch worden opgeslagen
         # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 
         #
         # self.table('FILES').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
@@ -127,12 +146,14 @@ class AAPDatabase(Database):
         self.schema = Schema()
         self.schema.read_from_database(self)  
         if not self._reset_flag: 
-            self.check_version(False,ignore_error=ignore_version)
-            self.load_roots(False)
-            self.reset_keys()
+            version_correct = self.check_version(recreate=False,ignore_error=ignore_version)
+            if version_correct:
+                self.load_roots(False)
+                self.reset_keys()
     def reset_keys(self):
-        reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
-        reset_key(AanvraagTableDefinition.KEY_FOR_ID, self.__find_max_key('AANVRAGEN'))
+        keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
+        for table in keyed_tables:
+            reset_key(table.name, self.__find_max_key(table.name))
     def __find_max_key(self, table_name: str):
         if (row := self._execute_sql_command(f'select max(ID) from {table_name};', return_values = True)) and \
                                             (r0 := list(row[0])[0]):
@@ -143,23 +164,26 @@ class AAPDatabase(Database):
     def create_from_schema(cls, schema: Schema, filename: str):
         result = super().create_from_schema(schema, filename)
         if result:
-            result.check_version(True)
+            result.check_version(recreate=True)
             result.load_roots(True)
             result.reset_keys()
         return result
     def __version_error(self, db_versie, errorStr):
         log_error(errorStr)
         raise AAPaException()
-    def check_version(self, recreate = False, ignore_error = False):
+    def check_version(self, recreate=False, ignore_error=False)->bool:
         log_info('--- Controle versies database en programma')
+        result = True
         try:
             if recreate:
                 create_version_info(self, DBVersie(db_versie=DBVERSION, versie=config.get('versie', 'versie'), datum=Versie.datetime_str()))
             else:
                 versie = read_version_info(self)
-                if  versie.db_versie != DBVERSION:
-                    self.__version_error(versie.db_versie, f"Database versie {versie.db_versie} komt niet overeen met verwachte versie in programma (verwacht: {DBVERSION}).")
-                elif versie.versie != config.get('versie', 'versie'):
+                if versie.db_versie != DBVERSION:
+                    result = False
+                    if not ignore_error:
+                        self.__version_error(versie.db_versie, f"Database versie {versie.db_versie} komt niet overeen met verwachte versie in programma (verwacht: {DBVERSION}).")
+                elif versie.versie != config.get('versie', 'versie') and not ignore_error:
                     log_warning(f"Programma versie ({config.get('versie', 'versie')}) komt niet overeen met versie in database (verwacht: {versie.versie}).\nDatabase en configuratie worden bijgewerkt.")
                     versie.versie = config.get('versie', 'versie')
                     versie.datum = Versie.datetime_str()
@@ -167,6 +191,7 @@ class AAPDatabase(Database):
                     config.set('versie', 'versie', versie.versie)
                     config.set('versie', 'datum', versie.datum)
             log_info('--- Einde controle versies database en programma')
+            return result
         except AAPaException as E:
             if not ignore_error:
                 log_error('Deze versie van het programma kan deze database niet openen.\nGebruik commando "new" of migreer de data naar de juiste databaseversie.')

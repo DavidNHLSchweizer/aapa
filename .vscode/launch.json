@@ -16,11 +16,11 @@
             "name": "Python: aapa.py",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "aapa.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--mode=scan",
+                "scan",
                 "-preview",                
             ]
         }

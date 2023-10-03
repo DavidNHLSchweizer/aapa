@@ -248,7 +248,7 @@ def _get_table_definition():
 def test_select_simple():
     td = _get_table_definition()
     sql = SQLselect(td)
-    assert sql.Query == f'SELECT * FROM {td.table_name};'
+    assert sql.Query == f'SELECT * FROM {td.name};'
     assert sql.Parameters == None
 def test_select_simple2():
     td = _get_table_definition()

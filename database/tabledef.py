@@ -40,6 +40,7 @@ class ColumnDefinition:
         self.name = name
         self.type = type
         self._compound_primary = False # SQLite doesn't support multiple PRIMARY KEY columns
+        #TODO: wat hier boven staat lijkt helemaal niet te kloppen, consequentie is niet helemaal duidelijk
         ColumnFlags().execute(self, **args)
     def is_primary(self):
         return hasattr(self, 'primary') and self.primary 
@@ -101,17 +102,22 @@ class TableFlags(dbArgParser):
 
 class TableDefinition:
     def __init__(self, name, **args):
-        self.table_name = name
+        self.name = name
         self.columns:list[ColumnDefinition] = []
         self.foreign_keys = []
+        self.keys:list[str] = []
         self.__has_primary = False
         self.__has_compound_primary = False
         TableFlags().execute(self, **args)
         if self.autoID:
             self.add_column(dbc.ID, dbc.INTEGER, primary=True)
+    @property 
+    def key(self)->str:
+        return self.keys[0] if len(self.keys) > 0 else None 
     def add_column(self, column_name, column_type, **args):
         self.columns.append(column:=ColumnDefinition(column_name, column_type, **args))
         if column.is_primary():
+            self.keys.append(column.name)
             if self.__has_compound_primary:
                 column._compound_primary = True
             elif self.__has_primary:
@@ -128,7 +134,7 @@ class TableDefinition:
     def has_foreign_keys(self):
         return len(self.foreign_keys) > 0
     def __str__(self):
-        result = f'TABLE {self.table_name}'
+        result = f'TABLE {self.name}'
         if len(self.columns):
             result = result + '\nCOLUMNS:\n\t' + '\n\t'.join([str(column) for column in self.columns])
         if self.is_compound_primary():

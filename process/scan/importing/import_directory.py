@@ -1,12 +1,13 @@
-from enum import Enum
 from pathlib import Path
 from copy import deepcopy
 import tkinter.simpledialog as tksimp
-from data.storage import AAPStorage
-from data.classes import AUTODIGEST, AUTOTIMESTAMP, AanvraagInfo, FileInfo, FileType
+from data.storage import AAPAStorage
+from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
 from general.log import log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
+from general.timeutil import TSC
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
@@ -25,7 +26,7 @@ class ImportException(Exception): pass
 NOTFOUND = 'NOT FOUND'
 
 class AanvraagValidator:
-    def __init__(self, storage: AAPStorage, source_file: str, aanvraag: AanvraagInfo):
+    def __init__(self, storage: AAPAStorage, source_file: str, aanvraag: Aanvraag):
         self.storage = storage
         self.source_file = source_file
         self.validated_aanvraag = deepcopy(aanvraag)
@@ -53,33 +54,35 @@ class AanvraagValidator:
         if not is_valid_title(self.validated_aanvraag.titel):
             self.validated_aanvraag.titel=self.__ask_titel(self.validated_aanvraag)
         return True
-    def __ask_titel(self, aanvraag: AanvraagInfo)->str:
+    def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
     def __check_sourcefile(self)->bool:
-        fileinfo = FileInfo(self.source_file, timestamp=AUTOTIMESTAMP, digest=AUTODIGEST, filetype=FileType.AANVRAAG_PDF)
-        if self.storage.file_info.is_duplicate(fileinfo):            
+        file = File(self.source_file, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=File.Type.AANVRAAG_PDF)
+        if self.storage.files.is_duplicate(file):            
             log_warning(f'Duplikaat: {summary_string(self.source_file)}.\nal in database: {str(self.aanvraag)}')
-            self.storage.file_info.store_invalid(self.source_file)
+            self.storage.files.store_invalid(self.source_file)
             return False
-        self.validated_aanvraag.register_file(self.source_file, FileType.AANVRAAG_PDF)
+        self.validated_aanvraag.register_file(self.source_file, File.Type.AANVRAAG_PDF)
         return True
 
 class AanvraagPDFImporter(AanvraagCreator):
-    def must_process_file(self, filename: str, storage: AAPStorage, **kwargs)->bool:
+    def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
+        super().__init__(entry_states=entry_states, exit_state=exit_state, description='PDF Importer')
+    def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         if self.is_known_invalid_file(filename, storage):
             return False
-        if (stored := storage.file_info.find_digest(FileInfo.get_digest(filename))) and filename != stored.filename:
+        if (stored := storage.files.find_digest(File.get_digest(filename))) and filename != stored.filename:
             log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=True)
-            storage.file_info.store_invalid(filename)
+            storage.files.store_invalid(filename)
             return False
-        return not stored or stored.filetype not in {FileType.AANVRAAG_PDF, FileType.COPIED_PDF}
-    def process_file(self, filename: str, storage: AAPStorage = None, preview=False)->AanvraagInfo:
+        return not stored or stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
+    def process_file(self, filename: str, storage: AAPAStorage = None, preview=False)->Aanvraag:
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
         log_print(f'Lezen {summary_string(filename, maxlen=100)}')
         try:
-            if (aanvraag := AanvraagReaderFromPDF(filename).aanvraag):
+            if (aanvraag := AanvraagReaderFromPDF(filename).read_aanvraag()):
                 validator = AanvraagValidator(storage, filename, aanvraag)
                 if not validator.validate():
                     return None
@@ -89,69 +92,15 @@ class AanvraagPDFImporter(AanvraagCreator):
             else:
                 return None
         except PDFReaderException as reader_exception:
-            storage.file_info.store_invalid(filename)
+            storage.files.store_invalid(filename)
             log_warning(f'{reader_exception}\n\t{ERRCOMMENT}.')           
         return None
 
-
-class ImportResult(Enum):
-    UNKNOWN  = 0
-    IMPORTED = 1
-    ERROR    = 2
-    ALREADY_IMPORTED = 3
-    KNOWN_ERROR = 4
-    KNOWN_PDF = 5
-    COPIED_FILE = 6
-
-# def _import_aanvraag(filename: str, importer: AanvraagDataImporter)->ImportResult:
-#     def known_import_result(filename)->ImportResult:
-#         def not_changed(filename, fileinfo):
-#             return FileInfo.get_timestamp(filename) == fileinfo.timestamp and FileInfo.get_digest(filename) == fileinfo.digest
-#         if (fileinfo := importer.known_file_info(filename)):
-#             match fileinfo.filetype:
-#                 case FileType.AANVRAAG_PDF | FileType.COPIED_PDF:
-#                     if not_changed(filename, fileinfo): 
-#                         return ImportResult.ALREADY_IMPORTED if fileinfo.filetype == FileType.AANVRAAG_PDF else ImportResult.COPIED_FILE
-#                     else:
-#                         return ImportResult.UNKNOWN
-#                 case FileType.GRADED_PDF:
-#                     return ImportResult.KNOWN_PDF
-#                 case FileType.INVALID_PDF:
-#                     if not_changed(filename, fileinfo): 
-#                         return ImportResult.KNOWN_ERROR
-#                     else:
-#                         return ImportResult.UNKNOWN
-                
-#         return ImportResult.UNKNOWN
-#     try:
-#         if (result := known_import_result(filename)) == ImportResult.UNKNOWN: 
-#             if importer.process_file(filename): 
-#                 return ImportResult.IMPORTED
-#             else:
-#                 return ImportResult.ERROR
-#         return result
-#     except ImportException as E:
-#         log_error(f'Fout bij importeren {filename}:\n\t{E}\n\t{ERRCOMMENT}')        
-#         importer.storage.file_info.store_invalid(filename)
-#         return ImportResult.ERROR
-
-def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=False):
-    def import_status_str(result):
-        match result:
-            case ImportResult.IMPORTED: return pva(preview, "te importeren","geimporteerd")
-            case ImportResult.ERROR: return pva(preview, "kan niet worden geimporteerd","fout bij importeren")
-            case ImportResult.ALREADY_IMPORTED: return "eerder geimporteerd"
-            case ImportResult.COPIED_FILE: return "kopie van aanvraag (eerder geimporteerd)"
-            case ImportResult.KNOWN_ERROR: return "eerder gelezen, kan niet worden geimporteerd"
-            case _: return "???"
-    def file_str(file,result):
-        return f'{summary_string(file)} [{import_status_str(result)}]'
+def report_imports(new_aanvragen, preview=False, verbose=False):
     log_info('Rapportage import:', to_console=True)
+    if not new_aanvragen:
+        new_aanvragen = []
     sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")    
-    if verbose:
-        log_info(f'\t---Gelezen {sop_aanvragen}:---')
-        if len(new_aanvragen):
-            log_print('\t\t'+ '\n\t\t'.join([file_str(file, result) for file,result in file_results.items()]))
     if len(new_aanvragen):
         log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')
         log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
@@ -159,7 +108,7 @@ def report_imports(file_results:dict, new_aanvragen, preview=False, verbose=Fals
 
 class DirectoryImporter(AanvragenCreator): pass
 
-def import_directory(directory: str, output_directory: str, storage: AAPStorage, recursive = True, preview=False)->int:
+def import_directory(directory: str, output_directory: str, storage: AAPAStorage, recursive = True, preview=False)->int:
     def _get_pattern(recursive: bool):
         return '**/*.pdf' if recursive else '*.pdf'
     if not Path(directory).is_dir():
@@ -172,11 +121,9 @@ def import_directory(directory: str, output_directory: str, storage: AAPStorage,
     else:
         skip_directories = set()
     skip_files = config.get('import', 'skip_files')
-    importer = DirectoryImporter(AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
-    file_results = {}
+    importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     first_id = storage.aanvragen.max_id() + 1
-    #TODO: hier zorgen voor resultaten bij het importeren, misschien, lijkt niet echt meerwaarde te hebben
     n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
-    report_imports(file_results, importer.storage.aanvragen.read_all(lambda x: x.id >= first_id), preview=preview)
+    report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

@@ -1,31 +1,35 @@
 from dataclasses import dataclass
 import random
+import logging
+from textual.screen import Screen
+from textual.widget import Widget
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widget import Widget
-from textual.screen import Screen
+from textual.message import Message
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
-from general.args import AAPAaction, AAPAoptions
+from data.classes.action_log import ActionLog
+from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
 from general.log import pop_console, push_console
-from general.versie import BANNER_TITLE, BANNER_VERSION, banner
+from general.versie import BannerPart, banner
+from process.aapa_processor.aapa_config import AAPAConfiguration
 from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
 from tui.common.required import Required
-from tui.common.terminal import TerminalScreen
+from tui.common.terminal import  TerminalScreen
+from tui.common.verify import DialogMessage, verify
 from tui.terminal_console import init_console, show_console
-import logging
 import tkinter.filedialog as tkifd
 
 from tui.terminal_console import TerminalConsoleFactory
 
-def AAPArun_script(options: AAPAoptions)->bool:
+def AAPArun_script(options: AAPAOptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
-        aapa_runner = AAPARunner(options)
-        aapa_runner.process() 
+        aapa_runner = AAPARunner(options.config_options)
+        aapa_runner.process(options.processing_options) 
     finally:
         pop_console()
     return True
@@ -36,8 +40,10 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'root-input-button': 'Kies de root-directory',
             'output-input-button': 'Kies de output-directory',
             'database-input-button': 'Kies de database',
-            'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories, maak aanvraagformulieren',
+            'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories',
+            'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
+            'undo': 'Maak de laatste actie (scan of mail) ongedaan',
             'mode_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database',
             'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid',
             'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',
@@ -48,10 +54,11 @@ class AAPATuiParams:
     output_directory: str = ''
     database: str = ''
     preview: bool = True
-    def get_options(self, action: AAPAaction)->AAPAoptions:
-        return AAPAoptions([action], self.root_directory, self.output_directory, self.database, self.preview)
+    def get_options(self, action: AAPAaction)->AAPAOptions:
+        return AAPAOptions(actions=[action], root_directory=self.root_directory, 
+                           output_directory=self.output_directory, database_file=self.database, preview=self.preview)
       
-class AapaConfiguration(Static):
+class AapaDirectoriesForm(Static):
     def compose(self)->ComposeResult:
         with Vertical():
             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
@@ -114,18 +121,35 @@ class AapaConfiguration(Static):
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
-            yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan'),
-                             ButtonDef('Mail', variant= 'primary', id='mail')]) 
+            yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan', classes = 'not_next'),
+                             ButtonDef('Form', variant= 'primary', id='form', classes = 'not_next'),
+                             ButtonDef('Mail', variant= 'primary', id='mail', classes = 'not_next'), 
+                             ButtonDef('Undo', variant= 'error', id='undo')], 
+                             ) 
             with RadioSet():
                 yield RadioButton('preview', id='preview', value=True)
                 yield RadioButton('uitvoeren', id='uitvoeren')
             yield Button('Rapport', variant = 'primary', id='report')
     def on_mount(self):
-        self.query_one(ButtonBar).styles.width = 36
-        for id in {'scan', 'mail', 'report'}:
+        button_bar = self.query_one(ButtonBar)
+        button_bar.styles.width = 6 + button_bar.nr_buttons() * 12
+        for id in {'scan', 'form', 'mail', 'undo', 'report'}:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         for id in {'preview', 'uitvoeren'}:
-            self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}']    
+            self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}'] 
+    def button(self, id: str)->Button:
+        return self.query_one(f'#{id}', Button)
+    def enable_action_buttons(self, action_log: ActionLog):
+        button_ids = {ActionLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
+                      ActionLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
+                      ActionLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
+                     } 
+        next_button_id = button_ids[action_log.action]['next'] if action_log else 'scan'
+        for button_id in {'scan', 'form', 'mail'} - {next_button_id}:
+            self.button(button_id).classes = 'not_next'
+        self.button(next_button_id).classes = 'next'
+        self.button(next_button_id).focus()
+        self.button('undo').disabled = not action_log
     def toggle(self):
         self.preview = not self.preview
     @property
@@ -138,26 +162,31 @@ class AapaButtons(Static):
         else:
             self.query_one('#uitvoeren', RadioButton).value= True
   
+class EnableButtons(Message): pass
+
 class AAPAApp(App):
     BINDINGS = [ 
-                Binding('ctrl-c', 'einde', 'Einde programma', priority=True),
-                Binding('ctrl+s', 'scan', 'Scan nieuwe aanvragen', priority = True),
-                Binding('ctrl+o', 'mail', 'Zet mails klaar', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
-                Binding('ctrl+p', 'toggle_preview', 'Toggle preview mode', priority=True),
+                Binding('ctrl-c', 'einde', 'Einde', priority=True),
+                Binding('ctrl+s', 'scan', 'Scan', priority = True),
+                Binding('ctrl+f', 'form', 'Form', priority = True),
+                Binding('ctrl+o', 'mail', 'Mail', priority = True),     # ctrl+m does not work while in Input fields, probably interferes with Enter    
+                Binding('ctrl+z', 'undo', 'Undo', priority = True),
+                Binding('ctrl+p', 'toggle_preview', 'Toggle preview', priority=True),
                 Binding('ctrl+r', 'edit_root', 'Bewerk root directory', priority = True, show=False),
-                Binding('ctrl+f', 'edit_output_directory', 'Bewerk output directory', priority = True, show=False),
-                Binding('ctrl+d', 'edit_database', 'Kies database file', priority = True, show=False),
+                Binding('ctrl+o', 'edit_output_directory', 'Bewerk output directory', priority = True, show=False),
+                Binding('ctrl+b', 'edit_database', 'Kies database file', priority = True, show=False),
                 Binding('ctrl+q', 'barbie', '', priority = True, show=False),
                ]
     CSS_PATH = ['aapa.tcss']
     def __init__(self, **kwdargs):
         self.terminal_active = False
+        self.last_action: ActionLog = None
         self.barbie = False
         self.barbie_oldcolors = {}
         super().__init__(**kwdargs)
     def compose(self) -> ComposeResult:
         yield Header()
-        yield AapaConfiguration()
+        yield AapaDirectoriesForm()
         yield AapaButtons()
         yield Footer()
     @property
@@ -167,54 +196,93 @@ class AAPAApp(App):
             global global_terminal 
             global_terminal = self._terminal
         return self._terminal
+    def callback(self, result: bool):
+        self.post_message(EnableButtons())
+    async def on_enable_buttons(self, message: EnableButtons):
+        await self.enable_buttons()
     async def on_mount(self):
-        self.title = banner(BANNER_TITLE)
-        self.sub_title = banner(BANNER_VERSION)
-        await init_console(self)
+        self.title = banner(BannerPart.BANNER_TITLE)
+        self.sub_title = banner(BannerPart.BANNER_VERSION)
+        await init_console(self, self.callback)
+        self.post_message(EnableButtons())
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
             case 'scan': await self.action_scan()
+            case 'form': await self.action_form()
             case 'mail': await self.action_mail()
+            case 'undo': await self.action_undo()
             case 'report': await self.action_report()
         message.stop()
-    def _create_options(self, **kwdargs)->AAPAoptions:
+    def _create_options(self, **kwdargs)->AAPAOptions:
         options = self.params.get_options(kwdargs.pop('action', None))
-        options.filename = kwdargs.pop('filename', options.filename)
+        options.processing_options.filename = kwdargs.pop('filename', options.processing_options.filename)
         return options
     async def run_AAPA(self, action: AAPAaction, **kwdargs):
         options = self._create_options(action=action, **kwdargs)
         # logging.info(f'{options}')
         if await show_console():
-            self.terminal.run(AAPArun_script,options=options)                
-    
+            self.terminal.run(AAPArun_script,options=options)             
+    async def on_dialog_message(self, event: DialogMessage):
+        match event.originator_key:
+            case 'verify_undo':                              
+                # self.app.title = f'{event.result_str.__class__} #{event.result_str}#'
+                if str(event.result_str) == 'Ja': 
+                    await self.run_AAPA(AAPAaction.UNDO)
+
     async def action_scan(self):    
         await self.run_AAPA(AAPAaction.SCAN)
+    async def action_form(self):    
+        await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
+    def refresh_last_action(self)->ActionLog:
+        options = self._create_options()
+        configuration = AAPAConfiguration(options.config_options)
+        if not configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
+            result = None
+        else:
+            result = configuration.storage.action_logs.last_action()
+        self.last_action = result
+        return result
+    async def enable_buttons(self):
+        self.refresh_last_action()
+        self.query_one(AapaButtons).enable_action_buttons(self.last_action)
+    async def action_undo(self):
+        if self.query_one(AapaButtons).preview:
+            await self.run_AAPA(AAPAaction.UNDO)
+        else:
+            verify(self, f'Laatste actie (wordt teruggedraaid):\n{self.last_action.summary()}\n\nWAARSCHUWING:\nAls je voor "Ja" kiest kunnen bestanden worden verwijderd en wordt de database aangepast.\nDit kan niet meer ongedaan worden gemaakt.\n\nWeet je zeker dat je dit wilt?', 
+                   originator_key='verify_undo')              
     async def action_report(self):
         if (filename := tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
                                            filetypes=[('*.xlsx', 'Excel bestanden'), ('*.*', 'Alle bestanden')],
                                            initialfile=config.get('report', 'filename'),
                                            confirmoverwrite=True)):
             await self.run_AAPA(AAPAaction.REPORT,filename=filename)
-    
+    @property 
+    def directories_form(self)->AapaDirectoriesForm:
+        return self.query_one(AapaDirectoriesForm)
     @property 
     def params(self)->AAPATuiParams:
-        result = self.query_one(AapaConfiguration).params
+        result = self.directories_form.params
         result.preview = self.query_one(AapaButtons).preview
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
-        self.query_one(AapaConfiguration).params = value
+        self.directories_form.params = value
         self.query_one(AapaButtons).preview = value.preview
+    def __get_config_options(self)->AAPAConfigOptions:
+        return AAPAConfigOptions(root_directory=self.params.root_directory,
+                                 output_directory=self.params.output_directory, 
+                                 database_file=self.params.database)                                 
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):
-        self.query_one(AapaConfiguration).edit_root()
+        self.directories_form.edit_root()
     def action_edit_forms(self):
-        self.query_one(AapaConfiguration).edit_output_directory()
+        self.directories_form.edit_output_directory()
     def action_edit_database(self):
-        self.query_one(AapaConfiguration).edit_database()
+        self.directories_form.edit_database()
     def action_einde(self):
         self.exit()
     def _animate_widget_attribute(self, widget: Widget, attribute, target, duration):

@@ -23,11 +23,11 @@ def _test_add_column(type, **args):
 
 def test_init_default():
     TD = TableDefinition(TEST)
-    assert TD.table_name == TEST
+    assert TD.name == TEST
     assert len(TD.columns) == 0
 def test_init_auto():
     TD = TableDefinition(TEST, autoID=True)
-    assert TD.table_name == TEST
+    assert TD.name == TEST
     assert len(TD.columns) == 1
     assert TD.autoID
     _test_column_is(TD.columns[0], dbc.ID, dbc.INTEGER, primary=True)

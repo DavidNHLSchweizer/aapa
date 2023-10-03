@@ -37,7 +37,7 @@ class SQLbase(ABC):
         return None
     @property
     def table_name(self):
-        return self.table_def.table_name
+        return self.table_def.name
     @property
     def columns(self):
         return self.table_def.columns

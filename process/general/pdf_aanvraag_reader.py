@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 import re
 import pdfplumber
-from data.classes import AanvraagInfo, Bedrijf, StudentInfo
+from data.classes.aanvragen import Aanvraag
+from data.classes.bedrijven import Bedrijf
+from data.classes.studenten import Student
 from general.config import IntValueConvertor, config
 from general.log import log_debug
 
@@ -57,7 +59,7 @@ class PDFtoTablesReader:
         return result
     
 class PDFaanvraagReader(PDFtoTablesReader):
-    student_dict_fields = {'Student': 'student', 'Studentnummer': 'studnr', 'Telefoonnummer': 'telno', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
+    student_dict_fields = {'Student': 'full_name', 'Studentnummer': 'stud_nr', 'Telefoonnummer': 'tel_nr', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
     END_ROW = len(student_dict_fields) + 12 # een beetje langer ivm bedrijfsnaam en sommige aanvragen met "extra" regels
     def __init__(self,pdf_file: str):
         super().__init__(pdf_file, expected_tables=config.get('pdf_read', 'expected_tables'), 
@@ -99,18 +101,18 @@ class PDFaanvraagReader(PDFtoTablesReader):
 @dataclass
 class _AanvraagData:
     datum_str = ''
-    student = ''
-    studnr = ''
-    telno = ''
+    full_name = ''
+    stud_nr = ''
+    tel_nr = ''
     email = ''
     bedrijf = ''
     titel = ''
     def __str__(self):
-        return f'student: {self.student} ({self.studnr})  telno: {self.telno}  email: {self.email}\nbedrijf: {self.bedrijf}  titel: {self.titel}  datum_str: {self.datum_str}'
+        return f'student: {self.full_name} ({self.stud_nr})  tel_nr: {self.tel_nr}  email: {self.email}\nbedrijf: {self.bedrijf}  titel: {self.titel}  datum_str: {self.datum_str}'
     def valid(self)->bool:
-        if not self.student or not self.bedrijf  or not self.email:
+        if not self.full_name or not self.bedrijf  or not self.email:
             return False
-        if self.student == NOTFOUND or self.bedrijf == NOTFOUND or self.email == NOTFOUND:
+        if self.full_name == NOTFOUND or self.bedrijf == NOTFOUND or self.email == NOTFOUND:
             return False      
         return True
     
@@ -121,12 +123,7 @@ def debug_table_report_string(table: list[str], r1:int=None, r2:int=None)->str:
     return "\n".join([f'{n}: {line}' for n,line in enumerate(table[rr1:rr2])])
 
 class AanvraagReaderFromPDF(PDFaanvraagReader):
-    def __init__(self, pdf_file: str):
-        super().__init__(pdf_file)
-        self.aanvraag = self.get_aanvraag()
-    def __str__(self):
-        return f'file:"{self.filename}" aanvraag: "{str(self.aanvraag)}"'
-    def get_aanvraag(self)->AanvraagInfo:            
+    def read_aanvraag(self)->Aanvraag:            
         aanvraag_data = _AanvraagData()
         try:
             self.__parse_main_data(self.tables[0], aanvraag_data)
@@ -137,12 +134,13 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
             return aanvraag
         except Exception as E:
             raise PDFReaderException(f"Fout bij lezen document: {E}")    
-    def __convert_data(self, aanvraag_data: _AanvraagData)->AanvraagInfo:
+    def __convert_data(self, aanvraag_data: _AanvraagData)->Aanvraag:
         if not aanvraag_data.valid():
             return None
         bedrijf = Bedrijf(aanvraag_data.bedrijf)
-        student = StudentInfo(aanvraag_data.student, aanvraag_data.studnr, aanvraag_data.telno, aanvraag_data.email)
-        return AanvraagInfo(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel)
+        student = Student(full_name=aanvraag_data.full_name, stud_nr=aanvraag_data.stud_nr, tel_nr=aanvraag_data.tel_nr, email=aanvraag_data.email)
+        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel, 
+                        status = Aanvraag.Status.IMPORTED_PDF)
     def __parse_first_table(self, table: list[str], field_keys: list[str])->dict:
         def find_pattern(table_row: str)->tuple[str,str]:
             for key in field_keys:
