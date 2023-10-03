@@ -3,6 +3,8 @@ import datetime
 from enum import IntEnum
 import os
 from data.classes.aanvragen import Aanvraag
+from general.log import log_debug
+from general.singular_or_plural import sop
 from general.timeutil import TSC
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
@@ -13,14 +15,9 @@ class ActionLog:
         SCAN    = 1
         FORM    = 2
         MAIL    = 3
-        UNDO  = 4    
+        UNDO    = 4    
         def __str__(self):
             return self.name
-            # STR_DICT = {ActionLog.Action.NOLOG: 'NOLOG', ActionLog.Action.SCAN: 'SCAN',  
-            #             ActionLog.Action.FORM: 'FORM', ActionLog.Action.MAIL: 'MAIL', 
-            #             ActionLog.Action.UNDO: 'UNDO'
-            #             }
-            # return STR_DICT.get(self, '!unknown')
     def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), can_undo=True):
         self.action = action        
         self.id = id #KEY
@@ -52,11 +49,12 @@ class ActionLog:
         if self.is_empty():
             return result + ' (geen aanvragen)'
         else:
-            result = result + f'!{self.nr_aanvragen} aanvragen:'
+            result = result + f'!{self.nr_aanvragen} {sop(self.nr_aanvragen, "aanvraag", "aanvragen")}'
             can_undo_str = 'kan worden' if self.can_undo else ''
             result = f"{result} [{can_undo_str} teruggedraaid]"
             return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])
     def summary(self)->str:
+        log_debug(f'full action: {str(self)}')
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
         aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty() else 'geen'
-        return f'{self.description} {date_str} [{self.user}] ({aanvr_str} aanvragen)'
+        return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen")})'

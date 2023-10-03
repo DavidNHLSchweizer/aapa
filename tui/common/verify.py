@@ -7,17 +7,37 @@ from textual.containers import Center
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Static
 from textual.message import Message
+from general.log import log_debug
 from tui.common.button_bar import ButtonBar, ButtonDef
-            
-def get_split_width(s: str, max_width: int = 0)->int:
-    max_str = max(len(substr) for substr in s.split('\n'))
-    if max_width != 0:
-        return min(max_width, max_str)
-    return max_str
 
-def center_strings(s: str, max_width: int = 0)->str:
-    w = get_split_width(s, max_width=max_width)
-    return '\n'.join([substr.center(w) for substr in s.split('\n')])
+class DialogStringBuilder:
+    def __init__(self, raw_string: str):
+        self._raw_string = raw_string
+        self._split_lines = raw_string.split('\n')
+        log_debug(f'{[line for line in self._split_lines]}')
+    def get_width(self, max_width=0)->int:
+        max_str = max(len(substr) for substr in self._split_lines)
+        return min(max_width, max_str) if max_width else max_str
+    def center_strings(self, max_width=0)->str:
+        w = self.get_width(max_width)
+        return '\n'.join([substr.center(w) for substr in self._split_lines])
+    def nr_lines(self, max_width = 0)->int:
+        result = len(self._split_lines)
+        w = self.get_width(max_width)
+        for l in self._split_lines:
+            if len(l) > w:
+                result += 1
+        return result
+
+# def get_split_width(s: str, max_width: int = 0)->int:
+#     max_str = max(len(substr) for substr in s.split('\n'))
+#     if max_width != 0:
+#         return min(max_width, max_str)
+#     return max_str
+
+# def center_strings(s: str, max_width: int = 0)->str:
+#     w = get_split_width(s, max_width=max_width)
+#     return '\n'.join([substr.center(w) for substr in s.split('\n')])
 
 class DialogMessage(Message):
     def __init__(self, result_str: str, originator_key: str):
@@ -27,10 +47,10 @@ class DialogMessage(Message):
 
 class DialogForm(Static):
     MAX_WIDTH = 120
+    MIN_HEIGHT = 8
     DEFAULT_CSS = """   
         DialogForm {
             align: center middle;
-            height: 11;
             border: thick $surface 50%;
             background: wheat;
         }
@@ -43,12 +63,12 @@ class DialogForm(Static):
         }
     """    
     def __init__(self, label_str: str, buttons: Iterable[ButtonDef]): 
-        self._label_str = label_str
+        self.builder = DialogStringBuilder(label_str)        
         self._buttons = buttons
         super().__init__()
     def compose(self) -> ComposeResult:
         with Center():            
-            yield Label(center_strings(self._label_str, max_width=DialogForm.MAX_WIDTH))
+            yield Label(self.builder.center_strings(max_width=DialogForm.MAX_WIDTH))
             yield ButtonBar(self._buttons)
     def on_mount(self):
         w = 2 + max(self.__total_button_width(), self.__label_width())
@@ -57,12 +77,14 @@ class DialogForm(Static):
         self.styles.width = w
         for button in self.query(Button):
             button.styles.width = bw
+        h = DialogForm.MIN_HEIGHT + self.builder.nr_lines(w)-1
+        self.styles.height = h
     def __total_button_width(self)->int:
         return len(self._buttons) * (self.__button_width() + 2) + 4
     def __button_width(self)->int:
         return max(12, max(len(button.label) for button in self._buttons)) + 6
     def __label_width(self)->int:
-        return get_split_width(self._label_str) + 4
+        return self.builder.get_width() + 4
 
 class DialogScreen(ModalScreen[str]):
     DEFAULT_CSS = """   

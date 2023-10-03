@@ -29,6 +29,7 @@ tqdm
 #run_tui
 #data.AAPdatabase
 data.classes.files
+data.classes.action_log
 #data.migrate
 #data.report_data
 #data.reset
@@ -89,5 +90,5 @@ tui.aapa_app
 #tui.common.labeled_input
 #tui.common.required
 #tui.common.terminal
-#tui.common.verify
+tui.common.verify
 
