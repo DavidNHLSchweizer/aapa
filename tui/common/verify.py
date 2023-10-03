@@ -29,16 +29,6 @@ class DialogStringBuilder:
                 result += 1
         return result
 
-# def get_split_width(s: str, max_width: int = 0)->int:
-#     max_str = max(len(substr) for substr in s.split('\n'))
-#     if max_width != 0:
-#         return min(max_width, max_str)
-#     return max_str
-
-# def center_strings(s: str, max_width: int = 0)->str:
-#     w = get_split_width(s, max_width=max_width)
-#     return '\n'.join([substr.center(w) for substr in s.split('\n')])
-
 class DialogMessage(Message):
     def __init__(self, result_str: str, originator_key: str):
         self.result_str = result_str
