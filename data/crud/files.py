@@ -8,7 +8,7 @@ from general.timeutil import TSC
 
 class CRUD_files(CRUDbaseAuto):
     def __init__(self, database: Database):
-        super().__init__(database, FilesTableDefinition(), File, no_column_ref_for_key=True)
+        super().__init__(database, FilesTableDefinition(), File)#, no_column_ref_for_key=True)
         self._db_map['filename']['db2obj'] = decode_path
         self._db_map['filename']['obj2db'] = encode_path
         self._db_map['timestamp']['db2obj'] = TSC.str_to_timestamp

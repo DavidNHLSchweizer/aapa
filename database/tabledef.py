@@ -105,12 +105,15 @@ class TableDefinition:
         self.name = name
         self.columns:list[ColumnDefinition] = []
         self.foreign_keys = []
-        self.keys = []
+        self.keys:list[str] = []
         self.__has_primary = False
         self.__has_compound_primary = False
         TableFlags().execute(self, **args)
         if self.autoID:
             self.add_column(dbc.ID, dbc.INTEGER, primary=True)
+    @property 
+    def key(self)->str:
+        return self.keys[0] if len(self.keys) > 0 else None 
     def add_column(self, column_name, column_type, **args):
         self.columns.append(column:=ColumnDefinition(column_name, column_type, **args))
         if column.is_primary():
