@@ -8,6 +8,7 @@ from database.sqlexpr import Ops, SQLexpression as SQE
 from general.deep_attr import deep_attr_main_part, deep_attr_sub_part, get_deep_attr, has_deep_attr
 from database.database import Database
 from database.tabledef import TableDefinition
+from general.keys import get_next_key
 from general.log import log_debug
 
 DBtype = type[str|int|float]
@@ -80,3 +81,11 @@ class CRUDbase:
         key = self.table.keys[0]
         attrib = self._db_map[key]['attrib']
         self.database.delete_record(self.table, where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value), no_column_ref=self.no_column_ref_for_key))
+
+
+class CRUDbaseAuto(CRUDbase):
+    #table with primary key "id" (integer). This is done by pre-setting the id 
+    def create(self, object: AAPAClass):   
+        log_debug(f'create: {str(object)}')     
+        object.id = get_next_key(self.table.name) 
+        super().create(object)

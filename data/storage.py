@@ -13,12 +13,10 @@ from data.crud.files import CRUD_files
 from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen
 from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
-from database.SQL import SQLselect
 from database.database import Database
 from database.dbConst import EMPTY_ID
-from general.fileutil import summary_string
 from data.roots import add_root, encode_path
-from general.log import log_debug, log_info, log_warning
+from general.log import log_debug, log_warning
 from general.timeutil import TSC
 
 class StorageException(Exception): pass

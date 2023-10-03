@@ -65,14 +65,12 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('tel_nr', dbc.TEXT)
 
 class BedrijfTableDefinition(TableDefinition):
-    KEY_FOR_ID = 'Bedrijf' # key in general.keys used to generate IDs
     def __init__(self):
         super().__init__('BEDRIJVEN')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('name', dbc.TEXT)    
 
 class AanvraagTableDefinition(TableDefinition):
-    KEY_FOR_ID  = 'Aanvraag' 
     def __init__(self):
         super().__init__('AANVRAGEN')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -85,7 +83,6 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('beoordeling', dbc.INTEGER)
 
 class FilesTableDefinition(TableDefinition):
-    KEY_FOR_ID = 'Files'
     def __init__(self):
         super().__init__('FILES')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -96,7 +93,6 @@ class FilesTableDefinition(TableDefinition):
         self.add_column('aanvraag_id', dbc.INTEGER)
 
 class ActionLogTableDefinition(TableDefinition):
-    KEY_FOR_ID = 'ActionLog' # key in general.keys used to generate IDs
     def __init__(self):
         super().__init__('ACTIONLOG')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -157,10 +153,7 @@ class AAPDatabase(Database):
     def reset_keys(self):
         keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
         for table in keyed_tables:
-            reset_key(getattr(table, 'KEY_FOR_ID'), self.__find_max_key(table.name))
-        # reset_key(ActionLogTableDefinition.KEY_FOR_ID, self.__find_max_key('ACTIONLOG'))
-        # reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
-        # reset_key(BedrijfTableDefinition.KEY_FOR_ID, self.__find_max_key('BEDRIJVEN'))
+            reset_key(table.name, self.__find_max_key(table.name))
     def __find_max_key(self, table_name: str):
         if (row := self._execute_sql_command(f'select max(ID) from {table_name};', return_values = True)) and \
                                             (r0 := list(row[0])[0]):

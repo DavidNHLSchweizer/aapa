@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogTableDefinition
 from data.classes.action_log  import ActionLog
-from data.crud.crud_base import CRUDbase
+from data.crud.crud_base import CRUDbase, CRUDbaseAuto
 from database.database import Database
-from general.keys import get_next_key
 from general.timeutil import TSC
 
-class CRUD_action_log(CRUDbase):
+class CRUD_action_log(CRUDbaseAuto):
     def __init__(self, database: Database):
         super().__init__(database, ActionLogTableDefinition(), ActionLog)
         self._db_map['date']['db2obj'] = TSC.str_to_timestamp
@@ -14,9 +13,6 @@ class CRUD_action_log(CRUDbase):
         self._db_map['can_undo']['db2obj'] = bool
         self._db_map['can_undo']['obj2db'] = int
         self._db_map['action']['db2obj'] = ActionLog.Action
-    def create(self, action_log: ActionLog):
-        action_log.id = get_next_key(ActionLogTableDefinition.KEY_FOR_ID)
-        super().create(action_log)                          
 
 @dataclass
 class ActionLogAanvraagRec:
