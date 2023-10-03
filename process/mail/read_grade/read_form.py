@@ -22,8 +22,6 @@ class ReadFormGradeProcessor(AanvraagProcessor):
             grade_str = reader.read_grade_str()            
             if (beoordeling:=aanvraag_beoordeling(grade_str)) in {Aanvraag.Beoordeling.VOLDOENDE, Aanvraag.Beoordeling.ONVOLDOENDE}:
                 aanvraag.beoordeling = beoordeling
-                # aanvraag.unregister_file(File.Type.GRADE_FORM_DOCX)
-                # aanvraag.register_file(doc_path, File.Type.GRADED_DOCX)
                 log_print(f'Beoordeling {summary_string(aanvraag.summary(), maxlen=80)}: {beoordeling}')
                 return True
             else:

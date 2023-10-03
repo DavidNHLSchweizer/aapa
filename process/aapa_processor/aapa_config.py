@@ -6,7 +6,7 @@ from general.fileutil import created_directory, file_exists, from_main_path, pat
 from general.log import log_error, log_info, log_print
 from general.config import config
 from process.aapa_processor.initialize import initialize_database, initialize_storage
-from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction, AAPAOptions
+from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
 
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
@@ -91,8 +91,6 @@ class AAPAConfiguration:
     def __must_recreate(self, processing_options: AAPAProcessingOptions)->bool:
         result= (AAPAaction.NEW in processing_options.actions) and\
                (not file_exists(self.get_database_name()) or self.options.force or verifyRecreate())        
-        # print(f'{processing_options.actions}  |{AAPAaction.NEW in processing_options.actions} {result}   {self.get_database_name()} {file_exists(self.get_database_name())}  {self.options.force=}')
-        # print(f'{not file_exists(self.get_database_name() or self.options.force or verifyRecreate())}')
         return result
     def __initialize_database_part(self, processing_options: AAPAProcessingOptions)->bool:
         return self.__initialize_database(self.__must_recreate(processing_options))

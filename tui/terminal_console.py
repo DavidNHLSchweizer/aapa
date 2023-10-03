@@ -1,6 +1,5 @@
 import logging
 from textual.app import App
-from textual.message import Message
 from textual.screen import ScreenResultCallbackType
 from general.log import ConsoleFactory, PrintFuncs
 from general.singleton import Singleton

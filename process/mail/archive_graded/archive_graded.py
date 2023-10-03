@@ -14,8 +14,6 @@ class ArchiveGradedFileProcessor(AanvraagProcessor):
                          exit_state=Aanvraag.Status.ARCHIVED, 
                          description='Archiveer beoordeling')
         self.storage = storage
-    # def must_process(self, aanvraag: Aanvraag): 
-    #     return aanvraag.status in {Aanvraag.Status.GRADED} #and self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)        
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
         aanvraag_path = aanvraag.aanvraag_source_file_name().parent
         graded_file = Path(aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX))

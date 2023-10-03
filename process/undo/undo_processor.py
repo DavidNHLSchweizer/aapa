@@ -1,11 +1,10 @@
-import os
 from data.classes.aanvragen import Aanvraag
 from data.classes.action_log import ActionLog
 from data.classes.files import File
 from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from data.storage import AAPAStorage
 from general.fileutil import delete_if_exists, file_exists, summary_string
-from general.log import log_debug, log_error, log_info, log_print, log_warning
+from general.log import log_error, log_info, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase, AanvragenProcessor
 
 class UndoException(Exception): pass

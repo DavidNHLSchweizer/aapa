@@ -76,9 +76,6 @@ class Database:
     def disable_foreign_keys(self):
         self._execute_sql_command('pragma foreign_keys=OFF')
     def open_database(self, filename):
-        # if not file_exists(filename):
-        #     log_error(f'Database {filename} niet gevonden.')
-        #     return None
         try:
             conn = sql3.connect(filename)#, isolation_level=None)
             return conn

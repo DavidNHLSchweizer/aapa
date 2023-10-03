@@ -5,7 +5,7 @@ from general.log import log_error, log_info, log_print
 from general.fileutil import file_exists
 from mailmerge import MailMerge
 from general.preview import pva
-from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase
+from process.general.aanvraag_processor import AanvraagProcessor
 
 class MailMergeException(Exception): pass
 

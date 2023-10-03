@@ -9,7 +9,7 @@ from general.config import config
 from data.report_data import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.scan.scan import process_directory, process_forms
-from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction, AAPAOptions, get_arguments, report_options
+from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction, report_options
 from general.versie import banner
 
 class AAPAProcessor:

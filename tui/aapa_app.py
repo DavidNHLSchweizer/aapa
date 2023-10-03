@@ -11,7 +11,7 @@ from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.action_log import ActionLog
 from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
-from general.log import log_debug, log_print, pop_console, push_console
+from general.log import pop_console, push_console
 from general.versie import BannerPart, banner
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from tui.common.button_bar import ButtonBar, ButtonDef
