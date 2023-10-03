@@ -53,7 +53,7 @@ def modify_files_table(database: Database):
     database._execute_sql_command('alter table FILES RENAME TO OLD_FILES')
     print('creating the new table')
     database.execute_sql_command(SQLcreate(FilesTableDefinition()))
-    database._execute_sql_command('insert into FILES(filename,timestamp,digest,filetype,aanvraag_id) select * from OLD_FILES', [])
+    database._execute_sql_command('insert into FILES(filename,timestamp,digest,filetype,aanvraag_id) select filename,timestamp,digest,filetype,aanvraag_id from OLD_FILES', [])
     database._execute_sql_command('drop table OLD_FILES')
     print('end adding primary key to FILES table.')
 

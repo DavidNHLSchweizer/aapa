@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 import random
+import logging
+from textual.screen import Screen
+from textual.widget import Widget
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.message import Message
-from textual.widget import Widget
-from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
@@ -20,7 +21,6 @@ from tui.common.required import Required
 from tui.common.terminal import  TerminalScreen
 from tui.common.verify import DialogMessage, verify
 from tui.terminal_console import init_console, show_console
-import logging
 import tkinter.filedialog as tkifd
 
 from tui.terminal_console import TerminalConsoleFactory
@@ -237,10 +237,10 @@ class AAPAApp(App):
     async def enable_buttons(self):
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
-        configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE)
+        if not configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
+            return
         self.query_one(AapaButtons).enable_action_buttons(configuration.storage.action_logs.last_action())
     async def action_undo(self):
-        #   log_debug(f'Last action: {storage.action_log.last_action()}')
         if self.query_one(AapaButtons).preview:
             await self.run_AAPA(AAPAaction.UNDO)
         else:
