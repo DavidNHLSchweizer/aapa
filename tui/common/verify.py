@@ -9,11 +9,14 @@ from textual.widgets import Button, Label, Static
 from textual.message import Message
 from tui.common.button_bar import ButtonBar, ButtonDef
             
-def get_split_width(s: str)->int:
-    return max(len(substr) for substr in s.split('\n'))
+def get_split_width(s: str, max_width: int = 0)->int:
+    max_str = max(len(substr) for substr in s.split('\n'))
+    if max_width != 0:
+        return min(max_width, max_str)
+    return max_str
 
-def center_strings(s: str)->str:
-    w = get_split_width(s)
+def center_strings(s: str, max_width: int = 0)->str:
+    w = get_split_width(s, max_width=max_width)
     return '\n'.join([substr.center(w) for substr in s.split('\n')])
 
 class DialogMessage(Message):
@@ -23,6 +26,7 @@ class DialogMessage(Message):
         super().__init__()
 
 class DialogForm(Static):
+    MAX_WIDTH = 120
     DEFAULT_CSS = """   
         DialogForm {
             align: center middle;
@@ -43,8 +47,8 @@ class DialogForm(Static):
         self._buttons = buttons
         super().__init__()
     def compose(self) -> ComposeResult:
-        with Center():
-            yield Label(center_strings(self._label_str))
+        with Center():            
+            yield Label(center_strings(self._label_str, max_width=DialogForm.MAX_WIDTH))
             yield ButtonBar(self._buttons)
     def on_mount(self):
         w = 2 + max(self.__total_button_width(), self.__label_width())
@@ -70,7 +74,7 @@ class DialogScreen(ModalScreen[str]):
         DialogScreen DialogForm{
             align: center middle;
             max-width: 120;
-            height: 11;
+            height: 14;
             border: thick $surface 50%;
         }
     """

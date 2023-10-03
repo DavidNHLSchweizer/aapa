@@ -180,6 +180,7 @@ class AAPAApp(App):
     CSS_PATH = ['aapa.tcss']
     def __init__(self, **kwdargs):
         self.terminal_active = False
+        self.last_action: ActionLog = None
         self.barbie = False
         self.barbie_oldcolors = {}
         super().__init__(**kwdargs)
@@ -234,17 +235,23 @@ class AAPAApp(App):
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
-    async def enable_buttons(self):
+    def refresh_last_action(self)->ActionLog:
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if not configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            return
-        self.query_one(AapaButtons).enable_action_buttons(configuration.storage.action_logs.last_action())
+            result = None
+        else:
+            result = configuration.storage.action_logs.last_action()
+        self.last_action = result
+        return result
+    async def enable_buttons(self):
+        self.refresh_last_action()
+        self.query_one(AapaButtons).enable_action_buttons(self.last_action)
     async def action_undo(self):
         if self.query_one(AapaButtons).preview:
             await self.run_AAPA(AAPAaction.UNDO)
         else:
-            verify(self, 'WAARSCHUWING:\nAls je voor "Ja" kiest kunnen bestanden worden verwijderd en wordt de database aangepast.\nDit kan niet meer ongedaan worden gemaakt.\n\nWeet je zeker dat je dit wilt?', 
+            verify(self, f'Laatste actie (wordt teruggedraaid):\n{self.last_action.summary()}\n\nWAARSCHUWING:\nAls je voor "Ja" kiest kunnen bestanden worden verwijderd en wordt de database aangepast.\nDit kan niet meer ongedaan worden gemaakt.\n\nWeet je zeker dat je dit wilt?', 
                    originator_key='verify_undo')              
     async def action_report(self):
         if (filename := tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 

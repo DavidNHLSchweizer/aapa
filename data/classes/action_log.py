@@ -48,9 +48,15 @@ class ActionLog:
         return self.nr_aanvragen == 0
     def __str__(self)->str:
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
-        result = f'{self.action} {date_str} [{self.user}] ({self.id}) !{self.nr_aanvragen} aanvragen:'
+        result = f'{self.action} {date_str} [{self.user}] ({self.id})' 
         if self.is_empty():
             return result + ' (geen aanvragen)'
-        can_undo_str = 'kan worden' if self.can_undo else ''
-        result = f"{result} [{can_undo_str} teruggedraaid]"
-        return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])
+        else:
+            result = result + f'!{self.nr_aanvragen} aanvragen:'
+            can_undo_str = 'kan worden' if self.can_undo else ''
+            result = f"{result} [{can_undo_str} teruggedraaid]"
+            return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])
+    def summary(self)->str:
+        date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
+        aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty() else 'geen'
+        return f'{self.description} {date_str} [{self.user}] ({aanvr_str} aanvragen)'
