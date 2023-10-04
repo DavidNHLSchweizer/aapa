@@ -222,13 +222,6 @@ class AAPAApp(App):
         # logging.info(f'{options}')
         if await show_console():
             self.terminal.run(AAPArun_script,options=options)             
-    async def on_dialog_message(self, event: DialogMessage):
-        match event.originator_key:
-            case 'verify_undo':                              
-                # self.app.title = f'{event.result_str.__class__} #{event.result_str}#'
-                if str(event.result_str) == 'Ja': 
-                    await self.run_AAPA(AAPAaction.UNDO)
-
     async def action_scan(self):    
         await self.run_AAPA(AAPAaction.SCAN)
     async def action_form(self):    
@@ -253,6 +246,11 @@ class AAPAApp(App):
         else:
             verify(self, f'Laatste actie (wordt teruggedraaid):\n{self.last_action.summary()}\n\nWAARSCHUWING:\nAls je voor "Ja" kiest kunnen bestanden worden verwijderd en wordt de database aangepast.\nDit kan niet meer ongedaan worden gemaakt.\n\nWeet je zeker dat je dit wilt?', 
                    originator_key='verify_undo')              
+    async def on_dialog_message(self, event: DialogMessage):
+        match event.originator_key:
+            case 'verify_undo':                              
+                if str(event.result_str) == 'Ja': 
+                    await self.run_AAPA(AAPAaction.UNDO)
     async def action_report(self):
         if (filename := tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
                                            filetypes=[('*.xlsx', 'Excel bestanden'), ('*.*', 'Alle bestanden')],
