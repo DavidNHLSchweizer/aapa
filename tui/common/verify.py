@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Iterable
 
@@ -8,13 +7,14 @@ from textual.containers import Center
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Static
 from textual.message import Message
-# from general.log import log_debug
-from button_bar import ButtonBar, ButtonDef
+from general.log import log_debug
+from tui.common.button_bar import ButtonBar, ButtonDef
 
 class DialogStringBuilder:
     def __init__(self, raw_string: str):
         self._raw_string = raw_string
         self._split_lines = raw_string.split('\n')
+        log_debug(f'{[line for line in self._split_lines]}')
     def get_width(self, max_width=0)->int:
         max_str = max(len(substr) for substr in self._split_lines)
         return min(max_width, max_str) if max_width else max_str
@@ -76,11 +76,6 @@ class DialogForm(Static):
     def __label_width(self)->int:
         return self.builder.get_width() + 4
 
-class DialogResult(asyncio.Lock):
-    def __init__(self):
-        self.result = ''
-        super().__init__()
-
 class DialogScreen(ModalScreen[str]):
     DEFAULT_CSS = """   
         DialogScreen {
@@ -95,23 +90,18 @@ class DialogScreen(ModalScreen[str]):
             border: thick $surface 50%;
         }
     """
-    def __init__(self, label_str: str, buttons: Iterable[ButtonDef], originator_key: str, result: DialogResult):
+    def __init__(self, label_str: str, buttons: Iterable[ButtonDef], originator_key: str):
         self._label_str = label_str
         self._buttons = buttons
         self.originator_key = originator_key
         self.dialog_result  = None
-        self.result = result
         super().__init__()
     def compose(self) -> ComposeResult:
         yield DialogForm(self._label_str, self._buttons)
-    async def run(self, originator: MessagePump)->str:
-        async def __callback_verify(result: str):
-            logging.debug('callback 1')
-            await self.result.acquire()
-            logging.debug(f'callback 2 {result}')
-            self.result.result = result
-            self.result.release()
-            #//originator.post_message(DialogMessage(result, self.originator_key))
+    def run(self, originator: MessagePump)->str:
+        def __callback_verify(result: str):
+            originator.post_message(DialogMessage(result, self.originator_key))
+        self.dialog_result  = None
         self.app.push_screen(self, callback = __callback_verify)                
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.dismiss(event.button.label)
@@ -123,15 +113,8 @@ def run_dialog(originator: MessagePump, screen: DialogScreen)->str:
 def message_box(originator: MessagePump, message: str, originator_key='message'):
     run_dialog(originator, DialogScreen(message, [ButtonDef('OK', variant='primary')], originator_key=originator_key))
                
-async def verify(originator: MessagePump, question: str, originator_key='verify', buttons=['Ja', 'Nee'])->str:
-    result = DialogResult()
-    logging.debug('before run')
-    screen = DialogScreen(question, [ButtonDef(buttons[0], variant='success'), ButtonDef(buttons[1], variant='error')], originator_key=originator_key, result= result)
-    logging.debug('before run')
-    await screen.run(originator)#run_dialog(cond, originator, )
-    await result.acquire()
-    return result.result
-    
+def verify(originator: MessagePump, question: str, originator_key='verify', buttons=['Ja', 'Nee'])->str:
+    return run_dialog(originator, DialogScreen(question, [ButtonDef(buttons[0], variant='success'), ButtonDef(buttons[1], variant='error')], originator_key=originator_key))
 def verify_cancel(originator: MessagePump, question: str, originator_key='verify_cancel', buttons=['Ja', 'Nee', 'Afbreken'])->str:
     return run_dialog(originator, DialogScreen(question, [ButtonDef(buttons[0], variant='success'), ButtonDef(buttons[1], variant='primary'), ButtonDef(buttons[2], variant='error')], 
                                                originator_key=originator_key))
@@ -151,7 +134,6 @@ if __name__ == "__main__":
         async def action_verify(self) -> None:
             """An action to test verify."""
             result = verify(self, 'Wat is daarop uw antwoord? Wat is daarop uw antwoord? Wat is \ndaarop uw antwoord? Wat is daarop uw antwoord? ')
-            logging.debug(f'RESTULT: {result}')
 
         async def action_verifyOK(self) -> None:
             """An action to test verify."""
