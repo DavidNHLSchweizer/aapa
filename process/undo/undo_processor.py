@@ -5,7 +5,8 @@ from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from data.storage import AAPAStorage
 from general.fileutil import delete_if_exists, file_exists, summary_string
 from general.log import log_error, log_info, log_print, log_warning
-from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase, AanvragenProcessor
+from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase
+from process.general.pipeline import ProcessingPipeline
 
 class UndoException(Exception): pass
 
@@ -62,8 +63,8 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return 0
     nr_aanvragen = action_log.nr_aanvragen 
-    processor = AanvragenProcessor('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(action_log), storage, ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen)
-    result = processor.process_aanvragen(preview=preview) 
+    pipeline = ProcessingPipeline('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(action_log), storage, ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen)
+    result = pipeline.process(preview=preview) 
     if result == nr_aanvragen:
         action_log.can_undo = False
         storage.action_logs.update(action_log)

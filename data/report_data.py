@@ -3,11 +3,12 @@ from enum import Enum
 import pandas as pd
 from data.classes.action_log import ActionLog
 from general.log import log_error, log_print
-from process.general.aanvraag_processor import AanvraagProcessor, AanvragenProcessor
+from process.general.aanvraag_processor import AanvraagProcessor
 from data.classes.aanvragen import Aanvraag
 from data.storage import AAPAStorage
 from general.fileutil import writable_filename
 from general.config import config
+from process.general.pipeline import ProcessingPipeline
 
 DEFAULTFILENAME = 'aanvragen.xlsx'
 def init_config():
@@ -47,7 +48,7 @@ class AanvraagXLSReporter(AanvraagProcessor):
         return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.full_name, aanvraag.student.stud_nr, aanvraag.student.first_name, aanvraag.student.tel_nr, aanvraag.student.email, 
                 aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
 
-class AanvragenXLSReporter(AanvragenProcessor):       
+class AanvragenXLSReporter(ProcessingPipeline):       
     def __init__(self, storage: AAPAStorage):
         super().__init__('Maken XLS rapportage', AanvraagXLSReporter(), storage, ActionLog.Action.NOLOG, can_undo=False)
         self.writer = None
@@ -71,7 +72,7 @@ class AanvragenXLSReporter(AanvragenProcessor):
     def __init_xls(self, xls_filename):
         pd.DataFrame(columns=COLMAP.keys()).to_excel(xls_filename, index=False)
         return pd.ExcelWriter(xls_filename, engine='openpyxl', mode='a') 
-    def process_aanvragen(self, preview=False, filter_func=None, xls_filename: str = 'aanvragen.xlsx', **kwargs) -> int: 
+    def process(self, preview=False, filter_func=None, xls_filename: str = 'aanvragen.xlsx', **kwargs) -> int: 
         result = 0
         with self.open_xls(xls_filename):
             try:
@@ -83,14 +84,5 @@ class AanvragenXLSReporter(AanvragenProcessor):
     
 def report_aanvragen_XLS(storage: AAPAStorage, xls_filename: str, filter_func = None):
     xls_filename = writable_filename(xls_filename)
-    if (result := AanvragenXLSReporter(storage).process_aanvragen(preview=False, filter_func=filter_func, xls_filename=xls_filename)) is not None:
+    if (result := AanvragenXLSReporter(storage).process(preview=False, filter_func=filter_func, xls_filename=xls_filename)) is not None:
         log_print(f'Rapport ({result} aanvragen) geschreven naar {xls_filename}.')
-
-#TODO: Dit eventueel aanpassen, is niet meer nodig denk ik
-# class AanvraagDataConsoleReporter(AanvragenProcessor):
-#     def process(self, filter_func=None):
-#         for aanvraag in self.filtered_aanvragen(filter_func):
-#             log_print(aanvraag)
-
-# def report_aanvragen_console(storage: AAPStorage, filter_func = None):
-#     AanvraagDataConsoleReporter(storage).process(filter_func)

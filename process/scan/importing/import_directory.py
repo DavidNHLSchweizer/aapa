@@ -11,8 +11,9 @@ from general.timeutil import TSC
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
-from process.general.aanvraag_processor import AanvraagCreator, AanvragenCreator
+from process.general.aanvraag_processor import AanvraagCreator
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException, is_valid_title
+from process.general.pipeline import CreatingPipeline
 
 def init_config():
     config.register('import', 'skip_files', ListValueConvertor)
@@ -106,7 +107,7 @@ def report_imports(new_aanvragen, preview=False, verbose=False):
         log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te lezen", "gelezen")}.', to_console=True)
 
-class DirectoryImporter(AanvragenCreator): pass
+class DirectoryImporter(CreatingPipeline): pass
 
 def import_directory(directory: str, output_directory: str, storage: AAPAStorage, recursive = True, preview=False)->int:
     def _get_pattern(recursive: bool):
@@ -123,7 +124,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     skip_files = config.get('import', 'skip_files')
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     first_id = storage.aanvragen.max_id() + 1
-    n_processed = importer.process_files(Path(directory).glob(_get_pattern(recursive)), preview=preview)
+    n_processed = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)
     report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

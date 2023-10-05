@@ -11,6 +11,14 @@ class ReadFormGradeProcessor(AanvraagProcessor):
                          exit_state=Aanvraag.Status.GRADED,
                          description='Lees beoordeling'
                          )
+    def file_is_modified(self, aanvraag: Aanvraag, filetype: File.Type):        
+        filename = aanvraag.files.get_filename(filetype)
+        registered_timestamp = aanvraag.files.get_timestamp(filetype)
+        current_timestamp = File.get_timestamp(filename)
+        registered_digest  = aanvraag.files.get_digest(filetype)
+        current_digest = File.get_digest(filename)        
+        return current_timestamp != registered_timestamp or current_digest != registered_digest
+        #TODO: Er lijkt wel eens wat mis te gaan bij het opslaan van de digest, maar misschien valt dat mee. Gevolgen lijken mee te vallen.
     def must_process(self, aanvraag: Aanvraag): 
         return self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
