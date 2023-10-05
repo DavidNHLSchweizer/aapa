@@ -22,7 +22,7 @@ class File:
         GRADE_FORM_PDF      = 5
         def __str__(self):
             STR_DICT = {File.Type.UNKNOWN: '?', File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
-                        File.Type.GRADE_FORM_DOCX: 'Beoordelingsformulier', File.Type.GRADED_DOCX: 'Ingevuld beoordelingsformulier', 
+                        File.Type.GRADE_FORM_DOCX: 'Beoordelingsformulier', 
                         File.Type.GRADE_FORM_PDF: 'Ingevuld beoordelingsformulier (PDF format)', File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
                         File.Type.DIFFERENCE_HTML: 'verschilbestand met vorige versie aanvraag'
                         }

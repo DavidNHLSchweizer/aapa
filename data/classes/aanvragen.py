@@ -74,9 +74,6 @@ class Aanvraag:
         return self.files.get_timestamp(File.Type.AANVRAAG_PDF)
     def timestamp_str(self):
         return TSC.timestamp_to_str(self.timestamp)
-    @property
-    def digest(self):
-        return self.files.get_digest(File.Type.AANVRAAG_PDF)
     def aanvraag_source_file_name(self):
         return Path(self.files.get_filename(File.Type.AANVRAAG_PDF))
     def summary(self)->str:
@@ -102,9 +99,6 @@ class Aanvraag:
     def valid(self):
         return self.student.valid() and self.bedrijf.valid() 
     @property
-    def datum(self): 
-        return self.__datum
-    @property
     def student_versie(self):
         return self.__versie
     @property 
@@ -113,11 +107,6 @@ class Aanvraag:
     @datum_str.setter
     def datum_str(self, value):
         self.__datum_str = value.replace('\r', ' ').replace('\n', ' ')
-        self.__parse_datum()
-    def __parse_datum(self):
-        self.__datum,self.__versie = self._dateparser.parse_date(self.datum_str)
-        if self.__versie and self.__versie.find('/') >= 0:
-            self.__versie = self.__versie.replace('/','').strip()
     def register_file(self, filename: str, filetype: File.Type):
         self.files.set_file(File(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
     def unregister_file(self, filetype: File.Type):

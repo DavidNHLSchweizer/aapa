@@ -59,9 +59,8 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return 0
     nr_aanvragen = action_log.nr_aanvragen 
-    pipeline = ProcessingPipeline('Ongedaan maken verwerking aanvragen', 
-                                  UndoRecipeProcessor(action_log, storage, ActionLog.Action.UNDO, can_undo=False, 
-                                                      aanvragen=action_log.aanvragen))
+    pipeline = ProcessingPipeline('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(action_log), storage, 
+                                  ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen)
     result = pipeline.process(preview=preview) 
     if result == nr_aanvragen:
         action_log.can_undo = False

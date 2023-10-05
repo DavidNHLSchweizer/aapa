@@ -24,6 +24,6 @@ class Student:
         if self.full_name and (words := self.full_name.split(' ')):
             return words[0]
         return ''
-    def valid(self):
+    def valid(self)->bool:
         return self.full_name != '' and self.stud_nr != '' and is_valid_email(self.email) 
 
