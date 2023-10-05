@@ -19,8 +19,7 @@ class File:
         GRADE_FORM_DOCX     = 1
         COPIED_PDF          = 2
         DIFFERENCE_HTML     = 3
-        GRADED_DOCX         = 4
-        GRADE_FORM_PDF          = 5
+        GRADE_FORM_PDF      = 5
         def __str__(self):
             STR_DICT = {File.Type.UNKNOWN: '?', File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
                         File.Type.GRADE_FORM_DOCX: 'Beoordelingsformulier', File.Type.GRADED_DOCX: 'Ingevuld beoordelingsformulier', 
