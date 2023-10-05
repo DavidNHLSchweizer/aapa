@@ -5,14 +5,10 @@ from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from data.storage import AAPAStorage
 from general.fileutil import delete_if_exists, file_exists, summary_string
 from general.log import log_error, log_info, log_print, log_warning
-from process.general.aanvraag_processor import AanvraagProcessor, AanvraagProcessorBase
+from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.pipeline import ProcessingPipeline
 
 class UndoException(Exception): pass
-
-class StateLogProcessor(AanvraagProcessorBase):
-    def state_change(self, log: ActionLog, storage: AAPAStorage, preview = False, **kwargs)->bool: 
-        return False
 
 class UndoRecipeProcessor(AanvraagProcessor):
     def __init__(self, action_log: ActionLog):
