@@ -82,7 +82,7 @@ class ProcessingPipeline(PipelineBase):
     def process(self, preview=False, filter_func = None, **kwargs)->int:
         n_processed = 0
         self.start_logging()
-        with Preview(preview, self.storage, 'process_aanvragen'):
+        with Preview(preview, self.storage, 'process (pipeline)'):
             if (aanvragen := self.filtered_aanvragen(filter_func)):
                 for aanvraag in aanvragen:
                     processed = 0                
@@ -135,14 +135,13 @@ class CreatingPipeline(PipelineBase):
         return False    
     def process(self, files: Iterable[Path], preview=False, **kwargs)->int:
         n_processed = 0
-        with Preview(preview, self.storage, 'process_files'):
+        with Preview(preview, self.storage, 'process (creator)'):
             self.start_logging()
             for filename in sorted(files, key=os.path.getmtime):
                 if self._in_skip_directory(filename):
                     continue                    
                 if self._skip_file(filename) and not self.is_known_file(filename):
                     log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
-                    # if not preview: #kan volgens mij wel weg hier
                     self.storage.files.store_invalid(str(filename))
                     continue
                 file_processed = True
@@ -154,5 +153,5 @@ class CreatingPipeline(PipelineBase):
                 if file_processed:
                     n_processed += 1
             self.stop_logging()     
-            log_debug('end process_files creator')       
+            log_debug('end process (creator)')       
         return n_processed

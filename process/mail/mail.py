@@ -9,7 +9,6 @@ from process.mail.read_grade.read_form import ReadFormGradeProcessor
 from process.mail.send_mail.create_mail import FeedbackMailProcessor
 from data.storage import AAPAStorage
 
-
 def process_graded(storage: AAPAStorage, filter_func = None, preview=False)->int:
     class RappPva(Enum):
         LEZEN = auto()
