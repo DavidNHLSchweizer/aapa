@@ -22,7 +22,7 @@ class ActionLog:
         self.action = action        
         self.id = id #KEY
         self.description = description
-        self.date = date
+        self.date:datetime.datetime = date
         self.user = user
         self.aanvragen: list[Aanvraag]=[]
         self.can_undo = can_undo
@@ -33,7 +33,7 @@ class ActionLog:
         pass # voor latere toevoegingen
     def add_aanvraag(self, aanvraag: Aanvraag):
         self.aanvragen.append(aanvraag)
-    def delete_aanvraag(self, aanvraag: Aanvraag):
+    def remove_aanvraag(self, aanvraag: Aanvraag):
         try:
             self.aanvragen.remove(aanvraag)
         except ValueError as E:

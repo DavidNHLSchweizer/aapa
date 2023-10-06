@@ -41,7 +41,6 @@ class Aanvraag:
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, aanvraag_nr = 1):        
         self._id = id
-        self._dateparser = DateParser()
         self.student = student
         self.bedrijf = bedrijf
         self.datum_str = datum_str

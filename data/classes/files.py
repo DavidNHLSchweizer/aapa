@@ -100,7 +100,7 @@ class Files:
         return self.__files[ft]['digest']
     def set_digest(self, ft: File.Type, value: str):
         self.__files[ft]['digest'] = value
-    def get_files(self, skip_empty: bool = True)->Iterable[File]:
+    def get_files(self, skip_empty=True)->Iterable[File]:
         result = []
         for ft in File.Type:
             if (file:=self.get_file(ft)) and (not skip_empty or not file.is_empty()):
