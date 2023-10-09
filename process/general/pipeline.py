@@ -49,9 +49,9 @@ class PipelineBase:
 class ProcessingPipeline(PipelineBase):
     def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ActionLog.Action, can_undo=True, aanvragen: list[Aanvraag] = None):
         super().__init__(description, processors, storage, activity=activity, can_undo=can_undo)
-        self.aanvragen = aanvragen if aanvragen else self.__read_from_storage()
-        self.__sort_aanvragen() 
-    def __read_from_storage(self):
+        self.aanvragen = aanvragen if aanvragen else self.__read_aanvragen_from_storage()
+        self.__sort_aanvragen()     
+    def __read_aanvragen_from_storage(self):
         log_info('Start reading aanvragen from database')
         entry_states = self._processors[0].entry_states
         result = self.storage.aanvragen.read_all(states=entry_states)
@@ -70,6 +70,9 @@ class ProcessingPipeline(PipelineBase):
             return list(filter(filter_func, self.aanvragen))
         else:
             return self.aanvragen
+    @property
+    def processors(self)->list[AanvraagProcessor]:
+        return self._processors
     def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         try:
             result = processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
@@ -86,7 +89,7 @@ class ProcessingPipeline(PipelineBase):
             if (aanvragen := self.filtered_aanvragen(filter_func)):
                 for aanvraag in aanvragen:
                     processed = 0                
-                    for processor in self._processors:
+                    for processor in self.processors:
                         log_debug(f'processor: {processor.description} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
                         if not processor.in_entry_states(aanvraag.status):
                             break

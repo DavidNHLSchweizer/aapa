@@ -41,18 +41,10 @@ class COLMAP(Enum):
         return None
 
 class AanvraagXLSReporter(AanvraagProcessor):
-    def process(self, aanvraag: Aanvraag, preview=False, sheet=None, **kwargs)->bool:
-        sheet.append(self.__to_sheet_row(aanvraag))
-        return True
-    def __to_sheet_row(self, aanvraag: Aanvraag):
-        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.full_name, aanvraag.student.stud_nr, aanvraag.student.first_name, aanvraag.student.tel_nr, aanvraag.student.email, 
-                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
-
-class AanvragenXLSReporter(ProcessingPipeline):       
-    def __init__(self, storage: AAPAStorage):
-        super().__init__('Maken XLS rapportage', AanvraagXLSReporter(), storage, ActionLog.Action.NOLOG, can_undo=False)
+    def __init__(self):
         self.writer = None
         self.sheet = None
+        super().__init__(description='Maken XLS rapportage')
     @contextmanager
     def open_xls(self, xls_filename: str)->pd.ExcelWriter:
         if self.writer:
@@ -72,17 +64,19 @@ class AanvragenXLSReporter(ProcessingPipeline):
     def __init_xls(self, xls_filename):
         pd.DataFrame(columns=COLMAP.keys()).to_excel(xls_filename, index=False)
         return pd.ExcelWriter(xls_filename, engine='openpyxl', mode='a') 
-    def process(self, preview=False, filter_func=None, xls_filename: str = 'aanvragen.xlsx', **kwargs) -> int: 
-        result = 0
-        with self.open_xls(xls_filename):
-            try:
-                result = super().process(preview=preview, filter_func=filter_func, sheet = self.sheet, **kwargs)
-            except Exception as E:
-                log_error(f'Fout bij schrijven Excel-bestand {xls_filename}:\n\t{E}')
-                result = None
-        return result
+    def process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
+        if self.sheet:
+            self.sheet.append(self.__to_sheet_row(aanvraag))
+            return True
+        return False
+    def __to_sheet_row(self, aanvraag: Aanvraag):
+        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.full_name, aanvraag.student.stud_nr, aanvraag.student.first_name, aanvraag.student.tel_nr, aanvraag.student.email, 
+                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
     
 def report_aanvragen_XLS(storage: AAPAStorage, xls_filename: str, filter_func = None):
     xls_filename = writable_filename(xls_filename)
-    if (result := AanvragenXLSReporter(storage).process(preview=False, filter_func=filter_func, xls_filename=xls_filename)) is not None:
-        log_print(f'Rapport ({result} aanvragen) geschreven naar {xls_filename}.')
+    reporter = AanvraagXLSReporter()
+    pipeline = ProcessingPipeline('Maken XLS rapportage', reporter, storage, activity=ActionLog.Action.NOLOG, can_undo=False)
+    with reporter.open_xls(xls_filename):
+        n_reported = pipeline.process()
+    log_print(f'Rapport ({n_reported} aanvragen) geschreven naar {xls_filename}.')
