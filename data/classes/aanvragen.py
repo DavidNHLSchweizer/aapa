@@ -73,8 +73,10 @@ class Aanvraag:
         return self.files.get_timestamp(File.Type.AANVRAAG_PDF)
     def timestamp_str(self):
         return TSC.timestamp_to_str(self.timestamp)
-    def aanvraag_source_file_name(self):
+    def aanvraag_source_file_path(self)->Path:
         return Path(self.files.get_filename(File.Type.AANVRAAG_PDF))
+    def source_file_name(self)->str:
+        return str(self.aanvraag_source_file_path())
     def summary(self)->str:
         return f'{str(self.student)} ({self.bedrijf.name})-{self.titel}'    
     def __str__(self):

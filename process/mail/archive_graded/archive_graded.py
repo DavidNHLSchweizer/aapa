@@ -15,7 +15,7 @@ class ArchiveGradedFileProcessor(AanvraagProcessor):
                          description='Archiveer beoordeling')
         self.storage = storage
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
-        aanvraag_path = aanvraag.aanvraag_source_file_name().parent
+        aanvraag_path = aanvraag.aanvraag_source_file_path().parent
         graded_file = Path(aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX))
         pdf_file_name = str(path_with_suffix(aanvraag_path.joinpath(graded_file.name), '.pdf').resolve())
         if self.storage.files.is_known_invalid(pdf_file_name):

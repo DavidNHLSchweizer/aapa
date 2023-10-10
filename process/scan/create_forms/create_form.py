@@ -34,7 +34,7 @@ class FormCreator(AanvraagProcessor):
         return f'Beoordeling aanvraag {aanvraag.student} ({aanvraag.bedrijf.name})-{aanvraag.aanvraag_nr}.docx'
     def __merge_document(self, aanvraag: Aanvraag, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)
-        return self.merge_document(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_name().name, timestamp=aanvraag.timestamp_str(), 
+        return self.merge_document(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_path().name, timestamp=aanvraag.timestamp_str(), 
                         student=aanvraag.student.full_name,bedrijf=aanvraag.bedrijf.name,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
                         preview=preview)
     def must_process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:

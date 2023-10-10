@@ -10,7 +10,7 @@ from data.roots import add_root, get_roots, get_roots_report, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.17'
+DBVERSION = '1.18'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)

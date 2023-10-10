@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from enum import Enum
 import pandas as pd
 from data.classes.action_log import ActionLog
+from general.deep_attr import deep_attr_main_part, get_deep_attr
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor
 from data.classes.aanvragen import Aanvraag
@@ -15,42 +16,58 @@ def init_config():
     config.init('report', 'filename', DEFAULTFILENAME)
 init_config()
 
-class COLMAP(Enum):
-    FILENAME:0 
-    TIMESTAMP:1 
-    STUDENT:2
-    STUDENTNR: 3 
-    VOORNAAM: 4 
-    TELEFOONNUMMER: 5 
-    EMAIL:6
-    DATUM:7 
-    VERSIE: 8   
-    BEDRIJF:9
-    TITEL:10
-    STATUS:11
-    BEOORDELING:12
-    @staticmethod
-    def keys():
-        return [name.lower() for name, _ in COLMAP.__annotations__.items()]
-    @staticmethod
-    def value(value_name):
-        value_name = value_name.upper()
-        for name, val in COLMAP.__annotations__.items():
-            if name == value_name:
-                return val
-        return None
 
+class ExcelMapper:
+    class Flags(Enum):
+        NONE = 0
+        FUNCTION = 1
+        SUBATTRIB = 2
+        STR  = 3
+    ExcelAanvraagMap = {'id': {'header': 'ID', 'column': 0, 'attrib': 'id', 'flags': Flags.NONE},
+                        'source_file_name': {'header': 'bestandsnaam', 'column': 1, 'attrib': 'source_file_name', 'flags': Flags.FUNCTION},
+                        'timestamp': {'header': 'tijd', 'column': 2, 'attrib': 'timestamp','flags': Flags.NONE},
+                        'full_name': {'header': 'student', 'column': 3, 'attrib': 'student.full_name', 'flags': Flags.SUBATTRIB},
+                        'student_stud_nr': {'header': 'studentnr', 'column': 4, 'attrib': 'student.stud_nr','flags': Flags.SUBATTRIB},
+                        'student_first_name': {'header': 'voornaam', 'column': 5, 'attrib': 'student.first_name','flags': Flags.SUBATTRIB},
+                        'student_tel_nr': {'header': 'telefoonnr', 'column': 6, 'attrib': 'student.tel_nr','flags': Flags.SUBATTRIB},
+                        'student_email': {'header': 'email', 'column': 7, 'attrib': 'student.email','flags': Flags.SUBATTRIB},
+                        'student_datum_str': {'header': 'ingevulde datum', 'column': 8, 'attrib': 'datum_str','flags': Flags.NONE},
+                        'aanvraag_nr': {'header': 'aanvraag_nr',  'column': 9, 'attrib': 'aanvraag_nr','flags': Flags.NONE},
+                        'bedrijf': {'header': 'bedrijf', 'column': 10, 'attrib': 'bedrijf.name','flags': Flags.SUBATTRIB},
+                        'titel': {'header': 'titel', 'column': 11, 'attrib': 'titel','flags': Flags.NONE},
+                        'status': {'header': 'status', 'column': 12, 'attrib': 'status','flags': Flags.STR},
+                        'beoordeling': {'header': 'beoordeling', 'column': 13, 'attrib': 'beoordeling','flags': Flags.STR}, 
+                    }
+    def __init__(self):
+        self._aanvraag = None
+    def get_attrib(self, aanvraag: Aanvraag, key: str)->str:
+        if not (entry:=ExcelMapper.ExcelAanvraagMap[key]):
+            return ''
+        match entry['flags']:
+            case ExcelMapper.Flags.NONE: return getattr(aanvraag, entry['attrib'], None)
+            case ExcelMapper.Flags.STR: return str(getattr(aanvraag, entry['attrib'], None))
+            case ExcelMapper.Flags.FUNCTION: 
+                if (func :=  getattr(aanvraag, entry['attrib'], None)):
+                    return func()
+                return ''
+            case ExcelMapper.Flags.SUBATTRIB:
+                return get_deep_attr(aanvraag, entry['attrib'], '')
+            case _: return ''
+    def sheet_row(self, aanvraag: Aanvraag)->list[str]:
+        return [self.get_attrib(aanvraag, key) for key in ExcelMapper.ExcelAanvraagMap.keys()]
+  
 class AanvraagXLSReporter(AanvraagProcessor):
     def __init__(self):
         self.writer = None
         self.sheet = None
+        self.mapper = ExcelMapper()
         super().__init__(description='Maken XLS rapportage')
     @contextmanager
     def open_xls(self, xls_filename: str)->pd.ExcelWriter:
         if self.writer:
             self._close()
         self.writer:pd.ExcelWriter = self.__init_xls(xls_filename)
-        if self.writer:
+        if self.writer:            
             self.sheet = self.writer.sheets['Sheet1']
         else:
             self.sheet = None
@@ -62,17 +79,14 @@ class AanvraagXLSReporter(AanvraagProcessor):
         self.writer = None
         self.sheet = None
     def __init_xls(self, xls_filename):
-        pd.DataFrame(columns=COLMAP.keys()).to_excel(xls_filename, index=False)
+        pd.DataFrame(columns=[entry['header'] for entry in ExcelMapper.ExcelAanvraagMap.values()]).to_excel(xls_filename, index=False)        
         return pd.ExcelWriter(xls_filename, engine='openpyxl', mode='a') 
     def process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         if self.sheet:
-            self.sheet.append(self.__to_sheet_row(aanvraag))
+            self.sheet.append(self.mapper.sheet_row(aanvraag))
             return True
         return False
-    def __to_sheet_row(self, aanvraag: Aanvraag):
-        return [aanvraag.aanvraag_source_file_name().name, aanvraag.timestamp, aanvraag.student.full_name, aanvraag.student.stud_nr, aanvraag.student.first_name, aanvraag.student.tel_nr, aanvraag.student.email, 
-                aanvraag.datum_str, str(aanvraag.aanvraag_nr), aanvraag.bedrijf.name, aanvraag.titel, str(aanvraag.status), str(aanvraag.beoordeling)]
-    
+             
 def report_aanvragen_XLS(storage: AAPAStorage, xls_filename: str, filter_func = None):
     xls_filename = writable_filename(xls_filename)
     reporter = AanvraagXLSReporter()

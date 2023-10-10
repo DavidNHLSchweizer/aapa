@@ -30,7 +30,7 @@ class CopyAanvraagProcessor(AanvraagProcessor):
         else: 
             return True
     def process(self, aanvraag: Aanvraag, preview=False, **kwdargs)->bool:
-        aanvraag_filename = aanvraag.aanvraag_source_file_name()
+        aanvraag_filename = aanvraag.aanvraag_source_file_path()
         copy_filename = CopyAanvraagProcessor._get_copy_filename(self.output_directory, aanvraag)
         if not preview:
             shutil.copy2(aanvraag_filename, copy_filename)
