@@ -37,8 +37,6 @@ class AanvraagValidator:
             return False
         if not self.__check_titel():
             return False
-        if not self.__check_sourcefile():
-            return False
         return True
     def __check_email(self)->bool:
         if not is_valid_email(self.validated_aanvraag.student.email):
@@ -57,20 +55,18 @@ class AanvraagValidator:
         return True
     def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
-    def __check_sourcefile(self)->bool:
-        file = File(self.source_file, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=File.Type.AANVRAAG_PDF)
-        if self.storage.files.is_duplicate(file):            
-            log_warning(f'Duplikaat: {summary_string(self.source_file)}.\nal in database: {str(self.aanvraag)}')
-            self.storage.files.store_invalid(self.source_file)
-            return False
-        self.validated_aanvraag.register_file(self.source_file, File.Type.AANVRAAG_PDF)
-        return True
 
 class AanvraagPDFImporter(AanvraagCreator):
     def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
         super().__init__(entry_states=entry_states, exit_state=exit_state, description='PDF Importer')
+    def __check_duplicate(self, filename: str, storage: AAPAStorage)->bool:
+        if storage.files.is_duplicate(filename, File.get_digest(filename)):            
+            log_warning(f'Duplikaat: {summary_string(filename)}.\nal in database.', to_console=True)
+            storage.files.store_invalid(filename)
+            return True
+        return False
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
-        if self.is_known_invalid_file(filename, storage):
+        if self.is_known_invalid_file(filename, storage): 
             return False
         if (stored := storage.files.find_digest(File.get_digest(filename))) and filename != stored.filename:
             log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=True)
@@ -82,13 +78,16 @@ class AanvraagPDFImporter(AanvraagCreator):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
         log_print(f'Lezen {summary_string(filename, maxlen=100)}')
-        try:
+        try:      
+            if self.__check_duplicate(filename, storage):
+                return None
             if (aanvraag := AanvraagReaderFromPDF(filename).read_aanvraag()):
                 validator = AanvraagValidator(storage, filename, aanvraag)
                 if not validator.validate():
                     return None
                 else:
                     log_print(f'\t{str(validator.validated_aanvraag)}')
+                    validator.validated_aanvraag.register_file(filename, File.Type.AANVRAAG_PDF)
                     return validator.validated_aanvraag
             else:
                 return None

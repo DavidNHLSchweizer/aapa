@@ -197,8 +197,8 @@ class FilesStorage(ObjectStorage):
         if (all_files := self.__load(aanvraag_id, {ft for ft in File.Type if ft != File.Type.UNKNOWN})) is not None:
             for file in all_files:
                 self.delete(file.id)
-    def is_duplicate(self, file: File):
-        return (stored:=self.read_filename(file.filename)) is not None and stored.digest == file.digest
+    def is_duplicate(self, filename: str, digest: str):
+        return (stored:=self.read_filename(filename)) is not None and stored.digest == digest
     def known_file(self, filename: str)->File:
         return self.find_digest(File.get_digest(filename))
     def read_filename(self, filename: str)->File:
