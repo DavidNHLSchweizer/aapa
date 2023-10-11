@@ -35,13 +35,13 @@ class BoolValueConvertor(ValueConvertor):
             return None
 
 class ListValueConvertor(ValueConvertor):
-    def __init__(self, parser: ConfigParser, itemConvertor: type[ValueConvertor] = None):
+    def __init__(self, parser: ConfigParser, item_convertor: type[ValueConvertor] = None):
         super().__init__(parser)
-        self.itemConvertor = itemConvertor(parser) if itemConvertor else None
+        self.item_convertor = item_convertor(parser) if item_convertor else None
     def __next_item(self, section_key, item_key, **kwargs):
         try:
-            if self.itemConvertor:
-                return self.itemConvertor.get(section_key, item_key, **kwargs)
+            if self.item_convertor:
+                return self.item_convertor.get(section_key, item_key, **kwargs)
             else:
                 return super(ListValueConvertor, self).get(section_key, item_key, **kwargs)
         except (NoSectionError, NoOptionError):
@@ -57,8 +57,8 @@ class ListValueConvertor(ValueConvertor):
         n_previous_items = len(self.get(section_key, key_value))
         for n1, item in enumerate(value):
             item_key = ListValueConvertor.item_key(key_value, n1)
-            if self.itemConvertor:
-                self.itemConvertor.set(section_key, item_key, item)
+            if self.item_convertor:
+                self.item_convertor.set(section_key, item_key, item)
             else:
                 super().set(section_key, item_key, str(item))
         for n1 in range(len(value), n_previous_items):
@@ -75,7 +75,6 @@ class ValueConvertors:
     def register(self, section_key: str, key_value: str, convertor_class: type[ValueConvertor], **kwargs):
         if (entry := self._register_entry(section_key, key_value)) is not None:
             self._register.remove(entry)
-
         self._register.append({'section': section_key, 'key': key_value, 'convertor': convertor_class(self._parser, **kwargs)})
     def _register_entry(self, section_key: str, key_value: str):
         for entry in self._register:

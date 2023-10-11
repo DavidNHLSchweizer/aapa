@@ -8,9 +8,12 @@ from general.config import  IntValueConvertor, ListValueConvertor, ValueConverto
 from general.log import log_debug
 
 class TitleRegexConvertor(ValueConvertor):
-# De titel vd aanvraag is te bepalen door een pattern aan het begin en eind te matchen. 
-# Daarvan zijn er verschillende versies mogelijk, en de student doet soms ook rare dingen.
-# Vandaar deze "omweg" . De TitleValueConvertor zorgt er voor dat dit in de configfile kan worden gezet.
+# De titel vd aanvraag is te bepalen door een pattern aan het begin en eind te matchen.
+# (de eigenlijke titel staat daar tussen, met enige complicaties zoals einde van pagina's) 
+# Van de patronen zijn er verschillende versies, en de student doet soms ook rare dingen.
+# Vandaar deze "omweg" . De TitleValueConvertor zorgt er voor dat dit in de configfile kan worden gezet 
+# en weer teruggelezen zonder verdere tussenstappen
+# Voor zover nu bekend zijn alle aanvragen tot nu toe hiermee gedekt.
     PATTERN1 = '#_RE_START_#'
     PATTERN2 = '#_RE_END_#'
     PATTERN = f'{PATTERN1}(?P<start>.+){PATTERN2}(?P<end>.+)'
@@ -40,7 +43,7 @@ def init_config():
     config.init('pdf_read', 'min_pages', 3)
     config.init('pdf_read', 'max_pages', 8)
     config.init('pdf_read', 'expected_tables', 3)
-    config.register('pdf_read', 'title_regex', ListValueConvertor,  itemConvertor=TitleRegexConvertor)    
+    config.register('pdf_read', 'title_regex', ListValueConvertor,  item_convertor=TitleRegexConvertor)    
     config.init('pdf_read', 'title_regex', title_regex_versies)
 init_config()
 
