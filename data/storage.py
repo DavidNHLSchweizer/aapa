@@ -138,7 +138,7 @@ class FilesStorage(ObjectStorage):
         if rows:= self.database._execute_sql_command(f'select id from {self.table_name} where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
             file_IDs=[row["id"] for row in rows]
             log_debug(f'found: {file_IDs}')
-            result = self.crud_files.read_all(file_IDs)
+            result = [self.crud_files.read(id) for id in file_IDs]
             return result
         return []
     def find_all(self, aanvraag_id: int)->Files:
@@ -202,7 +202,11 @@ class FilesStorage(ObjectStorage):
     def known_file(self, filename: str)->File:
         return self.find_digest(File.get_digest(filename))
     def read_filename(self, filename: str)->File:
-        return self.crud_files.read_filename(filename) 
+        files = self.crud_files
+        if (rows:=self.database._execute_sql_command(f'select id from {files.table.name} where filename=?', [files.map_object_to_db('filename', filename)],True)):
+            result =  files.read(rows[0][0])
+            return result
+        return None
     def store_invalid(self, filename: str):
         log_debug('store_invalid')
         if (stored:=self.read_filename(filename)):
