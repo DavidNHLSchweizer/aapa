@@ -62,8 +62,7 @@ class ListValueConvertor(ValueConvertor):
             else:
                 super().set(section_key, item_key, str(item))
         for n1 in range(len(value), n_previous_items):
-            self._parser.remove_option(section_key, ListValueConvertor.item_key(key_value, n1))
-            
+            self._parser.remove_option(section_key, ListValueConvertor.item_key(key_value, n1))            
     @staticmethod
     def item_key(key_value, n1):
         return f'{key_value}_{n1+1}'
