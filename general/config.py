@@ -16,19 +16,19 @@ class ValueConvertor:
             section[key_value] = str(value)
 
 class IntValueConvertor(ValueConvertor):
-    def get(self, section_key: str, key_value: str, **kwargs)->str:
+    def get(self, section_key: str, key_value: str, **kwargs)->int:
         try:
             return self._parser.getint(section_key, key_value, **kwargs)
         except (NoSectionError, NoOptionError):
             return None
 class FloatValueConvertor(ValueConvertor):
-    def get(self, section_key: str, key_value: str, **kwargs)->str:
+    def get(self, section_key: str, key_value: str, **kwargs)->float:
         try:
             return self._parser.getfloat(section_key, key_value, **kwargs)
         except (NoSectionError, NoOptionError):
             return None
 class BoolValueConvertor(ValueConvertor):
-    def get(self, section_key: str, key_value: str, **kwargs)->str:
+    def get(self, section_key: str, key_value: str, **kwargs)->bool:
         try:
             return self._parser.getboolean(section_key, key_value, **kwargs)
         except (NoSectionError, NoOptionError):

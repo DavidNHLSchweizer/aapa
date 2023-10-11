@@ -4,27 +4,28 @@ import pdfplumber
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.studenten import Student
-from general.config import Config, IntValueConvertor, ListValueConvertor, config
+from general.config import  IntValueConvertor, ListValueConvertor, ValueConvertor, config
 from general.log import log_debug
 
-class TitleRegex:
-    #list of regex to match finding the title because some students somehow lose the '.' characters or renumber the paragraphs, also older versions of the form have different paragraphs and some students do even stranger things
+class TitleRegexConvertor(ValueConvertor):
+# De titel vd aanvraag is te bepalen door een pattern aan het begin en eind te matchen. 
+# Daarvan zijn er verschillende versies mogelijk, en de student doet soms ook rare dingen.
+# Vandaar deze "omweg" . De TitleValueConvertor zorgt er voor dat dit in de configfile kan worden gezet.
     PATTERN1 = '#_RE_START_#'
     PATTERN2 = '#_RE_END_#'
     PATTERN = f'{PATTERN1}(?P<start>.+){PATTERN2}(?P<end>.+)'
-    def __init__(self, regex: list[dict]):
-        self.regex: list[dict] = regex
-    def clear(self):
-        self.regex = []
-    def add(self, regex_start: str, regex_end: str):
-        self.regex.append({'start': regex_start, 'end': regex_end})    
-    def to_config(self):
-        return [f'{TitleRegex.PATTERN1}{entry["start"]}{TitleRegex.PATTERN2}{entry["end"]}' for entry in self.regex]
-    def from_config(self, info: list[str]):
-        for entry in info:
-            if (match := re.match(TitleRegex.PATTERN, entry, re.IGNORECASE)):
-                self.add(match.group('start'), match.group('end'))
-                
+    def get(self, section_key: str, key_value: str, **kwargs)->dict:
+        try:
+            if (section := self._parser[section_key]) and \
+               (match := re.match(TitleRegexConvertor.PATTERN, section.get(key_value, **kwargs), re.IGNORECASE)):
+                return {'start': match.group('start'), 'end': match.group('end')} 
+        except:
+            pass
+        return None
+    def set(self, section_key: str, key_value: str, value: dict):        
+        if (section := self._parser[section_key]) is not None:
+            section[key_value] = f'{TitleRegexConvertor.PATTERN1}{value["start"]}{TitleRegexConvertor.PATTERN2}{value["end"]}'
+
 def init_config():
     title_regex_versies = [ {'start':'\d.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\s*\?'},
                             {'start':'.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'.*Wat is de aanleiding voor de opdracht\s*\?'},
@@ -39,9 +40,8 @@ def init_config():
     config.init('pdf_read', 'min_pages', 3)
     config.init('pdf_read', 'max_pages', 8)
     config.init('pdf_read', 'expected_tables', 3)
-    config.register('pdf_read', 'title_regex', ListValueConvertor)    
-    title_regex = TitleRegex(title_regex_versies)
-    config.init('pdf_read', 'title_regex', title_regex.to_config())
+    config.register('pdf_read', 'title_regex', ListValueConvertor,  itemConvertor=TitleRegexConvertor)    
+    config.init('pdf_read', 'title_regex', title_regex_versies)
 init_config()
 
 class PDFReaderException(Exception): pass
@@ -195,9 +195,8 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
         for field in translation_table:               
             setattr(aanvraag_data, translation_table[field], fields_dict.get(field, NOTFOUND))    
     def __parse_title(self, table:list[str], aanvraag_data: _AanvraagData):
-        title_regex = TitleRegex([]) 
-        title_regex.from_config(config.get('pdf_read', 'title_regex'))
-        for entry in title_regex.regex:
+        title_regex_versies = config.get('pdf_read', 'title_regex')        
+        for entry in title_regex_versies:
             table_strings = self.__get_strings_from_table(table, entry['start'], entry['end'])
             if table_strings:
                 aanvraag_data.titel = ' '.join(table_strings).strip()
