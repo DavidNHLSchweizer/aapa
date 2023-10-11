@@ -136,7 +136,7 @@ class AAPSchema(Schema):
         # Andere oplossing: een "lege" aanvraag opslaan en daarnaar verwijzen. Kan weer andere problemen veroorzaken, maar als het kan worden opgevangen in storage.py is het misschien 
         # toch de netste oplossing.
         #
-        # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel, waarbij tevens de FILES tabel een eigen (integer) primary key krijgt ipv de filenaam. Dan kan de koppeltable met een (tweetal) foreign keys 
+        # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel. Dan kan de koppeltable met een (tweetal) foreign keys 
         # werken en mogen files ook ongekoppeld blijven.
         #
 
