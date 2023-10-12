@@ -164,6 +164,10 @@ def log_debug(msg: str, to_console=False):
     if to_console:
         console_debug(msg)
 
+def log_exception(msg: str, exception: type[Exception]):
+    log_error(msg)
+    raise exception(msg)
+
 class DefaultConsoleFactory(ConsoleFactory):
     def create(self)->PrintFuncs:
         return PrintFuncs(console_print, console_info, console_warning, console_error, console_debug)

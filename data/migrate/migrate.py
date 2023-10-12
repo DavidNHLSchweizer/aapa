@@ -30,7 +30,7 @@ def migrate_version(database_name, old_version, new_version):
 
 def init_database(database_name, expected_version):
     if not file_exists(database_name):
-        raise MigrationException(f'Database file {database_name} bestaat niet. Migratie niet nodig.')
+        raise MigrationException(f'Database file {database_name} bestaat niet. Migratie niet mogelijk.')
         
     database = initialize_database(database_name, recreate=False, ignore_version=True)    
     dbv = read_version_info(database)

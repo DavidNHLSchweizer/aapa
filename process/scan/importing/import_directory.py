@@ -61,18 +61,17 @@ class AanvraagPDFImporter(AanvraagCreator):
         super().__init__(entry_states=entry_states, exit_state=exit_state, description='PDF Importer')
     def __check_duplicate(self, filename: str, storage: AAPAStorage)->bool:
         if storage.files.is_duplicate(filename, File.get_digest(filename)):            
-            log_warning(f'Duplikaat: {summary_string(filename)}.\nal in database.', to_console=True)
-            storage.files.store_invalid(filename)
+            stored_filename = storage.files.find_digest(File.get_digest(filename)).filename
+            log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored_filename)}', to_console=True)
             return True
         return False
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         if self.is_known_invalid_file(filename, storage): 
             return False
-        if (stored := storage.files.find_digest(File.get_digest(filename))) and filename != stored.filename:
-            log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=True)
-            storage.files.store_invalid(filename)
-            return False
-        return not stored or stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
+        # if (stored := storage.files.find_digest(File.get_digest(filename))) and filename != stored.filename:
+        #     log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=True)
+        #     return False
+        return True #not stored or stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
     def process_file(self, filename: str, storage: AAPAStorage = None, preview=False)->Aanvraag:
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
@@ -92,7 +91,6 @@ class AanvraagPDFImporter(AanvraagCreator):
             else:
                 return None
         except PDFReaderException as reader_exception:
-            storage.files.store_invalid(filename)
             log_warning(f'{reader_exception}\n\t{ERRCOMMENT}.')           
         return None
 
@@ -123,7 +121,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     skip_files = config.get('import', 'skip_files')
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     first_id = storage.aanvragen.max_id() + 1
-    n_processed = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)
+    n_processed = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
     report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
     return n_processed       

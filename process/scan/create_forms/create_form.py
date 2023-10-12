@@ -1,7 +1,7 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from general.log import log_error, log_info, log_print
+from general.log import log_error, log_exception, log_info, log_print
 from general.fileutil import file_exists
 from mailmerge import MailMerge
 from general.preview import pva
@@ -13,7 +13,7 @@ class FormCreator(AanvraagProcessor):
     def __init__(self, template_doc: str, output_directory: str):
         self.output_directory = Path(output_directory)
         if not file_exists(template_doc):
-            raise MailMergeException(f'kan template {template_doc} niet vinden.')
+            log_exception(f'kan template {template_doc} niet vinden.', MailMergeException)
         self.template_doc = template_doc
         super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF}, 
                          exit_state=Aanvraag.Status.NEEDS_GRADING,

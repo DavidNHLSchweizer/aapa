@@ -1,5 +1,6 @@
 from __future__ import annotations
 from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
 from data.storage import AAPAStorage
 
 class AanvraagProcessorBase:
@@ -20,10 +21,12 @@ class AanvraagProcessor(AanvraagProcessorBase):
         return False
 
 class AanvraagCreator(AanvraagProcessorBase):
+    def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None, description: str = ''):
+        super().__init__(entry_states=entry_states, exit_state=exit_state, description=description)
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         return True
     def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Aanvraag:
         return None
-    def is_known_invalid_file(self, filename: str, storage: AAPAStorage):
-        return storage.files.is_known_invalid(filename)
+    def is_known_invalid_file(self, filename: str, storage: AAPAStorage, filetype=File.Type.INVALID_PDF):
+        return storage.files.is_known_invalid(filename, filetype=filetype)
 

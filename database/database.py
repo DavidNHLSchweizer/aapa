@@ -5,7 +5,7 @@ from database.tabledef import TableDefinition
 from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.fileutil import file_exists
-from general.log import log_debug, log_error, log_info
+from general.log import log_debug, log_error, log_exception, log_info
 
 class DatabaseException(Exception): pass
 
@@ -32,7 +32,7 @@ class Database:
         try:
             self.connection = self.open_database(filename)
             if not self.connection:
-                raise DatabaseException('Connectie niet geopend')
+                log_exception('Connectie niet geopend', DatabaseException)
             self.log_info('database logging started...') 
             self.log_info(f'connection ({filename}) opened...')
             self.connection.row_factory = sql3.Row

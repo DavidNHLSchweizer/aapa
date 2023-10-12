@@ -16,7 +16,7 @@ from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from data.roots import add_root, encode_path
-from general.log import log_debug, log_warning
+from general.log import log_debug, log_error, log_exception, log_warning
 from general.timeutil import TSC
 
 class StorageException(Exception): pass
@@ -67,7 +67,7 @@ class FileSync:
     def __check_known_file(self, file: File)->bool:
         if (stored_file := self.files.find_name(filename=file.filename)):
             if stored_file.aanvraag_id != EMPTY_ID and stored_file.aanvraag_id != file.aanvraag_id:
-                raise StorageException(f'file {stored_file.filename} bestaat al voor aanvraag {stored_file.aanvraag_id}')
+                log_exception(f'file {stored_file.filename} bestaat al voor aanvraag {stored_file.aanvraag_id}', StorageException)
             elif stored_file.filetype not in {File.Type.UNKNOWN, File.Type.INVALID_PDF}:  
                 return False 
             return True
@@ -198,7 +198,7 @@ class FilesStorage(ObjectStorage):
             for file in all_files:
                 self.delete(file.id)
     def is_duplicate(self, filename: str, digest: str):
-        return (stored:=self.read_filename(filename)) is not None and stored.digest == digest
+        return (stored:=self.read_filename(filename)) is not None and stored.digest == digest and filename != stored.filename
     def known_file(self, filename: str)->File:
         return self.find_digest(File.get_digest(filename))
     def read_filename(self, filename: str)->File:
@@ -207,18 +207,18 @@ class FilesStorage(ObjectStorage):
             result =  files.read(rows[0][0])
             return result
         return None
-    def store_invalid(self, filename: str):
+    def store_invalid(self, filename: str, filetype = File.Type.INVALID_PDF):
         log_debug('store_invalid')
         if (stored:=self.read_filename(filename)):
-            stored.filetype = File.Type.INVALID_PDF
+            stored.filetype = filetype
             stored.aanvraag_id=EMPTY_ID
             self.update(stored)
         else:
-            self.create(File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=File.Type.INVALID_PDF, aanvraag_id=EMPTY_ID))
+            self.create(File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=filetype, aanvraag_id=EMPTY_ID))
         self.database.commit()
-    def is_known_invalid(self, filename):
+    def is_known_invalid(self, filename, filetype = File.Type.INVALID_PDF):
         if (stored:=self.read_filename(filename)):
-            return stored.filetype == File.Type.INVALID_PDF
+            return stored.filetype == filetype
         else:
             return False     
 

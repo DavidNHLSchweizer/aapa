@@ -123,11 +123,14 @@ class CreatingPipeline(PipelineBase):
             if pattern.match(str(filename)):
                 return True 
         return False
+    def _add_invalid_file(self, filename: str, filetype=File.Type.INVALID_PDF):
+        self._invalid_files.append({'filename': filename, 'filetype': filetype})
     def _process_file(self, processor: AanvraagCreator, filename: str, preview=False, **kwargs)->bool:
         if processor.must_process_file(filename, self.storage, **kwargs):
             try:
                 aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
                 if aanvraag is None:
+                    self._add_invalid_file(str(filename))
                     return False
                 self.storage.aanvragen.create(aanvraag)
                 self.storage.commit()
@@ -138,6 +141,7 @@ class CreatingPipeline(PipelineBase):
         return False    
     def process(self, files: Iterable[Path], preview=False, **kwargs)->int:
         n_processed = 0
+        self._invalid_files = []
         with Preview(preview, self.storage, 'process (creator)'):
             self.start_logging()
             for filename in sorted(files, key=os.path.getmtime):
@@ -145,7 +149,7 @@ class CreatingPipeline(PipelineBase):
                     continue                    
                 if self._skip_file(filename) and not self.is_known_file(filename):
                     log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
-                    self.storage.files.store_invalid(str(filename))
+                    self._add_invalid_file(str(filename))
                     continue
                 file_processed = True
                 for processor in self._processors:
@@ -155,6 +159,10 @@ class CreatingPipeline(PipelineBase):
                         break                
                 if file_processed:
                     n_processed += 1
+                for entry in self._invalid_files:
+                    log_debug(f'invalid file: {entry}')
+                    self.storage.files.store_invalid(entry['filename'], entry['filetype'])
+                self.storage.commit()
             self.stop_logging()     
             log_debug('end process (creator)')       
         return n_processed

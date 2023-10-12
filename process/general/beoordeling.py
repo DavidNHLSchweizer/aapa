@@ -1,5 +1,6 @@
 from data.classes.aanvragen import Aanvraag
 from general.config import config, IntValueConvertor
+from general.log import log_exception
 from process.general.word_processor import DocxWordDocument, WordReaderException
 
 def init_config():
@@ -32,7 +33,7 @@ class GradeForm(DocxWordDocument):
         if (table := self.find_table(self.table_nr)):
             return self.read_table_cell(table, self.table_row,self.table_col)
         else:
-            raise WordReaderException(f'Tabel niet gevonden in document {self.doc_path}')        
+            log_exception(f'Tabel niet gevonden in document {self.doc_path}', WordReaderException)        
     def read_grade(self)->Aanvraag.Beoordeling:
         return aanvraag_beoordeling(self.read_grade_str())
     def write_grade(self, grade: Aanvraag.Beoordeling | str):
