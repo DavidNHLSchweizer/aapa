@@ -9,6 +9,7 @@
 *.sqbpro
 *.bak
 *.ini
+*.db-journal    
 !aapa-config.ini
 !ini/*.ini
 !template*.docx
