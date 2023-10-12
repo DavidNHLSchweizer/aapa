@@ -94,6 +94,52 @@ class FileSync:
         log_debug(f'Strategy: {summary_str}')
         return result
     
+class FileStorageRecord:
+    class Status(Enum):
+        UNKNOWN             = auto()
+        STORED              = auto()
+        STORED_INVALID      = auto()
+        STORED_INVALID_COPY = auto()
+        DUPLICATE           = auto()
+        MODIFIED            = auto()
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.digest = File.get_digest(filename)
+        self.stored = None
+        self.status = FileStorageRecord.Status.UNKNOWN
+    def __analyse_stored_name(self, stored: File)->FileStorageRecord.Status:
+        if stored is None:
+            result = FileStorageRecord.Status.UNKNOWN
+        else:
+            self.stored = stored
+            if stored.filetype == File.Type.INVALID_PDF:
+                assert stored.aanvraag_id == EMPTY_ID
+                result = FileStorageRecord.Status.STORED_INVALID
+            elif stored.digest != self.digest:
+                assert stored.aanvraag_id != EMPTY_ID
+                result = FileStorageRecord.Status.MODIFIED
+            else:
+                assert stored.aanvraag_id != EMPTY_ID
+                result = FileStorageRecord.Status.STORED
+        return result
+    def __analyse_stored_digest(self, stored: File)->FileStorageRecord.Status:
+        if stored is None:
+            result = FileStorageRecord.Status.UNKNOWN
+        else:
+            self.stored = stored
+            if stored.filetype == File.Type.INVALID_PDF:
+                assert stored.aanvraag_id == EMPTY_ID
+                result = FileStorageRecord.Status.STORED_INVALID_COPY
+            else:
+                assert stored.aanvraag_id != EMPTY_ID      
+                result = FileStorageRecord.Status.DUPLICATE
+        return result
+    def analyse(self, storage: FilesStorage)->FileStorageRecord:
+        self.status = self.__analyse_stored_name(storage.find_name(self.filename))
+        if self.status == FileStorageRecord.Status.UNKNOWN:
+            self.status = self.__analyse_stored_digest(storage.find_digest(self.digest))
+        return self
+    
 class FilesStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_files(database))
@@ -191,7 +237,7 @@ class FilesStorage(ObjectStorage):
             for file in all_files:
                 self.delete(file.id)
     def is_duplicate(self, filename: str, digest: str):
-        return (stored:=self.read_filename(filename)) is not None and stored.digest == digest and filename != stored.filename
+        return (stored:=self.find_digest(digest)) is not None and filename != stored.filename
     def known_file(self, filename: str)->File:
         return self.find_digest(File.get_digest(filename))
     def read_filename(self, filename: str)->File:
@@ -214,6 +260,8 @@ class FilesStorage(ObjectStorage):
             return stored.filetype == filetype
         else:
             return False     
+    def get_storage_record(self, filename: str)->FileStorageRecord:
+        return FileStorageRecord(filename).analyse(self)
 
 class AanvraagStorage(ObjectStorage):
     def __init__(self, database: Database):

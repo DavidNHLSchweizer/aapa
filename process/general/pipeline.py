@@ -7,9 +7,9 @@ from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.action_log import ActionLog
-from data.storage import AAPAStorage
+from data.storage import AAPAStorage, FileStorageRecord
 from general.fileutil import summary_string
-from general.log import log_debug, log_error, log_info, log_print
+from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview
 from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor, AanvraagProcessorBase
 
@@ -125,6 +125,31 @@ class CreatingPipeline(PipelineBase):
         return False
     def _add_invalid_file(self, filename: str, filetype=File.Type.INVALID_PDF):
         self._invalid_files.append({'filename': filename, 'filetype': filetype})
+    def _check_skip_file(self, filename: Path)->bool:
+        record = self.storage.files.get_storage_record(str(filename))
+        log_debug(f'record: {filename}: {record.status}')
+        skip_msg = ''
+        warning = False
+        match record.status:
+            case FileStorageRecord.Status.STORED_INVALID_COPY:
+                skip_msg = f'Overslaan: bestand {summary_string(filename, maxlen=100, initial=16)}\n\t is kopie van {summary_string(record.stored.filename, maxlen=100, initial=16)}'
+                warning = True
+            case FileStorageRecord.Status.STORED_INVALID: 
+                pass
+            case FileStorageRecord.Status.DUPLICATE:
+                skip_msg = f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(record.stored.filename, maxlen=100, initial=16)}'          
+                warning = True
+            case _: 
+                if self._skip_file(filename):
+                    skip_msg = f'Overslaan: {summary_string(filename, maxlen=100)}'               
+        if skip_msg:
+            if warning:
+                log_warning(skip_msg, to_console=True)
+            else:
+                log_print(skip_msg)
+            self._add_invalid_file(str(filename))
+            return True
+        return False
     def _process_file(self, processor: AanvraagCreator, filename: str, preview=False, **kwargs)->bool:
         if processor.must_process_file(filename, self.storage, **kwargs):
             try:
@@ -139,18 +164,16 @@ class CreatingPipeline(PipelineBase):
             except Exception as E:
                 log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
         return False    
-    def process(self, files: Iterable[Path], preview=False, **kwargs)->int:
+    def process(self, files: Iterable[Path], preview=False, **kwargs)->tuple[int, int]:
         n_processed = 0
+        n_files = 0
         self._invalid_files = []
         with Preview(preview, self.storage, 'process (creator)'):
             self.start_logging()
             for filename in sorted(files, key=os.path.getmtime):
-                if self._in_skip_directory(filename):
+                n_files += 1
+                if self._in_skip_directory(filename) or self._check_skip_file(filename):
                     continue                    
-                if self._skip_file(filename) and not self.is_known_file(filename):
-                    log_print(f'Overslaan: {summary_string(filename, maxlen=100)}')
-                    self._add_invalid_file(str(filename))
-                    continue
                 file_processed = True
                 for processor in self._processors:
                     log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
@@ -165,5 +188,5 @@ class CreatingPipeline(PipelineBase):
                 self.storage.files.store_invalid(entry['filename'], entry['filetype'])
             self.storage.commit()
             self.stop_logging()     
-            log_debug('end process (creator)')       
-        return n_processed
+            log_debug(f'end process (creator) {n_processed=} {n_files=}')       
+        return (n_processed, n_files)

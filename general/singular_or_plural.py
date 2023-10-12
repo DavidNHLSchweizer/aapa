@@ -1,6 +1,8 @@
-def sop(n9: int, singular: str, plural: str)->str:
-    if n9 is None:
-        return singular
+def sop(n: int, singular: str, plural: str, include_value = True)->str:
+    if n is None:
+        sop_str = singular
     else:
-        return singular if n9==1 else plural
+        sop_str = singular if n==1 else plural
+    return f'{n} {sop_str}' if include_value else sop_str
+
     

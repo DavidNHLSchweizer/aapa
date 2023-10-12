@@ -24,7 +24,7 @@ def process_graded(storage: AAPAStorage, filter_func = None, preview=False)->int
         log_info('--- Verwerken ingevulde beoordelingsformulieren ...', to_console=True)
         pipeline = ProcessingPipeline('Verwerken ingevulde beoordelingsformulieren', [ReadFormGradeProcessor(),  ArchiveGradedFileProcessor(storage), FeedbackMailProcessor()], storage, ActionLog.Action.MAIL)
         result = pipeline.process(preview=preview, filter_func=filter_func) 
-        log_info(f'{result} {sop(result, "aanvraag", "aanvragen")} volledig {PVA[RappPva.VERWERKEN]} (beoordeling {PVA[RappPva.LEZEN]}, {PVA[RappPva.ARCHIVEREN]} en mail {PVA[RappPva.KLAARZETTEN]}).', to_console=True)
+        log_info(f'{sop(result, "aanvraag", "aanvragen")} volledig {PVA[RappPva.VERWERKEN]} (beoordeling {PVA[RappPva.LEZEN]}, {PVA[RappPva.ARCHIVEREN]} en mail {PVA[RappPva.KLAARZETTEN]}).', to_console=True)
         log_info('--- Einde verwerken beoordelingsformulieren.', to_console=True)
     return result
 

@@ -1,10 +1,10 @@
 from pathlib import Path
 from copy import deepcopy
 import tkinter.simpledialog as tksimp
-from data.storage import AAPAStorage
+from data.storage import AAPAStorage, FileStorageRecord
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from general.log import log_error, log_print, log_warning, log_info
+from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.timeutil import TSC
@@ -59,26 +59,28 @@ class AanvraagValidator:
 class AanvraagPDFImporter(AanvraagCreator):
     def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
         super().__init__(entry_states=entry_states, exit_state=exit_state, description='PDF Importer')
-    def __check_duplicate(self, filename: str, storage: AAPAStorage)->bool:
-        if storage.files.is_duplicate(filename, File.get_digest(filename)):            
-            stored_filename = storage.files.find_digest(File.get_digest(filename)).filename
-            log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored_filename)}', to_console=True)
-            return True
-        return False
+    # def __check_duplicate(self, filename: str, storage: AAPAStorage)->bool:
+    #     # record = storage.files.get_storage_record(filename)
+    #     # if record.status == FileStorageRecord.Status.DUPLICATE:            
+    #     #     stored_filename = storage.files.find_digest(File.get_digest(filename)).filename
+    #     #     log_warning(f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(stored_filename, maxlen=100, initial=16)}', to_console=True)
+    #     #     return True
+    #     return False
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
-        if self.is_known_invalid_file(filename, storage): 
-            return False
-        if (stored := storage.files.find_digest(File.get_digest(filename))):
-            return stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
-        return True 
+        record = storage.files.get_storage_record(filename)
+        log_debug(f'MUST_PROCESS_FILE {filename}\n\tstorage_record: {record.status}  {record.stored}')
+        match record.status:
+            case FileStorageRecord.Status.STORED | FileStorageRecord.Status.STORED_INVALID:
+                return False
+            case _: return True
     def process_file(self, filename: str, storage: AAPAStorage = None, preview=False)->Aanvraag:
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
+        # if self.__check_duplicate(filename, storage):
+        #     return None
         log_print(f'Lezen {summary_string(filename, maxlen=100)}')
         try:      
-            if self.__check_duplicate(filename, storage):
-                return None
             if (aanvraag := AanvraagReaderFromPDF(filename).read_aanvraag()):
                 validator = AanvraagValidator(storage, filename, aanvraag)
                 if not validator.validate():
@@ -97,7 +99,7 @@ def report_imports(new_aanvragen, preview=False, verbose=False):
     log_info('Rapportage import:', to_console=True)
     if not new_aanvragen:
         new_aanvragen = []
-    sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen")    
+    sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen", False)    
     if len(new_aanvragen):
         log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')
         log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
@@ -120,7 +122,8 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     skip_files = config.get('import', 'skip_files')
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
     first_id = storage.aanvragen.max_id() + 1
-    n_processed = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
+    (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
     report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
-    log_info(f'...Import afgerond ({n_processed} {sop(n_processed, "bestand", "bestanden")})', to_console=True)
-    return n_processed       
+    log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
+    log_info(f'...Import afgerond ({sop(n_processed, "nieuw bestand", "nieuwe bestanden")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
+    return n_processed, n_files      

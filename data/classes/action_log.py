@@ -57,4 +57,4 @@ class ActionLog:
         log_debug(f'full action: {str(self)}')
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
         aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty() else 'geen'
-        return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen")})'
+        return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen", False)})'
