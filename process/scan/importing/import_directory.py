@@ -42,7 +42,7 @@ class AanvraagValidator:
         if not is_valid_email(self.validated_aanvraag.student.email):
             new_email = try_extract_email(self.validated_aanvraag.student.email, True)
             if new_email:
-                log_warning(f'Aanvraag email is ongeldig ({self.validated_aanvraag.student.email}), aangepast als {new_email}.')
+                log_warning(f'Aanvraag email is ongeldig:\n\t({self.validated_aanvraag.student.email}),\n\taangepast als {new_email}.')
                 self.validated_aanvraag.student.email = new_email
                 self.student_changed = True
             else:
@@ -68,10 +68,9 @@ class AanvraagPDFImporter(AanvraagCreator):
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         if self.is_known_invalid_file(filename, storage): 
             return False
-        # if (stored := storage.files.find_digest(File.get_digest(filename))) and filename != stored.filename:
-        #     log_warning(f'Bestand {summary_string(filename)} is kopie van\n\tbestand in database: {summary_string(stored.filename)}', to_console=True)
-        #     return False
-        return True #not stored or stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
+        if (stored := storage.files.find_digest(File.get_digest(filename))):
+            return stored.filetype not in {File.Type.AANVRAAG_PDF, File.Type.COPIED_PDF}
+        return True 
     def process_file(self, filename: str, storage: AAPAStorage = None, preview=False)->Aanvraag:
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')

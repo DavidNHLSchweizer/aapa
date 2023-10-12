@@ -124,13 +124,6 @@ class FilesStorage(ObjectStorage):
         if ids := self._find_name_id(filename):
             return self.read(ids[0])
         return None                                                     
-    # def find(self, aanvraag_id: int, filetype: File.Type)->File:
-    #     if row:= self.database._execute_sql_command(f'select filename from {self.table_name} where aanvraag_id=? and filetype=?', 
-    #             [aanvraag_id, filetype], True):
-    #         file = self.read(row[0]["filename"])
-    #         log_debug(f'find success: {file}')
-    #         return file
-    #     return None
     def __load(self, aanvraag_id: int, filetypes: set[File.Type])->Iterable[File]:
         log_debug('__load')
         params = [aanvraag_id]

@@ -63,6 +63,7 @@ database.database
 #process.aapa_processor.aapa_processor
 #process.aapa_processor.initialize
 process.general.aanvraag_processor
+process.general.pipeline
 #process.general.difference
 #process.general.mail_sender
 #process.general.pdf_aanvraag_reader

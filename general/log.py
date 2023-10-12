@@ -165,7 +165,8 @@ def log_debug(msg: str, to_console=False):
         console_debug(msg)
 
 def log_exception(msg: str, exception: type[Exception]):
-    log_error(msg)
+    if _logger is not None:
+        _logger.error(f'EXCEPTION:{msg}')
     raise exception(msg)
 
 class DefaultConsoleFactory(ConsoleFactory):

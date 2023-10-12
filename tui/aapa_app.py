@@ -235,7 +235,7 @@ class AAPAApp(App):
             result = None
         else:
             result = configuration.storage.action_logs.last_action()
-        self.last_action = result
+        self.last_action = result 
         return result
     async def enable_buttons(self):
         self.refresh_last_action()

@@ -159,10 +159,11 @@ class CreatingPipeline(PipelineBase):
                         break                
                 if file_processed:
                     n_processed += 1
-                for entry in self._invalid_files:
-                    log_debug(f'invalid file: {entry}')
-                    self.storage.files.store_invalid(entry['filename'], entry['filetype'])
-                self.storage.commit()
+            log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
+            for entry in self._invalid_files:
+                log_debug(f'invalid file: {entry}')
+                self.storage.files.store_invalid(entry['filename'], entry['filetype'])
+            self.storage.commit()
             self.stop_logging()     
             log_debug('end process (creator)')       
         return n_processed
