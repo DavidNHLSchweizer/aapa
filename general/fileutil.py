@@ -112,3 +112,6 @@ def get_main_module_path():
 
 def from_main_path(filename):
     return get_main_module_path().joinpath(filename)
+
+def safe_filename(filename: str)->str:
+    return filename.replace('|', '_')

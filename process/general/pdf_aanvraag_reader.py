@@ -171,6 +171,7 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
     def __parse_title(self, table:list[str], aanvraag_data: _AanvraagData):
         #regex because some students somehow lose the '.' characters or renumber the paragraphs, also older versions of the form have different paragraphs and some students do even stranger things
         regex_versies = [{'start':'\d.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\s*\?'},
+                         {'start':'.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'.*Wat is de aanleiding voor de opdracht\s*\?'},
                          {'start':'\d.*Titel van de afstudeeropdracht', 'end': '\d.*Korte omschrijving van de opdracht.*'},                        
                          {'start':'.*Titel van de afstudeeropdracht', 'end': '.*Korte omschrijving van de opdracht.*'},                        
                         ]
