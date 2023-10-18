@@ -112,3 +112,15 @@ def get_main_module_path():
 
 def from_main_path(filename):
     return get_main_module_path().joinpath(filename)
+
+def safe_file_name(filename: str, chars_to_replace="#%&{}\/<>*?$!'""+`|=", replace_with= '_'):
+    result = filename
+    if len(replace_with) == len(chars_to_replace):
+        for char,replace in zip(chars_to_replace, replace_with):
+            result = result.replace(char,replace)
+    else:
+        for char in chars_to_replace:
+            result = result.replace(char,replace_with)
+    return result
+
+
