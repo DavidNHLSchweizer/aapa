@@ -107,6 +107,11 @@ class ActionLogAanvragenTableDefinition(TableDefinition):
         super().__init__('ACTIONLOG_AANVRAGEN')
         self.add_column('log_id', dbc.INTEGER, primary = True)
         self.add_column('aanvraag_id', dbc.INTEGER, primary = True)    
+class ActionLogFilesTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('ACTIONLOG_FILES')
+        self.add_column('log_id', dbc.INTEGER, primary = True)
+        self.add_column('file_id', dbc.INTEGER, primary = True)    
 
 class AAPSchema(Schema):
     def __init__(self):
@@ -119,12 +124,16 @@ class AAPSchema(Schema):
         self.add_table(FilesTableDefinition())
         self.add_table(ActionLogTableDefinition())
         self.add_table(ActionLogAanvragenTableDefinition())
+        self.add_table(ActionLogFilesTableDefinition())
         self.__define_foreign_keys()
+        
     def __define_foreign_keys(self):
         self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('ACTIONLOG_FILES').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('ACTIONLOG_FILES').add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     
         # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (File.Type.InvalidPDF) die om efficientieredenen toch worden opgeslagen
         # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 

@@ -1,5 +1,5 @@
 from enum import IntEnum
-from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogTableDefinition, FilesTableDefinition
+from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition, FilesTableDefinition
 from data.classes.files import File
 from database.SQL import SQLcreate
 from database.database import Database
@@ -29,6 +29,17 @@ def update_filetypes(database: Database):
         database._execute_sql_command('update FILES set filetype=? where filename=?', [new_filetype[row['filetype']], row['filename']]) 
     print('end updating filetypes in FILES table.')
 
+def create_new_tables(database: Database):
+    print('toevoegen nieuwe tabel ACTIONLOG_FILES')
+    action_log_files_table = ActionLogFilesTableDefinition()        
+    action_log_files_table.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    action_log_files_table.add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    database.execute_sql_command(SQLcreate(action_log_files_table))
+    print('--- klaar toevoegen nieuwe tabellen')
+
+
+
 def migrate_database(database: Database):
     update_filetypes(database)
+    create_new_tables(database)
 
