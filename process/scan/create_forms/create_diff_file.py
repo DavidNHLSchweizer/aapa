@@ -2,7 +2,7 @@ from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.storage import AAPAStorage
-from general.fileutil import file_exists, summary_string
+from general.fileutil import file_exists, safe_file_name, summary_string
 from general.log import log_debug, log_print
 from general.preview import pva
 from process.general.difference import DifferenceGenerator
@@ -26,7 +26,7 @@ class DifferenceProcessor(AanvraagProcessor):
         else:
             return None
     def get_difference_filename(self, output_directory:str, student_name: str)->str:
-        return Path(output_directory).joinpath(f'Veranderingen in aanvraag {student_name}.html')
+        return Path(output_directory).joinpath(f'Veranderingen in aanvraag {safe_file_name(student_name)}).html')
     def create_difference(self, previous_aanvraag: Aanvraag, aanvraag: Aanvraag, output_directory='', preview=False)->str:
             version1 = previous_aanvraag.aanvraag_source_file_path()
             version2 = aanvraag.aanvraag_source_file_path()

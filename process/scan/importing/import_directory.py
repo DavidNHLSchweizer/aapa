@@ -59,13 +59,6 @@ class AanvraagValidator:
 class AanvraagPDFImporter(AanvraagCreator):
     def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
         super().__init__(entry_states=entry_states, exit_state=exit_state, description='PDF Importer')
-    # def __check_duplicate(self, filename: str, storage: AAPAStorage)->bool:
-    #     # record = storage.files.get_storage_record(filename)
-    #     # if record.status == FileStorageRecord.Status.DUPLICATE:            
-    #     #     stored_filename = storage.files.find_digest(File.get_digest(filename)).filename
-    #     #     log_warning(f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(stored_filename, maxlen=100, initial=16)}', to_console=True)
-    #     #     return True
-    #     return False
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         record = storage.files.get_storage_record(filename)
         log_debug(f'MUST_PROCESS_FILE {filename}\n\tstorage_record: {record.status}  {record.stored}')
@@ -77,8 +70,6 @@ class AanvraagPDFImporter(AanvraagCreator):
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
-        # if self.__check_duplicate(filename, storage):
-        #     return None
         log_print(f'Lezen {summary_string(filename, maxlen=100)}')
         try:      
             if (aanvraag := AanvraagReaderFromPDF(filename).read_aanvraag()):

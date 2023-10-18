@@ -2,7 +2,7 @@ from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from general.log import log_error, log_exception, log_info, log_print
-from general.fileutil import file_exists
+from general.fileutil import file_exists, safe_file_name
 from mailmerge import MailMerge
 from general.preview import pva
 from process.general.aanvraag_processor import AanvraagProcessor
@@ -31,7 +31,8 @@ class FormCreator(AanvraagProcessor):
             log_error(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
             return None
     def __get_output_filename(self, aanvraag: Aanvraag):
-        return f'Beoordeling aanvraag {aanvraag.student} ({aanvraag.bedrijf.name})-{aanvraag.aanvraag_nr}.docx'
+        safe_user_part = safe_file_name(f'{aanvraag.student} ({aanvraag.bedrijf.name})-{aanvraag.aanvraag_nr}')
+        return f'Beoordeling aanvraag {safe_user_part}.docx'
     def __merge_document(self, aanvraag: Aanvraag, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)
         return self.merge_document(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_path().name, timestamp=aanvraag.timestamp_str(), 
