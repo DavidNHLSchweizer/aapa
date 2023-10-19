@@ -21,7 +21,6 @@ class DifferenceProcessor(AanvraagProcessor):
             result = sorted(relevante_aanvragen, key=lambda a: a.aanvraag_nr, reverse=True)
             repstr = "\n\t".join([f'{str(aanvraag)}{aanvraag.id} {aanvraag.aanvraag_nr=}' for aanvraag in result])        
             log_debug(f'relevante aanvragen: {repstr}')
-    
             return sorted(relevante_aanvragen, key=lambda a: a.aanvraag_nr, reverse=True)[0]
         else:
             return None
