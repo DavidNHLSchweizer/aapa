@@ -34,7 +34,6 @@ class UndoRecipeProcessor(AanvraagProcessor):
             aanvraag.unregister_file(filetype) # als het goed is wordt de file daarmee ook uit de database geschrapt!
         log_info(f'\tEinde verwijderen aangemaakte bestanden', to_console=True)
     def _process_files_to_forget(self, aanvraag: Aanvraag, preview=False):
-        # log_print(self.recipe.files_to_forget)
         if not self.recipe.files_to_forget or self.recipe.files_to_forget == []:
             return
         log_info(f'\tVerwijderen bestanden uit database:', to_console=True)
@@ -43,6 +42,9 @@ class UndoRecipeProcessor(AanvraagProcessor):
             aanvraag.unregister_file(filetype) 
         log_info(f'\tEinde verwijderen bestanden uit database', to_console=True)
     def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
+        # if self.recipe.forget_invalid_files:
+        #     self.action_log.clear_invalid_files()    
+        #     self.recipe.forget_invalid_files = False #need only once
         log_info(f'Ongedaan maken voor aanvraag {aanvraag.summary()}.', to_console=True)
         self._process_files_to_delete(aanvraag, preview)
         self._process_files_to_forget(aanvraag, preview)
@@ -52,6 +54,18 @@ class UndoRecipeProcessor(AanvraagProcessor):
         if self.recipe.final_state == Aanvraag.Status.DELETED:
             log_info(f'Verwijdering aanvraag {aanvraag.summary()} is voltooid.', to_console=True)
         return True
+   
+def _process_forget_invalid_files(action_log: ActionLog, storage: AAPAStorage):
+    if not action_log.invalid_files:
+        return        
+    log_info(f'\tVerwijderen overige gevonden pdf-bestanden uit database:', to_console=True)
+    for file in action_log.invalid_files:
+        log_print(f'\t\t{summary_string(file.filename, maxlen=90, initial=16)}')
+        storage.files.delete(file.id)
+    action_log.clear_invalid_files()
+    storage.action_logs.update(action_log)
+    storage.commit()
+    log_info(f'\tEinde verwijderen overige gevonden pdf-bestanden uit database.', to_console=True)
 
 def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
@@ -59,7 +73,8 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return 0
     nr_aanvragen = action_log.nr_aanvragen 
-    pipeline = ProcessingPipeline('Ongedaan maken verwerking aanvragen', UndoRecipeProcessor(action_log), storage, 
+    processor = UndoRecipeProcessor(action_log)
+    pipeline = ProcessingPipeline('Ongedaan maken verwerking aanvragen', processor, storage, 
                                   ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen)
     result = pipeline.process(preview=preview) 
     if result == nr_aanvragen:
@@ -67,5 +82,7 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
         storage.action_logs.update(action_log)
         storage.commit()
     log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
+    if processor.recipe.forget_invalid_files:
+        _process_forget_invalid_files(action_log, storage)
     return result
 

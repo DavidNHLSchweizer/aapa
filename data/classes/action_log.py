@@ -47,6 +47,8 @@ class ActionLog:
             self.invalid_files.remove(file)
         except ValueError as E:
             pass
+    def clear_invalid_files(self):
+        self.invalid_files = []
     @property
     def nr_aanvragen(self)->int:
         return len(self.aanvragen)
