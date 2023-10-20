@@ -22,7 +22,7 @@ class PipelineBase:
         if isinstance(processors, list):
             if not len(processors):
                 raise PipelineException('Empty pipeline (no processors)')
-            for processor in processors: self._processors.append(processor)
+            self._processors.extend(processors)
         else:
             self._processors.append(processors)
         self.storage = storage
@@ -185,7 +185,7 @@ class CreatingPipeline(PipelineBase):
             log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
             for entry in self._invalid_files:
                 log_debug(f'invalid file: {entry}')
-                self.storage.files.store_invalid(entry['filename'], entry['filetype'])
+                self.action_log.add_invalid_file(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
             self.storage.commit()
             self.stop_logging()     
             log_debug(f'end process (creator) {n_processed=} {n_files=}')       

@@ -3,6 +3,7 @@ import datetime
 from enum import IntEnum
 import os
 from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
 from general.log import log_debug
 from general.singular_or_plural import sop
 from general.timeutil import TSC
@@ -25,6 +26,7 @@ class ActionLog:
         self.date:datetime.datetime = date
         self.user = user
         self.aanvragen: list[Aanvraag]=[]
+        self.invalid_files: list[File]=[] 
         self.can_undo = can_undo
     def start(self):
         self.aanvragen = []
@@ -36,6 +38,13 @@ class ActionLog:
     def remove_aanvraag(self, aanvraag: Aanvraag):
         try:
             self.aanvragen.remove(aanvraag)
+        except ValueError as E:
+            pass
+    def add_invalid_file(self, file: File):
+        self.invalid_files.append(file)
+    def remove_invalid_file(self, file: File):
+        try:
+            self.invalid_files.remove(file)
         except ValueError as E:
             pass
     @property

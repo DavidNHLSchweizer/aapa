@@ -1,4 +1,3 @@
-import sqlite3 as sql3
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc

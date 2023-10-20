@@ -10,7 +10,7 @@ from data.classes.action_log import ActionLog
 from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.bedrijven import  CRUD_bedrijven
 from data.crud.files import CRUD_files
-from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen
+from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files, CRUD_action_log_relations
 from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
 from database.database import Database
@@ -246,15 +246,19 @@ class FilesStorage(ObjectStorage):
             result =  files.read(rows[0][0])
             return result
         return None
-    def store_invalid(self, filename: str, filetype = File.Type.INVALID_PDF):
+    def store_invalid(self, filename: str, filetype = File.Type.INVALID_PDF)->File:
         log_debug('store_invalid')
         if (stored:=self.read_filename(filename)):
             stored.filetype = filetype
             stored.aanvraag_id=EMPTY_ID
             self.update(stored)
+            result = stored
         else:
-            self.create(File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=filetype, aanvraag_id=EMPTY_ID))
+            new_file = File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=filetype, aanvraag_id=EMPTY_ID)
+            self.create(new_file)
+            result = new_file
         self.database.commit()
+        return result
     def is_known_invalid(self, filename, filetype = File.Type.INVALID_PDF):
         if (stored:=self.read_filename(filename)):
             return stored.filetype == filetype
@@ -329,27 +333,53 @@ class AanvraagStorage(ObjectStorage):
         if not (self.studenten.read(aanvraag.student.stud_nr)):
             self.studenten.create(aanvraag.student)
 
+class ActionLogRelationStorage:
+    def __init__(self, crud: CRUD_action_log_relations, rel_storage: ObjectStorage, add_method: str):
+        self.crud = crud
+        self.rel_storage = rel_storage
+        self.add_method = add_method
+    def create(self, action_log: ActionLog):
+        self.crud.create(action_log)
+    def add_object(self, action_log: ActionLog, object: AAPAClass):
+        if method := getattr(action_log, self.add_method, None):
+            method(object)
+    def read(self, action_log: ActionLog):
+        for record in self.crud.read(action_log.id):
+            self.add_object(action_log, self.rel_storage.read(record.rel_id))
+    def update(self, action_log: ActionLog):
+        self.crud.update(action_log)
+    def delete(self, id: int):
+        self.crud.delete(id)
+
+class ActionLogAanvragenStorage(ActionLogRelationStorage):
+    def __init__(self, database: Database):
+        super().__init__(CRUD_action_log_aanvragen(database), AanvraagStorage(database), 'add_aanvraag')
+
+class ActionLogInvalidFilesStorage(ActionLogRelationStorage):
+    def __init__(self, database: Database):
+        super().__init__(CRUD_action_log_invalid_files(database), FilesStorage(database), 'add_invalid_file')
+
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 class ActionLogStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_action_log(database))
-        self.process_log_aanvragen = CRUD_action_log_aanvragen(database)
-        self.aanvragen = AanvraagStorage(database)
+        self.relations: list[ActionLogRelationStorage] = [ActionLogAanvragenStorage(database), ActionLogInvalidFilesStorage(database)]
     def create(self, action_log: ActionLog):
         super().create(action_log)
-        self.process_log_aanvragen.create(action_log)
+        for relation in self.relations:
+            relation.create(action_log)
     def read(self, id: int)->ActionLog:
         result: ActionLog = super().read(id)
-        self.__read_aanvragen(result)
+        for relation in self.relations:
+            relation.read(result)
         return result
     def update(self, action_log: ActionLog):
         super().update(action_log)
-        self.process_log_aanvragen.update(action_log)
+        for relation in self.relations:
+            relation.update(action_log)
     def delete(self, id: int):
-        self.process_log_aanvragen.delete(id)
-        super().delete(id)
-    def delete_aanvraag(self, aanvraag_id: int):
-        self.process_log_aanvragen.delete_aanvraag(aanvraag_id)
+        for relation in self.relations:
+            relation.delete(id)
         super().delete(id)
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id == EMPTY_ID:
@@ -361,9 +391,6 @@ class ActionLogStorage(ObjectStorage):
         return self.read(id)
     def last_action(self)->ActionLog:
         return self._find_action_log()
-    def __read_aanvragen(self, action_log: ActionLog):
-        for record in self.process_log_aanvragen.read(action_log.id):
-            action_log.add_aanvraag(self.aanvragen.read(record.aanvraag_id))
 
 class AAPAStorage: 
     #main interface with the database

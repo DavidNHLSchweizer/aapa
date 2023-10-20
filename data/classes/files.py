@@ -135,3 +135,5 @@ class Files:
     def set_files(self, files: Iterable[File]):
         for file in files:
             self.set_file(file)
+    def summary(self)->str:
+        return "\n".join([f'{file.summary()}' for file in self.get_files(skip_empty=True)])
