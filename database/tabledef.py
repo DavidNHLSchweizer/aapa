@@ -64,6 +64,49 @@ class ColumnDefinition:
             result = result + f' DEFAULT ({self.default_value})'
         return result
 
+class IndexFlags(dbArgParser):
+    UNIQUE  = 1
+    ALL     = [UNIQUE]
+    flag_map = \
+        [
+         { "flag": UNIQUE, "attribute":'unique', "default": False, "key":'unique'},
+        ]
+    @staticmethod
+    def get_attributes_for_flag(flags):
+        result = []
+        for flag in IndexFlags.flag_map:
+            if flag["flag"] in flags:
+                result.append({"attribute": flag["attribute"], "default":flag["default"]})    
+        return result
+    @staticmethod
+    def get_attributes_for_args(**args):
+        class empty_target:
+            pass
+        result = []        
+        e = empty_target()
+        IndexFlags().execute(empty_target, **args)
+        for flag in IndexFlags.flag_map:
+            if hasattr(empty_target, flag["attribute"]) and getattr(empty_target, flag["attribute"]) != flag["default"]:
+                result.append({"attribute": flag["attribute"], "default":flag["default"]})    
+        return result
+    def execute(self, target, **args):
+        self.parse(IndexFlags.ALL, target, IndexFlags.flag_map, **args)
+
+class IndexDefinition:
+    def __init__(self, name: str, table_name: str, column_name: str|list[str], **args):
+        self.name = name
+        self.table_name = table_name
+        if isinstance(column_name, list):
+            self.columns: list[str] = column_name
+        else:
+            self.columns = [column_name]
+        IndexFlags().execute(self, **args)
+    def is_unique(self):
+        return hasattr(self, 'unique') and self.unique
+    def __str__(self):
+        result = f'{"UNIQUE " if self.is_unique() else ""}INDEX {self.name} on {self.table_name}({",".join(self.columns)})'
+        return result
+
 class ForeignKeyAction(Enum):
     NOACTION    = 'NO ACTION'
     RESTRICT    = 'RESTRICT'
@@ -104,7 +147,8 @@ class TableDefinition:
     def __init__(self, name, **args):
         self.name = name
         self.columns:list[ColumnDefinition] = []
-        self.foreign_keys = []
+        self.foreign_keys: list[ForeignKeyDefinition] = []
+        self.indexes: list[IndexDefinition] = []
         self.keys:list[str] = []
         self.__has_primary = False
         self.__has_compound_primary = False
@@ -129,10 +173,14 @@ class TableDefinition:
                 self.__has_primary = True
     def add_foreign_key(self, column_name, ref_table, ref_column, onupdate=None, ondelete=None):
         self.foreign_keys.append(ForeignKeyDefinition(column_name, ref_table, ref_column, onupdate, ondelete))
+    def add_index(self, index_name, column_name, unique=False):
+        self.indexes.append(IndexDefinition(index_name, self.name, column_name, unique=unique))
     def is_compound_primary(self):
         return self.__has_compound_primary
     def has_foreign_keys(self):
         return len(self.foreign_keys) > 0
+    def has_index(self):
+        return len(self.indexes) > 0
     def __str__(self):
         result = f'TABLE {self.name}'
         if len(self.columns):
@@ -141,5 +189,7 @@ class TableDefinition:
             result = result + '\n\tPRIMARY KEY(' + ','.join([column.name for column in self.columns if column.is_primary()]) + ')'
         if self.has_foreign_keys():
             result = result + '\n\t' + '\n\t'.join([str(key) for key in self.foreign_keys])
+        if self.has_index():
+            result = result + '\n\t' + '\n\t'.join([str(index) for index in self.indexes])
         return result
 
