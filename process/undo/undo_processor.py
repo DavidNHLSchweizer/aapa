@@ -50,6 +50,7 @@ class UndoRecipeProcessor(AanvraagProcessor):
         self._process_files_to_forget(aanvraag, preview)
         if self.recipe.final_beoordeling and self.recipe.final_beoordeling != aanvraag.beoordeling:
             aanvraag.beoordeling = self.recipe.final_beoordeling
+        self.action_log.remove_aanvraag(aanvraag)
         log_info(f'Einde ongedaan maken voor aanvraag {aanvraag.summary()}.', to_console=True)
         if self.recipe.final_state == Aanvraag.Status.DELETED:
             log_info(f'Verwijdering aanvraag {aanvraag.summary()} is voltooid.', to_console=True)
@@ -75,12 +76,15 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
     nr_aanvragen = action_log.nr_aanvragen 
     processor = UndoRecipeProcessor(action_log)
     pipeline = ProcessingPipeline('Ongedaan maken verwerking aanvragen', processor, storage, 
-                                  ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen)
+                                  ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen.copy()) 
+                #copy is needed here because processing will remove aanvragen from the action_log.aanvragen list
+                #at the end of the individual process call, so we cannot use the same list to determine the aanvragen to 
+                # process by the pipeline
     result = pipeline.process(preview=preview) 
     if result == nr_aanvragen:
         action_log.can_undo = False
-        storage.action_logs.update(action_log)
-        storage.commit()
+    storage.action_logs.update(action_log)
+    storage.commit()
     log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
     if processor.recipe.forget_invalid_files:
         _process_forget_invalid_files(action_log, storage)
