@@ -6,7 +6,7 @@ from enum import Enum
 
 from general.config import config
 
-AAPAVERSION = '1.26'
+AAPAVERSION = '1.27'
 @dataclass
 class Versie:
     versie: str = '' 

@@ -1,4 +1,3 @@
-import sqlite3 as sql3
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
@@ -82,6 +81,11 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
 
+#NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
+# Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (700 files) 
+# geen noemenswaardige tijdswinst oplevert. Dit kan dus beter wachten.
+# De functionaliteit is al geprogrammeerd, de code kan eenvoudig worden aangezet.
+# er is dan wel nog eenmalig een database migratie nodig.
 class FilesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('FILES')
@@ -91,6 +95,9 @@ class FilesTableDefinition(TableDefinition):
         self.add_column('digest', dbc.TEXT)
         self.add_column('filetype', dbc.INTEGER)
         self.add_column('aanvraag_id', dbc.INTEGER)
+        # self.add_index('name_index', 'filename')
+        # self.add_index('digest_index', 'digest')
+        # self.add_index('name_digest_index', ['digest','name'])
 
 class ActionLogTableDefinition(TableDefinition):
     def __init__(self):

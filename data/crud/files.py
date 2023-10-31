@@ -1,4 +1,3 @@
-from typing import Iterable
 from data.roots import decode_path, encode_path
 from data.AAPdatabase import FilesTableDefinition
 from data.classes.files import File

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from database.dbargparser import dbArgParser
-from database.tabledef import ColumnDefinition, TableDefinition
+from database.tabledef import ColumnDefinition, IndexDefinition, TableDefinition
 
 class SQLFlags(dbArgParser):
     COLUMNS = 1
@@ -54,6 +54,12 @@ class SQLbase(ABC):
 class SQLcreate(SQLbase):
     def _getParseFlags(self):
         return []
+    def __create_index_str(self, index: IndexDefinition)->str:
+        result = 'CREATE '
+        if index.is_unique():
+            result = result + 'UNIQUE '
+        result = result + f'INDEX IF NOT EXISTS {index.name} ON {self.table_def.name}(' + ','.join([column for column in index.columns])
+        return result
     def _getQuery(self):
         def column_string(column: ColumnDefinition):
             result = f'{column.name} {column.type}'
@@ -75,6 +81,8 @@ class SQLcreate(SQLbase):
             result = result + f',PRIMARY KEY({",".join([column.name for column in self.columns if column.is_primary()])})'
         if self.table_def.has_foreign_keys():
             result  = result + ',' + ','.join([f'FOREIGN KEY({key.column_name}) REFERENCES {key.ref_table}({key.ref_column}){key.action_str()}' for key in self.table_def.foreign_keys])
+        if self.table_def.has_index():
+            result  = result + ');\n' + ');\n'.join([self.__create_index_str(index) for index in self.table_def.indexes])
 #            result  = result + ',' + ','.join([str(key) for key in self.table_def.foreign_keys])
 #        return f'FOREIGN KEY: {self.column_name} references {self.ref_table}.{self.ref_column}' + ondelete_str + onupdate_str
 
@@ -113,20 +121,21 @@ class SQLinsert(SQLbase):
     def __init__(self, table_def, **args):
         super().__init__(table_def, **args)
 
-class SQLcreateIndex(SQLbase):
-    def __init__(self, table_def, index_name, **args):
-        super().__init__(table_def, **args)
-        self.index_name = index_name
-    def _getParseFlags(self):
-        return [SQLFlags.COLUMNS, SQLFlags.UNIQUE]
-    def _getQuery(self):
-        result = 'CREATE '
-        if self.unique:
-            result = result + 'UNIQUE '
-        result = result + f'INDEX IF NOT EXISTS {self.index_name} ON {self.table_name}(' + ','.join([column for column in self.arg_columns]) + ');'
-        return result
-    def _getParameters(self):
-        return None
+# class SQLcreateIndex(SQLbase):
+#SUPERSEDED BY IndexDefinition
+#     def __init__(self, table_def, index_name, **args):
+#         super().__init__(table_def, **args)
+#         self.index_name = index_name
+#     def _getParseFlags(self):
+#         return [SQLFlags.COLUMNS, SQLFlags.UNIQUE]
+#     def _getQuery(self):
+#         result = 'CREATE '
+#         if self.unique:
+#             result = result + 'UNIQUE '
+#         result = result + f'INDEX IF NOT EXISTS {self.index_name} ON {self.table_name}(' + ','.join([column for column in self.arg_columns]) + ');'
+#         return result
+#     def _getParameters(self):
+#         return None
 
 class SQLselect(SQLbase):
     def _getParseFlags(self):

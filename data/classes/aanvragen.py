@@ -79,6 +79,9 @@ class Aanvraag:
         return str(self.aanvraag_source_file_path())
     def summary(self)->str:
         return f'{str(self.student)} ({self.bedrijf.name})-{self.titel}'    
+    def file_summary(self)->str:
+        return self.summary() + "-files:\n" + self.files.summary()
+
     def __str__(self):
         versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
         s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.name} - "{self.titel}" [{str(self.status)}]'        

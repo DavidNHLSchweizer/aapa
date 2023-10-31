@@ -93,7 +93,8 @@ def report_imports(new_aanvragen, preview=False, verbose=False):
     sop_aanvragen = sop(len(new_aanvragen), "aanvraag", "aanvragen", False)    
     if len(new_aanvragen):
         log_info(f'\t--- Nieuwe {sop_aanvragen} --- :')
-        log_print('\t\t'+'\n\t\t'.join([str(aanvraag) for aanvraag in new_aanvragen]))
+        for aanvraag in new_aanvragen:
+            log_print(f'\t{str(aanvraag)}')
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te lezen", "gelezen")}.', to_console=True)
 
 class DirectoryImporter(CreatingPipeline): pass

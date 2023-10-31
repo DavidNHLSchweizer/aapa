@@ -74,6 +74,5 @@ class CRUDbase:
 class CRUDbaseAuto(CRUDbase):
     #table with integer primary key. This is done by pre-setting the id 
     def create(self, aapa_obj: AAPAClass):   
-        log_debug(f'create: {str(aapa_obj)}')     
         setattr(aapa_obj, self.table.key, get_next_key(self.table.name)) 
         super().create(aapa_obj)

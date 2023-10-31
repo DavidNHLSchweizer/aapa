@@ -9,6 +9,7 @@ from data.classes.aanvragen import Aanvraag
 # Wijzigingen in 1.18 voor migratie:
 #
 # hernummeren File.Type GRADE_FORM_PDF
+# nieuwe tabel ACTIONLOG_FILES (voorloper op uitbreiding UNDO)
 
 def update_filetypes(database: Database):
     class OldFileType(IntEnum):
