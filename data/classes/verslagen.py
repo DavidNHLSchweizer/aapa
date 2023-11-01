@@ -15,7 +15,7 @@ class Verslag(Milestone):
         GRADED          = 2
         READY           = 3
         def __str__(self):
-            STRS = {Verslag.Status.NEW: 'nog niet bekend', Verslag.Status.NEEDS_GRADING: 'te beoordelen', Verslag.Status.GRADED: 'beoordeeld', 
+            STRS = {Verslag.Status.NEW: 'nieuw', Verslag.Status.NEEDS_GRADING: 'te beoordelen', Verslag.Status.GRADED: 'beoordeeld', 
                     Verslag.Status.READY: 'geheel verwerkt'}
             return STRS[self.value]
     def __init__(self, type_description: str, student:Student, file: File, datum: datetime.datetime, kans: str, id=EMPTY_ID, titel=''):
