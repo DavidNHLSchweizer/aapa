@@ -82,14 +82,14 @@ class MilestoneTableDefinition(TableDefinition):
 class AanvraagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
-        self.add_column('id', dbc.INTEGER, primary = True)
-        self.add_column('stud_nr', dbc.TEXT)
+        self.add_column('milestone_id', dbc.INTEGER, primary = True) 
+        # self.add_column('stud_nr', dbc.TEXT)
         self.add_column('bedrijf_id', dbc.INTEGER)
         self.add_column('datum_str', dbc.TEXT)
-        self.add_column('titel', dbc.TEXT)
+        # self.add_column('titel', dbc.TEXT)
         self.add_column('aanvraag_nr', dbc.INTEGER)
-        self.add_column('status', dbc.INTEGER)
-        self.add_column('beoordeling', dbc.INTEGER)
+        # self.add_column('status', dbc.INTEGER)
+        # self.add_column('beoordeling', dbc.INTEGER)
 
 
 class VerslagTableDefinition(TableDefinition):
@@ -158,9 +158,10 @@ class AAPSchema(Schema):
         self.__define_foreign_keys()
         
     def __define_foreign_keys(self):
-        self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        # self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('MILESTONES').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('AANVRAGEN').add_foreign_key('milestone_id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('VERSLAGEN').add_foreign_key('milestone_id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
