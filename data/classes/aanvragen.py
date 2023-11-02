@@ -10,6 +10,7 @@ from general.date_parser import DateParser
 from general.timeutil import TSC
 
 class Aanvraag(Milestone):
+    Beoordeling = Milestone.Beoordeling
     class Status(IntEnum):
         DELETED         = -1
         NEW             = 0
@@ -26,10 +27,6 @@ class Aanvraag(Milestone):
                     Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'geheel verwerkt', 
                     Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
             return STRS[self.value]
-    class Beoordeling(StrEnum):
-        TE_BEOORDELEN = ''
-        ONVOLDOENDE   = 'onvoldoende'
-        VOLDOENDE     = 'voldoende'
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, aanvraag_nr = 1):
         super().__init__(type_description='Aanvraag', student=student, status=status, beoordeling=beoordeling, titel=titel, id=id)
