@@ -1,15 +1,18 @@
 from __future__ import annotations
-from enum import StrEnum
+from enum import IntEnum
 from data.classes.files import File, Files
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
 class Milestone:            
-    class Beoordeling(StrEnum):
-        TE_BEOORDELEN = ''
-        ONVOLDOENDE   = 'onvoldoende'
-        VOLDOENDE     = 'voldoende'
+    class Beoordeling(IntEnum):
+        TE_BEOORDELEN = 0
+        ONVOLDOENDE   = 1
+        VOLDOENDE     = 2
+        def __str__(self):
+            _AB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
+            return _AB_STRS[self]
     def __init__(self, type_description: str, student:Student, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
         self.type_description = type_description
         self._id = id
