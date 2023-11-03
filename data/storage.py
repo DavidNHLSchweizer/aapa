@@ -1,18 +1,21 @@
 from __future__ import annotations
 from enum import Enum, auto
-from typing import Iterable
+from typing import Iterable, Type
 from data.AAPdatabase import  create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
+from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.classes.action_log import ActionLog
+from data.classes.verslagen import Verslag
 from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.bedrijven import  CRUD_bedrijven
 from data.crud.files import CRUD_files
 from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files, CRUD_action_log_relations
 from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
+from data.crud.verslagen import CRUD_verslagen
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from data.roots import add_root, encode_path
@@ -392,12 +395,72 @@ class ActionLogStorage(ObjectStorage):
     def last_action(self)->ActionLog:
         return self._find_action_log()
 
+class VerslagStorage(ObjectStorage):
+    def __init__(self, database: Database):
+        super().__init__(database, CRUD_verslagen(database))
+        self.files = FilesStorage(database)
+        self.studenten = StudentenStorage(database)
+    def create(self, verslag: Verslag):
+        self.__create_table_references(verslag)
+        super().create(verslag)
+        log_debug('sync_files (CREATE)')
+        self.sync_files(verslag, {File.Type.AANVRAAG_PDF})
+        log_debug('ready create')
+    def sync_files(self, verslag: Verslag, filetypes: set[File.Type]=None):
+        pass # to be determined
+        # self.files.sync_storage_files(aanvraag_id=aanvraag.id, new_files=aanvraag.files, 
+        #                 filetypes=filetypes if filetypes else ({filetype for filetype in File.Type} - {File.Type.UNKNOWN, File.Type.INVALID_PDF}))
+    def read(self, id: int)->Verslag:
+        verslag = super().read(id)
+        verslag.files = self.files.find_all(verslag.id)
+        return verslag
+    def update(self, verslag: Verslag):
+        self.__create_table_references(verslag)        
+        super().update(verslag)
+        log_debug('sync_files (UPDATE)')
+        self.sync_files(verslag)
+    def delete(self, id: int):
+        self.files.delete_all(id)
+        super().delete(id)
+    # def __read_all_filtered(self, aanvragen: Iterable[Aanvraag], filter_func = None)->Iterable[Aanvraag]:
+    #     if not filter_func:
+    #         return aanvragen
+    #     else:
+    #         return list(filter(filter_func, aanvragen))
+    # def __read_all_all(self, filter_func = None)->Iterable[Aanvraag]:
+    #     if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status != ?', [Aanvraag.Status.DELETED], True):            
+    #         return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
+    #     else:
+    #         return None
+    # def __read_all_states(self, states:set[Aanvraag.Status]=None, filter_func = None)->Iterable[Aanvraag]:
+    #     params = [state.value for state in states]
+    #     if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status in ({",".join(["?"]*len(params))})', params, True):
+    #         return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
+    # def read_all(self, filter_func = None, states:set[Aanvraag.Status]=None)->Iterable[Aanvraag]:
+    #     if not states:
+    #         return self.__read_all_all(filter_func=filter_func)        
+    #     else: 
+    #         return self.__read_all_states(filter_func=filter_func, states=states)
+    # def find_student_bedrijf(self, student: Student, bedrijf: Bedrijf, filter_func=None)->Iterable[Aanvraag]:
+    #     return self.read_all(filter_func=lambda a: filter_func(a) and a.student.stud_nr == student.stud_nr and a.bedrijf.id == bedrijf.id)
+    # def find_student(self, student: Student)->Iterable[Aanvraag]:
+    #     return self.read_all(filter_func = lambda a: a.student.stud_nr == student.stud_nr)
+    # def __count_student_aanvragen(self, aanvraag: Aanvraag):
+    #     if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_nr=? and status!=?', [aanvraag.student.stud_nr,Aanvraag.Status.DELETED], True)):
+    #         return row[0][0]
+    #     else:
+    #         return 0    
+    def __create_table_references(self, verslag: Verslag):
+        if not (self.studenten.read(verslag.student.stud_nr)):
+            self.studenten.create(verslag.student)
+
 class AAPAStorage: 
     #main interface with the database
     def __init__(self, database: Database):
         self.database: Database = database
         self.aanvragen = AanvraagStorage(database)
         self.action_logs = ActionLogStorage(database)
+        self.verslagen = VerslagStorage(database)
     @property
     def files(self)->FilesStorage:
         return self.aanvragen.files

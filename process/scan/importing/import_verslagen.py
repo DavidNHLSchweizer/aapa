@@ -32,8 +32,8 @@ class VerslagFromZipParser(VerslagCreator):
                 case re.match(KANSPATTERN, kans_decription):
                     return re.match(KANSPATTERN).group('n')
                 case _: return 0
-        return Verslag(verslag_type=get_verslag_type(parsed.product_type), student=Student(parsed.student_name, email=parsed.email), file=File(filename), 
-                   datum=parsed.datum, kans=get_kans(parsed.kans), titel=Path(parsed.original_filename).stem)  
+        return Verslag(verslag_type=get_verslag_type(parsed.product_type), student=Student(parsed.student_name, email=parsed.email), 
+                       file=File(filename), datum=parsed.datum, kans=get_kans(parsed.kans), titel=Path(parsed.original_filename).stem)  
     def process_file(self, filename: str, storage: AAPAStorage, preview=False, **kwargs)->Verslag:
         if parsed:=self.parser.parsed(filename):
             new_filename = f'temp_placeholder {parsed.original_filename}'

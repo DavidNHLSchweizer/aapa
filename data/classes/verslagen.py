@@ -34,8 +34,10 @@ class Verslag(Milestone):
         self.cijfer = ''
         if file:
             self._files.set_file(file)
+            self.directory = Path(file).parent
         else:
             self._files.reset()
+            self.directory = ''
         self.kans=kans
     @property
     def verslag_type(self)->Milestone.Type:
