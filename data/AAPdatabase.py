@@ -69,38 +69,42 @@ class BedrijfTableDefinition(TableDefinition):
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('name', dbc.TEXT)    
 
-class MilestoneTableDefinition(TableDefinition):
-    def __init__(self):
-        super().__init__('MILESTONES')
-        self.add_column('id', dbc.INTEGER, primary = True)
-        self.add_column('type_description', dbc.TEXT)
-        self.add_column('stud_nr', dbc.TEXT)
-        self.add_column('titel', dbc.TEXT)
-        self.add_column('status', dbc.INTEGER)
-        self.add_column('beoordeling', dbc.INTEGER)
+# class MilestoneTableDefinition(TableDefinition):
+#     def __init__(self):
+#         super().__init__('MILESTONES')
+#         self.add_column('id', dbc.INTEGER, primary = True)
+#         self.add_column('type_description', dbc.TEXT)
+#         self.add_column('stud_nr', dbc.TEXT)
+#         self.add_column('titel', dbc.TEXT)
+#         self.add_column('status', dbc.INTEGER)
+#         self.add_column('beoordeling', dbc.INTEGER)
 
 class AanvraagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
-        self.add_column('milestone_id', dbc.INTEGER, primary = True) 
-        # self.add_column('stud_nr', dbc.TEXT)
+        self.add_column('id', dbc.INTEGER, primary = True) 
+        self.add_column('stud_nr', dbc.TEXT)
         self.add_column('bedrijf_id', dbc.INTEGER)
         self.add_column('datum_str', dbc.TEXT)
-        # self.add_column('titel', dbc.TEXT)
+        self.add_column('titel', dbc.TEXT)
         self.add_column('aanvraag_nr', dbc.INTEGER)
-        # self.add_column('status', dbc.INTEGER)
-        # self.add_column('beoordeling', dbc.INTEGER)
+        self.add_column('status', dbc.INTEGER)
+        self.add_column('beoordeling', dbc.INTEGER)
 
 
 class VerslagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
-        self.add_column('milestone_id', dbc.INTEGER, primary = True)
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('stud_nr', dbc.TEXT)
+        self.add_column('titel', dbc.TEXT)
+        self.add_column('verslag_type', dbc.INTEGER)
         self.add_column('datum', dbc.TEXT)
         self.add_column('cijfer', dbc.TEXT)
-        self.add_column('kans', dbc.TEXT)
+        self.add_column('kans', dbc.INTEGER)
         self.add_column('directory', dbc.TEXT)
-
+        self.add_column('status', dbc.INTEGER)
+        self.add_column('beoordeling', dbc.INTEGER)
 
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
 # Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (700 files) 
@@ -148,7 +152,6 @@ class AAPSchema(Schema):
         self.add_table(FileRootTableDefinition())
         self.add_table(StudentTableDefinition())
         self.add_table(BedrijfTableDefinition())
-        self.add_table(MilestoneTableDefinition())
         self.add_table(AanvraagTableDefinition())
         self.add_table(VerslagTableDefinition())
         self.add_table(FilesTableDefinition())
@@ -159,10 +162,9 @@ class AAPSchema(Schema):
         
     def __define_foreign_keys(self):
         # self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('MILESTONES').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('AANVRAGEN').add_foreign_key('milestone_id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('VERSLAGEN').add_foreign_key('milestone_id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('VERSLAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_FILES').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)

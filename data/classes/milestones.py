@@ -11,10 +11,23 @@ class Milestone:
         ONVOLDOENDE   = 1
         VOLDOENDE     = 2
         def __str__(self):
-            _AB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
-            return _AB_STRS[self]
-    def __init__(self, type_description: str, student:Student, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
-        self.type_description = type_description
+            _MB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
+            return _MB_STRS[self]
+    class Type(IntEnum):
+        UNKNOWN             = 0
+        AANVRAAG            = 1
+        PVA                 = 2
+        ONDERZOEKS_VERSLAG  = 3
+        TECHNISCH_VERSLAG   = 4
+        EIND_VERSLAG        = 5
+        def __str__(self):
+            _MT_STRS = {Milestone.Type.UNKNOWN: '', Milestone.Type.AANVRAAG: 'aanvraag', Milestone.Type.PVA: 'plan van aanpak', 
+                        Milestone.Type.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', Milestone.Type.TECHNISCH_VERSLAG: 'technisch verslag',
+                        Milestone.Type.EIND_VERSLAG: 'eindverslag'                       
+            }
+            return _MT_STRS[self]
+    def __init__(self, milestone_type: Milestone.Type, student:Student, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
+        self.milestone_type = milestone_type
         self._id = id
         self.student = student
         self.titel = titel

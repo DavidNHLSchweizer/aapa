@@ -11,14 +11,14 @@ from data.storage import AAPAStorage, FileStorageRecord
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview
-from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor, AanvraagProcessorBase
+from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor, MilestoneProcessorBase
 
 class PipelineException(Exception): pass
 
 class PipelineBase:
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], 
+    def __init__(self, description: str, processors: MilestoneProcessorBase|list[MilestoneProcessorBase], 
                  storage: AAPAStorage, activity: ActionLog.Action, can_undo = True):
-        self._processors:list[AanvraagProcessorBase] = []
+        self._processors:list[MilestoneProcessorBase] = []
         if isinstance(processors, list):
             if not len(processors):
                 raise PipelineException('Empty pipeline (no processors)')
@@ -109,7 +109,7 @@ class ProcessingPipeline(PipelineBase):
         return n_processed
 
 class CreatingPipeline(PipelineBase):
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
+    def __init__(self, description: str, processors: MilestoneProcessorBase|list[MilestoneProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
         super().__init__(description, processors, storage, activity=ActionLog.Action.SCAN)  
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        

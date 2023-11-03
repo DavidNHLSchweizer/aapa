@@ -29,7 +29,7 @@ class Aanvraag(Milestone):
             return STRS[self.value]
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, aanvraag_nr = 1):
-        super().__init__(type_description='Aanvraag', student=student, status=status, beoordeling=beoordeling, titel=titel, id=id)
+        super().__init__(milestone_type=Milestone.Type.AANVRAAG, student=student, status=status, beoordeling=beoordeling, titel=titel, id=id)
         self.bedrijf = bedrijf
         self.datum_str = datum_str
         self.aanvraag_nr=aanvraag_nr
