@@ -24,6 +24,12 @@ class Student:
         if self.full_name and (words := self.full_name.split(' ')):
             return words[0]
         return ''
+    def initials(self)->str:
+        result = ''
+        if self.email:
+            for word in self.email[:self.email.find('@')].split('.'):
+                result = result + word[0]
+        return result 
     def valid(self)->bool:
         return self.full_name != '' and self.stud_nr != '' and is_valid_email(self.email) 
 

@@ -34,7 +34,7 @@ class Verslag(Milestone):
         self.cijfer = ''
         if file:
             self._files.set_file(file)
-            self.directory = Path(file).parent
+            self.directory = str(Path(file.filename).parent)
         else:
             self._files.reset()
             self.directory = ''

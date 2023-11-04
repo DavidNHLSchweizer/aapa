@@ -13,7 +13,7 @@ from general.config import ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
 from process.general.aanvraag_processor import AanvraagCreator
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException, is_valid_title
-from process.general.pipeline import CreatingPipeline
+from process.general.pipeline import AanvraagCreatingPipeline
 
 def init_config():
     config.register('import', 'skip_files', ListValueConvertor)
@@ -97,7 +97,7 @@ def report_imports(new_aanvragen, preview=False, verbose=False):
             log_print(f'\t{str(aanvraag)}')
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te lezen", "gelezen")}.', to_console=True)
 
-class DirectoryImporter(CreatingPipeline): pass
+class DirectoryImporter(AanvraagCreatingPipeline): pass
 
 def import_directory(directory: str, output_directory: str, storage: AAPAStorage, recursive = True, preview=False)->int:
     def _get_pattern(recursive: bool):

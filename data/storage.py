@@ -57,6 +57,27 @@ class BedrijvenStorage(ObjectStorage):
 class StudentenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_studenten(database))
+    def find_by_column_value(self, column_name: str, value: str)->Student:
+        if row:=self.database._execute_sql_command(f'select stud_nr from {self.table_name} where ({column_name}=?)', [value], True):
+            return self.read(row[0][0])
+        return None
+    def find_student_by_name_or_email(self, student: Student)->Student:
+        if student.stud_nr:
+            return self.read(student.stud_nr)
+        for column_name in ['full_name', 'email']:
+            if result:=self.find_by_column_value(column_name, getattr(student, column_name)):
+                return result
+        return None        
+    def create_unique_student_nr(self, student: Student)->str:
+        n = 1
+        if not (result := student.stud_nr):
+            result = f'{student.initials()}{n}'
+        while self.read(result) is not None:
+            n+=1
+        return result
+
+
+
 
 class FileSync:
     class Strategy(Enum):
@@ -451,7 +472,7 @@ class VerslagStorage(ObjectStorage):
     #     else:
     #         return 0    
     def __create_table_references(self, verslag: Verslag):
-        if not (self.studenten.read(verslag.student.stud_nr)):
+        if not self.studenten.read(verslag.student.stud_nr):
             self.studenten.create(verslag.student)
 
 class AAPAStorage: 

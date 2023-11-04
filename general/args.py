@@ -23,6 +23,7 @@ class AAPAaction(Enum):
     INFO     = 6
     REPORT   = 7
     UNDO     = 8
+    ZIPIMPORT= 9
 
     def help_str(self):
         match self:
@@ -34,6 +35,7 @@ class AAPAaction(Enum):
             case AAPAaction.INFO: return 'Laat configuratie (directories en database) zien'
             case AAPAaction.REPORT: return 'Rapporteer alle aanvragen in een .XLSX-bestand'
             case AAPAaction.UNDO: return 'Ongedaan maken van de laatste procesgang'
+            case AAPAaction.ZIPIMPORT: return 'Importeren verslagen uit zipfile'
             case _: return ''
     @staticmethod
     def all_help_str():

@@ -11,7 +11,7 @@ from data.storage import AAPAStorage, FileStorageRecord
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview
-from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor, MilestoneProcessorBase
+from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor, MilestoneProcessorBase, VerslagCreator
 
 class PipelineException(Exception): pass
 
@@ -108,7 +108,7 @@ class ProcessingPipeline(PipelineBase):
             self.stop_logging()
         return n_processed
 
-class CreatingPipeline(PipelineBase):
+class AanvraagCreatingPipeline(PipelineBase):
     def __init__(self, description: str, processors: MilestoneProcessorBase|list[MilestoneProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
         super().__init__(description, processors, storage, activity=ActionLog.Action.SCAN)  
         self.skip_directories:list[Path] = skip_directories
@@ -186,6 +186,46 @@ class CreatingPipeline(PipelineBase):
             for entry in self._invalid_files:
                 log_debug(f'invalid file: {entry}')
                 self.action_log.add_invalid_file(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
+            self.storage.commit()
+            self.stop_logging()     
+            log_debug(f'end process (creator) {n_processed=} {n_files=}')       
+        return (n_processed, n_files)
+
+class VerslagCreatingPipeline(PipelineBase):
+    def __init__(self, description: str, processors: MilestoneProcessorBase|list[MilestoneProcessorBase], storage: AAPAStorage):
+        super().__init__(description, processors, storage, activity=ActionLog.Action.SCAN)  
+    def _process_file(self, processor: VerslagCreator, filename: str, preview=False, **kwargs)->bool:
+        if processor.must_process_file(filename, self.storage, **kwargs):
+            try:
+                verslag = processor.process_file(filename, self.storage, preview, **kwargs)
+                if verslag is None:
+                    return False
+                self.storage.verslagen.create(verslag)
+                self.storage.commit()
+                # self.log_verslag(verslag)
+                return True
+            except Exception as E:
+                log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
+        return False    
+    def process(self, files: Iterable[Path], preview=False, **kwargs)->tuple[int, int]:
+        n_processed = 0
+        n_files = 0
+        with Preview(preview, self.storage, 'process (creator)'):
+            self.start_logging()
+            for filename in files:
+                n_files += 1
+                file_processed = True
+                for processor in self._processors:
+                    log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
+                    if not self._process_file(processor, str(filename), preview, **kwargs):
+                        file_processed = False
+                        break                
+                if file_processed:
+                    n_processed += 1
+            # log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
+            # for entry in self._invalid_files:
+            #     log_debug(f'invalid file: {entry}')
+            #     self.action_log.add_invalid_file(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
             self.storage.commit()
             self.stop_logging()     
             log_debug(f'end process (creator) {n_processed=} {n_files=}')       

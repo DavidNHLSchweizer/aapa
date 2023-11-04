@@ -2,6 +2,7 @@ from datetime import datetime
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print
 from process.aapa_processor.aapa_config import AAPAConfiguration
+from process.scan.importing.import_verslagen import import_zipfile
 from process.undo.undo_processor import undo_last
 from process.scan.create_forms.create_diff_file import DifferenceProcessor
 # from process.read_grade.history import read_beoordelingen_from_files
@@ -29,7 +30,9 @@ class AAPAProcessor:
     #         read_beoordelingen_from_files(configuration.options.history_file, configuration.storage)
     def process(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions):
         def must_process(processing_options: AAPAProcessingOptions)->bool:
-            if any([a in processing_options.actions for a in {AAPAaction.FULL, AAPAaction.SCAN, AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.NEW, AAPAaction.REPORT}]) or\
+            if any([a in processing_options.actions for a in {AAPAaction.FULL, AAPAaction.SCAN, AAPAaction.FORM, 
+                                                              AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.NEW, 
+                                                              AAPAaction.ZIPIMPORT, AAPAaction.REPORT}]) or\
                 processing_options.history_file:
                 return True
             return False
@@ -45,6 +48,8 @@ class AAPAProcessor:
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
                 process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
+            if AAPAaction.ZIPIMPORT in actions:
+                import_zipfile(r'./nova/Gradebook 2023-10-20.zip', 'dummy', storage=configuration.storage, preview=preview)
             if AAPAaction.FORM in actions or AAPAaction.FULL in actions:
                 process_forms(configuration.storage, configuration.output_directory, preview=preview)
             #TODO: dit bijwerken if configuration.options.history_file:

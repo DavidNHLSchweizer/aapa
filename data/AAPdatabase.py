@@ -195,7 +195,7 @@ class AAPDatabase(Database):
                 self.load_roots(False)
                 self.reset_keys()
     def reset_keys(self):
-        keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
+        keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), VerslagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
         for table in keyed_tables:
             reset_key(table.name, self.__find_max_key(table.name))
     def __find_max_key(self, table_name: str):
