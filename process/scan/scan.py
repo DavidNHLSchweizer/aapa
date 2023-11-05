@@ -3,7 +3,7 @@ from general.fileutil import created_directory, from_main_path, test_directory_e
 from general.log import log_error, log_info, log_print
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
-from process.general.pipeline import ProcessingPipeline
+from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.scan.create_forms.copy_request import CopyAanvraagProcessor
 from process.scan.create_forms.create_diff_file import DifferenceProcessor
 from process.scan.create_forms.create_form import FormCreator
@@ -30,7 +30,7 @@ def create_beoordelingen_files(storage: AAPAStorage, template_doc, output_direct
     else:
         exists = test_directory_exists(output_directory)
     if exists:       
-        pipeline = ProcessingPipeline(f'Maken beoordelingsformulieren en kopiëren aanvragen ({output_directory})', 
+        pipeline = AanvragenPipeline(f'Maken beoordelingsformulieren en kopiëren aanvragen ({output_directory})', 
                                        [FormCreator(template_doc, output_directory), 
                                         CopyAanvraagProcessor(output_directory), 
                                         DifferenceProcessor(storage, output_directory)], storage, ActionLog.Action.FORM)

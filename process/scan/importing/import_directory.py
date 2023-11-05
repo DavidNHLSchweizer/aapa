@@ -1,6 +1,8 @@
 from pathlib import Path
 from copy import deepcopy
+import re
 import tkinter.simpledialog as tksimp
+from data.classes.action_log import ActionLog
 from data.storage import AAPAStorage, FileStorageRecord
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
@@ -11,9 +13,10 @@ from general.timeutil import TSC
 from general.valid_email import is_valid_email, try_extract_email
 from general.config import ListValueConvertor, config
 from general.fileutil import file_exists, summary_string
+from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
 from process.general.aanvraag_processor import AanvraagCreator
+from process.general.base_processor import FileProcessor
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException, is_valid_title
-from process.general.pipeline import AanvraagCreatingPipeline
 
 def init_config():
     config.register('import', 'skip_files', ListValueConvertor)
@@ -56,9 +59,9 @@ class AanvraagValidator:
     def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
 
-class AanvraagPDFImporter(AanvraagCreator):
-    def __init__(self, entry_states: set[Aanvraag.Status] = None, exit_state: Aanvraag.Status = None):
-        super().__init__(entry_states=entry_states, exit_state=exit_state, description='PDF Importer')
+class AanvraagPDFImporter(FileProcessor):
+    def __init__(self):
+        super().__init__(description='PDF Importer')
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         record = storage.files.get_storage_record(filename)
         log_debug(f'MUST_PROCESS_FILE {filename}\n\tstorage_record: {record.status}  {record.stored}')
@@ -97,7 +100,49 @@ def report_imports(new_aanvragen, preview=False, verbose=False):
             log_print(f'\t{str(aanvraag)}')
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te lezen", "gelezen")}.', to_console=True)
 
-class DirectoryImporter(AanvraagCreatingPipeline): pass
+class DirectoryImporter(AanvraagCreatorPipeline): 
+    def __init__(self, description: str, processor: AanvraagCreator, storage: AAPAStorage,                  
+                 skip_directories: set[Path]={}, skip_files: list[str]=[]):
+        super().__init__(description, processor, storage, activity=ActionLog.Action.SCAN, invalid_filetype=File.Type.INVALID_PDF)
+        self.skip_directories:list[Path] = skip_directories
+        self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
+    def _in_skip_directory(self, filename: Path)->bool:
+        for skip in self.skip_directories:
+            if filename.is_relative_to(skip):
+                return True
+        return False
+    def _skip_file(self, filename: Path)->bool:
+        for pattern in self.skip_files:
+            if pattern.match(str(filename)):
+                return True 
+        return False
+    def _check_skip_file(self, filename: Path)->bool:
+        record = self.storage.files.get_storage_record(str(filename))
+        log_debug(f'record: {filename}: {record.status}')
+        skip_msg = ''
+        warning = False
+        match record.status:
+            case FileStorageRecord.Status.STORED_INVALID_COPY:
+                skip_msg = f'Overslaan: bestand {summary_string(filename, maxlen=100, initial=16)}\n\t is kopie van {summary_string(record.stored.filename, maxlen=100, initial=16)}'
+                warning = True
+            case FileStorageRecord.Status.STORED_INVALID: 
+                pass
+            case FileStorageRecord.Status.DUPLICATE:
+                skip_msg = f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(record.stored.filename, maxlen=100, initial=16)}'          
+                warning = True
+            case _: 
+                if self._skip_file(filename):
+                    skip_msg = f'Overslaan: {summary_string(filename, maxlen=100)}'               
+        if skip_msg:
+            if warning:
+                log_warning(skip_msg, to_console=True)
+            else:
+                log_print(skip_msg)
+            self._add_invalid_file(str(filename))
+            return True
+        return False
+    def _skip(self, filename: str)->bool:
+        return self._in_skip_directory(filename) or self._check_skip_file(filename)
 
 def import_directory(directory: str, output_directory: str, storage: AAPAStorage, recursive = True, preview=False)->int:
     def _get_pattern(recursive: bool):

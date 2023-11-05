@@ -3,14 +3,14 @@ from enum import IntEnum, StrEnum
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
-from data.classes.milestones import Milestone
+from data.classes.milestones import StudentMilestone
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.date_parser import DateParser
 from general.timeutil import TSC
 
-class Aanvraag(Milestone):
-    Beoordeling = Milestone.Beoordeling
+class Aanvraag(StudentMilestone):
+    Beoordeling = StudentMilestone.Beoordeling
     class Status(IntEnum):
         DELETED         = -1
         NEW             = 0
@@ -29,7 +29,7 @@ class Aanvraag(Milestone):
             return STRS[self.value]
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, aanvraag_nr = 1):
-        super().__init__(milestone_type=Milestone.Type.AANVRAAG, student=student, status=status, beoordeling=beoordeling, titel=titel, id=id)
+        super().__init__(milestone_type=StudentMilestone.Type.AANVRAAG, student=student, status=status, beoordeling=beoordeling, titel=titel, id=id)
         self.bedrijf = bedrijf
         self.datum_str = datum_str
         self.aanvraag_nr=aanvraag_nr

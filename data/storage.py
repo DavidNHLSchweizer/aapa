@@ -5,7 +5,7 @@ from data.AAPdatabase import  create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
-from data.classes.milestones import Milestone
+from data.classes.milestones import StudentMilestone
 from data.classes.studenten import Student
 from data.classes.action_log import ActionLog
 from data.classes.verslagen import Verslag

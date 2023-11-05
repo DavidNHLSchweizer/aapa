@@ -1,15 +1,15 @@
 from pathlib import Path
 import re
 from data.classes.files import File
-from data.classes.milestones import Milestone
+from data.classes.milestones import StudentMilestone
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage import AAPAStorage
 from general.fileutil import summary_string
 from general.log import log_debug, log_info, log_print, log_warning
 from general.singular_or_plural import sop
-from process.general.aanvraag_processor import VerslagCreator
-from process.general.pipeline import AanvraagCreatingPipeline, VerslagCreatingPipeline
+from process.general.verslag_pipeline import VerslagCreatingPipeline
+from process.general.verslag_processor import VerslagCreator
 from process.general.zipfile_reader import ZipFileReader
 from process.scan.importing.filename_parser import FilenameParser
 
@@ -21,11 +21,11 @@ class VerslagFromZipImporter(VerslagCreator):
         self.parser = FilenameParser()
 
     def create_from_parsed(self, storage: AAPAStorage, filename: str, parsed: FilenameParser.Parsed)->Verslag:
-        VerslagTypes = {'plan van aanpak': Milestone.Type.PVA, 
-                        'onderzoeksverslag': Milestone.Type.ONDERZOEKS_VERSLAG, 
-                        'technisch verslag': Milestone.Type.TECHNISCH_VERSLAG, 
-                        'eindverslag': Milestone.Type.EIND_VERSLAG}
-        def get_verslag_type(product_type: str)->Milestone.Type:
+        VerslagTypes = {'plan van aanpak': StudentMilestone.Type.PVA, 
+                        'onderzoeksverslag': StudentMilestone.Type.ONDERZOEKS_VERSLAG, 
+                        'technisch verslag': StudentMilestone.Type.TECHNISCH_VERSLAG, 
+                        'eindverslag': StudentMilestone.Type.EIND_VERSLAG}
+        def get_verslag_type(product_type: str)->StudentMilestone.Type:
             if (result := VerslagTypes.get(product_type.lower(), None)):
                 return result
             raise VerslagParseException(f'Onbekend verslagtype: {[product_type]}')

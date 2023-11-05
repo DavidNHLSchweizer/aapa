@@ -5,9 +5,8 @@ from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from data.storage import AAPAStorage
 from general.fileutil import delete_if_exists, file_exists, summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
+from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.general.aanvraag_processor import AanvraagProcessor
-from process.general.pipeline import ProcessingPipeline
-
 class UndoException(Exception): pass
 
 class UndoRecipeProcessor(AanvraagProcessor):
@@ -90,7 +89,7 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
     # remember which aanvragen to delete, lists in actionlog will be cleared by processing
     aanvragen_to_delete = action_log.aanvragen.copy() if processor.recipe.delete_aanvragen else None 
         
-    pipeline = ProcessingPipeline('Ongedaan maken verwerking aanvragen', processor, storage, 
+    pipeline = AanvragenPipeline('Ongedaan maken verwerking aanvragen', processor, storage, 
                                   ActionLog.Action.UNDO, can_undo=False, aanvragen=action_log.aanvragen.copy()) 
                 #copy is needed here because processing will remove aanvragen from the action_log.aanvragen list
                 #at the end of the individual process call, so we cannot use the same list to determine the aanvragen to 

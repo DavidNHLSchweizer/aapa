@@ -5,13 +5,13 @@ from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
-class Milestone:            
+class StudentMilestone:            
     class Beoordeling(IntEnum):
         TE_BEOORDELEN = 0
         ONVOLDOENDE   = 1
         VOLDOENDE     = 2
         def __str__(self):
-            _MB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
+            _MB_STRS = {StudentMilestone.Beoordeling.TE_BEOORDELEN: '', StudentMilestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', StudentMilestone.Beoordeling.VOLDOENDE: 'voldoende'}
             return _MB_STRS[self]
     class Type(IntEnum):
         UNKNOWN             = 0
@@ -21,12 +21,12 @@ class Milestone:
         TECHNISCH_VERSLAG   = 4
         EIND_VERSLAG        = 5
         def __str__(self):
-            _MT_STRS = {Milestone.Type.UNKNOWN: '', Milestone.Type.AANVRAAG: 'aanvraag', Milestone.Type.PVA: 'plan van aanpak', 
-                        Milestone.Type.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', Milestone.Type.TECHNISCH_VERSLAG: 'technisch verslag',
-                        Milestone.Type.EIND_VERSLAG: 'eindverslag'                       
+            _MT_STRS = {StudentMilestone.Type.UNKNOWN: '', StudentMilestone.Type.AANVRAAG: 'aanvraag', StudentMilestone.Type.PVA: 'plan van aanpak', 
+                        StudentMilestone.Type.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', StudentMilestone.Type.TECHNISCH_VERSLAG: 'technisch verslag',
+                        StudentMilestone.Type.EIND_VERSLAG: 'eindverslag'                       
             }
             return _MT_STRS[self]
-    def __init__(self, milestone_type: Milestone.Type, student:Student, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
+    def __init__(self, milestone_type: StudentMilestone.Type, student:Student, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
         self.milestone_type = milestone_type
         self._id = id
         self.student = student
