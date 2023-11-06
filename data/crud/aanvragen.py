@@ -9,13 +9,16 @@ from database.database import Database
 class CRUD_aanvragen(CRUDbaseAuto):
     def __init__(self, database: Database):
         super().__init__(database, AanvraagTableDefinition(), Aanvraag)
-        self._db_map['stud_nr']['attrib'] = 'student.stud_nr'
+        self._db_map['stud_id']['attrib'] = 'student.id'
         self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
         self._db_map['status']['db2obj'] = Aanvraag.Status
         self._db_map['beoordeling']['db2obj'] = Aanvraag.Beoordeling
-    def _read_sub_attrib(self, sub_attrib_name: str, value)->Bedrijf:
-        match sub_attrib_name:
-            case 'stud_nr': return CRUD_studenten(self.database).read(value)
-            case 'id': return CRUD_bedrijven(self.database).read(value)
-            case _: return None
+    def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->Bedrijf:
+        if sub_attrib_name == 'id':
+            match main_part:
+                case 'student': 
+                    return CRUD_studenten(self.database).read(value)
+                case 'bedrijf': 
+                    return CRUD_bedrijven(self.database).read(value)
+        return None
 

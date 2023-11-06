@@ -2,6 +2,7 @@ import importlib
 from data.AAPdatabase import create_version_info, read_version_info
 from database.database import Database
 from general.fileutil import file_exists
+from general.log import init_logging
 from process.aapa_processor.initialize import initialize_database
 
 class MigrationException(Exception): pass
@@ -45,6 +46,7 @@ def update_versie(database, new_version):
     create_version_info(database, dbv)
 
 def start_migratie(database_name: str, old_version: str, new_version: str)->Database:
+    init_logging(f'migrate{old_version.replace(".","_")}-{new_version.replace(".","_")}.log')
     if not (database := init_database(database_name, old_version)):
         return None
     print(f'Migrating database {database_name} from version {old_version} to {new_version}.')

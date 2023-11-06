@@ -181,6 +181,11 @@ class TableDefinition:
         return len(self.foreign_keys) > 0
     def has_index(self):
         return len(self.indexes) > 0
+    def column(self, column_name: str)->ColumnDefinition:
+        for column in self.columns:
+            if column.name==column_name:
+                return column
+        return None
     def __str__(self):
         result = f'TABLE {self.name}'
         if len(self.columns):

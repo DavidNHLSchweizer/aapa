@@ -1,3 +1,4 @@
+from __future__ import annotations
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
@@ -53,11 +54,11 @@ def load_roots(database: Database):
         for record in row:   
             add_root(record['root'], record['code']) 
             
-
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('STUDENTEN')
-        self.add_column('stud_nr', dbc.TEXT, primary=True)
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('stud_nr', dbc.TEXT)
         self.add_column('full_name', dbc.TEXT)
         self.add_column('first_name', dbc.TEXT)
         self.add_column('email', dbc.TEXT, notnull=True)
@@ -69,21 +70,11 @@ class BedrijfTableDefinition(TableDefinition):
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('name', dbc.TEXT)    
 
-# class MilestoneTableDefinition(TableDefinition):
-#     def __init__(self):
-#         super().__init__('MILESTONES')
-#         self.add_column('id', dbc.INTEGER, primary = True)
-#         self.add_column('type_description', dbc.TEXT)
-#         self.add_column('stud_nr', dbc.TEXT)
-#         self.add_column('titel', dbc.TEXT)
-#         self.add_column('status', dbc.INTEGER)
-#         self.add_column('beoordeling', dbc.INTEGER)
-
 class AanvraagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
         self.add_column('id', dbc.INTEGER, primary = True) 
-        self.add_column('stud_nr', dbc.TEXT)
+        self.add_column('stud_id', dbc.INTEGER)
         self.add_column('bedrijf_id', dbc.INTEGER)
         self.add_column('datum_str', dbc.TEXT)
         self.add_column('titel', dbc.TEXT)
@@ -96,7 +87,7 @@ class VerslagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
         self.add_column('id', dbc.INTEGER, primary = True)
-        self.add_column('stud_nr', dbc.TEXT)
+        self.add_column('stud_id', dbc.INTEGER)
         self.add_column('titel', dbc.TEXT)
         self.add_column('verslag_type', dbc.INTEGER)
         self.add_column('datum', dbc.TEXT)
@@ -138,7 +129,8 @@ class ActionLogAanvragenTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('ACTIONLOG_AANVRAGEN')
         self.add_column('log_id', dbc.INTEGER, primary = True)
-        self.add_column('aanvraag_id', dbc.INTEGER, primary = True)    
+        self.add_column('aanvraag_id', dbc.INTEGER, primary = True)  
+
 class ActionLogFilesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('ACTIONLOG_FILES')
@@ -161,10 +153,9 @@ class AAPSchema(Schema):
         self.__define_foreign_keys()
         
     def __define_foreign_keys(self):
-        # self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('AANVRAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('AANVRAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('VERSLAGEN').add_foreign_key('stud_nr', 'STUDENTEN', 'stud_nr', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('VERSLAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_FILES').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
@@ -195,9 +186,12 @@ class AAPDatabase(Database):
                 self.load_roots(False)
                 self.reset_keys()
     def reset_keys(self):
-        keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), VerslagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
-        for table in keyed_tables:
-            reset_key(table.name, self.__find_max_key(table.name))
+        def is_keyed_table(table: TableDefinition)->bool:
+            return len(table.keys) == 1 and table.column(table.key).type==dbc.INTEGER and table.key == 'id' 
+        # keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), VerslagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
+        for table in self.schema.tables():
+            if is_keyed_table(table):
+                reset_key(table.name, self.__find_max_key(table.name))
     def __find_max_key(self, table_name: str):
         if (row := self._execute_sql_command(f'select max(ID) from {table_name};', return_values = True)) and \
                                             (r0 := list(row[0])[0]):

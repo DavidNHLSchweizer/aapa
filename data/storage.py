@@ -57,13 +57,17 @@ class BedrijvenStorage(ObjectStorage):
 class StudentenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_studenten(database))
+    def create(self, student: Student):
+        if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (stud_nr=? or full_name=? or email=?)', 
+                                                    [student.stud_nr, student.full_name, student.email], True):
+            student.id = row[0]['id']
+        else:
+            super().create(student)
     def find_by_column_value(self, column_name: str, value: str)->Student:
-        if row:=self.database._execute_sql_command(f'select stud_nr from {self.table_name} where ({column_name}=?)', [value], True):
+        if row:=self.database._execute_sql_command(f'select id from {self.table_name} where ({column_name}=?)', [value], True):
             return self.read(row[0][0])
         return None
     def find_student_by_name_or_email(self, student: Student)->Student:
-        if student.stud_nr:
-            return self.read(student.stud_nr)
         for column_name in ['full_name', 'email']:
             if result:=self.find_by_column_value(column_name, getattr(student, column_name)):
                 return result
@@ -72,12 +76,9 @@ class StudentenStorage(ObjectStorage):
         n = 1
         if not (result := student.stud_nr):
             result = f'{student.initials()}{n}'
-        while self.read(result) is not None:
+        while self.find_by_column_value('stud_nr', result) is not None:
             n+=1
         return result
-
-
-
 
 class FileSync:
     class Strategy(Enum):
@@ -340,11 +341,11 @@ class AanvraagStorage(ObjectStorage):
         else: 
             return self.__read_all_states(filter_func=filter_func, states=states)
     def find_student_bedrijf(self, student: Student, bedrijf: Bedrijf, filter_func=None)->Iterable[Aanvraag]:
-        return self.read_all(filter_func=lambda a: filter_func(a) and a.student.stud_nr == student.stud_nr and a.bedrijf.id == bedrijf.id)
+        return self.read_all(filter_func=lambda a: filter_func(a) and a.student.id == student.id and a.bedrijf.id == bedrijf.id)
     def find_student(self, student: Student)->Iterable[Aanvraag]:
-        return self.read_all(filter_func = lambda a: a.student.stud_nr == student.stud_nr)
+        return self.read_all(filter_func = lambda a: a.student.id == student.id)
     def __count_student_aanvragen(self, aanvraag: Aanvraag):
-        if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_nr=? and status!=?', [aanvraag.student.stud_nr,Aanvraag.Status.DELETED], True)):
+        if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_id=? and status!=?', [aanvraag.student.id,Aanvraag.Status.DELETED], True)):
             return row[0][0]
         else:
             return 0    
@@ -354,7 +355,7 @@ class AanvraagStorage(ObjectStorage):
             aanvraag.bedrijf.id = row[0]['id']
         else:
             self.bedrijven.create(aanvraag.bedrijf)
-        if not (self.studenten.read(aanvraag.student.stud_nr)):
+        if not (self.studenten.read(aanvraag.student.id)):
             self.studenten.create(aanvraag.student)
 
 class ActionLogRelationStorage:
@@ -442,37 +443,9 @@ class VerslagStorage(ObjectStorage):
         self.sync_files(verslag)
     def delete(self, id: int):
         self.files.delete_all(id)
-        super().delete(id)
-    # def __read_all_filtered(self, aanvragen: Iterable[Aanvraag], filter_func = None)->Iterable[Aanvraag]:
-    #     if not filter_func:
-    #         return aanvragen
-    #     else:
-    #         return list(filter(filter_func, aanvragen))
-    # def __read_all_all(self, filter_func = None)->Iterable[Aanvraag]:
-    #     if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status != ?', [Aanvraag.Status.DELETED], True):            
-    #         return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
-    #     else:
-    #         return None
-    # def __read_all_states(self, states:set[Aanvraag.Status]=None, filter_func = None)->Iterable[Aanvraag]:
-    #     params = [state.value for state in states]
-    #     if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status in ({",".join(["?"]*len(params))})', params, True):
-    #         return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
-    # def read_all(self, filter_func = None, states:set[Aanvraag.Status]=None)->Iterable[Aanvraag]:
-    #     if not states:
-    #         return self.__read_all_all(filter_func=filter_func)        
-    #     else: 
-    #         return self.__read_all_states(filter_func=filter_func, states=states)
-    # def find_student_bedrijf(self, student: Student, bedrijf: Bedrijf, filter_func=None)->Iterable[Aanvraag]:
-    #     return self.read_all(filter_func=lambda a: filter_func(a) and a.student.stud_nr == student.stud_nr and a.bedrijf.id == bedrijf.id)
-    # def find_student(self, student: Student)->Iterable[Aanvraag]:
-    #     return self.read_all(filter_func = lambda a: a.student.stud_nr == student.stud_nr)
-    # def __count_student_aanvragen(self, aanvraag: Aanvraag):
-    #     if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_nr=? and status!=?', [aanvraag.student.stud_nr,Aanvraag.Status.DELETED], True)):
-    #         return row[0][0]
-    #     else:
-    #         return 0    
+        super().delete(id)  
     def __create_table_references(self, verslag: Verslag):
-        if not self.studenten.read(verslag.student.stud_nr):
+        if not self.studenten.read(verslag.student.id):
             self.studenten.create(verslag.student)
 
 class AAPAStorage: 

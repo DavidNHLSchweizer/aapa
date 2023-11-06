@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import contextmanager
 import sqlite3 as sql3
 import database.dbConst as dbc
 from database.tabledef import TableDefinition
@@ -54,15 +55,11 @@ class Database:
             # log_error(f'Kan database {filename} niet initialiseren...') is waarschijnlijk al gemeld
             return None           
     def __clear(self):
-        try:
-            schema = Schema.read_from_database(self)
-            self.disable_foreign_keys()
+        schema = Schema.read_from_database(self)
+        with self.pause_foreign_keys():
             for table in schema.tables():
                 self.drop_table(table)
             self.commit()
-        finally:
-            self.enable_foreign_keys()
-            pass
     def log_info(self, str):
         log_info(f'DB:{one_line(str)}')
     def log_error(self, str):
@@ -75,6 +72,11 @@ class Database:
         self._execute_sql_command('pragma foreign_keys=ON')
     def disable_foreign_keys(self):
         self._execute_sql_command('pragma foreign_keys=OFF')
+    @contextmanager
+    def pause_foreign_keys(self):
+        self.disable_foreign_keys()
+        yield
+        self.enable_foreign_keys()
     def open_database(self, filename):
         try:
             conn = sql3.connect(filename)#, isolation_level=None)
@@ -144,7 +146,7 @@ class Schema:
         self.__tables[table.name] = table
     def table(self, table_name: str)->TableDefinition:
         return self.__tables.get(table_name, None)
-    def tables(self):
+    def tables(self)->list[TableDefinition]:
         return self.__tables.values()
     @classmethod
     def read_from_database(cls, database: Database):

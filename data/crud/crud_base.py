@@ -39,7 +39,7 @@ class CRUDbase:
         return self.__map_column(column_name, value, 'db2obj')
     def create(self, aapa_obj: AAPAClass):
         self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(aapa_obj)) 
-    def _read_sub_attrib(self, sub_attrib_name: str, value)->AAPAClass: 
+    def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->AAPAClass: 
         #placeholder for reading attribs that are actually Stored Classes, at this moment only Aanvraag needs this
         return None
     def read(self, key: KeyClass, multiple=False)->type[AAPAClass|list]:
@@ -51,7 +51,7 @@ class CRUDbase:
                 new_dict = {}
                 for attr, value in class_dict.items():
                     if has_deep_attr(attr):
-                        new_dict[attr] = {'new_attr': deep_attr_main_part(attr), 'new_value': self._read_sub_attrib(deep_attr_sub_part(attr), value)}
+                        new_dict[attr] = {'new_attr': deep_attr_main_part(attr), 'new_value': self._read_sub_attrib(deep_attr_main_part(attr), deep_attr_sub_part(attr), value)}
                 for attr, record in new_dict.items():
                     class_dict[record['new_attr']] = record['new_value'] 
                     del class_dict[attr]
