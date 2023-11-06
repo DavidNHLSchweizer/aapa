@@ -2,6 +2,7 @@ from datetime import datetime
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print
 from process.aapa_processor.aapa_config import AAPAConfiguration
+from process.scan.importing.detect_student_from_directory import detect_from_directory
 from process.scan.importing.import_verslagen import import_zipfile
 from process.undo.undo_processor import undo_last
 from process.scan.create_forms.create_diff_file import DifferenceProcessor
@@ -48,8 +49,16 @@ class AAPAProcessor:
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
                 process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
-            if AAPAaction.ZIPIMPORT in actions:
-                import_zipfile(r'./nova/Gradebook 2023-10-20.zip', 'dummy', storage=configuration.storage, preview=preview)
+            if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
+                log_print(f'*** DIRECTORY 2020-2021')
+                detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021', configuration.storage, preview=preview)    
+                log_print(f'*** DIRECTORY 2021-2022')
+                detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022', configuration.storage, preview=preview)    
+                log_print(f'*** DIRECTORY 2022-2023')
+                detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023', configuration.storage, preview=preview)    
+                log_print(f'*** DIRECTORY 2023-2024')
+                detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024', configuration.storage, preview=preview)    
+                # import_zipfile(r'./nova/Gradebook 2023-10-20.zip', 'dummy', storage=configuration.storage, preview=preview)
             if AAPAaction.FORM in actions or AAPAaction.FULL in actions:
                 process_forms(configuration.storage, configuration.output_directory, preview=preview)
             #TODO: dit bijwerken if configuration.options.history_file:

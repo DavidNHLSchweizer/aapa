@@ -11,16 +11,16 @@ from general.singular_or_plural import sop
 from process.general.verslag_pipeline import VerslagCreatingPipeline
 from process.general.verslag_processor import VerslagCreator
 from process.general.zipfile_reader import ZipFileReader
-from process.scan.importing.filename_parser import FilenameParser
+from process.scan.importing.filename_in_zip_parser import FilenameInZipParser
 
 class VerslagParseException(Exception): pass
 
 class VerslagFromZipImporter(VerslagCreator):
     def __init__(self, description = ''):
         super().__init__(description=description)
-        self.parser = FilenameParser()
+        self.parser = FilenameInZipParser()
 
-    def create_from_parsed(self, storage: AAPAStorage, filename: str, parsed: FilenameParser.Parsed)->Verslag:
+    def create_from_parsed(self, storage: AAPAStorage, filename: str, parsed: FilenameInZipParser.Parsed)->Verslag:
         VerslagTypes = {'plan van aanpak': StudentMilestone.Type.PVA, 
                         'onderzoeksverslag': StudentMilestone.Type.ONDERZOEKS_VERSLAG, 
                         'technisch verslag': StudentMilestone.Type.TECHNISCH_VERSLAG, 

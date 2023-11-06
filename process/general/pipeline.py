@@ -45,12 +45,13 @@ class Pipeline:
 
 class FilePipeline(Pipeline):
     def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 
-                 activity: ActionLog.Action, invalid_filetype: File.Type):
+                 activity: ActionLog.Action, invalid_filetype: File.Type=None):
         super().__init__(description, processors, storage, activity=activity)
         self.invalid_file_type = invalid_filetype
         self._invalid_files = []
     def _add_invalid_file(self, filename: str):
-        self._invalid_files.append({'filename': filename, 'filetype': self.invalid_file_type})
+        if self.invalid_file_type:
+            self._invalid_files.append({'filename': filename, 'filetype': self.invalid_file_type})
     def _skip(self, filename: str)->bool:
         return False
     def _store_new(self, object: AAPAClass):
@@ -63,7 +64,7 @@ class FilePipeline(Pipeline):
             try:
                 object = processor.process_file(filename, self.storage, preview, **kwargs)
                 if object is None:
-                    self._add_invalid_file(str(filename), self.invalid_file_type)
+                    self._add_invalid_file(str(filename))
                     return False
                 self._store_new(object)
                 self.storage.commit()

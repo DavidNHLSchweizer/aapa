@@ -14,7 +14,6 @@ class UndoRecipe:
         self.files_to_delete = files_to_delete
         self.files_to_forget = files_to_forget
         self.optional_files = optional_files
-        # self.forget_aanvraag = forget_aanvraag
         self.forget_invalid_files = forget_invalid_files
         self.delete_aanvragen = delete_aanvragen
         

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import datetime
 import re
 
-class FilenameParser:
+class FilenameInZipParser:
     @dataclass
     class Parsed:
         product_type: str
@@ -22,10 +22,10 @@ class FilenameParser:
             return ' '.join(words)
     PATTERN = 'Inleveren\s+(?P<product_type>.+)\s+\((?P<kans>.+)\)_(?P<email>.+)_poging_(?P<datum>[\d\-]+)_(?P<filename>.+)'
     def __init__(self):
-        self.pattern = re.compile(FilenameParser.PATTERN)
-    def parsed(self, filename: str)->FilenameParser.Parsed:
+        self.pattern = re.compile(FilenameInZipParser.PATTERN)
+    def parsed(self, filename: str)->FilenameInZipParser.Parsed:
         if (match:=self.pattern.match(str(filename))):
-            return FilenameParser.Parsed(product_type=match.group('product_type'), kans=match.group('kans'), 
+            return FilenameInZipParser.Parsed(product_type=match.group('product_type'), kans=match.group('kans'), 
                                   email=match.group('email'), 
                                   datum=datetime.datetime.strptime(match.group('datum'),'%Y-%m-%d-%H-%M-%S'),
                                   original_filename=match.group('filename'))

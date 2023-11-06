@@ -13,6 +13,7 @@ from general.timeutil import TSC
 class File:
     AUTODIGEST = ''
     class Type(IntEnum):
+        # INVALID_DOCX        = -3
         INVALID_PDF         = -2
         UNKNOWN             = -1
         AANVRAAG_PDF        = 0
@@ -20,8 +21,12 @@ class File:
         COPIED_PDF          = 2
         DIFFERENCE_HTML     = 3
         GRADE_FORM_PDF      = 5
+        # GRADE_FORM_EX1_DOCX = 6
+        # GRADE_FORM_EX2_DOCX = 7
+        # GRADE_FORM_EX3_DOCX = 8
         def __str__(self):
-            STR_DICT = {File.Type.UNKNOWN: '?', File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
+            STR_DICT = {File.Type.UNKNOWN: '?', 
+                        File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
                         File.Type.GRADE_FORM_DOCX: 'Beoordelingsformulier', 
                         File.Type.GRADE_FORM_PDF: 'Ingevuld beoordelingsformulier (PDF format)', File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
                         File.Type.DIFFERENCE_HTML: 'verschilbestand met vorige versie aanvraag'

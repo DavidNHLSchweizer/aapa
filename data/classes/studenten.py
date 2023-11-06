@@ -26,6 +26,10 @@ class Student:
         if self.full_name and (words := self.full_name.split(' ')):
             return words[0]
         return ''
+    def _get_last_name(self):
+        if self.full_name and (words := self.full_name.split(' ')):
+            return ' '.join(words[1:])
+        return ''
     def initials(self)->str:
         result = ''
         if self.email:

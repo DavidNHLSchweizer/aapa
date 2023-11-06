@@ -53,3 +53,22 @@ class StudentMilestone:
         self.files.set_file(File(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
     def unregister_file(self, filetype: File.Type):
         self.files.reset_file(filetype)
+
+class StudentMilestones:
+    def __init__(self, student: Student, base_directory: str = '', id: int = EMPTY_ID):
+        self.id = id #key
+        self.student = student
+        self.base_directory = base_directory
+        self._milestones: dict = []
+    def milestones(self)->list[StudentMilestone]:
+        return [milestone for milestone in self._milestones.values()]
+    def get_milestone(self, milestone_type: StudentMilestone.Type)->StudentMilestone:
+        return self._milestones.get(milestone_type, None)
+    def set_milestone(self, milestone: StudentMilestone):        
+        if milestone:
+            self._milestones[milestone.milestone_type] = milestone
+    def reset_milestone(self, milestone_type: StudentMilestone.Type):
+        self._milestones[milestone_type] = None
+    def get_base_directory_name(self)->str:
+        return f'{self.student.last_name}, {self.student.first_name}'
+

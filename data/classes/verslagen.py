@@ -2,12 +2,10 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 from pathlib import Path
-import re
 from data.classes.files import File
 from data.classes.milestones import StudentMilestone
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
-from process.scan.importing.filename_parser import FilenameParser
 
 class Verslag(StudentMilestone):
     class Status(IntEnum):
@@ -48,3 +46,4 @@ class Verslag(StudentMilestone):
         if self.beoordeling != '':
             s = s + f' ({str(self.beoordeling)})'
         return s
+
