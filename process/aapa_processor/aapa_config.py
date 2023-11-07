@@ -7,6 +7,7 @@ from general.log import log_error, log_info, log_print
 from general.config import config
 from process.aapa_processor.initialize import initialize_database, initialize_storage
 from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
+import data.classes.base_dirs
 
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
@@ -67,6 +68,8 @@ class AAPAConfiguration:
             self.validation_error = f'Output directory "{self.output_directory}" voor aanvragen niet ingesteld'
             return False
         self.__prepare_storage_roots(preview)
+        for basedir in config.get('base_directories', 'years'):
+            print(basedir)
         return True
     def __get_directory(self, option_value, config_name, title, mustexist=False):
         config_value = config.get('configuration', config_name)

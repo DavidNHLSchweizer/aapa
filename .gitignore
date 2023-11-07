@@ -15,6 +15,7 @@
 !ini/*.ini
 !template*.docx
 !template*.htm
+!templates/forms/**
 ?.py
 ??.py
 t?.py
