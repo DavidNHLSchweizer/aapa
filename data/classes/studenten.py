@@ -1,12 +1,14 @@
 from __future__ import annotations
+from typing import Tuple
 from database.dbConst import EMPTY_ID
+from general.name_utils import Names
 from general.valid_email import is_valid_email
 
 class Student:
     def __init__(self, full_name='', first_name = '', stud_nr='', tel_nr='', email='', id=EMPTY_ID):        
         self.id = id
         self.full_name = full_name
-        self.first_name = first_name if first_name else self._get_first_name()
+        self.first_name = first_name if first_name else Names.first_name(full_name)
         self.stud_nr = stud_nr
         self.tel_nr = tel_nr
         self.email = email
@@ -22,20 +24,10 @@ class Student:
         if  self.email != value.email:
             return False
         return True
-    def _get_first_name(self):
-        if self.full_name and (words := self.full_name.split(' ')):
-            return words[0]
-        return ''
-    def _get_last_name(self):
-        if self.full_name and (words := self.full_name.split(' ')):
-            return ' '.join(words[1:])
-        return ''
+    def last_name(self):
+        return Names.last_name(self.full_name)
     def initials(self)->str:
-        result = ''
-        if self.email:
-            for word in self.email[:self.email.find('@')].split('.'):
-                result = result + word[0]
-        return result 
+        return Names.initials(self.full_name, self.email)
     def valid(self)->bool:
         return self.full_name != '' and self.id != EMPTY_ID and self.stud_nr != '' and is_valid_email(self.email) 
 

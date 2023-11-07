@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import datetime
 import re
 
+from general.config import config
+
 class FilenameInZipParser:
     @dataclass
     class Parsed:
@@ -13,9 +15,10 @@ class FilenameInZipParser:
         original_filename: str
         @property
         def student_name(self)->str:
-            words = []            
+            words = []         
+            tussen_voegsels = config.get('names', 'tussen')   
             for word in self.email[:self.email.find('@')].split('.'):
-                if word in ['van', 'de', 'der', 'den']:
+                if word in tussen_voegsels:
                     words.append(word)
                 else:
                     words.append(word.title())

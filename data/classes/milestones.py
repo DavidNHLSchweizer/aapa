@@ -3,6 +3,7 @@ from enum import IntEnum
 from data.classes.files import File, Files
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
+from general.name_utils import Names
 from general.timeutil import TSC
 
 class StudentMilestone:            
@@ -69,6 +70,11 @@ class StudentMilestones:
             self._milestones[milestone.milestone_type] = milestone
     def reset_milestone(self, milestone_type: StudentMilestone.Type):
         self._milestones[milestone_type] = None
-    def get_base_directory_name(self)->str:
-        return f'{self.student.last_name}, {self.student.first_name}'
+    @staticmethod
+    def get_base_directory_name(student: Student)->str:
+        full_name = student.full_name
+        result = f'{Names.last_name(full_name)}, '
+        if (tussen_str := Names.tussen(full_name, student.first_name)):
+            result = result + f'{tussen_str}, '
+        return result + student.first_name
 
