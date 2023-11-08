@@ -12,7 +12,7 @@ class Names:
     @staticmethod
     def first_name(full_name: str)->str:
         if full_name and (words := full_name.split(' ')):
-            result = words[0]
+            return words[0]
         return ''
     @staticmethod
     def tussen(full_name: str, first_name='')->str:
@@ -28,17 +28,25 @@ class Names:
     def __get_nr_first_name_words(full_name: str, first_name='')->int:
         words = full_name.split(' ')
         first = words[0]
+        voegsels = Names.tussenvoegsels()
         result = 1
         while result < len(words) and len(first) < len(first_name):
+            if words[result] in voegsels:
+                break
             first  = first + ' ' + words[result]
             result += 1
         if result < len(words):
             return result
         return 1
     @staticmethod
-    def last_name(full_name: str):
+    def last_name(full_name: str, first_name='', include_tussen: bool=True):
         if full_name and (words := full_name.split(' ')):
-            return ' '.join(words[Names.__get_nr_first_name_words(full_name):len(words)])
+            start = Names.__get_nr_first_name_words(full_name,first_name)
+            voegsels = Names.tussenvoegsels()
+            if not include_tussen: 
+                while words[start] in voegsels and start < len(words)-1:
+                    start +=1
+            return ' '.join(words[start:len(words)])
         return ''   
     @staticmethod
     def initials(full_name: str='', email: str = '')->str:

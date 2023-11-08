@@ -3,6 +3,7 @@ from enum import Enum, auto
 from typing import Iterable, Type
 from data.AAPdatabase import  create_root
 from data.classes.aanvragen import Aanvraag
+from data.classes.base_dirs import BaseDir
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
 from data.classes.milestones import StudentMilestone
@@ -10,6 +11,7 @@ from data.classes.studenten import Student
 from data.classes.action_log import ActionLog
 from data.classes.verslagen import Verslag
 from data.crud.aanvragen import CRUD_aanvragen
+from data.crud.base_dirs import CRUD_basedirs
 from data.crud.bedrijven import  CRUD_bedrijven
 from data.crud.files import CRUD_files
 from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files, CRUD_action_log_relations
@@ -448,6 +450,14 @@ class VerslagStorage(ObjectStorage):
         if not self.studenten.read(verslag.student.id):
             self.studenten.create(verslag.student)
 
+class BaseDirStorage(ObjectStorage):
+    def __init__(self, database: Database):
+        super().__init__(database, CRUD_basedirs(database))
+    def read_all(self)->Iterable[BaseDir]:
+        if (rows := self.database._execute_sql_command('select id from BASEDIRS', [],True)):
+            return [self.crud.read(row['id']) for row in rows] 
+        return None
+
 class AAPAStorage: 
     #main interface with the database
     def __init__(self, database: Database):
@@ -455,6 +465,7 @@ class AAPAStorage:
         self.aanvragen = AanvraagStorage(database)
         self.action_logs = ActionLogStorage(database)
         self.verslagen = VerslagStorage(database)
+        self.basedirs = BaseDirStorage(database)
     @property
     def files(self)->FilesStorage:
         return self.aanvragen.files

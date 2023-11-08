@@ -144,7 +144,7 @@ class BaseDirsTableDefinition(TableDefinition):
         self.add_column('year', dbc.INTEGER)
         self.add_column('period', dbc.TEXT)
         self.add_column('forms_version', dbc.TEXT)
-        self.add_column('base_dir', dbc.TEXT)
+        self.add_column('directory', dbc.TEXT)
 
 class AAPSchema(Schema):
     def __init__(self):

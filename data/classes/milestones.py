@@ -1,5 +1,7 @@
 from __future__ import annotations
 from enum import IntEnum
+from pathlib import Path
+from data.classes.base_dirs import BaseDir
 from data.classes.files import File, Files
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
@@ -56,10 +58,10 @@ class StudentMilestone:
         self.files.reset_file(filetype)
 
 class StudentMilestones:
-    def __init__(self, student: Student, base_directory: str = '', id: int = EMPTY_ID):
+    def __init__(self, student: Student, base_dir: BaseDir = None, id: int = EMPTY_ID):
         self.id = id #key
         self.student = student
-        self.base_directory = base_directory
+        self.base_dir = base_dir
         self._milestones: dict = []
     def milestones(self)->list[StudentMilestone]:
         return [milestone for milestone in self._milestones.values()]
@@ -70,11 +72,11 @@ class StudentMilestones:
             self._milestones[milestone.milestone_type] = milestone
     def reset_milestone(self, milestone_type: StudentMilestone.Type):
         self._milestones[milestone_type] = None
-    @staticmethod
-    def get_base_directory_name(student: Student)->str:
-        full_name = student.full_name
-        result = f'{Names.last_name(full_name)}, '
-        if (tussen_str := Names.tussen(full_name, student.first_name)):
+    def get_base_directory_name(self)->str:
+        full_name = self.student.full_name
+        first_name = self.student.first_name
+        result = f'{Names.last_name(full_name, first_name, include_tussen=False)}, '
+        if (tussen_str := Names.tussen(full_name, first_name)):
             result = result + f'{tussen_str}, '
-        return result + student.first_name
+        return str(Path(self.base_dir.directory).joinpath(result + first_name))
 
