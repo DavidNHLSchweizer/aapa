@@ -461,7 +461,7 @@ class AAPAStorage:
     @property
     def studenten(self)->StudentenStorage:
         return self.aanvragen.studenten
-    def add_file_root(self, root: str, code = None):
+    def add_file_root(self, root: str, code = None)->str:
         encoded_root = encode_path(root)
         code = add_root(encoded_root, code)
         if encoded_root != code: 

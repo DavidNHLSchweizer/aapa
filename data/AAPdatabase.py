@@ -137,6 +137,15 @@ class ActionLogFilesTableDefinition(TableDefinition):
         self.add_column('log_id', dbc.INTEGER, primary = True)
         self.add_column('file_id', dbc.INTEGER, primary = True)    
 
+class BaseDirsTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('BASEDIRS')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('year', dbc.INTEGER)
+        self.add_column('period', dbc.TEXT)
+        self.add_column('forms_version', dbc.TEXT)
+        self.add_column('base_dir', dbc.TEXT)
+
 class AAPSchema(Schema):
     def __init__(self):
         super().__init__()
@@ -150,6 +159,7 @@ class AAPSchema(Schema):
         self.add_table(ActionLogTableDefinition())
         self.add_table(ActionLogAanvragenTableDefinition())
         self.add_table(ActionLogFilesTableDefinition())
+        self.add_table(BaseDirsTableDefinition())
         self.__define_foreign_keys()
         
     def __define_foreign_keys(self):
