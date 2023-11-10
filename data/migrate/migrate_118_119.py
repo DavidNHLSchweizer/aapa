@@ -8,6 +8,7 @@ from data.storage import AAPAStorage
 from database.SQL import SQLcreate, SQLinsert
 from database.database import Database
 from database.tabledef import ForeignKeyAction
+from general.name_utils import Names
 
 # Wijzigingen in 1.19 voor migratie:
 #
@@ -77,8 +78,19 @@ def create_new_tables(database: Database):
     _init_base_directories(database)
     print('--- klaar toevoegen nieuwe tabellen')
 
+#aanpassen voornamen waar nodig
+def correct_first_names(database: Database):
+    print('correcting incorrect first names in STUDENTEN')
+    for row in database._execute_sql_command('select id,full_name,first_name from STUDENTEN', [], True):
+        parsed = Names.parsed(row['full_name'])
+        if parsed.first_name != row['first_name']:
+            print(f'\tCorrecting {row["full_name"]}')
+            database._execute_sql_command('update STUDENTEN set first_name=? where id=?', [parsed.first_name, row['id']])
+    print('--- ready incorrect first names in STUDENTEN')
+    
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
         modify_studenten_table(database)
         modify_aanvragen_table(database)    
         create_new_tables(database)
+        correct_first_names(database)

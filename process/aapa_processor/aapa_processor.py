@@ -3,6 +3,7 @@ from data.classes.milestones import StudentMilestones
 from data.classes.studenten import Student
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print
+from general.name_utils import Names
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.scan.importing.detect_student_from_directory import detect_from_directory
 from process.scan.importing.import_verslagen import import_zipfile
@@ -53,10 +54,14 @@ class AAPAProcessor:
                 process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
             if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
                 # log_print(f'*** DIRECTORY 2020-2021')
-                basedir = configuration.storage.basedirs.read(8)
-                print(basedir)
-                ms = StudentMilestones(Student('Sybrig Cassandra van der Haan', first_name='Sybrig Cassandra'), basedir)
-                print(ms.get_base_directory_name())
+                for student in configuration.storage.studenten.read_all():
+                    parsed = Names.parsed(student.full_name)
+                    if parsed.first_name != student.first_name:
+                        print(f'{student.full_name}: {student.first_name} - {parsed}')
+                # basedir = configuration.storage.basedirs.read(8)
+                # print(basedir)
+                # ms = StudentMilestones(Student('Sybrig Cassandra van der Haan', first_name='Sybrig Cassandra'), basedir)
+                # print(ms.get_base_directory_name())
                 
                 # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021', configuration.storage, preview=preview)    
                 # log_print(f'*** DIRECTORY 2021-2022')
