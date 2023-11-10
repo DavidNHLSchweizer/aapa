@@ -24,12 +24,12 @@ class StudentMilestone:
         TECHNISCH_VERSLAG   = 4
         EIND_VERSLAG        = 5
         def __str__(self):
-            _MT_STRS = {StudentMilestone.Type.UNKNOWN: '', StudentMilestone.Type.AANVRAAG: 'aanvraag', StudentMilestone.Type.PVA: 'plan van aanpak', 
-                        StudentMilestone.Type.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', StudentMilestone.Type.TECHNISCH_VERSLAG: 'technisch verslag',
-                        StudentMilestone.Type.EIND_VERSLAG: 'eindverslag'                       
+            _MT_STRS = {StuMiType.UNKNOWN: '', StuMiType.AANVRAAG: 'aanvraag', StuMiType.PVA: 'plan van aanpak', 
+                        StuMiType.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', StuMiType.TECHNISCH_VERSLAG: 'technisch verslag',
+                        StuMiType.EIND_VERSLAG: 'eindverslag'                       
             }
             return _MT_STRS[self]
-    def __init__(self, milestone_type: StudentMilestone.Type, student:Student, datum: datetime.datetime, kans=1, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
+    def __init__(self, milestone_type: StuMiType, student:Student, datum: datetime.datetime, kans=1, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
         self.milestone_type = milestone_type
         self._id = id
         self.datum = datum
@@ -60,6 +60,7 @@ class StudentMilestone:
         self.files.reset_file(filetype)
     def summary(self)->str:
         return str(self)
+StuMiType = StudentMilestone.Type
 
 class StudentMilestones:
     def __init__(self, student: Student, base_dir: BaseDir = None, id: int = EMPTY_ID):
@@ -70,14 +71,14 @@ class StudentMilestones:
     @property
     def milestones(self)->list[StudentMilestone]:
         return self._milestones
-    def get(self, milestone_type: StudentMilestone.Type)->list[StudentMilestone]:
-        return [milestone for milestone in self._milestones if milestone.milestone_type == milestone_type]  
+    def get(self, milestone_type: set[StuMiType])->list[StudentMilestone]:
+        return [milestone for milestone in self._milestones if milestone.milestone_type in milestone_type]  
     def add(self, milestone: StudentMilestone):
         self.milestones.append(milestone)
         self._standardize()
     def _standardize(self):
         self.milestones.sort(key=lambda ms: (ms.milestone_type, ms.datum))
-        cur_type = StudentMilestone.Type.UNKNOWN
+        cur_type = StuMiType.UNKNOWN
         for milestone in self.milestones:
             if milestone.milestone_type != cur_type:
                 kans = 1
@@ -86,10 +87,10 @@ class StudentMilestones:
                 kans += 1
             milestone.kans = kans
 
-    # def get_milestone(self, milestone_type: StudentMilestone.Type)->StudentMilestone:
+    # def get_milestone(self, milestone_type: StuMiType)->StudentMilestone:
     #     return self._milestones.get(milestone_type, None)
     # def set_milestone(self, milestone: StudentMilestone):        
     #     if milestone:
     #         self._milestones[milestone.milestone_type] = milestone
-    # def reset_milestone(self, milestone_type: StudentMilestone.Type):
+    # def reset_milestone(self, milestone_type: StuMiType):
     #     self._milestones[milestone_type] = None

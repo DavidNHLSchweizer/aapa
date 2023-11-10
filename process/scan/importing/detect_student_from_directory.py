@@ -2,7 +2,7 @@ from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.action_log import ActionLog
 from data.classes.base_dirs import BaseDir
-from data.classes.milestones import StudentMilestone, StudentMilestones
+from data.classes.milestones import StuMiType, StudentMilestone, StudentMilestones
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage import AAPAStorage
@@ -48,10 +48,10 @@ class StudentMilestonesDetector(FileProcessor):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
             return None
         match parsed.type.lower():
-            case 'pva' | 'plan van aanpak': verslag_type = StudentMilestone.Type.PVA
-            case 'onderzoeksverslag': verslag_type = StudentMilestone.Type.ONDERZOEKS_VERSLAG
-            case 'technisch verslag': verslag_type = StudentMilestone.Type.TECHNISCH_VERSLAG
-            case 'eindverslag': verslag_type = StudentMilestone.Type.EIND_VERSLAG
+            case 'pva' | 'plan van aanpak': verslag_type = StuMiType.PVA
+            case 'onderzoeksverslag': verslag_type = StuMiType.ONDERZOEKS_VERSLAG
+            case 'technisch verslag': verslag_type = StuMiType.TECHNISCH_VERSLAG
+            case 'eindverslag': verslag_type = StuMiType.EIND_VERSLAG
             case _: 
                 log_warning(f'Soort verslag "{parsed.type}" niet herkend.')
                 return None
@@ -87,7 +87,7 @@ class MilestoneDetectorPipeline(FilePipeline):
         super().__init__(description, StudentMilestonesDetector(), storage, activity=ActionLog.Action.DETECT)
         self.skip_directories=skip_directories
     def _store_new(self, milestones: StudentMilestones):
-        # for aanvraag in milestones.get(StudentMilestone.Type.AANVRAAG):
+        # for aanvraag in milestones.get(StuMiType.AANVRAAG):
         #     if not storage.aanvragen
         #  self.storage.aanvragen.create(aanvraag)
         # self.log_aanvraag(aanvraag)   

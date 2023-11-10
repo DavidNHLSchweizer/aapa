@@ -4,7 +4,7 @@ from enum import IntEnum, StrEnum
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File
-from data.classes.milestones import StudentMilestone
+from data.classes.milestones import StuMiType, StudentMilestone
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
@@ -29,7 +29,7 @@ class Aanvraag(StudentMilestone):
             return STRS[self.value]
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=1):
-        super().__init__(milestone_type=StudentMilestone.Type.AANVRAAG, student=student, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
+        super().__init__(milestone_type=StuMiType.AANVRAAG, student=student, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
         self.bedrijf = bedrijf
         self.datum_str = datum_str
         self.kans=kans

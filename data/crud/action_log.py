@@ -37,7 +37,8 @@ class CRUD_action_log_relations(CRUDbase):
                 #gesorteerd om dat het anders in onlogische volgorde wordt gedaan en vergelijking ook lastig wordt (zie update)
     def create(self, action_log: ActionLog):
         for record in self.get_relation_records(action_log):
-            self.database.create_record(self.table, columns=self._get_all_columns(), values=[record.log_id, record.rel_id])   
+            self.database.create_record(self.table, columns=self._get_all_columns(), 
+                                        values=[record.log_id, record.rel_id])   
     def read(self, action_log_id: int)->ActionLogRelationRecs: 
         result = []
         if rows:=super().read(action_log_id, multiple=True):

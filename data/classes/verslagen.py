@@ -3,7 +3,7 @@ import datetime
 from enum import IntEnum
 from pathlib import Path
 from data.classes.files import File
-from data.classes.milestones import StudentMilestone
+from data.classes.milestones import StuMiType, StudentMilestone
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
@@ -27,7 +27,7 @@ class Verslag(StudentMilestone):
             STRS = {Verslag.Status.NEW: 'nieuw', Verslag.Status.NEEDS_GRADING: 'te beoordelen', Verslag.Status.GRADED: 'beoordeeld', 
                     Verslag.Status.READY: 'geheel verwerkt'}
             return STRS[self.value]
-    def __init__(self, verslag_type: StudentMilestone.Type, student:Student, file: File, datum: datetime.datetime, kans: int=1, id=EMPTY_ID, titel='', cijfer=''):
+    def __init__(self, verslag_type: StuMiType, student:Student, file: File, datum: datetime.datetime, kans: int=1, id=EMPTY_ID, titel='', cijfer=''):
         super().__init__(milestone_type=verslag_type, student=student, datum=datum, status=Verslag.Status.NEW, titel=titel, id=id)        
         self.cijfer = ''
         if file:
@@ -38,7 +38,7 @@ class Verslag(StudentMilestone):
             self.directory = ''
         self.kans=kans
     @property
-    def verslag_type(self)->StudentMilestone.Type:
+    def verslag_type(self)->StuMiType:
         return self.milestone_type
     def __str__(self):        
         s = f'{TSC.get_date_str(self.datum)}: {self.verslag_type} ({self.kans}) {str(self.student)} ' +\

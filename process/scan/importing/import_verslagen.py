@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 from data.classes.files import File
-from data.classes.milestones import StudentMilestone
+from data.classes.milestones import StuMiType, StudentMilestone
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage import AAPAStorage
@@ -21,11 +21,11 @@ class VerslagFromZipImporter(VerslagCreator):
         self.parser = FilenameInZipParser()
 
     def create_from_parsed(self, storage: AAPAStorage, filename: str, parsed: FilenameInZipParser.Parsed)->Verslag:
-        VerslagTypes = {'plan van aanpak': StudentMilestone.Type.PVA, 
-                        'onderzoeksverslag': StudentMilestone.Type.ONDERZOEKS_VERSLAG, 
-                        'technisch verslag': StudentMilestone.Type.TECHNISCH_VERSLAG, 
-                        'eindverslag': StudentMilestone.Type.EIND_VERSLAG}
-        def get_verslag_type(product_type: str)->StudentMilestone.Type:
+        VerslagTypes = {'plan van aanpak': StuMiType.PVA, 
+                        'onderzoeksverslag': StuMiType.ONDERZOEKS_VERSLAG, 
+                        'technisch verslag': StuMiType.TECHNISCH_VERSLAG, 
+                        'eindverslag': StuMiType.EIND_VERSLAG}
+        def get_verslag_type(product_type: str)->StuMiType:
             if (result := VerslagTypes.get(product_type.lower(), None)):
                 return result
             raise VerslagParseException(f'Onbekend verslagtype: {[product_type]}')
