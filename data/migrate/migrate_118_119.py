@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 from pathlib import Path
-from data.AAPdatabase import AanvraagTableDefinition, BaseDirsTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
+from data.AAPdatabase import AanvraagTableDefinition, BaseDirsTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.roots import encode_path
 from data.storage import AAPAStorage
@@ -16,6 +16,7 @@ from general.name_utils import Names
 # voorbereiding: aanvraag_nr -> kans
 # toevoegen verslagen tabel
 # toevoegen basedirs tabel
+# toevoegen student_milestones en student_milestones_details tabel
 #
 def modify_studenten_table(database: Database):
     print('adding primary key to STUDENTEN table.')
@@ -69,14 +70,25 @@ def _init_base_directories(database: Database):
             "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", [entry.year, entry.period, entry.forms_version, encode_path(entry.directory)])        
 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
+# toevoegen STUDENT_MILESTONES en STUDENT_MILESTONES_DETAILS tabel
 def create_new_tables(database: Database):
     print('toevoegen nieuwe tabel VERSLAGEN')
     verslag_table = VerslagTableDefinition()        
-    verslag_table.add_foreign_key('id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    verslag_table.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     database.execute_sql_command(SQLcreate(verslag_table))
     print('toevoegen nieuwe tabel BASEDIRS')
     database.execute_sql_command(SQLcreate(BaseDirsTableDefinition()))
+    print('initialiseren waardes voor BASEDIRS')
     _init_base_directories(database)
+    print('toevoegen nieuwe tabel STUDENT_MILESTONES')
+    student_milestones_table = StudentMilestonesTableDefinition()
+    student_milestones_table.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    student_milestones_table.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    database.execute_sql_command(SQLcreate(student_milestones_table)) 
+    print('toevoegen nieuwe tabel STUDENT_MILESTONE_DETAILS')
+    details_table = StudentMilestonesDetailsTableDefinition()
+    details_table.add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    database.execute_sql_command(SQLcreate(details_table)) 
     print('--- klaar toevoegen nieuwe tabellen')
 
 #aanpassen voornamen waar nodig

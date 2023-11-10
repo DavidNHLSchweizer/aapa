@@ -86,8 +86,10 @@ class MilestoneDetectorPipeline(FilePipeline):
     def __init__(self, description: str, storage: AAPAStorage, skip_directories:list[str]=[]):
         super().__init__(description, StudentMilestonesDetector(), storage, activity=ActionLog.Action.DETECT)
         self.skip_directories=skip_directories
-    def _store_new(self, milestone: StudentMilestones):
-        # self.storage.aanvragen.create(aanvraag)
+    def _store_new(self, milestones: StudentMilestones):
+        # for aanvraag in milestones.get(StudentMilestone.Type.AANVRAAG):
+        #     if not storage.aanvragen
+        #  self.storage.aanvragen.create(aanvraag)
         # self.log_aanvraag(aanvraag)   
         # log_print(f'\tstoring new milestone: {milestone}')
         pass

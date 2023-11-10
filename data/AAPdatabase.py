@@ -82,7 +82,6 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
 
-
 class VerslagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
@@ -146,6 +145,21 @@ class BaseDirsTableDefinition(TableDefinition):
         self.add_column('forms_version', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
 
+class StudentMilestonesTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('STUDENT_MILESTONES')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('stud_id', dbc.INTEGER)
+        self.add_column('basedir_id', dbc.INTEGER)
+
+class StudentMilestonesDetailsTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('STUDENT_MILESTONES_DETAILS')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('milestones_id', dbc.INTEGER)
+        self.add_column('milestone_id', dbc.INTEGER)
+        self.add_column('milestone_type', dbc.INTEGER)    
+
 class AAPSchema(Schema):
     def __init__(self):
         super().__init__()
@@ -160,6 +174,8 @@ class AAPSchema(Schema):
         self.add_table(ActionLogAanvragenTableDefinition())
         self.add_table(ActionLogFilesTableDefinition())
         self.add_table(BaseDirsTableDefinition())
+        self.add_table(StudentMilestonesTableDefinition())
+        self.add_table(StudentMilestonesDetailsTableDefinition())
         self.__define_foreign_keys()
         
     def __define_foreign_keys(self):
@@ -170,7 +186,9 @@ class AAPSchema(Schema):
         self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_FILES').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.table('ACTIONLOG_FILES').add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-    
+        self.table('STUDENT_MILESTONES').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('STUDENT_MILESTONES').add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.table('STUDENT_MILESTONE_DETAILS').add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (File.Type.InvalidPDF) die om efficientieredenen toch worden opgeslagen
         # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 
         #

@@ -70,6 +70,8 @@ class StudentMilestones:
     @property
     def milestones(self)->list[StudentMilestone]:
         return self._milestones
+    def get(self, milestone_type: StudentMilestone.Type)->list[StudentMilestone]:
+        return [milestone for milestone in self._milestones if milestone.milestone_type == milestone_type]  
     def add(self, milestone: StudentMilestone):
         self.milestones.append(milestone)
         self._standardize()
