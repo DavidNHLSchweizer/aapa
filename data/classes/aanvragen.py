@@ -1,4 +1,5 @@
 from __future__ import annotations
+import datetime
 from enum import IntEnum, StrEnum
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
@@ -26,19 +27,21 @@ class Aanvraag(StudentMilestone):
                     Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'geheel verwerkt', 
                     Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
             return STRS[self.value]
-    def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, 
-                 beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, aanvraag_nr = 1):
-        super().__init__(milestone_type=StudentMilestone.Type.AANVRAAG, student=student, status=status, beoordeling=beoordeling, titel=titel, id=id)
+    def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, datum: datetime.datetime = None, 
+                 beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=1):
+        super().__init__(milestone_type=StudentMilestone.Type.AANVRAAG, student=student, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
         self.bedrijf = bedrijf
         self.datum_str = datum_str
-        self.aanvraag_nr=aanvraag_nr
+        self.kans=kans
         if source_info:
             self._files.set_file(source_info)
+            self.datum = self.files.get_timestamp(File.Type.AANVRAAG_PDF)
         else:
             self._files.reset()
+            self.datum = None
     @property
     def timestamp(self):
-        return self.files.get_timestamp(File.Type.AANVRAAG_PDF)
+        return self.datum #self.files.get_timestamp(File.Type.AANVRAAG_PDF)
     def timestamp_str(self):
         return TSC.timestamp_to_str(self.timestamp)
     def aanvraag_source_file_path(self)->Path:
@@ -50,7 +53,7 @@ class Aanvraag(StudentMilestone):
     def file_summary(self)->str:
         return self.summary() + "-files:\n" + self.files.summary()
     def __str__(self):
-        versie_str = '' if self.aanvraag_nr == 1 else f'({self.aanvraag_nr})'
+        versie_str = '' if self.kans == 1 else f'({self.kans})'
         s = f'{str(self.student)}{versie_str} - {self.datum_str}: {self.bedrijf.name} - "{self.titel}" [{str(self.status)}]'        
         if self.beoordeling != Aanvraag.Beoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'

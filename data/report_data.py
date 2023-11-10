@@ -32,7 +32,7 @@ class ExcelMapper:
                         'student_tel_nr': {'header': 'telefoonnr', 'column': 6, 'attrib': 'student.tel_nr','flags': Flags.SUBATTRIB},
                         'student_email': {'header': 'email', 'column': 7, 'attrib': 'student.email','flags': Flags.SUBATTRIB},
                         'student_datum_str': {'header': 'ingevulde datum', 'column': 8, 'attrib': 'datum_str','flags': Flags.NONE},
-                        'aanvraag_nr': {'header': 'aanvraag_nr',  'column': 9, 'attrib': 'aanvraag_nr','flags': Flags.NONE},
+                        'kans': {'header': 'kans',  'column': 9, 'attrib': 'kans','flags': Flags.NONE},
                         'bedrijf': {'header': 'bedrijf', 'column': 10, 'attrib': 'bedrijf.name','flags': Flags.SUBATTRIB},
                         'titel': {'header': 'titel', 'column': 11, 'attrib': 'titel','flags': Flags.NONE},
                         'status': {'header': 'status', 'column': 12, 'attrib': 'status','flags': Flags.STR},

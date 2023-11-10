@@ -15,7 +15,7 @@ class CopyAanvraagProcessor(AanvraagProcessor):
                          description='Kopieren aanvraag naar outputdirectory')
     @staticmethod
     def _get_copy_filename(output_directory:Path, aanvraag: Aanvraag, copy_filename: str = None):
-        rootname = safe_file_name(f'Aanvraag {aanvraag.student.full_name} ({aanvraag.student.stud_nr})-{aanvraag.aanvraag_nr}' if not copy_filename else copy_filename)
+        rootname = safe_file_name(f'Aanvraag {aanvraag.student.full_name} ({aanvraag.student.stud_nr})-{aanvraag.kans}' if not copy_filename else copy_filename)
         copy_filename = output_directory.joinpath(f'{rootname}.pdf')
         if file_exists(str(copy_filename)):
             return CopyAanvraagProcessor._get_copy_filename(output_directory, aanvraag, rootname+'(copy)')

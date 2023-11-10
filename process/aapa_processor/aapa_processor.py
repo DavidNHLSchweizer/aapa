@@ -1,4 +1,6 @@
 from datetime import datetime
+from pathlib import Path
+from data.classes.base_dirs import BaseDir
 from data.classes.milestones import StudentMilestones
 from data.classes.studenten import Student
 from general.fileutil import path_with_suffix
@@ -53,18 +55,24 @@ class AAPAProcessor:
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
                 process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
             if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
-                # log_print(f'*** DIRECTORY 2020-2021')
-                for student in configuration.storage.studenten.read_all():
-                    parsed = Names.parsed(student.full_name)
-                    if parsed.first_name != student.first_name:
-                        print(f'{student.full_name}: {student.first_name} - {parsed}')
-                # basedir = configuration.storage.basedirs.read(8)
-                # print(basedir)
-                # ms = StudentMilestones(Student('Sybrig Cassandra van der Haan', first_name='Sybrig Cassandra'), basedir)
-                # print(ms.get_base_directory_name())
-                
-                # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021', configuration.storage, preview=preview)    
-                # log_print(f'*** DIRECTORY 2021-2022')
+                # #checking basedirs
+                # for basedir in configuration.storage.basedirs.read_all():
+                #     log_print(f'*** DIRECTORY {basedir.year} {basedir.period}')
+                #     for directory in Path(basedir.directory).glob('*'):
+                #         if directory.is_dir():
+                #             print(f'{directory}:{BaseDir.get_student_name(str(directory))}')
+
+                # for student in configuration.storage.studenten.read_all():
+                #     parsed = Names.parsed(student.full_name)
+                #     if parsed.first_name != student.first_name:
+                #         print(f'{student.full_name}: {student.first_name} - {parsed}')
+                    
+                for basedir in configuration.storage.basedirs.read_all():
+                    print('--- start ---')
+                    print(basedir)
+                    detect_from_directory(basedir.directory, configuration.storage, preview=preview)
+                    print(basedir)
+                    print('--- einde ---')
                 # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022', configuration.storage, preview=preview)    
                 # log_print(f'*** DIRECTORY 2022-2023')
                 # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023', configuration.storage, preview=preview)    

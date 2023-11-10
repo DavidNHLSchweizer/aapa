@@ -1,11 +1,11 @@
 from __future__ import annotations
+import datetime
 from enum import IntEnum
-from pathlib import Path
 from data.classes.base_dirs import BaseDir
 from data.classes.files import File, Files
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
-from general.name_utils import Names
+from general.log import log_print
 from general.timeutil import TSC
 
 class StudentMilestone:            
@@ -29,12 +29,14 @@ class StudentMilestone:
                         StudentMilestone.Type.EIND_VERSLAG: 'eindverslag'                       
             }
             return _MT_STRS[self]
-    def __init__(self, milestone_type: StudentMilestone.Type, student:Student, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
+    def __init__(self, milestone_type: StudentMilestone.Type, student:Student, datum: datetime.datetime, kans=1, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
         self.milestone_type = milestone_type
         self._id = id
+        self.datum = datum
         self.student = student
         self.titel = titel
         self._files = Files(id)
+        self.kans = kans
         self.status = status
         self.beoordeling = beoordeling
     @property
@@ -56,27 +58,36 @@ class StudentMilestone:
         self.files.set_file(File(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
     def unregister_file(self, filetype: File.Type):
         self.files.reset_file(filetype)
+    def summary(self)->str:
+        return str(self)
 
 class StudentMilestones:
     def __init__(self, student: Student, base_dir: BaseDir = None, id: int = EMPTY_ID):
         self.id = id #key
         self.student = student
         self.base_dir = base_dir
-        self._milestones: dict = []
+        self._milestones: list[StudentMilestone] = []
+    @property
     def milestones(self)->list[StudentMilestone]:
-        return [milestone for milestone in self._milestones.values()]
-    def get_milestone(self, milestone_type: StudentMilestone.Type)->StudentMilestone:
-        return self._milestones.get(milestone_type, None)
-    def set_milestone(self, milestone: StudentMilestone):        
-        if milestone:
-            self._milestones[milestone.milestone_type] = milestone
-    def reset_milestone(self, milestone_type: StudentMilestone.Type):
-        self._milestones[milestone_type] = None
-    def get_base_directory_name(self)->str:
-        full_name = self.student.full_name
-        first_name = self.student.first_name
-        result = f'{Names.last_name(full_name, first_name, include_tussen=False)}, '
-        if (tussen_str := Names.tussen(full_name, first_name)):
-            result = result + f'{tussen_str}, '
-        return str(Path(self.base_dir.directory).joinpath(result + first_name))
+        return self._milestones
+    def add(self, milestone: StudentMilestone):
+        self.milestones.append(milestone)
+        self._standardize()
+    def _standardize(self):
+        self.milestones.sort(key=lambda ms: (ms.milestone_type, ms.datum))
+        cur_type = StudentMilestone.Type.UNKNOWN
+        for milestone in self.milestones:
+            if milestone.milestone_type != cur_type:
+                kans = 1
+                cur_type = milestone.milestone_type
+            else:
+                kans += 1
+            milestone.kans = kans
 
+    # def get_milestone(self, milestone_type: StudentMilestone.Type)->StudentMilestone:
+    #     return self._milestones.get(milestone_type, None)
+    # def set_milestone(self, milestone: StudentMilestone):        
+    #     if milestone:
+    #         self._milestones[milestone.milestone_type] = milestone
+    # def reset_milestone(self, milestone_type: StudentMilestone.Type):
+    #     self._milestones[milestone_type] = None

@@ -31,12 +31,12 @@ class FormCreator(AanvraagProcessor):
             log_error(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
             return None
     def __get_output_filename(self, aanvraag: Aanvraag):
-        safe_user_part = safe_file_name(f'{aanvraag.student} ({aanvraag.bedrijf.name})-{aanvraag.aanvraag_nr}')
+        safe_user_part = safe_file_name(f'{aanvraag.student} ({aanvraag.bedrijf.name})-{aanvraag.kans}')
         return f'Beoordeling aanvraag {safe_user_part}.docx'
     def __merge_document(self, aanvraag: Aanvraag, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)
         return self.merge_document(self.template_doc, output_filename, filename=aanvraag.aanvraag_source_file_path().name, timestamp=aanvraag.timestamp_str(), 
-                        student=aanvraag.student.full_name,bedrijf=aanvraag.bedrijf.name,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.aanvraag_nr), 
+                        student=aanvraag.student.full_name,bedrijf=aanvraag.bedrijf.name,titel=aanvraag.titel,datum=aanvraag.datum_str, versie=str(aanvraag.kans), 
                         preview=preview)
     def must_process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         if not preview:

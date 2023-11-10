@@ -13,6 +13,7 @@ from general.name_utils import Names
 # Wijzigingen in 1.19 voor migratie:
 #
 # studenten krijgt ook zijn eigen ID. Aanpassingen aan AANVRAGEN hiervoor
+# voorbereiding: aanvraag_nr -> kans
 # toevoegen verslagen tabel
 # toevoegen basedirs tabel
 #
@@ -34,7 +35,7 @@ def modify_aanvragen_table(database: Database):
     aanvragen_table.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     aanvragen_table.add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     #copying the data
-    database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,aanvraag_nr,status,beoordeling)'+ \
+    database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,kans,status,beoordeling)'+ \
                                   ' select id,bedrijf_id,datum_str,titel,aanvraag_nr,status,beoordeling from OLD_AANVRAGEN', [])
     print('adding new STUDENT references to AANVRAGEN table.')
     sql = 'SELECT AANVRAGEN.id,STUDENTEN.id FROM AANVRAGEN,OLD_AANVRAGEN,STUDENTEN \

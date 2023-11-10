@@ -78,7 +78,7 @@ class AanvraagTableDefinition(TableDefinition):
         self.add_column('bedrijf_id', dbc.INTEGER)
         self.add_column('datum_str', dbc.TEXT)
         self.add_column('titel', dbc.TEXT)
-        self.add_column('aanvraag_nr', dbc.INTEGER)
+        self.add_column('kans', dbc.INTEGER)
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
 
@@ -188,8 +188,7 @@ class AAPSchema(Schema):
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False, ignore_version=False):
         super().__init__(filename, _reset_flag)
-        self.schema = Schema()
-        self.schema.read_from_database(self)  
+        self.schema = Schema.read_from_database(self)  
         if not self._reset_flag: 
             version_correct = self.check_version(recreate=False,ignore_error=ignore_version)
             if version_correct:
@@ -199,7 +198,7 @@ class AAPDatabase(Database):
         def is_keyed_table(table: TableDefinition)->bool:
             return len(table.keys) == 1 and table.column(table.key).type==dbc.INTEGER and table.key == 'id' 
         # keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), VerslagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
-        for table in self.schema.tables():
+        for table in self.schema.tables():            
             if is_keyed_table(table):
                 reset_key(table.name, self.__find_max_key(table.name))
     def __find_max_key(self, table_name: str):

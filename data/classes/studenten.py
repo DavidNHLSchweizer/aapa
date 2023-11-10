@@ -13,7 +13,8 @@ class Student:
         self.tel_nr = tel_nr
         self.email = email
     def __str__(self):
-        return f'{self.full_name}({self.stud_nr})'
+        studnr_part = f'({self.stud_nr})' if self.stud_nr else ''
+        return f'{self.full_name}{studnr_part}'
     def __eq__(self, value: Student):
         if  self.full_name != value.full_name:
             return False

@@ -6,6 +6,7 @@ from data.classes.files import File
 from data.classes.milestones import StudentMilestone
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
+from general.timeutil import TSC
 
 class Verslag(StudentMilestone):
     class Status(IntEnum):
@@ -27,8 +28,7 @@ class Verslag(StudentMilestone):
                     Verslag.Status.READY: 'geheel verwerkt'}
             return STRS[self.value]
     def __init__(self, verslag_type: StudentMilestone.Type, student:Student, file: File, datum: datetime.datetime, kans: int=1, id=EMPTY_ID, titel='', cijfer=''):
-        super().__init__(milestone_type=verslag_type, student=student, status=Verslag.Status.NEW, titel=titel, id=id)        
-        self.datum = datum
+        super().__init__(milestone_type=verslag_type, student=student, datum=datum, status=Verslag.Status.NEW, titel=titel, id=id)        
         self.cijfer = ''
         if file:
             self._files.set_file(file)
@@ -41,7 +41,7 @@ class Verslag(StudentMilestone):
     def verslag_type(self)->StudentMilestone.Type:
         return self.milestone_type
     def __str__(self):        
-        s = f'{datetime.datetime.strftime(self.datum, "%d-%m-%Y %H:%M:%S")}: {self.verslag_type} ({self.kans}) {str(self.student)} ' +\
+        s = f'{TSC.get_date_str(self.datum)}: {self.verslag_type} ({self.kans}) {str(self.student)} ' +\
               f'"{self.titel}" [{str(self.status)}]'
         if self.beoordeling != '':
             s = s + f' ({str(self.beoordeling)})'

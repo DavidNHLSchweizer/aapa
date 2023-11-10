@@ -307,7 +307,7 @@ class AanvraagStorage(ObjectStorage):
     def create(self, aanvraag: Aanvraag):
         self.__create_table_references(aanvraag)
         # aanvraag.files.set_info(source_file)
-        aanvraag.aanvraag_nr = self.__count_student_aanvragen(aanvraag) + 1
+        aanvraag.kans = self.__count_student_aanvragen(aanvraag) + 1
         super().create(aanvraag)
         log_debug('sync_files (CREATE)')
         self.sync_files(aanvraag, {File.Type.AANVRAAG_PDF})
@@ -350,6 +350,11 @@ class AanvraagStorage(ObjectStorage):
         return self.read_all(filter_func=lambda a: filter_func(a) and a.student.id == student.id and a.bedrijf.id == bedrijf.id)
     def find_student(self, student: Student)->Iterable[Aanvraag]:
         return self.read_all(filter_func = lambda a: a.student.id == student.id)
+    def find_student_last(self, student: Student)->Aanvraag:
+        if student.id == EMPTY_ID:
+            return None
+        if row:= self.database._execute_sql_command(f'select max(id) from {self.table_name} where stud_id=?', [student.id], True):            
+            return self.read(row[0][0])
     def __count_student_aanvragen(self, aanvraag: Aanvraag):
         if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_id=? and status!=?', [aanvraag.student.id,Aanvraag.Status.DELETED], True)):
             return row[0][0]
@@ -457,7 +462,12 @@ class VerslagStorage(ObjectStorage):
 class BaseDirStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_basedirs(database))
-
+    def find_base_dir(self, directory: str)->BaseDir:
+        if (row := self.database._execute_sql_command('select id from BASEDIRS where directory=?', 
+                                                      [self.crud.map_object_to_db('directory', directory)], True)):
+            return self.crud.read(row[0]['id'])
+        return None
+    
 class AAPAStorage: 
     #main interface with the database
     def __init__(self, database: Database):
