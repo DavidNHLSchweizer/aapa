@@ -96,17 +96,10 @@ class AanvraagTableDefinition(TableDefinition):
 class VerslagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
-        self.add_column('id', dbc.INTEGER, primary = True)
-        self.add_column('stud_id', dbc.INTEGER)
-        self.add_column('titel', dbc.TEXT)
-        self.add_column('verslag_type', dbc.INTEGER)
-        self.add_column('datum', dbc.TEXT)
+        self.add_column('id', dbc.INTEGER, primary = True) 
         self.add_column('cijfer', dbc.TEXT)
-        self.add_column('kans', dbc.INTEGER)
         self.add_column('directory', dbc.TEXT)
-        self.add_column('status', dbc.INTEGER)
-        self.add_column('beoordeling', dbc.INTEGER)
-        self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key('id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
 # Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (700 files) 
@@ -213,20 +206,6 @@ class AAPSchema(Schema):
         super().__init__()
         for tabledef in AAPSchema.ALL_TABLES:
             self.add_table(tabledef())
-        # self.__define_foreign_keys()
-        
-#    def __define_foreign_keys(self):
-#verplaatst naar de tabel zelf, is iets logischer 
-        # self.table('AANVRAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-#        self.table('VERSLAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        #self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        #self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        #self.table('ACTIONLOG_FILES').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        #self.table('ACTIONLOG_FILES').add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('STUDENT_MILESTONES').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # self.table('STUDENT_MILESTONES').add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        #self.table('STUDENT_MILESTONE_DETAILS').add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False, ignore_version=False):

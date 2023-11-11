@@ -4,13 +4,13 @@ from enum import IntEnum, StrEnum
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File
-from data.classes.milestones import StuMiType, StudentMilestone
+from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
-class Aanvraag(StudentMilestone):
-    Beoordeling = StudentMilestone.Beoordeling
+class Aanvraag(Milestone):
+    Beoordeling = Milestone.Beoordeling
     class Status(IntEnum):
         DELETED         = -1
         NEW             = 0
@@ -29,13 +29,12 @@ class Aanvraag(StudentMilestone):
             return STRS[self.value]
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=1):
-        super().__init__(milestone_type=StuMiType.AANVRAAG, student=student, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
-        self.bedrijf = bedrijf
+        super().__init__(milestone_type=Milestone.Type.AANVRAAG, student=student, bedrijf=bedrijf, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
         self.datum_str = datum_str
-        self.kans=kans
         if source_info:
             self._files.set_file(source_info)
-            self.datum = self.files.get_timestamp(File.Type.AANVRAAG_PDF)
+            if not self.datum:
+                self.datum = self.files.get_timestamp(File.Type.AANVRAAG_PDF)
         else:
             self._files.reset()
             self.datum = None

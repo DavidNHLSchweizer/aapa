@@ -1,10 +1,29 @@
 from dataclasses import dataclass
 from typing import Iterable
-from data.AAPdatabase import OldAanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
-from data.classes.milestones import StuMiType, StudentMilestone, StudentMilestones
+from data.AAPdatabase import MilestoneTableDefinition, OldAanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
+from data.classes.bedrijven import Bedrijf
+from data.classes.milestones import Milestone, StudentMilestones
+from data.classes.studenten import Student
+from data.crud.bedrijven import CRUD_bedrijven
 from data.crud.crud_base import CRUDbase, CRUDbaseAuto
+from data.crud.studenten import CRUD_studenten
 from database.database import Database
 from database.tabledef import TableDefinition
+
+class CRUD_milestones(CRUDbaseAuto):
+    def __init__(self, database: Database):
+        super().__init__(database, MilestoneTableDefinition(), None)
+        self._db_map['stud_id']['attrib'] = 'student.id'
+        self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
+    def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->Student|Bedrijf:
+        if sub_attrib_name == 'id':
+            match main_part:
+                case 'student': 
+                    return CRUD_studenten(self.database).read(value)
+                case 'bedrijf': 
+                    return CRUD_bedrijven(self.database).read(value)
+        return None
+
 
 class CRUD_student_milestones(CRUDbaseAuto):
     def __init__(self, database: Database):
@@ -23,7 +42,7 @@ MilestoneDetailRelationRecs = list[MilestoneDetailRelationRec]
 class CRUD_milestones_details(CRUDbase):
     def __init__(self, database: Database, relation_table: TableDefinition):
         super().__init__(database, relation_table, None)
-    def _get_objects(self, milestones: StudentMilestones)->Iterable[StudentMilestone]:
+    def _get_objects(self, milestones: StudentMilestones)->Iterable[Milestone]:
         return None #implement in descendants
     def get_relation_records(self, milestones: StudentMilestones)->MilestoneDetailRelationRecs:
         return [MilestoneDetailRelationRec(milestones.id, object.id, object.milestone_type) 
@@ -45,14 +64,14 @@ class CRUD_milestones_details(CRUDbase):
 class CRUD_milestone_details_aanvragen(CRUD_milestones_details):
     def __init__(self, database: Database):
         super().__init__(database, OldAanvraagTableDefinition())
-    def _get_objects(self, milestones: StudentMilestones)->Iterable[StudentMilestone]:
-        return milestones.get({StuMiType.AANVRAAG})
+    def _get_objects(self, milestones: StudentMilestones)->Iterable[Milestone]:
+        return milestones.get({Milestone.Type.AANVRAAG})
 
 class CRUD_milestone_details_verslagen(CRUD_milestones_details):
     def __init__(self, database: Database):
         super().__init__(database, VerslagTableDefinition())
-    def _get_objects(self, milestones: StudentMilestones)->Iterable[StudentMilestone]:
-        types = {milestone_type for milestone_type in StuMiType 
-                    if milestone_type not in {StuMiType.UNKNOWN, 
-                                              StuMiType.AANVRAAG}}
+    def _get_objects(self, milestones: StudentMilestones)->Iterable[Milestone]:
+        types = {milestone_type for milestone_type in Milestone.Type 
+                    if milestone_type not in {Milestone.Type.UNKNOWN, 
+                                              Milestone.Type.AANVRAAG}}
         return milestones.get(types)

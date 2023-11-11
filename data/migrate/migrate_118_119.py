@@ -6,7 +6,7 @@ from enum import IntEnum
 from pathlib import Path
 from data.AAPdatabase import BaseDirsTableDefinition, MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
-from data.classes.milestones import StuMiType, StudentMilestone
+from data.classes.milestones import Milestone
 from data.roots import encode_path
 from data.storage import AAPAStorage
 from database.SQL import SQLcreate, SQLinsert
@@ -108,8 +108,8 @@ def create_milestones_table(database: Database):
     sql = "select id,stud_id,bedrijf_id,titel,kans,status,beoordeling from AANVRAGEN"
     sql2 = "insert into MILESTONES(id,milestone_type,stud_id,bedrijf_id,titel,kans,beoordeling,status) values(?,?,?,?,?,?,?,?)"
     for row in database._execute_sql_command(sql, [], True):
-        beoord = str(StudentMilestone.Beoordeling(row['beoordeling']))
-        database._execute_sql_command(sql2,[row['id'],int(StuMiType.AANVRAAG),
+        beoord = str(Milestone.Beoordeling(row['beoordeling']))
+        database._execute_sql_command(sql2,[row['id'],int(Milestone.Type.AANVRAAG),
                                             row['stud_id'],row['bedrijf_id'],
                                             row['titel'],row['kans'],beoord,row['status']])
     # database.commit()
