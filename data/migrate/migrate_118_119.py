@@ -4,7 +4,7 @@
 from enum import IntEnum
 
 from pathlib import Path
-from data.AAPdatabase import BaseDirsTableDefinition, MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
+from data.AAPdatabase import AanvragenViewDefinition, BaseDirsTableDefinition, MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone
 from data.roots import encode_path
@@ -138,11 +138,9 @@ def correct_first_names(database: Database):
 
 #create VW_AANVRAGEN view:
 def create_view(database: Database):
-    v = ViewDefinition('VIEW_AANVRAGEN', column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
-                       select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
-                    columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))
-    print('creating view...')
-    database.execute_sql_command(SQLcreateView(v))
+    print('--- creating view VIEW_AANVRAGEN ...')
+    database.execute_sql_command(SQLcreateView(AanvragenViewDefinition()))
+    print('--- klaar creating view VIEW_AANVRAGEN')
 
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
