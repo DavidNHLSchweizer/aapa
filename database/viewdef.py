@@ -1,12 +1,14 @@
-from database.SQL import SQLbase, SQLselect
+from database.SQL import SQLFlags, SQLbase, SQLselect
 from database.dbargparser import dbArgParser
 
 class ViewFlags(dbArgParser):
     TEMP  = 1
-    ALL     = [TEMP]
+    KEY   = 2
+    ALL     = [TEMP, KEY]
     flag_map = \
         [
-         { "flag": TEMP, "attribute":'temp', "default":False, "key":'temp'}
+         { "flag": TEMP, "attribute":'temp', "default":False, "key":'temp'},
+         { "key": KEY, "attribute":'key', "default":""False"", "key":'key'},
         ]
     def execute(self, target, **args):
         self.parse(ViewFlags.ALL, target, ViewFlags.flag_map, **args)
@@ -39,7 +41,6 @@ class SQLcreateView(SQLbase):
             return ''
     def _getQuery(self):
         return f'CREATE {"TEMP " if self.view_def.temp else ""}VIEW IF NOT EXISTS {self.view_name}{self._get_columns()} AS {self.view_def.select.Query}'
-     
     def _getParameters(self):
         return None        
     def _getParseFlags(self):

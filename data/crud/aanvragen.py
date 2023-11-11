@@ -9,6 +9,6 @@ from database.database import Database
 
 class CRUD_aanvragen(CRUDbaseAuto):
     def __init__(self, database: Database):
-        super().__init__(database, AanvraagTableDefinition(), Aanvraag, super_CRUD=CRUD_milestones(database))
+        super().__init__(database, AanvraagViewDefinition(), Aanvraag, super_CRUD=CRUD_milestones(database))
         # self._db_map['status']['db2obj'] = Aanvraag.Status
         # self._db_map['beoordeling']['db2obj'] = Aanvraag.Beoordeling

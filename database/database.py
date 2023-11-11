@@ -191,8 +191,6 @@ class Schema:
             return table  
         def create_view_definition(view_name, columns_from_pragma, sql):
             column_names = [column['name'] for column in columns_from_pragma]
-            # print(column_names)
-            # print(sql[sql.find('AS SELECT')+3:])
             return ViewDefinition(view_name, column_names=column_names, query=sql[sql.find('AS SELECT')+3:])
         result = Schema()
         schema_table_def = SchemaTableDef()

@@ -10,6 +10,7 @@ class SQLFlags(dbArgParser):
     UNIQUE  = 5
     JOINS   = 6
     ALIAS   = 7
+    QUERY   = 8
     flag_map = \
         [{ "flag": COLUMNS,"attribute":'arg_columns', "default":[], "key":'column'},
          { "flag": WHERE, "attribute":'where_expression', "default":None, "key":'where'},
@@ -17,7 +18,8 @@ class SQLFlags(dbArgParser):
          { "flag": DISTINCT,"attribute":'distinct', "default": False, "key":'distinct'}, 
          { "flag": UNIQUE, "attribute":'unique', "default": False, "key":'unique'},
          { "flag": JOINS, "attribute":'joins', "default":[], "key":'join'},
-         { "flag": ALIAS,"attribute":'alias', "default":'', "key":'alias'}
+         { "flag": ALIAS,"attribute":'alias', "default":'', "key":'alias'},
+         { "flag": QUERY,"attribute": 'query', "default":"", "key": 'query'},
         ]
     def execute(self, flags, target, **args):
         self.parse(flags, target, self.flag_map, **args)
@@ -165,7 +167,7 @@ class SQLinsert(SQLTablebase):
 
 class SQLselect(SQLTablebase):
     def _getParseFlags(self):
-        return [SQLFlags.COLUMNS, SQLFlags.WHERE, SQLFlags.DISTINCT, SQLFlags.JOINS, SQLFlags.ALIAS]
+        return [SQLFlags.COLUMNS, SQLFlags.WHERE, SQLFlags.DISTINCT, SQLFlags.JOINS, SQLFlags.ALIAS, SQLFlags.QUERY]
     def _all_columns(self):
         return not self.arg_columns or self.arg_columns == []
     def _get_table_name(self):
@@ -174,6 +176,8 @@ class SQLselect(SQLTablebase):
             result = result + ',' + ','.join([join for join in self.joins])
         return result
     def _getQuery(self):
+        if self.query:
+            return self.query
         result = 'SELECT '
         if self.distinct:
             result = result + 'DISTINCT '
