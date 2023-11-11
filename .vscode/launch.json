@@ -24,6 +24,19 @@
                 "zipimport",
                 "-preview",                
             ]
+        },
+        {
+            "name": "Python: aapa_migrate.py",
+            "type": "python",
+            "request": "launch",
+            "program": "aapa_migrate.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "testing123.db",
+                "1.18",                
+                "1.19"
+            ]
         }
     ]
 }

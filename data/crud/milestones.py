@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Iterable
-from data.AAPdatabase import AanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
+from data.AAPdatabase import OldAanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
 from data.classes.milestones import StuMiType, StudentMilestone, StudentMilestones
 from data.crud.crud_base import CRUDbase, CRUDbaseAuto
 from database.database import Database
@@ -44,7 +44,7 @@ class CRUD_milestones_details(CRUDbase):
 
 class CRUD_milestone_details_aanvragen(CRUD_milestones_details):
     def __init__(self, database: Database):
-        super().__init__(database, AanvraagTableDefinition())
+        super().__init__(database, OldAanvraagTableDefinition())
     def _get_objects(self, milestones: StudentMilestones)->Iterable[StudentMilestone]:
         return milestones.get({StuMiType.AANVRAAG})
 

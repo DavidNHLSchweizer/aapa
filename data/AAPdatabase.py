@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Type
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
@@ -70,17 +71,27 @@ class BedrijfTableDefinition(TableDefinition):
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('name', dbc.TEXT)    
 
+class MilestoneTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('MILESTONES')
+        self.add_column('id', dbc.INTEGER, primary = True) 
+        self.add_column('milestone_type', dbc.INTEGER)
+        self.add_column('datum', dbc.TEXT)
+        self.add_column('stud_id', dbc.INTEGER)
+        self.add_column('bedrijf_id', dbc.INTEGER)
+        self.add_column('titel', dbc.TEXT)
+        self.add_column('kans', dbc.INTEGER)
+        self.add_column('status', dbc.INTEGER)
+        self.add_column('beoordeling', dbc.TEXT)
+        self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+
 class AanvraagTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
         self.add_column('id', dbc.INTEGER, primary = True) 
-        self.add_column('stud_id', dbc.INTEGER)
-        self.add_column('bedrijf_id', dbc.INTEGER)
         self.add_column('datum_str', dbc.TEXT)
-        self.add_column('titel', dbc.TEXT)
-        self.add_column('kans', dbc.INTEGER)
-        self.add_column('status', dbc.INTEGER)
-        self.add_column('beoordeling', dbc.INTEGER)
+        self.add_foreign_key('id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 class VerslagTableDefinition(TableDefinition):
     def __init__(self):
@@ -95,6 +106,7 @@ class VerslagTableDefinition(TableDefinition):
         self.add_column('directory', dbc.TEXT)
         self.add_column('status', dbc.INTEGER)
         self.add_column('beoordeling', dbc.INTEGER)
+        self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
 # Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (700 files) 
@@ -114,6 +126,19 @@ class FilesTableDefinition(TableDefinition):
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])
 
+        # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (File.Type.InvalidPDF) die om efficientieredenen toch worden opgeslagen
+        # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 
+        #
+        # self.add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        #
+        # TODO: Je zou nog kunnen overwegen een check te doen bij de aanmaak. Als er een INSERT of UPDATE is met een invalid aanvraag_id (trigger) kan je een exception raisen. 
+        # Dit is wel ingewikkeld, want moet ook op de AANVRAGEN tabel (on DELETE) worden gechecked. Voorlopig werkt het zo waarschijnlijk ook wel.
+        # Andere oplossing: een "lege" aanvraag opslaan en daarnaar verwijzen. Kan weer andere problemen veroorzaken, maar als het kan worden opgevangen in storage.py is het misschien 
+        # toch de netste oplossing.
+        #
+        # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel. Dan kan de koppeltable met een (tweetal) foreign keys 
+        # werken en mogen files ook ongekoppeld blijven.
+        
 class ActionLogTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('ACTIONLOG')
@@ -129,13 +154,17 @@ class ActionLogAanvragenTableDefinition(TableDefinition):
         super().__init__('ACTIONLOG_AANVRAGEN')
         self.add_column('log_id', dbc.INTEGER, primary = True)
         self.add_column('aanvraag_id', dbc.INTEGER, primary = True)  
-
+        self.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+       
 class ActionLogFilesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('ACTIONLOG_FILES')
         self.add_column('log_id', dbc.INTEGER, primary = True)
         self.add_column('file_id', dbc.INTEGER, primary = True)    
-
+        self.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+    
 class BaseDirsTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('BASEDIRS')
@@ -151,6 +180,8 @@ class StudentMilestonesTableDefinition(TableDefinition):
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('stud_id', dbc.INTEGER)
         self.add_column('basedir_id', dbc.INTEGER)
+        self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 class StudentMilestonesDetailsTableDefinition(TableDefinition):
     def __init__(self):
@@ -159,49 +190,43 @@ class StudentMilestonesDetailsTableDefinition(TableDefinition):
         self.add_column('milestones_id', dbc.INTEGER)
         self.add_column('milestone_id', dbc.INTEGER)
         self.add_column('milestone_type', dbc.INTEGER)    
-
+        self.add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        
 class AAPSchema(Schema):
+    ALL_TABLES:list[Type[TableDefinition]] = [
+        VersionTableDefinition,
+        FileRootTableDefinition,
+        StudentTableDefinition,
+        BedrijfTableDefinition,
+        AanvraagTableDefinition,
+        VerslagTableDefinition,
+        FilesTableDefinition,
+        ActionLogTableDefinition,
+        ActionLogAanvragenTableDefinition,
+        ActionLogFilesTableDefinition,
+        BaseDirsTableDefinition,
+        StudentMilestonesTableDefinition,
+        StudentMilestonesDetailsTableDefinition,
+        MilestoneTableDefinition,        
+    ]
     def __init__(self):
         super().__init__()
-        self.add_table(VersionTableDefinition())
-        self.add_table(FileRootTableDefinition())
-        self.add_table(StudentTableDefinition())
-        self.add_table(BedrijfTableDefinition())
-        self.add_table(AanvraagTableDefinition())
-        self.add_table(VerslagTableDefinition())
-        self.add_table(FilesTableDefinition())
-        self.add_table(ActionLogTableDefinition())
-        self.add_table(ActionLogAanvragenTableDefinition())
-        self.add_table(ActionLogFilesTableDefinition())
-        self.add_table(BaseDirsTableDefinition())
-        self.add_table(StudentMilestonesTableDefinition())
-        self.add_table(StudentMilestonesDetailsTableDefinition())
-        self.__define_foreign_keys()
+        for tabledef in AAPSchema.ALL_TABLES:
+            self.add_table(tabledef())
+        # self.__define_foreign_keys()
         
-    def __define_foreign_keys(self):
-        self.table('AANVRAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('VERSLAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('ACTIONLOG_FILES').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('ACTIONLOG_FILES').add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('STUDENT_MILESTONES').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('STUDENT_MILESTONES').add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.table('STUDENT_MILESTONE_DETAILS').add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (File.Type.InvalidPDF) die om efficientieredenen toch worden opgeslagen
-        # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 
-        #
-        # self.table('FILES').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        #
-        # TODO: Je zou nog kunnen overwegen een check te doen bij de aanmaak. Als er een INSERT of UPDATE is met een invalid aanvraag_id (trigger) kan je een exception raisen. 
-        # Dit is wel ingewikkeld, want moet ook op de AANVRAGEN tabel (on DELETE) worden gechecked. Voorlopig werkt het zo waarschijnlijk ook wel.
-        # Andere oplossing: een "lege" aanvraag opslaan en daarnaar verwijzen. Kan weer andere problemen veroorzaken, maar als het kan worden opgevangen in storage.py is het misschien 
-        # toch de netste oplossing.
-        #
-        # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel. Dan kan de koppeltable met een (tweetal) foreign keys 
-        # werken en mogen files ook ongekoppeld blijven.
-        #
+#    def __define_foreign_keys(self):
+#verplaatst naar de tabel zelf, is iets logischer 
+        # self.table('AANVRAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        # self.table('AANVRAGEN').add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+#        self.table('VERSLAGEN').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        #self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        #self.table('ACTIONLOG_AANVRAGEN').add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        #self.table('ACTIONLOG_FILES').add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        #self.table('ACTIONLOG_FILES').add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        # self.table('STUDENT_MILESTONES').add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        # self.table('STUDENT_MILESTONES').add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        #self.table('STUDENT_MILESTONE_DETAILS').add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False, ignore_version=False):

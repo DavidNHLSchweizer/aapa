@@ -29,6 +29,7 @@ class Database:
         self.raise_error = True
         self._reset_flag = _reset_flag
         self._commit_level = 0
+        self._foreign_key_level = 0
         self.connection = None
         try:
             self.connection = self.open_database(filename)
@@ -47,9 +48,10 @@ class Database:
             result.__clear()        
             result._reset_flag = False
             log_info('Start reading and creating schema')
-            for table in schema.tables():
-                result.create_table(table)
-                log_info('End reading and creating schema')
+            with result.pause_foreign_keys():
+                for table in schema.tables():
+                    result.create_table(table)
+                    log_info('End reading and creating schema')
             return result
         else:
             # log_error(f'Kan database {filename} niet initialiseren...') is waarschijnlijk al gemeld
@@ -69,9 +71,13 @@ class Database:
         self.connection.close()
         self.log_info('connection closed...')
     def enable_foreign_keys(self):
-        self._execute_sql_command('pragma foreign_keys=ON')
+        self._foreign_key_level -= 1
+        if self._foreign_key_level == 0:
+            self._execute_sql_command('pragma foreign_keys=ON')
     def disable_foreign_keys(self):
-        self._execute_sql_command('pragma foreign_keys=OFF')
+        if self._foreign_key_level == 0:
+            self._execute_sql_command('pragma foreign_keys=OFF')
+        self._foreign_key_level += 1
     @contextmanager
     def pause_foreign_keys(self):
         self.disable_foreign_keys()
