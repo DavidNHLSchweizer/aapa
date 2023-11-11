@@ -124,3 +124,4 @@ class SQLexpression:
             self.parametrized = self._bracket_apply(f'{self.operator} {part2}')
         else:
             self.parametrized = self._bracket_apply(f'{part1} {self.operator} {part2}')
+SQE=SQLexpression

@@ -1,6 +1,6 @@
 import pytest
 import database.dbConst as dbc
-from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, \
+from database.SQL import SQLTablebase, SQLcreate, SQLdelete, SQLdrop, \
     SQLinsert, SQLcreateIndex, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
 from database.tabledef import TableDefinition, ColumnFlags 
@@ -18,7 +18,7 @@ STRING2 = 'Thong'
 
 def test_base_abstract():
     with pytest.raises(TypeError):
-        SQLbase()
+        SQLTablebase()
 
 #SQLCreate     
 def test_create_empty():

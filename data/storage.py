@@ -304,6 +304,7 @@ class AanvraagStorage(ObjectStorage):
         self.files = FilesStorage(database)
         self.bedrijven = BedrijvenStorage(database)
         self.studenten = StudentenStorage(database)
+        self.super_table_name = self.crud.super_CRUD.table.name
     def create(self, aanvraag: Aanvraag):
         self.__create_table_references(aanvraag)
         # aanvraag.files.set_info(source_file)
@@ -333,7 +334,8 @@ class AanvraagStorage(ObjectStorage):
         else:
             return list(filter(filter_func, aanvragen))
     def __read_all_all(self, filter_func = None)->Iterable[Aanvraag]:
-        if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status != ?', [Aanvraag.Status.DELETED], True):            
+        sql = f'select {self.table_name}.id from {self.table_name} join {self.super_table_name} on {self.table_name}.id = {self.super_table_name}.id where {self.super_table_name}.status != ?'
+        if row:= self.database._execute_sql_command(sql, [Aanvraag.Status.DELETED], True):            
             return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
         else:
             return None

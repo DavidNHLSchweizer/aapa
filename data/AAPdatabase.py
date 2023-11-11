@@ -1,8 +1,11 @@
 from __future__ import annotations
 from typing import Type
+from database.SQL import SQLselect
+from database.sqlexpr import SQE, Ops
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
+from database.viewdef import ViewDefinition
 from general.keys import reset_key
 from general.config import config
 from general.log import log_error, log_info, log_warning
@@ -184,7 +187,18 @@ class StudentMilestonesDetailsTableDefinition(TableDefinition):
         self.add_column('milestone_id', dbc.INTEGER)
         self.add_column('milestone_type', dbc.INTEGER)    
         self.add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        
+
+ViewDefinition('VIEW_AANVRAGEN', column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
+                       select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
+                    columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))
+
+class AanvragenViewDefinition(ViewDefinition):
+    def __init__(self):
+        super().__init__('VIEW_AANVRAGEN', 
+                         column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
+                         select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
+                        columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))                                 
+
 class AAPSchema(Schema):
     ALL_TABLES:list[Type[TableDefinition]] = [
         VersionTableDefinition,
@@ -202,10 +216,15 @@ class AAPSchema(Schema):
         StudentMilestonesDetailsTableDefinition,
         MilestoneTableDefinition,        
     ]
+    ALL_VIEWS:list[Type[ViewDefinition]]= [ 
+                AanvragenViewDefinition,
+                ]
     def __init__(self):
         super().__init__()
         for tabledef in AAPSchema.ALL_TABLES:
             self.add_table(tabledef())
+        for viewdef in AAPSchema.ALL_VIEWS:
+            self.add_view(viewdef())
 
 class AAPDatabase(Database):
     def __init__(self, filename, _reset_flag = False, ignore_version=False):

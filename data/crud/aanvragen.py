@@ -7,8 +7,8 @@ from data.crud.milestones import CRUD_milestones
 from data.crud.studenten import CRUD_studenten
 from database.database import Database
 
-class CRUD_aanvragen(CRUD_milestones):
+class CRUD_aanvragen(CRUDbaseAuto):
     def __init__(self, database: Database):
-        super().__init__(database, AanvraagTableDefinition(), Aanvraag, master_CRUD=CRUD_milestones(database))
-        self._db_map['status']['db2obj'] = Aanvraag.Status
-        self._db_map['beoordeling']['db2obj'] = Aanvraag.Beoordeling
+        super().__init__(database, AanvraagTableDefinition(), Aanvraag, super_CRUD=CRUD_milestones(database))
+        # self._db_map['status']['db2obj'] = Aanvraag.Status
+        # self._db_map['beoordeling']['db2obj'] = Aanvraag.Beoordeling

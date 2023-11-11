@@ -197,4 +197,3 @@ class TableDefinition:
         if self.has_index():
             result = result + '\n\t' + '\n\t'.join([str(index) for index in self.indexes])
         return result
-

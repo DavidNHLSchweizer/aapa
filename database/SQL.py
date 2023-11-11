@@ -9,20 +9,21 @@ class SQLFlags(dbArgParser):
     DISTINCT= 4
     UNIQUE  = 5
     JOINS   = 6
+    ALIAS   = 7
     flag_map = \
         [{ "flag": COLUMNS,"attribute":'arg_columns', "default":[], "key":'column'},
          { "flag": WHERE, "attribute":'where_expression', "default":None, "key":'where'},
          { "flag": VALUES, "attribute":'values', "default":[], "key":'value'},
          { "flag": DISTINCT,"attribute":'distinct', "default": False, "key":'distinct'}, 
          { "flag": UNIQUE, "attribute":'unique', "default": False, "key":'unique'},
-         { "flag": JOINS, "attribute":'joins', "default":[], "key":'join'}
+         { "flag": JOINS, "attribute":'joins', "default":[], "key":'join'},
+         { "flag": ALIAS,"attribute":'alias', "default":'', "key":'alias'}
         ]
     def execute(self, flags, target, **args):
         self.parse(flags, target, self.flag_map, **args)
         
 class SQLbase(ABC):
-    def __init__(self, table_def: TableDefinition, **args):
-        self.table_def = table_def
+    def __init__(self, **args):
         SQLFlags().execute(self._getParseFlags(), self, **args)
     def __str__(self):
         return f'{self.Query}\nparams: {self.Parameters}'
@@ -36,8 +37,32 @@ class SQLbase(ABC):
     def _getParameters(self):
         return None
     @property
+    def Query(self):
+        return self._getQuery()
+    @property
+    def Parameters(self):
+        return self._getParameters()
+
+class SQLTablebase(SQLbase):
+    def __init__(self, table_def: TableDefinition, **args):
+        self.table_def = table_def
+        super().__init__(**args)
+        SQLFlags().execute(self._getParseFlags(), self, **args)
+    @abstractmethod
+    def _getParseFlags(self):
+        pass
+    @abstractmethod
+    def _getQuery(self):
+        return ''
+    @abstractmethod
+    def _getParameters(self):
+        return None
+    @property
     def table_name(self):
-        return self.table_def.name
+        if alias := getattr(self,'alias', None):
+            return f'{self.table_def.name} as {alias}'
+        else:
+            return self.table_def.name
     @property
     def columns(self):
         return self.table_def.columns
@@ -51,7 +76,7 @@ class SQLbase(ABC):
     def Parameters(self):
         return self._getParameters()
 
-class SQLcreate(SQLbase):
+class SQLcreate(SQLTablebase):
     def _getParseFlags(self):
         return []
     def __create_index_str(self, index: IndexDefinition)->str:
@@ -89,7 +114,8 @@ class SQLcreate(SQLbase):
         return result + ');'
     def _getParameters(self):
         return None        
-class SQLdrop(SQLbase):
+
+class SQLdrop(SQLTablebase):
     def _getParseFlags(self):
         return []
     def _getQuery(self):
@@ -97,7 +123,7 @@ class SQLdrop(SQLbase):
     def _getParameters(self):
         return None
 
-class SQLinsert(SQLbase):
+class SQLinsert(SQLTablebase):
     def _getParseFlags(self):
         return [SQLFlags.COLUMNS, SQLFlags.VALUES]
     def _getQuery(self):
@@ -137,9 +163,9 @@ class SQLinsert(SQLbase):
 #     def _getParameters(self):
 #         return None
 
-class SQLselect(SQLbase):
+class SQLselect(SQLTablebase):
     def _getParseFlags(self):
-        return [SQLFlags.COLUMNS, SQLFlags.WHERE, SQLFlags.DISTINCT, SQLFlags.JOINS]
+        return [SQLFlags.COLUMNS, SQLFlags.WHERE, SQLFlags.DISTINCT, SQLFlags.JOINS, SQLFlags.ALIAS]
     def _all_columns(self):
         return not self.arg_columns or self.arg_columns == []
     def _get_table_name(self):
@@ -165,7 +191,7 @@ class SQLselect(SQLbase):
         else:
             return self.where_expression.parameters
 
-class SQLupdate(SQLbase):
+class SQLupdate(SQLTablebase):
     def _getParseFlags(self):
         return [SQLFlags.COLUMNS, SQLFlags.WHERE, SQLFlags.VALUES]
     def _getQuery(self):
@@ -186,7 +212,7 @@ class SQLupdate(SQLbase):
         else:
             return self.values
 
-class SQLdelete(SQLbase):
+class SQLdelete(SQLTablebase):
     def _getParseFlags(self):
         return [SQLFlags.WHERE, SQLFlags.VALUES]
     def _getQuery(self):

@@ -3,7 +3,9 @@ from contextlib import contextmanager
 import sqlite3 as sql3
 import database.dbConst as dbc
 from database.tabledef import TableDefinition
-from database.SQL import SQLbase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
+from database.viewdef import SQLcreateView, SQLdropView, ViewDefinition
+
+from database.SQL import SQLTablebase, SQLcreate, SQLdelete, SQLdrop, SQLcreate, SQLinsert, SQLselect, SQLupdate
 from database.sqlexpr import Ops, SQLexpression as SQE
 from general.fileutil import file_exists
 from general.log import log_debug, log_error, log_exception, log_info
@@ -51,7 +53,9 @@ class Database:
             with result.pause_foreign_keys():
                 for table in schema.tables():
                     result.create_table(table)
-                    log_info('End reading and creating schema')
+                for view in schema.views():
+                    result.create_view(view)                
+            log_info('End reading and creating schema')
             return result
         else:
             # log_error(f'Kan database {filename} niet initialiseren...') is waarschijnlijk al gemeld
@@ -61,6 +65,8 @@ class Database:
         with self.pause_foreign_keys():
             for table in schema.tables():
                 self.drop_table(table)
+            for view in schema.views():
+                self.drop_view(view)
             self.commit()
     def log_info(self, str):
         log_info(f'DB:{one_line(str)}')
@@ -108,7 +114,7 @@ class Database:
             if self.raise_error:
                 raise e
         return None
-    def execute_sql_command(self, sql:SQLbase):        
+    def execute_sql_command(self, sql:SQLTablebase):        
         self._execute_sql_command(sql.Query, sql.Parameters)
     def execute_select(self, sql:SQLselect):
         return self._execute_sql_command(sql.Query, sql.Parameters, True)
@@ -129,8 +135,14 @@ class Database:
     def create_table(self, tabledef):
         sql = SQLcreate(tabledef)
         self.execute_sql_command(sql)
+    def create_view(self, viewdef: ViewDefinition):
+        sql = SQLcreateView(viewdef)
+        self.execute_sql_command(sql)
     def drop_table(self, tabledef):
         sql = SQLdrop(tabledef)
+        self.execute_sql_command(sql)
+    def drop_view(self, viewdef):
+        sql = SQLdropView(viewdef)
         self.execute_sql_command(sql)
     def create_record(self, tabledef, **args):
         sql = SQLinsert(tabledef, **args)
@@ -148,12 +160,17 @@ class Database:
 class Schema:
     def __init__(self):
         self.__tables = {}
+        self.__views = {}
     def add_table(self, table: TableDefinition):
         self.__tables[table.name] = table
+    def add_view(self, view: ViewDefinition):
+        self.__views[view.name] = view
     def table(self, table_name: str)->TableDefinition:
         return self.__tables.get(table_name, None)
     def tables(self)->list[TableDefinition]:
         return self.__tables.values()
+    def views(self)->list[ViewDefinition]:
+        return self.__views.values()
     @classmethod
     def read_from_database(cls, database: Database):
         def create_table_definition(table_name, columns_from_pragma, foreign_keys_from_pragma):
@@ -172,12 +189,21 @@ class Schema:
                 (key_id, key_seq, foreign_table_name, local_column_name, foreign_column_name, on_update, on_delete, match) = key
                 table.add_foreign_key(local_column_name, foreign_table_name, foreign_column_name, onupdate=on_update, ondelete=on_delete)
             return table  
+        def create_view_definition(view_name, columns_from_pragma, sql):
+            column_names = [column['name'] for column in columns_from_pragma]
+            # print(column_names)
+            # print(sql[sql.find('AS SELECT')+3:])
+            return ViewDefinition(view_name, column_names=column_names, query=sql[sql.find('AS SELECT')+3:])
         result = Schema()
         schema_table_def = SchemaTableDef()
         sql = SQLselect(schema_table_def, columns=['name'], where=SQE('type', Ops.EQ, 'table'))
         for table in database._execute_sql_command(sql.Query, parameters=sql.Parameters, return_values=True):
             columns = database._execute_sql_command(f'pragma table_info({table["name"]})', return_values=True)
             foreign_keys = database._execute_sql_command(f'pragma foreign_key_list({table["name"]})', return_values=True)            
-            result.add_table(create_table_definition(table["name"], columns, foreign_keys))
+            result.add_table(create_table_definition(table["name"], columns, foreign_keys))       
+        sql = SQLselect(schema_table_def, columns=['name', 'sql'], where=SQE('type', Ops.EQ, 'view'))
+        for view in database._execute_sql_command(sql.Query, parameters=sql.Parameters, return_values=True):
+            columns = database._execute_sql_command(f'pragma table_info({view["name"]})', return_values=True)
+            result.add_view(create_view_definition(view["name"], columns, view["sql"]))   
         return result    
 

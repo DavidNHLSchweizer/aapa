@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Iterable
-from data.AAPdatabase import MilestoneTableDefinition, OldAanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
+from data.AAPdatabase import MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
 from data.classes.bedrijven import Bedrijf
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
@@ -53,17 +53,17 @@ class CRUD_milestones_details(CRUDbase):
             self.database.create_record(self.table, 
                                         columns=self._get_all_columns(), 
                                         values=[record.ms_id, record.rel_id, record.rel_type])   
-    def read(self, milestones_id: int)->MilestoneDetailRelationRecs:
-        result = []
-        if rows:=super().read(milestones_id, multiple=True):
-            for row in rows:
-                result.append(ActionLogRelationRec(log_id=action_log_id, rel_id=row[self._get_relation_column_name()]))
-        return result
+    # def read(self, milestones_id: int)->MilestoneDetailRelationRecs:
+    #     result = []
+    #     if rows:=super().read(milestones_id, multiple=True):
+    #         for row in rows:
+    #             result.append(ActionLogRelationRec(log_id=action_log_id, rel_id=row[self._get_relation_column_name()]))
+    #     return result
 
 
 class CRUD_milestone_details_aanvragen(CRUD_milestones_details):
     def __init__(self, database: Database):
-        super().__init__(database, OldAanvraagTableDefinition())
+        super().__init__(database, AanvraagTableDefinition())
     def _get_objects(self, milestones: StudentMilestones)->Iterable[Milestone]:
         return milestones.get({Milestone.Type.AANVRAAG})
 

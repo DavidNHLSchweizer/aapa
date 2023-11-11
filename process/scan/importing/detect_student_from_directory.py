@@ -2,7 +2,7 @@ from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.action_log import ActionLog
 from data.classes.base_dirs import BaseDir
-from data.classes.milestones import Milestone.Type, Milestone, StudentMilestones
+from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage import AAPAStorage

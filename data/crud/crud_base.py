@@ -17,10 +17,10 @@ DBtype = type[str|int|float]
 AAPAClass = type[Bedrijf|Student|File|Files|Aanvraag|ActionLog|Verslag]
 KeyClass = type[int|str]
 class CRUDbase:    
-    def __init__(self, database: Database, table: TableDefinition, class_type: AAPAClass, master_CRUD: CRUDbase = None, no_column_ref_for_key = False):
+    def __init__(self, database: Database, table: TableDefinition, class_type: AAPAClass, super_CRUD: CRUDbase = None, no_column_ref_for_key = False):
         self.database = database
         self.table = table
-        self.master_CRUD = master_CRUD
+        self.super_CRUD = super_CRUD
         self.no_column_ref_for_key = no_column_ref_for_key
         self._db_map = {column.name: {'attrib':column.name, 'obj2db': None, 'db2obj': None} for column in table.columns}
         self.class_type = class_type
@@ -40,8 +40,8 @@ class CRUDbase:
     def map_db_to_object(self, column_name: str, value):
         return self.__map_column(column_name, value, 'db2obj')
     def create(self, aapa_obj: AAPAClass):
-        if self.master_CRUD:
-            self.master_CRUD.update(aapa_obj)
+        if self.super_CRUD:
+            self.super_CRUD.update(aapa_obj)
         self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(aapa_obj)) 
     def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->AAPAClass: 
         #placeholder for reading attribs that are actually Stored Classes, at this moment only Aanvraag needs this
@@ -70,11 +70,11 @@ class CRUDbase:
             else:
                 where = SQE(where, Ops.AND, new_where_part)
         self.database.update_record(self.table, columns=self._get_all_columns(False), values=self._get_all_values(aapa_obj, False), where=where)
-        if self.master_CRUD:
-            self.master_CRUD.update(aapa_obj)
+        if self.super_CRUD:
+            self.super_CRUD.update(aapa_obj)
     def delete(self, value: DBtype):
-        if self.master_CRUD:
-            self.master_CRUD.delete(value)
+        if self.super_CRUD:
+            self.super_CRUD.delete(value)
         key = self.table.key
         attrib = self._db_map[key]['attrib']
         self.database.delete_record(self.table, where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value), no_column_ref=self.no_column_ref_for_key))

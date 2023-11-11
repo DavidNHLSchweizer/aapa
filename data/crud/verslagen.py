@@ -10,8 +10,8 @@ from general.timeutil import TSC
 class CRUD_verslagen(CRUDbaseAuto):
     def __init__(self, database: Database):
         super().__init__(database, VerslagTableDefinition(), Verslag)
-        self._db_map['status']['db2obj'] = Verslag.Status
-        self._db_map['beoordeling']['db2obj'] = Verslag.Beoordeling
+        # self._db_map['status']['db2obj'] = Verslag.Status
+        # self._db_map['beoordeling']['db2obj'] = Verslag.Beoordeling
         self._db_map['directory']['db2obj'] = decode_path
         self._db_map['directory']['obj2db'] = encode_path
 

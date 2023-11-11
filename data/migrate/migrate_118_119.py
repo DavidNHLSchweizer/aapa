@@ -9,9 +9,11 @@ from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone
 from data.roots import encode_path
 from data.storage import AAPAStorage
-from database.SQL import SQLcreate, SQLinsert
+from database.SQL import SQLcreate, SQLinsert, SQLselect
 from database.database import Database
+from database.sqlexpr import SQE, Ops
 from database.tabledef import ForeignKeyAction, TableDefinition
+from database.viewdef import SQLcreateView, ViewDefinition
 from general.name_utils import Names
 import database.dbConst as dbc
 # Wijzigingen in 1.19 voor migratie:
@@ -133,7 +135,15 @@ def correct_first_names(database: Database):
             print(f'\tCorrecting {row["full_name"]}')
             database._execute_sql_command('update STUDENTEN set first_name=? where id=?', [parsed.first_name, row['id']])
     print('--- ready incorrect first names in STUDENTEN')
-    
+
+#create VW_AANVRAGEN view:
+def create_view(database: Database):
+    v = ViewDefinition('VIEW_AANVRAGEN', column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
+                       select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
+                    columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))
+    print('creating view...')
+    database.execute_sql_command(SQLcreateView(v))
+
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
         modify_studenten_table(database)
@@ -141,3 +151,4 @@ def migrate_database(database: Database):
         create_new_tables(database)
         correct_first_names(database)
         create_milestones_table(database)
+        create_view(database)
