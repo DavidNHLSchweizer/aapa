@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Type
-from database.SQL import SQLselect
+from database.SQLtable import SQLselect
 from database.sqlexpr import SQE, Ops
 from database.tabledef import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
@@ -188,15 +188,15 @@ class StudentMilestonesDetailsTableDefinition(TableDefinition):
         self.add_column('milestone_type', dbc.INTEGER)    
         self.add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-ViewDefinition('VIEW_AANVRAGEN', column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
-                       select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
-                    columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))
+# ViewDefinition('VIEW_AANVRAGEN', column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
+#                        select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
+#                     columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))
 
 class AanvragenViewDefinition(ViewDefinition):
     def __init__(self):
         super().__init__('VIEW_AANVRAGEN', 
                          column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
-                         select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
+                         key = 'id', select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))                                 
 
 class AAPSchema(Schema):

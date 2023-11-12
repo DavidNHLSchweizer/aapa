@@ -304,7 +304,7 @@ class AanvraagStorage(ObjectStorage):
         self.files = FilesStorage(database)
         self.bedrijven = BedrijvenStorage(database)
         self.studenten = StudentenStorage(database)
-        self.super_table_name = self.crud.super_CRUD.table.name
+        # self.super_table_name = self.crud.super_CRUD.table.name
     def create(self, aanvraag: Aanvraag):
         self.__create_table_references(aanvraag)
         # aanvraag.files.set_info(source_file)

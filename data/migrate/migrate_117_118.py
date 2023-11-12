@@ -1,7 +1,7 @@
 from enum import IntEnum
-from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition, FilesTableDefinition
+from data.AAPdatabase import ActionLogFilesTableDefinition
 from data.classes.files import File
-from database.SQL import SQLcreate
+from database.SQLtable import SQLcreateTable
 from database.database import Database
 from database.tabledef import ForeignKeyAction
 from data.classes.aanvragen import Aanvraag
@@ -35,7 +35,7 @@ def create_new_tables(database: Database):
     action_log_files_table = ActionLogFilesTableDefinition()        
     action_log_files_table.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     action_log_files_table.add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-    database.execute_sql_command(SQLcreate(action_log_files_table))
+    database.execute_sql_command(SQLcreateTable(action_log_files_table))
     print('--- klaar toevoegen nieuwe tabellen')
 
 

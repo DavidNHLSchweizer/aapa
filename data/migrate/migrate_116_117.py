@@ -1,7 +1,7 @@
 from enum import IntEnum
 from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogTableDefinition, FilesTableDefinition
 from data.classes.files import File
-from database.SQL import SQLcreate
+from database.SQLtable import SQLcreateTable
 from database.database import Database
 from database.tabledef import ForeignKeyAction
 from data.classes.aanvragen import Aanvraag
@@ -13,11 +13,11 @@ from data.classes.aanvragen import Aanvraag
 # toevoegen id aan FILES tabel
 def create_new_tables(database: Database):
     print('toevoegen nieuwe tabellen ACTIONLOG en ACTIONLOG_AANVRAGEN')
-    database.execute_sql_command(SQLcreate(ActionLogTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(ActionLogTableDefinition()))
     action_log_aanvragen_table = ActionLogAanvragenTableDefinition()        
     action_log_aanvragen_table.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     action_log_aanvragen_table.add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-    database.execute_sql_command(SQLcreate(action_log_aanvragen_table))
+    database.execute_sql_command(SQLcreateTable(action_log_aanvragen_table))
     print('--- klaar toevoegen nieuwe tabellen')
 
 def update_filetypes(database: Database):
@@ -52,7 +52,7 @@ def modify_files_table(database: Database):
     print('adding primary key to FILES table.')
     database._execute_sql_command('alter table FILES RENAME TO OLD_FILES')
     print('creating the new table')
-    database.execute_sql_command(SQLcreate(FilesTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(FilesTableDefinition()))
     database._execute_sql_command('insert into FILES(filename,timestamp,digest,filetype,aanvraag_id) select filename,timestamp,digest,filetype,aanvraag_id from OLD_FILES', [])
     database._execute_sql_command('drop table OLD_FILES')
     print('end adding primary key to FILES table.')

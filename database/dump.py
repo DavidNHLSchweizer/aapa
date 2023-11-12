@@ -1,4 +1,4 @@
-from database.SQL import SQLselect
+from database.SQLtable import SQLselect
 from database.database import Database, Schema
 from database.tabledef import TableDefinition
 from general.log import log_info
@@ -24,6 +24,6 @@ class DatabaseDumper:
             print(f'{table.name.upper()}:')
         log_info(f'dumping {table.tablename}')
         sql = SQLselect(table)
-        for record in self.database._execute_sql_command(sql.Query, parameters=sql.Parameters, return_values=True):
+        for record in self.database._execute_sql_command(sql.query, parameters=sql.parameters, return_values=True):
             print(list(record))
         log_info(f'end dumping {table.tablename}')

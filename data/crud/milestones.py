@@ -13,8 +13,8 @@ from database.tabledef import TableDefinition
 class CRUD_milestones(CRUDbaseAuto):
     def __init__(self, database: Database):
         super().__init__(database, MilestoneTableDefinition(), None)
-        self._db_map['stud_id']['attrib'] = 'student.id'
-        self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
+        # self._db_map['stud_id']['attrib'] = 'student.id'
+        # self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
     def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->Student|Bedrijf:
         if sub_attrib_name == 'id':
             match main_part:

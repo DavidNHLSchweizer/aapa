@@ -1,19 +1,12 @@
-# drop view if exists test_aanvragen;
-# create view if not exists test_aanvragen as select M.id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,datum_str from MILESTONES M,NEW_AANVRAGEN A where M.ID = A.id and milestone_type=1 
-
-from enum import IntEnum
-
-from pathlib import Path
 from data.AAPdatabase import AanvragenViewDefinition, BaseDirsTableDefinition, MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone
 from data.roots import encode_path
 from data.storage import AAPAStorage
-from database.SQL import SQLcreate, SQLinsert, SQLselect
+from database.SQLtable import SQLcreateTable
 from database.database import Database
-from database.sqlexpr import SQE, Ops
 from database.tabledef import ForeignKeyAction, TableDefinition
-from database.viewdef import SQLcreateView, ViewDefinition
+from database.SQLview import SQLcreateView
 from general.name_utils import Names
 import database.dbConst as dbc
 # Wijzigingen in 1.19 voor migratie:
@@ -23,12 +16,13 @@ import database.dbConst as dbc
 # toevoegen verslagen tabel
 # toevoegen basedirs tabel
 # toevoegen student_milestones en student_milestones_details tabel
+# createing VIEW_AANVRAGEN 
 #
 def modify_studenten_table(database: Database):
     print('adding primary key to STUDENTEN table.')
     database._execute_sql_command('alter table STUDENTEN RENAME TO OLD_STUDENTEN')
     print('creating the new table')
-    database.execute_sql_command(SQLcreate(StudentTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(StudentTableDefinition()))
     database._execute_sql_command('insert into STUDENTEN(stud_nr,full_name,first_name,email,tel_nr) select stud_nr,full_name,first_name,email,tel_nr from OLD_STUDENTEN', [])
     database._execute_sql_command('drop table OLD_STUDENTEN')
     print('end adding primary key to STUDENTEN table.')
@@ -53,7 +47,7 @@ def modify_aanvragen_table(database: Database):
     database._execute_sql_command('alter table AANVRAGEN RENAME TO OLD_AANVRAGEN')
     print('creating the new table')
     aanvragen_table = OldAanvraagTableDefinition() 
-    database.execute_sql_command(SQLcreate(aanvragen_table))
+    database.execute_sql_command(SQLcreateTable(aanvragen_table))
     #copying the data
     database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,kans,status,beoordeling)'+ \
                                   ' select id,bedrijf_id,datum_str,titel,aanvraag_nr,status,beoordeling from OLD_AANVRAGEN', [])
@@ -92,20 +86,20 @@ def _init_base_directories(database: Database):
 # toevoegen STUDENT_MILESTONES en STUDENT_MILESTONES_DETAILS tabel
 def create_new_tables(database: Database):
     print('toevoegen nieuwe tabel VERSLAGEN')
-    database.execute_sql_command(SQLcreate(VerslagTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
     print('toevoegen nieuwe tabel BASEDIRS')
-    database.execute_sql_command(SQLcreate(BaseDirsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     print('initialiseren waardes voor BASEDIRS')
     _init_base_directories(database)
     print('toevoegen nieuwe tabel STUDENT_MILESTONES')
-    database.execute_sql_command(SQLcreate(StudentMilestonesTableDefinition())) 
+    database.execute_sql_command(SQLcreateTable(StudentMilestonesTableDefinition())) 
     print('toevoegen nieuwe tabel STUDENT_MILESTONE_DETAILS')
-    database.execute_sql_command(SQLcreate(StudentMilestonesDetailsTableDefinition())) 
+    database.execute_sql_command(SQLcreateTable(StudentMilestonesDetailsTableDefinition())) 
     print('--- klaar toevoegen nieuwe tabellen')
 
 def create_milestones_table(database: Database):
     print('toevoegen nieuwe tabel MILESTONES en aanpassen AANVRAGEN')
-    database.execute_sql_command(SQLcreate(MilestoneTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(MilestoneTableDefinition()))
     print('kopieren data in AANVRAGEN naar MILESTONES')
     sql = "select id,stud_id,bedrijf_id,titel,kans,status,beoordeling from AANVRAGEN"
     sql2 = "insert into MILESTONES(id,milestone_type,stud_id,bedrijf_id,titel,kans,beoordeling,status) values(?,?,?,?,?,?,?,?)"
@@ -120,7 +114,7 @@ def create_milestones_table(database: Database):
             [])            
     print('aanpassen tabel AANVRAGEN')
     database._execute_sql_command('alter table AANVRAGEN RENAME TO OLD_AANVRAGEN')
-    database.execute_sql_command(SQLcreate(AanvraagTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(AanvraagTableDefinition()))
     sql = "insert into AANVRAGEN(id,datum_str) select id,datum_str FROM OLD_AANVRAGEN"
     database._execute_sql_command(sql, [])
     database._execute_sql_command('drop table OLD_AANVRAGEN')

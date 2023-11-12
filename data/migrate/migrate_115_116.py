@@ -1,14 +1,14 @@
 from enum import IntEnum
 from data.AAPdatabase import AAPDatabase, FileRootTableDefinition
 from data.classes.aanvragen import Aanvraag
-from database.SQL import SQLcreate
+from database.SQLtable import SQLcreateTable
 from database.database import Database
 
 def add_unique_constraint_to_fileroot(database: Database):
     print('adding UNIQUE constraint to FILEROOT table.')
     database._execute_sql_command('alter table FILEROOT RENAME TO OLD_FILEROOT')
     print('creating the new table')
-    database.execute_sql_command(SQLcreate(FileRootTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(FileRootTableDefinition()))
     database._execute_sql_command('insert into FILEROOT select * from OLD_FILEROOT', [])
     database._execute_sql_command('drop table OLD_FILEROOT')
     print('end adding UNIQUE constraint to FILEROOT table.')
