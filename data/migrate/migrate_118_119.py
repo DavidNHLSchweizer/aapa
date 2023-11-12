@@ -1,4 +1,6 @@
-from data.aapa_database import AanvragenViewDefinition, BaseDirsTableDefinition, MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
+from data.aapa_database import AanvragenViewDefinition, BaseDirsTableDefinition, MilestoneTableDefinition, \
+    AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, \
+        StudentTableDefinition, VerslagTableDefinition, VerslagenViewDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone
 from data.roots import encode_path
@@ -16,7 +18,7 @@ import database.dbConst as dbc
 # toevoegen verslagen tabel
 # toevoegen basedirs tabel
 # toevoegen student_milestones en student_milestones_details tabel
-# createing VIEW_AANVRAGEN 
+# creating VIEW_AANVRAGEN en VIEW_VERSLAGEN
 #
 def modify_studenten_table(database: Database):
     print('adding primary key to STUDENTEN table.')
@@ -132,9 +134,10 @@ def correct_first_names(database: Database):
 
 #create VW_AANVRAGEN view:
 def create_view(database: Database):
-    print('--- creating view VIEW_AANVRAGEN ...')
+    print('--- creating views VIEW_AANVRAGEN en VIEW_VERSLAGEN ...')
     database.execute_sql_command(SQLcreateView(AanvragenViewDefinition()))
-    print('--- klaar creating view VIEW_AANVRAGEN')
+    database.execute_sql_command(SQLcreateView(VerslagenViewDefinition()))    
+    print('--- klaar creating views VIEW_AANVRAGEN en VIEW_VERSLAGEN')
 
 def migrate_database(database: Database):
     with database.pause_foreign_keys():

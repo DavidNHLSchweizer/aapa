@@ -20,10 +20,11 @@ KeyClass = type[int|str]
 class CRUDbase:    
     #base class also supporting views for reading (SQLite views only support reading)
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
-                 view: ViewDefinition = None, no_column_ref_for_key = False, autoID=False):
+                 view: ViewDefinition = None, details: list[CRUDbase] = None, no_column_ref_for_key = False, autoID=False):
         self.database = database
         self.table = table
         self.view = view
+        self.details = details
         self._db_map = {column_name: {'attrib':column_name, 'obj2db': None, 'db2obj': None} for column_name in self._get_all_columns()}
         self.class_type = class_type
         self.no_column_ref_for_key = no_column_ref_for_key
@@ -55,6 +56,8 @@ class CRUDbase:
         if self.autoID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name)) 
         self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(aapa_obj)) 
+        for detail_CRUD in self.details:
+            detail_CRUD.create(aapa_obj)
     def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->AAPAClass: 
         #placeholder for reading attribs that are actually Stored Classes, at this moment only Milestone needs this
         return None    
@@ -64,6 +67,7 @@ class CRUDbase:
         else:
             return self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.map_object_to_db(self.table.key, key), no_column_ref=self.no_column_ref_for_key))
     def read(self, key: KeyClass, multiple=False)->type[AAPAClass|list]:
+        #NOTE: dit nog aanpassen aan details, maar misschien hoeft dat niet als er altijd een VIEW is in dat geval?!
         if rows := self.read_records(key, multiple):
             if multiple:
                 return rows
@@ -75,7 +79,7 @@ class CRUDbase:
                         new_dict[attr] = {'new_attr': deep_attr_main_part(attr), 'new_value': self._read_sub_attrib(deep_attr_main_part(attr), deep_attr_sub_part(attr), value)}
                 for attr, record in new_dict.items():
                     class_dict[record['new_attr']] = record['new_value'] 
-                    del class_dict[attr]
+                    del class_dict[attr]                
                 return self.class_type(**class_dict)
         return None 
     def update(self, aapa_obj: AAPAClass):
@@ -87,7 +91,11 @@ class CRUDbase:
             else:
                 where = SQE(where, Ops.AND, new_where_part)
         self.database.update_record(self.table, columns=self._get_all_columns(False), values=self._get_all_values(aapa_obj, False), where=where)
+        for detail_CRUD in self.details:
+            detail_CRUD.update(aapa_obj)
     def delete(self, value: DBtype):
+        for detail_CRUD in self.details:
+            detail_CRUD.delete(value)
         key = self.table.key
         attrib = self._db_map[key]['attrib']
         self.database.delete_record(self.table, where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value), no_column_ref=self.no_column_ref_for_key))

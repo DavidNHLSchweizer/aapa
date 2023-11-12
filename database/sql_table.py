@@ -2,13 +2,15 @@ from dataclasses import dataclass
 from database.sql_base import SQLFlags, SQLbase, SQLselectBase
 from database.table_def import ColumnDefinition, ForeignKeyDefinition, IndexDefinition, TableDefinition
 
+klote alias werkt nog niet.
 @dataclass
 class TableData:
     table_def: TableDefinition = None
+    alias: str = ''
     @property
     def table_name(self)->str:
-        if alias := getattr(self,'alias', None):
-            return f'{self.table_def.name} as {alias}'
+        if self.alias:
+            return f'{self.table_def.name} as {self.alias}'
         else:
             return self.table_def.name
     @property
@@ -20,8 +22,8 @@ class TableData:
 
 class SQLTablebase(SQLbase):
     def __init__(self, table_def: TableDefinition, **args):
-        self.table_data = TableData(table_def)
         super().__init__(**args)
+        self.table_data = TableData(table_def, getattr(self,'alias', ''))
     @property
     def table_name(self)->str:
         return self.table_data.table_name
@@ -29,7 +31,7 @@ class SQLTablebase(SQLbase):
     def table_def(self)->TableDefinition:
         return self.table_data.table_def
     def _get_parse_flags(self):
-        return []
+        return [SQLFlags.ALIAS]
     def _get_parameters(self):
         return None        
 
@@ -66,9 +68,9 @@ class SQLcreateTable(SQLTablebase):
             return result
         def _nothing_to_do(self_columns):
             return len(self_columns) == 0 
-        if _nothing_to_do(self.columns):
+        if _nothing_to_do(self.table_def.columns):
             return ''
-        result = f'CREATE TABLE IF NOT EXISTS {self.table_name} ({",".join([column_string(column) for column in self.columns])}' 
+        result = f'CREATE TABLE IF NOT EXISTS {self.table_name} ({",".join([column_string(column) for column in self.table_def.columns])}' 
         if self.table_def.is_compound_primary():
             result = result + f',PRIMARY KEY({",".join([column.name for column in self.columns if column.is_primary()])})'
         if self.table_def.has_foreign_keys():

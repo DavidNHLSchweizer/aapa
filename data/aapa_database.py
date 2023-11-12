@@ -199,6 +199,16 @@ class AanvragenViewDefinition(ViewDefinition):
                          key = 'id', select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))                                 
 
+class VerslagenViewDefinition(ViewDefinition):
+    def __init__(self):
+        sexy= SQLselect(MilestoneTableDefinition(), alias='M', joins=['VERSLAGEN as V'], where=SQE('M.ID', Ops.EQ, 'V.ID'))
+        print(sexy.query)
+        super().__init__('VIEW_VERSLAGEN', 
+                         column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','cijfer', 'directory'],
+                         key = 'id', select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['VERSLAGEN as V'], where=SQE('M.ID', Ops.EQ, 'V.ID'),
+                        columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','cijfer', 'directory']))                                 
+
+
 class AAPaSchema(Schema):
     ALL_TABLES:list[Type[TableDefinition]] = [
         VersionTableDefinition,
@@ -218,6 +228,7 @@ class AAPaSchema(Schema):
     ]
     ALL_VIEWS:list[Type[ViewDefinition]]= [ 
                 AanvragenViewDefinition,
+                VerslagenViewDefinition,
                 ]
     def __init__(self):
         super().__init__()
