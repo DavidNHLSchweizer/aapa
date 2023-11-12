@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import Type
-from database.SQLtable import SQLselect
-from database.sqlexpr import SQE, Ops
-from database.tabledef import ForeignKeyAction, TableDefinition
+from database.sql_table import SQLselect
+from database.sql_expr import SQE, Ops
+from database.table_def import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
-from database.viewdef import ViewDefinition
+from database.view_def import ViewDefinition
 from general.keys import reset_key
 from general.config import config
 from general.log import log_error, log_info, log_warning
@@ -199,7 +199,7 @@ class AanvragenViewDefinition(ViewDefinition):
                          key = 'id', select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))                                 
 
-class AAPSchema(Schema):
+class AAPaSchema(Schema):
     ALL_TABLES:list[Type[TableDefinition]] = [
         VersionTableDefinition,
         FileRootTableDefinition,
@@ -221,12 +221,12 @@ class AAPSchema(Schema):
                 ]
     def __init__(self):
         super().__init__()
-        for tabledef in AAPSchema.ALL_TABLES:
+        for tabledef in AAPaSchema.ALL_TABLES:
             self.add_table(tabledef())
-        for viewdef in AAPSchema.ALL_VIEWS:
+        for viewdef in AAPaSchema.ALL_VIEWS:
             self.add_view(viewdef())
 
-class AAPDatabase(Database):
+class AAPaDatabase(Database):
     def __init__(self, filename, _reset_flag = False, ignore_version=False):
         super().__init__(filename, _reset_flag)
         self.schema = Schema.read_from_database(self)  

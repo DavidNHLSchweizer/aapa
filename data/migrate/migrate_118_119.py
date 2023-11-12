@@ -1,12 +1,12 @@
-from data.AAPdatabase import AanvragenViewDefinition, BaseDirsTableDefinition, MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
+from data.aapa_database import AanvragenViewDefinition, BaseDirsTableDefinition, MilestoneTableDefinition, AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone
 from data.roots import encode_path
 from data.storage import AAPAStorage
-from database.SQLtable import SQLcreateTable
+from database.sql_table import SQLcreateTable
 from database.database import Database
-from database.tabledef import ForeignKeyAction, TableDefinition
-from database.SQLview import SQLcreateView
+from database.table_def import ForeignKeyAction, TableDefinition
+from database.sql_view import SQLcreateView
 from general.name_utils import Names
 import database.dbConst as dbc
 # Wijzigingen in 1.19 voor migratie:

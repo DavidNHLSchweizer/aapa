@@ -1,7 +1,7 @@
 from enum import IntEnum
-from data.AAPdatabase import AAPDatabase, FileRootTableDefinition
+from data.aapa_database import aapa_database, FileRootTableDefinition
 from data.classes.aanvragen import Aanvraag
-from database.SQLtable import SQLcreateTable
+from database.sql_table import SQLcreateTable
 from database.database import Database
 
 def add_unique_constraint_to_fileroot(database: Database):
@@ -22,7 +22,7 @@ class OldAanvraagStatus(IntEnum):
     READY_IMPORTED  = 5
     ARCHIVED        = 6
 
-def update_aanvraag_status(database: AAPDatabase):
+def update_aanvraag_status(database: aapa_database):
     print('updating values in AANVRAGEN table.')
     new_status={OldAanvraagStatus.MAIL_READY:Aanvraag.Status.MAIL_READY, OldAanvraagStatus.READY:Aanvraag.Status.READY, 
                 OldAanvraagStatus.READY_IMPORTED:Aanvraag.Status.READY_IMPORTED, OldAanvraagStatus.ARCHIVED:Aanvraag.Status.ARCHIVED}

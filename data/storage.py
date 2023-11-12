@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum, auto
-from typing import Iterable, Type
-from data.AAPdatabase import  create_root
+from typing import Iterable
+from data.aapa_database import create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.base_dirs import BaseDir
 from data.classes.bedrijven import Bedrijf

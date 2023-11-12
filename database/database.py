@@ -1,14 +1,13 @@
 from __future__ import annotations
 from contextlib import contextmanager
 import sqlite3 as sql3
-from database.SQLtable import SQLcreateTable, SQLdropTable
 import database.dbConst as dbc
-from database.tabledef import TableDefinition
-from database.viewdef import ViewDefinition
-from database.SQLview import SQLcreateView, SQLdropView
+from database.table_def import TableDefinition
+from database.view_def import ViewDefinition
+from database.sql_view import SQLcreateView, SQLdropView, SQLselectView
 
-from database.SQLtable import SQLTablebase, SQLdelete, SQLinsert, SQLselect, SQLupdate
-from database.sqlexpr import Ops, SQLexpression as SQE
+from database.sql_table import SQLTablebase, SQLdelete, SQLinsert, SQLselect, SQLupdate, SQLcreateTable, SQLdropTable
+from database.sql_expr import Ops, SQE
 from general.fileutil import file_exists
 from general.log import log_debug, log_error, log_exception, log_info
 
@@ -153,7 +152,7 @@ class Database:
         sql = SQLselect(tabledef, **args)        
         return self.execute_select(sql)
     def read_view_record(self, viewdef: ViewDefinition, **args):
-        sql = SQLselect(viewdef, **args)        
+        sql = SQLselectView(viewdef, **args)        
         return self.execute_select(sql)
     def update_record(self, tabledef, **args):
         sql = SQLupdate(tabledef, **args)
@@ -196,8 +195,6 @@ class Schema:
             return table  
         def create_view_definition(view_name, columns_from_pragma, sql):
             column_names = [column['name'] for column in columns_from_pragma]
-            vd = ViewDefinition(view_name, column_names=column_names, query=sql[sql.find('AS SELECT')+3:])
-            print(vd.get_keys())
             return ViewDefinition(view_name, column_names=column_names, query=sql[sql.find('AS SELECT')+3:])
         result = Schema()
         schema_table_def = SchemaTableDef()

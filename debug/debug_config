@@ -27,7 +27,7 @@ tqdm
 #aapa
 #aapa_migrate
 #run_tui
-#data.AAPdatabase
+#data.aapa_database
 data.classes.files
 data.classes.action_log
 #data.migrate

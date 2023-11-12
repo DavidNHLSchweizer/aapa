@@ -1,5 +1,5 @@
 from pathlib import Path
-import data.AAPdatabase as db
+import data.aapa_database as db
 from database.database import Database
 from data.storage import AAPAStorage
 from general.fileutil import file_exists
@@ -12,11 +12,11 @@ def __create_database(name, recreate = False, ignore_version=False)->Database:
         if recreate or not exists:
             action = 'REINITIALISATIE' if exists else 'INITIALISATIE nieuwe'
             print(f'--- {action} DATABASE {basename} ---')
-            result = db.AAPDatabase.create_from_schema(db.AAPSchema(), name)
+            result = db.AAPaDatabase.create_from_schema(db.AAPSchema(), name)
             return result
         else:
             print(f'--- OPENEN DATABASE {basename} ---')
-            return  db.AAPDatabase(name, ignore_version=ignore_version)
+            return  db.AAPaDatabase(name, ignore_version=ignore_version)
     except Exception as Mystery:
         log_error(f'Fout bij opstarten: {Mystery}')
         return None

@@ -1,9 +1,8 @@
 import pytest
 import database.dbConst as dbc
-from database.SQLtable import SQLTablebase, SQLcreateTable, SQLdelete, SQLdropTable, \
-    SQLinsert, SQLselect, SQLupdate
-from database.sqlexpr import Ops, SQLexpression as SQE
-from database.tabledef import TableDefinition, ColumnFlags 
+from database.sql_table import SQLTablebase, SQLcreateTable, SQLdelete, SQLdropTable, SQLinsert, SQLselect, SQLupdate
+from database.sql_expr import Ops, SQE
+from database.table_def import TableDefinition
 
 TEST = 'test'
 TABLE2 = 'table2'

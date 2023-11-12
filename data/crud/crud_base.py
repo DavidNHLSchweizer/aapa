@@ -6,27 +6,38 @@ from data.classes.files import File, Files
 from data.classes.studenten import Student
 from data.classes.action_log import ActionLog
 from data.classes.verslagen import Verslag
-from database.sqlexpr import Ops, SQLexpression as SQE
+from database.sql_expr import Ops, SQE
+from database.view_def import ViewDefinition
 from general.deep_attr import deep_attr_main_part, deep_attr_sub_part, get_deep_attr, has_deep_attr
 from database.database import Database
-from database.tabledef import TableDefinition
+from database.table_def import TableDefinition
 from general.keys import get_next_key
 from general.log import log_debug
-
 
 DBtype = type[str|int|float]
 AAPAClass = type[Bedrijf|Student|File|Files|Aanvraag|ActionLog|Verslag]
 KeyClass = type[int|str]
-class BaseCRUDbase:    
-    #base class supporting views for reading (SQLite views only support reading)
-    def __init__(self, database: Database, class_type: AAPAClass):
+class CRUDbase:    
+    #base class also supporting views for reading (SQLite views only support reading)
+    def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
+                 view: ViewDefinition = None, no_column_ref_for_key = False, autoID=False):
         self.database = database
+        self.table = table
+        self.view = view
         self._db_map = {column_name: {'attrib':column_name, 'obj2db': None, 'db2obj': None} for column_name in self._get_all_columns()}
         self.class_type = class_type
-    def get_keys(self)->Iterable[str]:
-        return []
+        self.no_column_ref_for_key = no_column_ref_for_key
+        self.autoID = autoID
     def _get_all_columns(self, include_key = True)->list[str]:
-        return None
+        if self.view:
+            return self.view.column_names
+        else:
+            return([column.name for column in self.table.columns if include_key or (not column.is_primary())])
+    def get_keys(self)->Iterable[str]:
+        if self.view:
+            return self.view.get_keys()
+        else:
+            return self.table.keys
     def __get_column_value(self, aapa_obj: AAPAClass, column_name: str):
         return self.map_object_to_db(column_name, get_deep_attr(aapa_obj, self._db_map[column_name]['attrib'], '???'))
     def _get_key_values(self, aapa_obj: AAPAClass)->Iterable[DBtype]:
@@ -41,12 +52,17 @@ class BaseCRUDbase:
     def map_db_to_object(self, column_name: str, value):
         return self.__map_column(column_name, value, 'db2obj')
     def create(self, aapa_obj: AAPAClass):
-        pass
+        if self.autoID:
+            setattr(aapa_obj, self.table.key, get_next_key(self.table.name)) 
+        self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(aapa_obj)) 
     def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->AAPAClass: 
-        #placeholder for reading attribs that are actually Stored Classes, at this moment only Aanvraag needs this
-        return None
+        #placeholder for reading attribs that are actually Stored Classes, at this moment only Milestone needs this
+        return None    
     def read_records(self, key: KeyClass, multiple=False)->type[AAPAClass|list]:
-        return None
+        if self.view:
+            return self.database.read_view_record(self.view,where=SQE(self.view.key, Ops.EQ, self.map_object_to_db(self.view.key, key)))
+        else:
+            return self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.map_object_to_db(self.table.key, key), no_column_ref=self.no_column_ref_for_key))
     def read(self, key: KeyClass, multiple=False)->type[AAPAClass|list]:
         if rows := self.read_records(key, multiple):
             if multiple:
@@ -63,26 +79,6 @@ class BaseCRUDbase:
                 return self.class_type(**class_dict)
         return None 
     def update(self, aapa_obj: AAPAClass):
-        pass
-    def delete(self, value: DBtype):
-        pass
-
-class CRUDbase(BaseCRUDbase):    
-    def __init__(self, database: Database, table: TableDefinition, class_type: AAPAClass, no_column_ref_for_key = False):
-        super().__init__(database, class_type=class_type)
-        self.table = table
-        self.no_column_ref_for_key = no_column_ref_for_key
-    def _get_all_columns(self, include_key = True)->list[str]:
-        if hasattr(self, 'table'):
-            return([column.name for column in self.table.columns if include_key or (not column.is_primary())])
-        return []
-    def get_keys(self)->Iterable[str]:
-        return self.table.keys
-    def create(self, aapa_obj: AAPAClass):
-        self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(aapa_obj)) 
-    def read_records(self, key: KeyClass, multiple=False)->type[AAPAClass|list]:
-        return self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.map_object_to_db(self.table.key, key), no_column_ref=self.no_column_ref_for_key))
-    def update(self, aapa_obj: AAPAClass):
         where = None
         for key,value in zip(self.table.keys, self._get_key_values(aapa_obj)):
             new_where_part = SQE(key, Ops.EQ, value, no_column_ref=self.no_column_ref_for_key)
@@ -95,9 +91,3 @@ class CRUDbase(BaseCRUDbase):
         key = self.table.key
         attrib = self._db_map[key]['attrib']
         self.database.delete_record(self.table, where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value), no_column_ref=self.no_column_ref_for_key))
-
-class CRUDbaseAuto(CRUDbase):
-    #table with integer primary key. This is done by pre-setting the id 
-    def create(self, aapa_obj: AAPAClass):   
-        setattr(aapa_obj, self.table.key, get_next_key(self.table.name)) 
-        super().create(aapa_obj)

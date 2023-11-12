@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from database.SQLbase import SQLFlags, SQLbase, SQLselectBase
-from database.tabledef import ColumnDefinition, ForeignKeyDefinition, IndexDefinition, TableDefinition
+from database.sql_base import SQLFlags, SQLbase, SQLselectBase
+from database.table_def import ColumnDefinition, ForeignKeyDefinition, IndexDefinition, TableDefinition
 
 @dataclass
 class TableData:

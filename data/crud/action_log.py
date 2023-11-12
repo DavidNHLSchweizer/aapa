@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 from typing import Iterable
-from data.AAPdatabase import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
+from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
 from data.classes.action_log  import ActionLog
-from data.crud.crud_base import AAPAClass, CRUDbase, CRUDbaseAuto
+from data.crud.crud_base import AAPAClass, CRUDbase
 from database.database import Database
-from database.tabledef import TableDefinition
+from database.table_def import TableDefinition
 from general.log import log_debug
 from general.timeutil import TSC
 
-class CRUD_action_log(CRUDbaseAuto):
+class CRUD_action_log(CRUDbase):
     def __init__(self, database: Database):
-        super().__init__(database, ActionLogTableDefinition(), ActionLog)
+        super().__init__(database, class_type=ActionLog, table=ActionLogTableDefinition(), autoID=True)
         self._db_map['date']['db2obj'] = TSC.str_to_timestamp
         self._db_map['date']['obj2db'] = TSC.timestamp_to_str
         self._db_map['can_undo']['db2obj'] = bool
@@ -25,7 +25,7 @@ ActionLogRelationRecs = list[ActionLogRelationRec]
 
 class CRUD_action_log_relations(CRUDbase):
     def __init__(self, database: Database, relation_table: TableDefinition):
-        super().__init__(database, relation_table, None) #TBD
+        super().__init__(database, class_type=None, table=relation_table) #TBD
     def _get_relation_column_name(self)->str:
         log_debug(f'GRC: {self.table.keys[1]}')
         return self.table.keys[1]

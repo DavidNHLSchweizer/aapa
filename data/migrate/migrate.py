@@ -1,5 +1,5 @@
 import importlib
-from data.AAPdatabase import create_version_info, read_version_info
+from data.aapa_database import create_version_info, read_version_info
 from database.database import Database
 from general.fileutil import file_exists
 from general.log import init_logging

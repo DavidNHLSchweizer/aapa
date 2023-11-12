@@ -1,4 +1,4 @@
-from database.SQLbase import SQLselectBase
+from database.sql_base import SQLselectBase
 from database.dbargparser import dbArgParser
 
 class ViewFlags(dbArgParser):
@@ -8,7 +8,7 @@ class ViewFlags(dbArgParser):
     flag_map = \
         [
          { "flag": TEMP, "attribute":'temp', "default":False, "key":'temp'},
-         { "flag": KEY, "attribute":'key', "default":"", "key":'key'},
+         { "flag": KEY, "attribute":'_key', "default":"", "key":'key'},
         ]
     def execute(self, target, **args):
         self.parse(ViewFlags.ALL, target, ViewFlags.flag_map, **args)
@@ -27,7 +27,7 @@ class ViewDefinition:
         result = result + f'\n{self.query if self.query else self.select}'
         return result
     def get_keys(self)->list[str]:
-        if result := getattr(self, 'key', None): 
+        if result := getattr(self, '_key', None): 
             if isinstance(result, list):
                 return result
             else:
@@ -36,3 +36,8 @@ class ViewDefinition:
             return ['id']
         else:
             return [self.column_names[0]]
+    @property
+    def key(self)->str:
+        return self.get_keys()[0]
+
+
