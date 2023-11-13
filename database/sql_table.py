@@ -72,13 +72,11 @@ class SQLcreateTable(SQLTablebase):
             return ''
         result = f'CREATE TABLE IF NOT EXISTS {self.table_name} ({",".join([column_string(column) for column in self.table_def.columns])}' 
         if self.table_def.is_compound_primary():
-            result = result + f',PRIMARY KEY({",".join([column.name for column in self.columns if column.is_primary()])})'
+            result = result + f',PRIMARY KEY({",".join([column.name for column in self.table_def.columns if column.is_primary()])})'
         if self.table_def.has_foreign_keys():
             result  = result + ',' + ','.join([f'FOREIGN KEY({key.column_name}) REFERENCES {key.ref_table}({key.ref_column}){key.action_str()}' for key in self.table_def.foreign_keys])
         if self.table_def.has_index():
             result  = result + ');\n' + ');\n'.join([self.__create_index_str(index) for index in self.table_def.indexes])
-#            result  = result + ',' + ','.join([str(key) for key in self.table_def.foreign_keys])
-#        return f'FOREIGN KEY: {self.column_name} references {self.ref_table}.{self.ref_column}' + ondelete_str + onupdate_str
         return result + ');'
 
 class SQLdropTable(SQLTablebase):
@@ -96,9 +94,9 @@ class SQLinsert(SQLTablebase):
                 return False
             else:
                 return len(self_columns) == 1 and self_columns[0].primary or insert_columns == []
-        if _nothing_to_do(self.columns):
+        if _nothing_to_do(self.table_def.columns):
             return ''
-        if _is_default_values(self.columns, self.arg_columns):
+        if _is_default_values(self.table_def.columns, self.arg_columns):
             result = f'INSERT INTO {self.table_name} DEFAULT VALUES;'
         else:
             result = f'INSERT INTO {self.table_name} (' + ','.join([column for column in self.arg_columns]) + ')' + \

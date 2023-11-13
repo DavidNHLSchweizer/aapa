@@ -138,15 +138,31 @@ SQE=SQLexpression
 class SQEjoin(SQE):
     def __init__(self, tables: list[str], on_keys: list[str], alias: list[str] = [], **kwargs):      
         #simpele uitbreiding, niet heel uitgebreid getest. Werkt alleen voor simpele inner joins
-        if len(tables) > 2:
-            raise Exception('dit hebben we nog niet voor elkaar...')
-        alias = self.__get_aliases(tables, alias)
-        parts = [f'{table} AS {alias}' for table,alias in zip(tables, alias)]
+        if len(tables) < 2:
+            raise Exception('Minimaal 2 tabellen...')
+        alias = SQEjoin.__get_aliases(tables, alias)
+        parts = [f'{table} AS {alias}' for table,alias in zip(tables, alias)]        
         on_keys = [f"{alias}.{column}" for alias,column in zip(alias,on_keys)]
-        self.on_key_expr = f'ON ({SQE(on_keys[0], Ops.EQ, on_keys[1], nobrackets=True)})'
-        super().__init__(parts[0], Ops.INNERJOIN, parts[1], nobrackets=True, **kwargs)
+        self.on_key_expr = SQEjoin.__get_on_keys(on_keys)
+        part0 = parts[0]
+        part1 = parts[1]
+        for index in range(2,len(parts)):
+            part1 += f' INNER JOIN {parts[index]}'           
+        super().__init__(part0, Ops.INNERJOIN, part1, nobrackets=True, **kwargs)
     def __str__(self)->str:
         return super().__str__() + ' ' + self.on_key_expr
+    @staticmethod
+    def __get_on_keys(on_keys: list[str])->str:
+        result = f'ON ({SQE(on_keys[0], Ops.EQ, on_keys[1], nobrackets=True)})'
+        for index in range(1,len(on_keys)-1):
+            result += f' AND ({SQE(on_keys[index], Ops.EQ, on_keys[index+1], nobrackets=True)})'
+        return result
+    @staticmethod
+    def __get_aliases(tables: list[str], alias: list[str])->list[str]:
+        used = set()
+        result = [SQEjoin.__create_alias(a, used) for a in alias]
+        result.extend([SQEjoin.__create_alias(name[0].upper(), used) for name in tables[len(alias):]])
+        return result
     @staticmethod
     def __create_alias(s: str, used: set[str])->str:
         if not s in used:
@@ -156,9 +172,3 @@ class SQEjoin(SQE):
             return SQEjoin.__create_alias(f'{s}1', used)
         elif m := re.match(r'[A-Z]+(?P<n>[\d]+)', s):
             return SQEjoin.__create_alias(f'{s[0]}{int(m.group("n"))+1}', used)            
-    @staticmethod
-    def __get_aliases(tables: list[str], alias: list[str])->list[str]:
-        used = set()
-        result = [SQEjoin.__create_alias(a, used) for a in alias]
-        result.extend([SQEjoin.__create_alias(name[0].upper(), used) for name in tables[len(alias):]])
-        return result

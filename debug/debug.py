@@ -4,6 +4,13 @@ import re
 from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
 
+CLASSPATTERN = "<class '.*\.(?P<CLS>.*)'>"
+def classname(o: object)->str:
+    m = re.match(CLASSPATTERN, str(o.__class__))
+    if m:
+        return m.group('CLS')
+    return repr(o)
+
 def _find_calling_module(calling_module: str)->str:
     def find_module_name(module_str: str)->str:
         if (m := re.match("\<module '(?P<module>.*)' from (?P<file>.*)\>", module_str)):

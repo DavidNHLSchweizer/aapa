@@ -20,7 +20,7 @@ class TimeStringConversion:
         if __no_time_part(value):
             return datetime.datetime.strftime(value, "%d-%m-%Y")
         else:
-            return datetime.datetime.strftime(value, "%d-%m-%Y %H:%M:%S")
+            return datetime.datetime.strftime(value, TSC.DATETIME_FORMAT)
 
 
 

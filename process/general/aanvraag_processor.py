@@ -15,7 +15,7 @@ class AanvraagProcessor(BaseProcessor):
             return status in self.entry_states
         else:
             return True
-    def must_process(self, aanvraag: Aanvraag, **kwargs)->bool:
+    def must_process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         return self.in_entry_states(aanvraag.status)
     def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         return False

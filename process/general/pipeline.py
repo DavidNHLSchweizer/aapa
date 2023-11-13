@@ -68,10 +68,10 @@ class FilePipeline(Pipeline):
                     return False
                 self._store_new(object)
                 self.storage.commit()
+                return True
             except Exception as E:
                 log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
-                return False    
-        return True
+        return False
     def _process_file(self, filename: Path, preview=False, **kwargs ):
         for processor in self.processors:
             log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')

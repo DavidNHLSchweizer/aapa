@@ -3,6 +3,7 @@ import re
 import pdfplumber
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
+from data.classes.files import File
 from data.classes.studenten import Student
 from general.config import  IntValueConvertor, ListValueConvertor, ValueConvertor, config
 from general.log import log_debug
@@ -168,7 +169,7 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
             return None
         bedrijf = Bedrijf(aanvraag_data.bedrijf)
         student = Student(full_name=aanvraag_data.full_name, stud_nr=aanvraag_data.stud_nr, tel_nr=aanvraag_data.tel_nr, email=aanvraag_data.email)
-        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel, 
+        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel, source_info=File(self.filename, filetype=File.Type.AANVRAAG_PDF),
                         status = Aanvraag.Status.IMPORTED_PDF)
     def __parse_first_table(self, table: list[str], field_keys: list[str])->dict:
         def find_pattern(table_row: str)->tuple[str,str]:

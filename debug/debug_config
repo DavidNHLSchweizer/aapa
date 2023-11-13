@@ -38,6 +38,10 @@ data.storage
 data.crud.action_log
 data.crud.files
 data.crud.crud_base
+data.crud.aanvragen
+data.crud.studenten
+data.crud.milestones
+data.crud.verslagen
 database.database
 #database.dbargparser
 #database.dbConst

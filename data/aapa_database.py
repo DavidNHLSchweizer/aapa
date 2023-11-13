@@ -11,6 +11,7 @@ from general.config import config
 from general.log import log_error, log_info, log_warning
 from general.versie import Versie
 from data.roots import add_root, get_roots, get_roots_report, reset_roots
+from data.classes.files import File
 
 class AAPaException(Exception): pass
 
@@ -192,10 +193,13 @@ class AanvragenViewDefinition(ViewDefinition):
     def __init__(self):
         mst = MilestoneTableDefinition()
         avt = AanvraagTableDefinition()
+        ft  = FilesTableDefinition()
         super().__init__('VIEW_AANVRAGEN', 
-                         column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
-                         key = 'id', join_expression = SQEjoin(tables=[mst.name, avt.name], on_keys=[mst.key, avt.key], alias=['M', 'A']),
-                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'])                                 
+                         column_names=['id','datum','stud_id', 'bedrijf_id', 'source_file_id', 'titel','kans','status','beoordeling','datum_str'],
+                         key = 'id', join_expression = 
+                         SQEjoin(tables=[mst.name, avt.name, ft.name], on_keys=[mst.key, avt.key, 'aanvraag_id'], alias=['M', 'A', 'F']),
+                         where=SQE('F.filetype', Ops.EQ, int(File.Type.AANVRAAG_PDF)),
+                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'F.ID', 'titel','kans','status','beoordeling','datum_str'])                                 
 
 class VerslagenViewDefinition(ViewDefinition):
     def __init__(self):

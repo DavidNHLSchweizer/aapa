@@ -41,7 +41,7 @@ class AanvragenPipeline(Pipeline):
         return self._processors
     def _process_aanvraag_processor(self, processor: AanvraagProcessor, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         try:
-            result = processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
+            result = processor.must_process(aanvraag, preview=preview, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
             log_debug(f'_process_aanvraag_processor: {result}')
             return result
         except Exception as E:

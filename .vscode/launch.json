@@ -21,8 +21,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "zipimport",
-                "-preview",                
+                "form",
+                "-preview", 
+                "-debug"              
             ]
         },
         {

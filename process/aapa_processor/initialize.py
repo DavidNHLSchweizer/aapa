@@ -12,7 +12,7 @@ def __create_database(name, recreate = False, ignore_version=False)->Database:
         if recreate or not exists:
             action = 'REINITIALISATIE' if exists else 'INITIALISATIE nieuwe'
             print(f'--- {action} DATABASE {basename} ---')
-            result = db.AAPaDatabase.create_from_schema(db.AAPSchema(), name)
+            result = db.AAPaDatabase.create_from_schema(db.AAPaSchema(), name)
             return result
         else:
             print(f'--- OPENEN DATABASE {basename} ---')

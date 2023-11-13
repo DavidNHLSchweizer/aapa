@@ -19,7 +19,7 @@ class ReadFormGradeProcessor(AanvraagProcessor):
         current_digest = File.get_digest(filename)        
         return current_timestamp != registered_timestamp or current_digest != registered_digest
         #TODO: Er lijkt wel eens wat mis te gaan bij het opslaan van de digest, maar misschien valt dat mee. Gevolgen lijken mee te vallen.
-    def must_process(self, aanvraag: Aanvraag): 
+    def must_process(self, aanvraag: Aanvraag, preview=False): 
         return self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
         doc_path = aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX)
