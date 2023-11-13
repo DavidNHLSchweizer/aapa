@@ -52,7 +52,7 @@ class SQLcreateView(SQLViewbase):
         else:
             return ''
     def _get_query(self):
-        return f'CREATE {"TEMP " if self.view_def.temp else ""}VIEW IF NOT EXISTS {self.view_name}{self._get_columns()} AS {self.view_def.select.query}'
+        return f'CREATE {"TEMP " if self.view_def.temp else ""}VIEW IF NOT EXISTS {self.view_name}{self._get_columns()} AS {self.view_def.select_query()}'
 
 class SQLdropView(SQLViewbase):
     def _get_query(self):

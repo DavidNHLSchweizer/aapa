@@ -15,6 +15,7 @@ class Ops(Enum):
     LTE = auto()
     HAVING = auto()
     IN   = auto()
+    INNERJOIN   = auto()
     def __str__(self):
         match(self):
             case Ops.AND | Ops.OR | Ops.NOT | Ops.IS | Ops.HAVING:
@@ -35,6 +36,8 @@ class Ops(Enum):
                 return '<='
             case Ops.IN:
                 return 'IN'
+            case Ops.INNERJOIN: 
+                return 'INNER JOIN'
             case _: 
                 return '???'
 
@@ -87,6 +90,8 @@ class SQLexpression:
             return value
         elif isinstance(value, list):
             return '(' + ",".join([str(s) for s in value]) + ')'
+        elif not self.brackets:
+            return value
         else:
             return f'"{value}"'
     def __str__(self):
@@ -97,31 +102,63 @@ class SQLexpression:
     def _is_column_ref(self, str):        
         return self.column_ref_pattern.match(str)
     @staticmethod
-    def _is_string_parameter(s: str):
-        result = s and s[0] == "'" and s[-1] == "'"
-        # print(f'{s} {result}' )        
+    def _is_string_parameter(s: str):       
         return s and s[0] == "'" and s[-1] == "'"
     def _prepare(self):
-        self.parametrized = ''
-        self.parameters = []
+        self._parametrized = ''
+        self._parameters = []
         if isinstance(self.part1,SQLexpression):
             part1 = self.part1.parametrized
-            self.parameters.extend(self.part1.parameters)
+            self._parameters.extend(self.part1.parameters)
         else:
             part1 = self.part1
         if isinstance(self.part2,SQLexpression):
             part2 = self.part2.parametrized
-            self.parameters.extend(self.part2.parameters)
+            self._parameters.extend(self.part2.parameters)
         elif isinstance(self.part2,str) and (not self.ignore_column_ref) and self._is_column_ref(self.part2):
             part2 = self.part2
         elif isinstance(self.part2,list):
             part2 = f'({",".join(["?" for _ in self.part2])})'
-            self.parameters.extend(self.part2)
+            self._parameters.extend(self.part2)
         else:
             part2 = '?'
-            self.parameters.append(self.part2)
+            self._parameters.append(self.part2)
         if part1 == None:
-            self.parametrized = self._bracket_apply(f'{self.operator} {part2}')
+            self._parametrized = self._bracket_apply(f'{self.operator} {part2}')
         else:
-            self.parametrized = self._bracket_apply(f'{part1} {self.operator} {part2}')
-SQE=SQLexpression
+            self._parametrized = self._bracket_apply(f'{part1} {self.operator} {part2}')
+    @property 
+    def parametrized(self)->str:
+        return self._parametrized
+    @property
+    def parameters(self)->list[str]:
+        return self._parameters
+SQE=SQLexpression    
+
+class SQEjoin(SQE):
+    def __init__(self, tables: list[str], on_keys: list[str], alias: list[str] = [], **kwargs):      
+        #simpele uitbreiding, niet heel uitgebreid getest. Werkt alleen voor simpele inner joins
+        if len(tables) > 2:
+            raise Exception('dit hebben we nog niet voor elkaar...')
+        alias = self.__get_aliases(tables, alias)
+        parts = [f'{table} AS {alias}' for table,alias in zip(tables, alias)]
+        on_keys = [f"{alias}.{column}" for alias,column in zip(alias,on_keys)]
+        self.on_key_expr = f'ON ({SQE(on_keys[0], Ops.EQ, on_keys[1], nobrackets=True)})'
+        super().__init__(parts[0], Ops.INNERJOIN, parts[1], nobrackets=True, **kwargs)
+    def __str__(self)->str:
+        return super().__str__() + ' ' + self.on_key_expr
+    @staticmethod
+    def __create_alias(s: str, used: set[str])->str:
+        if not s in used:
+            used.add(s)
+            return s
+        elif len(s) == 1:
+            return SQEjoin.__create_alias(f'{s}1', used)
+        elif m := re.match(r'[A-Z]+(?P<n>[\d]+)', s):
+            return SQEjoin.__create_alias(f'{s[0]}{int(m.group("n"))+1}', used)            
+    @staticmethod
+    def __get_aliases(tables: list[str], alias: list[str])->list[str]:
+        used = set()
+        result = [SQEjoin.__create_alias(a, used) for a in alias]
+        result.extend([SQEjoin.__create_alias(name[0].upper(), used) for name in tables[len(alias):]])
+        return result

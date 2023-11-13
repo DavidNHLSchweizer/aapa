@@ -1,0 +1,1 @@
+python aapa_migrate.py %1 %2 %3

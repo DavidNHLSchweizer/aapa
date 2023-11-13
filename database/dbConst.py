@@ -1,11 +1,13 @@
-ID = 'ID'
+from typing import Type
 
+ID = 'ID'
 EMPTY_ID = -1
 
 TEXT = 'TEXT'
 INTEGER = 'INTEGER'
 REAL = 'REAL'
 DATE = 'TEXT' # SQLITE doesn't have a separate DATE type
+
 
 NAME = 'name'
 TYPE = 'type'

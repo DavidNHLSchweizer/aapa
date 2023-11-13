@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from database.dbargparser import dbArgParser
+from database.sql_expr import SQE
 
 class SQLFlags(dbArgParser):
     COLUMNS = 1

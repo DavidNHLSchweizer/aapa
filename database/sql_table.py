@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from database.sql_base import SQLFlags, SQLbase, SQLselectBase
 from database.table_def import ColumnDefinition, ForeignKeyDefinition, IndexDefinition, TableDefinition
 
-klote alias werkt nog niet.
+
 @dataclass
 class TableData:
     table_def: TableDefinition = None
@@ -23,7 +23,7 @@ class TableData:
 class SQLTablebase(SQLbase):
     def __init__(self, table_def: TableDefinition, **args):
         super().__init__(**args)
-        self.table_data = TableData(table_def, getattr(self,'alias', ''))
+        self.table_data = TableData(table_def, alias=getattr(self,'alias', ''))
     @property
     def table_name(self)->str:
         return self.table_data.table_name
@@ -37,8 +37,8 @@ class SQLTablebase(SQLbase):
 
 class SQLselect(SQLselectBase):
     def __init__(self, table_def: TableDefinition, **args):
-        self.table_data = TableData(table_def)
         super().__init__(**args)    
+        self.table_data = TableData(table_def, alias=getattr(self,'alias', ''))
     def _all_columns(self)->bool:
         return not self.arg_columns or self.arg_columns == []
     def _get_name(self):

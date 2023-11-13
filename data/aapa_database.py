@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Type
 from database.sql_table import SQLselect
-from database.sql_expr import SQE, Ops
+from database.sql_expr import SQE, Ops, SQEjoin
 from database.table_def import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
@@ -188,26 +188,23 @@ class StudentMilestonesDetailsTableDefinition(TableDefinition):
         self.add_column('milestone_type', dbc.INTEGER)    
         self.add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-# ViewDefinition('VIEW_AANVRAGEN', column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
-#                        select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
-#                     columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))
-
 class AanvragenViewDefinition(ViewDefinition):
     def __init__(self):
+        mst = MilestoneTableDefinition()
+        avt = AanvraagTableDefinition()
         super().__init__('VIEW_AANVRAGEN', 
                          column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'],
-                         key = 'id', select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['AANVRAGEN as A'], where=SQE('M.ID', Ops.EQ, 'A.ID'),
-                        columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str']))                                 
+                         key = 'id', join_expression = SQEjoin(tables=[mst.name, avt.name], on_keys=[mst.key, avt.key], alias=['M', 'A']),
+                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','datum_str'])                                 
 
 class VerslagenViewDefinition(ViewDefinition):
     def __init__(self):
-        sexy= SQLselect(MilestoneTableDefinition(), alias='M', joins=['VERSLAGEN as V'], where=SQE('M.ID', Ops.EQ, 'V.ID'))
-        print(sexy.query)
+        mst = MilestoneTableDefinition()
+        vvt = VerslagTableDefinition()
         super().__init__('VIEW_VERSLAGEN', 
                          column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','cijfer', 'directory'],
-                         key = 'id', select = SQLselect(MilestoneTableDefinition(), alias='M', joins=['VERSLAGEN as V'], where=SQE('M.ID', Ops.EQ, 'V.ID'),
-                        columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','cijfer', 'directory']))                                 
-
+                         key = 'id', join_expression = SQEjoin(tables=[mst.name, vvt.name], on_keys=[mst.key, vvt.key], alias=['M', 'V']),
+                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','cijfer', 'directory'])
 
 class AAPaSchema(Schema):
     ALL_TABLES:list[Type[TableDefinition]] = [

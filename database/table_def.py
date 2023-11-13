@@ -36,7 +36,7 @@ class ColumnFlags(dbArgParser):
         self.parse(ColumnFlags.ALL, target, ColumnFlags.flag_map, **args)
   
 class ColumnDefinition:
-    def __init__(self, name, type, **args):
+    def __init__(self, name: str, type:str, **args):
         self.name = name
         self.type = type
         self._compound_primary = False # SQLite doesn't support multiple PRIMARY KEY columns
@@ -117,7 +117,7 @@ class ForeignKeyAction(Enum):
         return self.value
 
 class ForeignKeyDefinition:
-    def __init__(self, column_name, ref_table, ref_column, onupdate: ForeignKeyAction = None, ondelete: ForeignKeyAction = None):
+    def __init__(self, column_name:str, ref_table, ref_column, onupdate: ForeignKeyAction = None, ondelete: ForeignKeyAction = None):
         self.column_name = column_name
         self.ref_table = ref_table
         self.ref_column = ref_column
@@ -144,7 +144,7 @@ class TableFlags(dbArgParser):
         self.parse(TableFlags.ALL, target, TableFlags.flag_map, **args)
 
 class TableDefinition:
-    def __init__(self, name, **args):
+    def __init__(self, name:str, **args):
         self.name = name
         self.columns:list[ColumnDefinition] = []
         self.foreign_keys: list[ForeignKeyDefinition] = []
