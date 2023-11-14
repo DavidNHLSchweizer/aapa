@@ -1,5 +1,5 @@
 from data.aapa_database import AanvragenViewDefinition, BaseDirsTableDefinition, MilestoneTableDefinition, \
-    AanvraagTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, \
+    AanvraagTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesDetailsTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
         StudentTableDefinition, VerslagTableDefinition, VerslagenViewDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone
@@ -93,10 +93,10 @@ def create_new_tables(database: Database):
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     print('initialiseren waardes voor BASEDIRS')
     _init_base_directories(database)
-    print('toevoegen nieuwe tabel STUDENT_MILESTONES')
-    database.execute_sql_command(SQLcreateTable(StudentMilestonesTableDefinition())) 
-    print('toevoegen nieuwe tabel STUDENT_MILESTONE_DETAILS')
-    database.execute_sql_command(SQLcreateTable(StudentMilestonesDetailsTableDefinition())) 
+    print('toevoegen nieuwe STUDENT_MILESTONES, STUDENT_AANVRAGEN en STUDENT_VERSLAGEN tabellen')
+    database.execute_sql_command(SQLcreateTable(StudentMilestonesTableDefinition()))             
+    database.execute_sql_command(SQLcreateTable(StudentAanvragenTableDefinition())) 
+    database.execute_sql_command(SQLcreateTable(StudentVerslagenTableDefinition())) 
     print('--- klaar toevoegen nieuwe tabellen')
 
 def create_milestones_table(database: Database):

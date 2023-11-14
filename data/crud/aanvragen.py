@@ -1,4 +1,6 @@
+from typing import Iterable
 from data.classes.bedrijven import Bedrijf
+from data.classes.files import File, Files
 from data.classes.studenten import Student
 from data.crud.bedrijven import CRUD_bedrijven
 from data.aapa_database import AanvraagTableDefinition, AanvragenViewDefinition
@@ -8,6 +10,7 @@ from data.crud.milestones import CRUD_milestones
 from data.crud.crud_base import CRUDbase
 from data.crud.studenten import CRUD_studenten
 from database.database import Database
+from general.log import log_debug
 from general.timeutil import TSC
 
 class CRUD_aanvragen(CRUDbase):
@@ -29,8 +32,28 @@ class CRUD_aanvragen(CRUDbase):
                 case 'source_info': 
                     return CRUD_files(self.database).read(value)
         return None
-    def _post_process(self, aapa_obj: Aanvraag)->Aanvraag:
+    def _post_process_read(self, aanvraag: Aanvraag)->Aanvraag:
         #corrects status and beoordeling types (read as ints from database) 
-        aapa_obj.status = Aanvraag.Status(aapa_obj.status)
-        aapa_obj.beoordeling = Aanvraag.Beoordeling(aapa_obj.beoordeling)
-        return aapa_obj 
+        aanvraag.status = Aanvraag.Status(aanvraag.status)
+        aanvraag.beoordeling = Aanvraag.Beoordeling(aanvraag.beoordeling)
+        aanvraag.files = self.find_all(aanvraag.id)
+        return aanvraag 
+    def __load(self, aanvraag_id: int, filetypes: set[File.Type], crud_files: CRUD_files)->Iterable[File]:
+        log_debug('__load')
+        params = [aanvraag_id]
+        params.extend([ft for ft in filetypes])
+        if rows:= self.database._execute_sql_command(f'select id from {crud_files.table.name} where aanvraag_id=? and filetype in (' + ','.join('?'*len(filetypes))+')', params, True):
+            file_IDs=[row["id"] for row in rows]
+            log_debug(f'found: {file_IDs}')
+            result = [crud_files.read(id) for id in file_IDs]
+            return result
+        return []
+    def find_all(self, aanvraag_id: int)->Files:
+        log_debug('find_all')
+        result = Files(aanvraag_id)
+        filetypes = {ft for ft in File.Type if ft != File.Type.UNKNOWN}
+        result.reset_file(filetypes)
+        if files := self.__load(aanvraag_id, filetypes, CRUD_files(self.database)):
+            for file in files:
+                result.set_file(file)
+        return result        

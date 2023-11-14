@@ -14,7 +14,7 @@ class CRUD_verslagen(CRUDbase):
                          view=VerslagenViewDefinition(), details=[CRUD_milestones(database)], autoID=True)
         self._db_map['directory']['db2obj'] = decode_path
         self._db_map['directory']['obj2db'] = encode_path
-    def _post_process(self, aapa_obj: Verslag)->Verslag:
+    def _post_process_read(self, aapa_obj: Verslag)->Verslag:
         #corrects status and beoordeling types (read as ints from database) 
         aapa_obj.status = Verslag.Status(aapa_obj.status)
         aapa_obj.beoordeling = Verslag.Beoordeling(aapa_obj.beoordeling)

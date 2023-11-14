@@ -14,7 +14,7 @@ from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.base_dirs import CRUD_basedirs
 from data.crud.bedrijven import  CRUD_bedrijven
 from data.crud.files import CRUD_files
-from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files, CRUD_action_log_relations
+from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files
 from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
 from data.crud.verslagen import CRUD_verslagen
@@ -324,7 +324,7 @@ class AanvraagStorage(ObjectStorage):
                         filetypes=filetypes if filetypes else ({filetype for filetype in File.Type} - {File.Type.UNKNOWN, File.Type.INVALID_PDF}))
     def read(self, id: int)->Aanvraag:
         aanvraag = super().read(id)
-        aanvraag.files = self.files.find_all(aanvraag.id)
+        # aanvraag.files = self.files.find_all(aanvraag.id)
         return aanvraag
     def update(self, aanvraag: Aanvraag):
         self.__create_table_references(aanvraag)        
@@ -408,22 +408,22 @@ NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 class ActionLogStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, CRUD_action_log(database))
-        self.relations: list[ActionLogRelationStorage] = [ActionLogAanvragenStorage(database), ActionLogInvalidFilesStorage(database)]
+        self.details: list[ActionLogRelationStorage] = [ActionLogAanvragenStorage(database), ActionLogInvalidFilesStorage(database)]
     def create(self, action_log: ActionLog):
         super().create(action_log)
-        for relation in self.relations:
+        for relation in self.details:
             relation.create(action_log)
     def read(self, id: int)->ActionLog:
         result: ActionLog = super().read(id)
-        for relation in self.relations:
+        for relation in self.details:
             relation.read(result)
         return result
     def update(self, action_log: ActionLog):
         super().update(action_log)
-        for relation in self.relations:
+        for relation in self.details:
             relation.update(action_log)
     def delete(self, id: int):
-        for relation in self.relations:
+        for relation in self.details:
             relation.delete(id)
         super().delete(id)
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:

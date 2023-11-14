@@ -4,6 +4,7 @@ from enum import IntEnum
 import os
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
+from debug.debug import classname
 from general.log import log_debug
 from general.singular_or_plural import sop
 from general.timeutil import TSC
@@ -34,6 +35,13 @@ class ActionLog:
         self.date = datetime.datetime.now()
     def stop(self):
         pass # voor latere toevoegingen
+    def add(self, object: Aanvraag|File):
+        if isinstance(object, Aanvraag):
+            self.add_aanvraag(object)
+        elif isinstance(object, File):
+            self.add_invalid_file(object)
+        else:
+            raise TypeError(f'Not supported in ActionLog: {classname(object)}')
     def add_aanvraag(self, aanvraag: Aanvraag):
         self.aanvragen.append(aanvraag)
     def remove_aanvraag(self, aanvraag: Aanvraag):

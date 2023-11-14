@@ -1,8 +1,12 @@
 from __future__ import annotations
+from abc import abstractmethod
+from dataclasses import dataclass
+from enum import Enum, auto
 from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
+from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.classes.action_log import ActionLog
 from data.classes.verslagen import Verslag
@@ -16,8 +20,15 @@ from general.keys import get_next_key
 from general.log import log_debug
 
 DBtype = type[str|int|float]
-AAPAClass = type[Bedrijf|Student|File|Files|Aanvraag|ActionLog|Verslag]
+AAPAClass = type[Bedrijf|Student|File|Files|Aanvraag|ActionLog|Verslag|Milestone]
 KeyClass = type[int|str]
+class CRUD(Enum):
+    CREATE=auto()
+    READ  =auto()
+    UPDATE=auto()
+    DELETE=auto()
+
+
 class CRUDbase:    
     #base class also supporting views for reading (SQLite views only support reading)
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
@@ -86,10 +97,8 @@ class CRUDbase:
                     class_dict[record['new_attr']] = record['new_value'] 
                     del class_dict[attr]                
                 log_debug(f'CLASSDICT:{str(class_dict)}')
-                return self._post_process(self.class_type(**class_dict))
+                return self._post_process(self.class_type(**class_dict), CRUD.READ)
         return None 
-    def _post_process(self, aapa_obj: AAPAClass)->AAPAClass:
-        return aapa_obj # placeholder for possible postprocessing in read objects
     def update(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) update {str(aapa_obj)}')
         where = None
@@ -110,3 +119,54 @@ class CRUDbase:
         key = self.table.key
         attrib = self._db_map[key]['attrib']
         self.database.delete_record(self.table, where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value), no_column_ref=self.no_column_ref_for_key))
+    def _pre_process(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
+        return aapa_obj # placeholder for possible postprocessing in read objects
+    def _post_process(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
+        return aapa_obj # placeholder for possible postprocessing in read objects
+
+class CRUDbaseDetails(CRUDbase):
+#solution for n-n relation tabel 
+    @dataclass
+    class DetailRec:
+        main_id: int 
+        detail_id: int
+    DetailRecs = list[DetailRec]
+
+    def __init__(self, CRUD_main: CRUDbase, detail_table: TableDefinition):
+        assert len(detail_table.keys) == 2
+        super().__init__(CRUD_main.database, class_type=None, table=detail_table)
+    def _get_relation_column_name(self)->str:
+        log_debug(f'GRC: {self.table.keys[1]}')
+        return self.table.keys[1]
+    @abstractmethod
+    def _get_objects(self, object: AAPAClass)->Iterable[AAPAClass]:
+        return None #implement in descendants
+    def get_detail_records(self, main: AAPAClass)->DetailRecs:
+        return [CRUDbaseDetails.DetailRec(main.id, detail.id) 
+                for detail in sorted(self._get_objects(main), key=lambda d: d.id)]
+                #gesorteerd om dat het anders in onlogische volgorde wordt gedaan en vergelijking ook lastig wordt (zie update)
+    def read(self, main_id: int)->DetailRecs:
+        result = []
+        if rows:=super().read(main_id, multiple=True):
+            for row in rows:
+                result.append(CRUDbaseDetails.DetailRec(main_id=main_id, detail_id=row[self._get_relation_column_name()]))
+        return result
+    def update(self, main: AAPAClass):
+        def is_changed()->bool:
+            new_records = self.get_detail_records(main)
+            current_records= self.read(main.id)
+            if len(new_records) != len(current_records):
+                return True
+            else:
+                for new, current in zip(new_records, current_records):
+                    if new != current:
+                        return True
+            return False
+        if is_changed():
+            self._update(main)
+    def _update(self, main: AAPAClass):        
+        self.delete(main.id)    
+        self.create(main)
+    def delete_relation(self, detail_id: int):
+        self.database._execute_sql_command(f'delete from {self.table.name} where {self._get_relation_column_name()}=?', [detail_id])        
+

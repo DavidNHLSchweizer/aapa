@@ -146,21 +146,21 @@ class ActionLogTableDefinition(TableDefinition):
         self.add_column('date', dbc.DATE)   
         self.add_column('can_undo', dbc.INTEGER)
 
-class ActionLogAanvragenTableDefinition(TableDefinition):
-    def __init__(self):
-        super().__init__('ACTIONLOG_AANVRAGEN')
+class ActionLogDetailsTableDefinition(TableDefinition):
+    def __init__(self, name: str, detail_id: int, detail_table: str):
+        super().__init__(name)
         self.add_column('log_id', dbc.INTEGER, primary = True)
-        self.add_column('aanvraag_id', dbc.INTEGER, primary = True)  
+        self.add_column(detail_id, dbc.INTEGER, primary = True)  
         self.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key(detail_id, detail_table, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+
+class ActionLogAanvragenTableDefinition(ActionLogDetailsTableDefinition):
+    def __init__(self):
+        super().__init__('ACTIONLOG_AANVRAGEN', 'aanvraag_id', 'AANVRAGEN')
        
-class ActionLogFilesTableDefinition(TableDefinition):
+class ActionLogFilesTableDefinition(ActionLogDetailsTableDefinition):
     def __init__(self):
-        super().__init__('ACTIONLOG_FILES')
-        self.add_column('log_id', dbc.INTEGER, primary = True)
-        self.add_column('file_id', dbc.INTEGER, primary = True)    
-        self.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        super().__init__('ACTIONLOG_FILES', 'file_id', 'FILES')
     
 class BaseDirsTableDefinition(TableDefinition):
     def __init__(self):
@@ -181,13 +181,20 @@ class StudentMilestonesTableDefinition(TableDefinition):
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 class StudentMilestonesDetailsTableDefinition(TableDefinition):
+    def __init__(self, name: str, detail_id: int, detail_table: str):
+        super().__init__(name)
+        self.add_column('sms_id', dbc.INTEGER, primary = True)
+        self.add_column(detail_id, dbc.INTEGER, primary = True)  
+        self.add_foreign_key('sms_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key(detail_id, detail_table, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+
+class StudentAanvragenTableDefinition(StudentMilestonesDetailsTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_MILESTONES_DETAILS')
-        self.add_column('id', dbc.INTEGER, primary = True)
-        self.add_column('milestones_id', dbc.INTEGER)
-        self.add_column('milestone_id', dbc.INTEGER)
-        self.add_column('milestone_type', dbc.INTEGER)    
-        self.add_foreign_key('milestones_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        super().__init__('STUDENT_AANVRAGEN', 'aanvraag_id', 'AANVRAGEN')
+
+class StudentVerslagenTableDefinition(StudentMilestonesDetailsTableDefinition):
+    def __init__(self):
+        super().__init__('STUDENT_VERSLAGEN', 'verslag_id', 'VERSLAGEN')
 
 class AanvragenViewDefinition(ViewDefinition):
     def __init__(self):
@@ -223,9 +230,10 @@ class AAPaSchema(Schema):
         ActionLogAanvragenTableDefinition,
         ActionLogFilesTableDefinition,
         BaseDirsTableDefinition,
-        StudentMilestonesTableDefinition,
-        StudentMilestonesDetailsTableDefinition,
-        MilestoneTableDefinition,        
+        MilestoneTableDefinition,  
+        StudentMilestonesTableDefinition,      
+        StudentAanvragenTableDefinition,
+        StudentVerslagenTableDefinition,
     ]
     ALL_VIEWS:list[Type[ViewDefinition]]= [ 
                 AanvragenViewDefinition,
