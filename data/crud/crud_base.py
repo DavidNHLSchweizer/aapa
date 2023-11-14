@@ -86,8 +86,10 @@ class CRUDbase:
                     class_dict[record['new_attr']] = record['new_value'] 
                     del class_dict[attr]                
                 log_debug(f'CLASSDICT:{str(class_dict)}')
-                return self.class_type(**class_dict)
+                return self._post_process(self.class_type(**class_dict))
         return None 
+    def _post_process(self, aapa_obj: AAPAClass)->AAPAClass:
+        return aapa_obj # placeholder for possible postprocessing in read objects
     def update(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) update {str(aapa_obj)}')
         where = None

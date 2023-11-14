@@ -19,8 +19,6 @@ class CRUD_aanvragen(CRUDbase):
         self._db_map['source_file_id']['attrib'] = 'source_info.id'
         self._db_map['datum']['db2obj'] = TSC.str_to_timestamp
         self._db_map['datum']['obj2db'] = TSC.timestamp_to_str
-        # self._db_map['status']['db2obj'] = Aanvraag.Status
-        # self._db_map['beoordeling']['db2obj'] = Aanvraag.Beoordeling
     def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->Student|Bedrijf:
         if sub_attrib_name == 'id':
             match main_part:
@@ -31,3 +29,8 @@ class CRUD_aanvragen(CRUDbase):
                 case 'source_info': 
                     return CRUD_files(self.database).read(value)
         return None
+    def _post_process(self, aapa_obj: Aanvraag)->Aanvraag:
+        #corrects status and beoordeling types (read as ints from database) 
+        aapa_obj.status = Aanvraag.Status(aapa_obj.status)
+        aapa_obj.beoordeling = Aanvraag.Beoordeling(aapa_obj.beoordeling)
+        return aapa_obj 

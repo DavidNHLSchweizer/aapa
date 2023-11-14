@@ -106,10 +106,9 @@ def create_milestones_table(database: Database):
     sql = "select id,stud_id,bedrijf_id,titel,kans,status,beoordeling from AANVRAGEN"
     sql2 = "insert into MILESTONES(id,milestone_type,stud_id,bedrijf_id,titel,kans,beoordeling,status) values(?,?,?,?,?,?,?,?)"
     for row in database._execute_sql_command(sql, [], True):
-        beoord = str(Milestone.Beoordeling(row['beoordeling']))
         database._execute_sql_command(sql2,[row['id'],int(Milestone.Type.AANVRAAG),
                                             row['stud_id'],row['bedrijf_id'],
-                                            row['titel'],row['kans'],beoord,row['status']])
+                                            row['titel'],row['kans'],row['beoordeling'],row['status']])
     # database.commit()
     database._execute_sql_command('UPDATE MILESTONES SET datum=\
                 (select timestamp from FILES WHERE FILES.aanvraag_id=MILESTONES.ID and filetype=0)',

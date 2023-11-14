@@ -50,7 +50,7 @@ class ObjectStorage:
     def read_all(self)->Iterable[AAPAClass]:
         if (rows := self.database._execute_sql_command(f'select id from {self.table_name}', [],True)):
             return [self.crud.read(row['id']) for row in rows] 
-        return None  
+        return []  
         
 class BedrijvenStorage(ObjectStorage):
     def __init__(self, database: Database):

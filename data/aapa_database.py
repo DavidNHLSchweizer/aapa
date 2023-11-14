@@ -86,7 +86,7 @@ class MilestoneTableDefinition(TableDefinition):
         self.add_column('titel', dbc.TEXT)
         self.add_column('kans', dbc.INTEGER)
         self.add_column('status', dbc.INTEGER)
-        self.add_column('beoordeling', dbc.TEXT)
+        self.add_column('beoordeling', dbc.INTEGER)
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 

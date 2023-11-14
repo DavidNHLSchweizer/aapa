@@ -70,6 +70,7 @@ class StudentMilestonesDetector(FileProcessor):
             return None
         try:    
             student = self._get_student(dirname, storage)  
+            log_print(f'Student: {student}')
             student_milestones = StudentMilestones(student, self.base_dir)
             if do_it and (aanvraag := self._get_aanvraag(student, storage)):
                 student_milestones.add(aanvraag)

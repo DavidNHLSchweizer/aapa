@@ -150,7 +150,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     if not Path(directory).is_dir():
         log_error(f'Map {directory} bestaat niet. Afbreken.')
         return 0  
-    log_info(f'Start import van map  {directory}...', to_console=True)
+    log_info(f'Start import van map {directory}...', to_console=True)
     if Path(output_directory).is_relative_to(directory):
         log_warning(f'Directory {summary_string(output_directory)}\n\tis onderdeel van {summary_string(directory)}.\n\tWordt overgeslagen.', to_console=True)           
         skip_directories = {Path(output_directory)}
