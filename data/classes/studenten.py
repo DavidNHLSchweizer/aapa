@@ -22,7 +22,7 @@ class Student:
             return False
         if  self.tel_nr != value.tel_nr:
             return False
-        if  self.email != value.email:
+        if  self.email.lower() != value.email.lower():
             return False
         return True
     def last_name(self):
