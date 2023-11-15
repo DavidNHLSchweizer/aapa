@@ -2,15 +2,18 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 import os
+from typing import Type
 from data.classes.aanvragen import Aanvraag
+from data.classes.aggregator import Aggregator
 from data.classes.files import File
 from debug.debug import classname
-from general.log import log_debug
+from general.log import log_debug, log_warning
 from general.singular_or_plural import sop
 from general.timeutil import TSC
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
-       
+
+ActionLogData=Type[Aanvraag|File]       
 class ActionLog:
     class Action(IntEnum):
         NOLOG   = 0
@@ -27,35 +30,38 @@ class ActionLog:
         self.description = description
         self.date:datetime.datetime = date
         self.user = user
-        self.aanvragen: list[Aanvraag]=[]
-        self.invalid_files: list[File]=[] 
+        self.data = self.__init_data()
         self.can_undo = can_undo
+    def __init_data(self)->Aggregator:
+        result = Aggregator()
+        result.add_class(Aanvraag, 'aanvraag')
+        result.add_class(File, 'invalid_file')
+    @property
+    def aanvragen(self)->list[Aanvraag]:
+        return self.data.as_list('aanvraag')
+    @aanvragen.setter
+    def aanvragen(self, value: list[Aanvraag]):
+        self.data.clear('aanvraag')
+        self.data.add(value)
+    @property
+    def invalid_files(self)->list[File]:
+        return self.data.as_list('invalid_file')
+    @invalid_files.setter
+    def invalid_files(self, value: list[File]):
+        self.data.clear('invalid_file')
+        self.data.add(value)
     def start(self):
-        self.aanvragen = []
+        self.clear_aanvragen()
+        self.clear_invalid_files()
         self.date = datetime.datetime.now()
     def stop(self):
         pass # voor latere toevoegingen
-    def add(self, object: Aanvraag|File):
-        if isinstance(object, Aanvraag):
-            self.add_aanvraag(object)
-        elif isinstance(object, File):
-            self.add_invalid_file(object)
-        else:
-            raise TypeError(f'Not supported in ActionLog: {classname(object)}')
-    def add_aanvraag(self, aanvraag: Aanvraag):
-        self.aanvragen.append(aanvraag)
-    def remove_aanvraag(self, aanvraag: Aanvraag):
-        try:
-            self.aanvragen.remove(aanvraag)
-        except ValueError as E:
-            pass
-    def add_invalid_file(self, file: File):
-        self.invalid_files.append(file)
-    def remove_invalid_file(self, file: File):
-        try:
-            self.invalid_files.remove(file)
-        except ValueError as E:
-            pass
+    def add(self, object: ActionLogData, duplicate_warning=False):
+        if duplicate_warning and self.data.contains(object):
+            log_warning(f'Duplicate key in ActionLog: {str(object)} is already registered')
+        self.data.add(object)
+    def remove(self, object: ActionLogData)->ActionLogData:
+        self.data.remove(object)
     def clear_aanvragen(self):
         self.aanvragen = []
     def clear_invalid_files(self):
@@ -63,20 +69,28 @@ class ActionLog:
     @property
     def nr_aanvragen(self)->int:
         return len(self.aanvragen)
-    def is_empty(self)->bool:
-        return self.nr_aanvragen == 0
-    def __str__(self)->str:
+    @property
+    def nr_invalid_files(self)->int:
+        return len(self.aanvragen)
+    def is_empty(self, class_alias: str='')->bool:
+        match class_alias:
+            case 'aanvraag': return self.nr_aanvragen == 0
+            case 'invalid_file': return self.nr_invalid_files == 0
+            case _: return self.nr_aanvragen == 0 and self.nr_invalid_files == 0
+    def __str_aanvragen(self)->str:
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
         result = f'{self.action} {date_str} [{self.user}] ({self.id})' 
-        if self.is_empty():
+        if self.is_empty('aanvraag'):
             return result + ' (geen aanvragen)'
         else:
             result = result + f'!{self.nr_aanvragen} {sop(self.nr_aanvragen, "aanvraag", "aanvragen")}'
             can_undo_str = 'kan worden' if self.can_undo else ''
             result = f"{result} [{can_undo_str} teruggedraaid]"
-            return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])
+            return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])            
+    def __str__(self)->str:
+        return self.__str_aanvragen()
     def summary(self)->str:
         log_debug(f'full action: {str(self)}')
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
-        aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty() else 'geen'
+        aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty('aanvraag') else 'geen'
         return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen", False)})'
