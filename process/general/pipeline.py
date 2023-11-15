@@ -33,7 +33,7 @@ class Pipeline:
         log_debug(f'STARTING pipeline {self.action_log}')
     def log_aanvraag(self, aanvraag: Aanvraag):
         if aanvraag and aanvraag.status != Aanvraag.Status.DELETED:
-            self.action_log._add_aanvraag(aanvraag)
+            self.action_log.add(aanvraag)
     def stop_logging(self):
         self.action_log.stop()
         log_debug(f'STOPPING aanvragenprocessor {self.action_log}')
@@ -95,7 +95,7 @@ class FilePipeline(Pipeline):
             log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
             for entry in self._invalid_files:
                 log_debug(f'invalid file: {entry}')
-                self.action_log._add_invalid_file(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
+                self.action_log.add(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
             self.storage.commit()
             self.stop_logging()     
             log_debug(f'end process (f"{self.description}") {n_processed=} {n_files=}')       

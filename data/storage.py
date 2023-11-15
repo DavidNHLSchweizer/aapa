@@ -398,11 +398,11 @@ class ActionLogRelationStorage:
 
 class ActionLogAanvragenStorage(ActionLogRelationStorage):
     def __init__(self, database: Database):
-        super().__init__(CRUD_action_log_aanvragen(database), AanvraagStorage(database), 'add_aanvraag')
+        super().__init__(CRUD_action_log_aanvragen(database), AanvraagStorage(database), 'add')
 
 class ActionLogInvalidFilesStorage(ActionLogRelationStorage):
     def __init__(self, database: Database):
-        super().__init__(CRUD_action_log_invalid_files(database), FilesStorage(database), 'add_invalid_file')
+        super().__init__(CRUD_action_log_invalid_files(database), FilesStorage(database), 'add')
 
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 class ActionLogStorage(ObjectStorage):

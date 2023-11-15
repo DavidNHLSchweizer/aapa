@@ -30,26 +30,27 @@ class ActionLog:
         self.description = description
         self.date:datetime.datetime = date
         self.user = user
-        self.data = self.__init_data()
+        self._data = self.__init_data()
         self.can_undo = can_undo
     def __init_data(self)->Aggregator:
         result = Aggregator()
         result.add_class(Aanvraag, 'aanvraag')
         result.add_class(File, 'invalid_file')
+        return result
     @property
     def aanvragen(self)->list[Aanvraag]:
-        return self.data.as_list('aanvraag')
+        return self._data.as_list('aanvraag')
     @aanvragen.setter
     def aanvragen(self, value: list[Aanvraag]):
-        self.data.clear('aanvraag')
-        self.data.add(value)
+        self._data.clear('aanvraag')
+        self._data.add(value)
     @property
     def invalid_files(self)->list[File]:
-        return self.data.as_list('invalid_file')
+        return self._data.as_list('invalid_file')
     @invalid_files.setter
     def invalid_files(self, value: list[File]):
-        self.data.clear('invalid_file')
-        self.data.add(value)
+        self._data.clear('invalid_file')
+        self._data.add(value)
     def start(self):
         self.clear_aanvragen()
         self.clear_invalid_files()
@@ -57,11 +58,11 @@ class ActionLog:
     def stop(self):
         pass # voor latere toevoegingen
     def add(self, object: ActionLogData, duplicate_warning=False):
-        if duplicate_warning and self.data.contains(object):
+        if duplicate_warning and self._data.contains(object):
             log_warning(f'Duplicate key in ActionLog: {str(object)} is already registered')
-        self.data.add(object)
+        self._data.add(object)
     def remove(self, object: ActionLogData)->ActionLogData:
-        self.data.remove(object)
+        self._data.remove(object)
     def clear_aanvragen(self):
         self.aanvragen = []
     def clear_invalid_files(self):
