@@ -71,9 +71,6 @@ class Aanvraag(Milestone):
         return True
     def valid(self):
         return self.student.valid() and self.bedrijf.valid() 
-    @property
-    def student_versie(self):
-        return self.__versie
     @property 
     def datum_str(self):
         return self.__datum_str

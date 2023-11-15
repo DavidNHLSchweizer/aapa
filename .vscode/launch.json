@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -35,7 +36,6 @@
             "justMyCode": true,
             "args": [
                 "scan",
-                "-preview",
                 "-debug",
             ]
         },

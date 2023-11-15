@@ -5,6 +5,7 @@ from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFiles
 from data.classes.action_log  import ActionLog
 from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.crud_base import AAPAClass, CRUDbase, CRUDbaseDetails
+from data.crud.crud_factory import registerCRUD
 from data.crud.files import CRUD_files
 from database.database import Database
 from database.table_def import TableDefinition
@@ -12,20 +13,20 @@ from general.log import log_debug
 from general.timeutil import TSC
 
 class CRUD_action_log_aanvragen(CRUDbaseDetails):
-    def __init__(self, database: Database):
-        super().__init__(CRUD_action_log(database), ActionLogAanvragenTableDefinition())
+    # def __init__(self, database: Database):
+    #     super().__init__(CRUD_action_log(database), ActionLogAanvragenTableDefinition())
     def _get_objects(self, action_log: ActionLog)->Iterable[AAPAClass]:
         return action_log.aanvragen
 
 class CRUD_action_log_invalid_files(CRUDbaseDetails):
-    def __init__(self, database: Database):
-        super().__init__(CRUD_action_log(database), ActionLogFilesTableDefinition())
+    # def __init__(self, database: Database):
+    #     super().__init__(CRUD_action_log(database), ActionLogFilesTableDefinition())
     def _get_objects(self, action_log: ActionLog)->Iterable[AAPAClass]:
         return action_log.invalid_files
 
+
 class CRUD_action_log(CRUDbase):
-    def __init__(self, database: Database):
-        super().__init__(database, class_type=ActionLog, table=ActionLogTableDefinition(), autoID=True)
+    def _after_init_(self):
         self._db_map['date']['db2obj'] = TSC.str_to_timestamp
         self._db_map['date']['obj2db'] = TSC.timestamp_to_str
         self._db_map['can_undo']['db2obj'] = bool
@@ -44,3 +45,4 @@ class CRUD_action_log(CRUDbase):
             self.add_details(action_log, record['crud_details'](self.database), record['crud_table'](self.database))            
             return action_log
 
+registerCRUD(CRUD_action_log, class_type=ActionLog, table=ActionLogTableDefinition(), autoID=True)

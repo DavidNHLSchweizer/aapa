@@ -13,6 +13,7 @@ from data.classes.verslagen import Verslag
 from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.base_dirs import CRUD_basedirs
 from data.crud.bedrijven import  CRUD_bedrijven
+from data.crud.crud_factory import createCRUD
 from data.crud.files import CRUD_files
 from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files
 from data.crud.studenten import CRUD_studenten
@@ -28,9 +29,9 @@ from general.timeutil import TSC
 class StorageException(Exception): pass
 
 class ObjectStorage:
-    def __init__(self, database: Database, crud: CRUDbase):
+    def __init__(self, database: Database, class_type: AAPAClass):
         self.database = database
-        self.crud  = crud
+        self.crud  = createCRUD(database, class_type)
     def create(self, object: AAPAClass):
         self.crud.create(object)
     def read(self, key)->AAPAClass:
@@ -54,22 +55,22 @@ class ObjectStorage:
         
 class BedrijvenStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_bedrijven(database))
-    def create(self, bedrijf: Bedrijf):
-        if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (name=?)', [bedrijf.name], True):
-            bedrijf.id = row[0]['id']
-        else:
-            super().create(bedrijf)
+        super().__init__(database, Bedrijf)
+    # def create(self, bedrijf: Bedrijf):
+    #     if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (name=?)', [bedrijf.name], True):
+    #         bedrijf.id = row[0]['id']
+    #     else:
+    #         super().create(bedrijf)
 
 class StudentenStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_studenten(database))
-    def create(self, student: Student):
-        if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (stud_nr=? or full_name=? or email=?)', 
-                                                    [student.stud_nr, student.full_name, student.email], True):
-            student.id = row[0]['id']
-        else:
-            super().create(student)
+        super().__init__(database, Student)
+    # # def create(self, student: Student):
+    #     if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (stud_nr=? or full_name=? or email=?)', 
+    #                                                 [student.stud_nr, student.full_name, student.email], True):
+    #         student.id = row[0]['id']
+    #     else:
+    #         super().create(student)
     def find_by_column_value(self, column_name: str, value: str)->Student:
         if row:=self.database._execute_sql_command(f'select id from {self.table_name} where ({column_name}=?)', [value], True):
             return self.read(row[0][0])
@@ -174,7 +175,7 @@ class FileStorageRecord:
     
 class FilesStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_files(database))
+        super().__init__(database, File)
         self.sync_strategy = FileSync(self)
     @property
     def crud_files(self)->CRUD_files:
@@ -301,7 +302,7 @@ class FilesStorage(ObjectStorage):
 
 class AanvraagStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_aanvragen(database))
+        super().__init__(database, Aanvraag)
         self.view = self.crud.view
         self.view_name = self.view.name
         self.files = FilesStorage(database)
@@ -310,7 +311,7 @@ class AanvraagStorage(ObjectStorage):
         # self.super_table_name = self.crud.super_CRUD.table.name
     def create(self, aanvraag: Aanvraag):
         log_debug(f'AANVRAAGSTORAGE create ({aanvraag})')
-        self.__create_table_references(aanvraag)
+        # self.__create_table_references(aanvraag)
         log_debug(f'AANVRAAGSTORAGE 2')
         # aanvraag.files.set_info(source_file)
         aanvraag.kans = self.__count_student_aanvragen(aanvraag) + 1
@@ -370,6 +371,7 @@ class AanvraagStorage(ObjectStorage):
         else:
             return 0    
     def __create_table_references(self, aanvraag: Aanvraag):
+        return
         if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
             (row:= self.database._execute_sql_command(f'select * from {self.bedrijven.table_name} where (name=?)', [aanvraag.bedrijf.name], True)):
             aanvraag.bedrijf.id = row[0]['id']
@@ -379,7 +381,7 @@ class AanvraagStorage(ObjectStorage):
             self.studenten.create(aanvraag.student)
 
 class ActionLogRelationStorage:
-    def __init__(self, crud: CRUD_action_log_relations, rel_storage: ObjectStorage, add_method: str):
+    def __init__(self, crud: CRUDbase, rel_storage: ObjectStorage, add_method: str):
         self.crud = crud
         self.rel_storage = rel_storage
         self.add_method = add_method
@@ -407,24 +409,24 @@ class ActionLogInvalidFilesStorage(ActionLogRelationStorage):
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 class ActionLogStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_action_log(database))
-        self.details: list[ActionLogRelationStorage] = [ActionLogAanvragenStorage(database), ActionLogInvalidFilesStorage(database)]
+        super().__init__(database, ActionLog)
+        # self.details: list[ActionLogRelationStorage] = [ActionLogAanvragenStorage(database), ActionLogInvalidFilesStorage(database)]
     def create(self, action_log: ActionLog):
         super().create(action_log)
-        for relation in self.details:
-            relation.create(action_log)
+        # for relation in self.details:
+        #     relation.create(action_log)
     def read(self, id: int)->ActionLog:
         result: ActionLog = super().read(id)
-        for relation in self.details:
-            relation.read(result)
+        # for relation in self.details:
+        #     relation.read(result)
         return result
     def update(self, action_log: ActionLog):
         super().update(action_log)
-        for relation in self.details:
-            relation.update(action_log)
+        # for relation in self.details:
+        #     relation.update(action_log)
     def delete(self, id: int):
-        for relation in self.details:
-            relation.delete(id)
+        # for relation in self.details:
+        #     relation.delete(id)
         super().delete(id)
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id == EMPTY_ID:
@@ -439,7 +441,7 @@ class ActionLogStorage(ObjectStorage):
 
 class VerslagStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_verslagen(database))
+        super().__init__(database, Verslag)
         self.files = FilesStorage(database)
         self.studenten = StudentenStorage(database)
     def create(self, verslag: Verslag):
@@ -470,7 +472,7 @@ class VerslagStorage(ObjectStorage):
 
 class BaseDirStorage(ObjectStorage):
     def __init__(self, database: Database):
-        super().__init__(database, CRUD_basedirs(database))
+        super().__init__(database, BaseDir)
     def find_base_dir(self, directory: str)->BaseDir:
         if (row := self.database._execute_sql_command('select id from BASEDIRS where directory=?', 
                                                       [self.crud.map_object_to_db('directory', directory)], True)):
