@@ -45,6 +45,7 @@ class AanvraagValidator:
         if not is_valid_email(self.validated_aanvraag.student.email):
             new_email = try_extract_email(self.validated_aanvraag.student.email, True)
             if new_email:
+                new_email = new_email.lower()
                 log_warning(f'Aanvraag email is ongeldig:\n\t({self.validated_aanvraag.student.email}),\n\taangepast als {new_email}.')
                 self.validated_aanvraag.student.email = new_email
                 self.student_changed = True

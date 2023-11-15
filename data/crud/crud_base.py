@@ -76,15 +76,15 @@ class CRUDbase:
         #nog niet helemaal waar het moet zijn
         where_clause = ' AND '.join(f'({colname}={"?"})' for colname in column_names)
         sql = f'SELECT {self.table.key} from {self.table.name} WHERE {where_clause}'
-        if (rows := self.database._execute_sql_command(sql, values), True):
-            if len(rows > 1):
+        if (rows := self.database._execute_sql_command(sql, values, True)):
+            if len(rows) > 1:
                 return [self.read(row[0]) for row in rows]
             else:
                 return self.read(rows[0][0])
         return None
     def find(self, aapa_obj: AAPAClass)->AAPAClass:        
-        return self.__find_by_column_values(self._get_all_columns(include_key=False, use_view=True), 
-                                            self._get_all_values(aapa_obj, include_key=False, use_view=True))
+        return self.__find_by_column_values(self._get_all_columns(include_key=False, use_view=False), 
+                                            self._get_all_values(aapa_obj, include_key=False, use_view=False))
     def __check_already_there(self, aapa_obj: AAPAClass)->bool:
         if stored := self.find(aapa_obj):
             if stored == aapa_obj:
@@ -92,22 +92,22 @@ class CRUDbase:
             else:
                 log_debug(f'--- different in database ----')
                 # self.update(aapa_obj) denk ik niet nodig
-                return
+            #find checks without key, so the key could still be EMPTY_ID
+            setattr(aapa_obj, self.table.key, getattr(stored, self.table.key))
             return True
         return False
     def create(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) create {str(aapa_obj)}')
+        if self.subclass_CRUDs:
+            self.__create_subclasses(aapa_obj)
         if self.__check_already_there(aapa_obj):
             return
         if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
         for superclass_CRUD in self.superclass_CRUDs:
             superclass_CRUD.create(aapa_obj)
-        if self.subclass_CRUDs:
-            self.__create_subclasses(aapa_obj)
         self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(aapa_obj)) 
     def __create_subclass_if_not_exists(self, aapa_obj: AAPAClass, attr: str, sub_crud: CRUDbase)->AAPAClass:
-        subclass_key = sub_crud.table.key
         sub_object = getattr(aapa_obj, attr)
         sub_crud.create(sub_object)
         setattr(aapa_obj, attr, sub_object)
