@@ -76,8 +76,9 @@ class BedrijfTableDefinition(TableDefinition):
         self.add_column('name', dbc.TEXT)    
 
 class MilestoneTableDefinition(TableDefinition):
-    def __init__(self):
-        super().__init__('MILESTONES')
+    #model voor AANVRAGEN en VERSLAGEN tabellen
+    def __init__(self, name: str):
+        super().__init__(name)
         self.add_column('id', dbc.INTEGER, primary = True) 
         self.add_column('milestone_type', dbc.INTEGER)
         self.add_column('datum', dbc.TEXT)
@@ -90,20 +91,16 @@ class MilestoneTableDefinition(TableDefinition):
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class AanvraagTableDefinition(TableDefinition):
+class AanvraagTableDefinition(MilestoneTableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
-        self.add_column('id', dbc.INTEGER, primary = True) 
         self.add_column('datum_str', dbc.TEXT)
-        self.add_foreign_key('id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class VerslagTableDefinition(TableDefinition):
+class VerslagTableDefinition(MilestoneTableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
-        self.add_column('id', dbc.INTEGER, primary = True) 
         self.add_column('cijfer', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
-        self.add_foreign_key('id', 'MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
 # Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (700 files) 
@@ -196,26 +193,6 @@ class StudentVerslagenTableDefinition(StudentMilestonesDetailsTableDefinition):
     def __init__(self):
         super().__init__('STUDENT_VERSLAGEN', 'verslag_id', 'VERSLAGEN')
 
-class AanvragenViewDefinition(ViewDefinition):
-    def __init__(self):
-        mst = MilestoneTableDefinition()
-        avt = AanvraagTableDefinition()
-        ft  = FilesTableDefinition()
-        super().__init__('VIEW_AANVRAGEN', 
-                         column_names=['id','datum','stud_id', 'bedrijf_id', 'source_file_id', 'titel','kans','status','beoordeling','datum_str'],
-                         key = 'id', join_expression = 
-                         SQEjoin(tables=[mst.name, avt.name, ft.name], on_keys=[mst.key, avt.key, 'aanvraag_id'], alias=['M', 'A', 'F']),
-                         where=SQE('F.filetype', Ops.EQ, int(File.Type.AANVRAAG_PDF)),
-                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'F.ID', 'titel','kans','status','beoordeling','datum_str'])                                 
-
-class VerslagenViewDefinition(ViewDefinition):
-    def __init__(self):
-        mst = MilestoneTableDefinition()
-        vvt = VerslagTableDefinition()
-        super().__init__('VIEW_VERSLAGEN', 
-                         column_names=['id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','cijfer', 'directory'],
-                         key = 'id', join_expression = SQEjoin(tables=[mst.name, vvt.name], on_keys=[mst.key, vvt.key], alias=['M', 'V']),
-                         columns=['M.id','datum','stud_id', 'bedrijf_id', 'titel','kans','status','beoordeling','cijfer', 'directory'])
 
 class AAPaSchema(Schema):
     ALL_TABLES:list[Type[TableDefinition]] = [
@@ -230,14 +207,11 @@ class AAPaSchema(Schema):
         ActionLogAanvragenTableDefinition,
         ActionLogFilesTableDefinition,
         BaseDirsTableDefinition,
-        MilestoneTableDefinition,  
         StudentMilestonesTableDefinition,      
         StudentAanvragenTableDefinition,
         StudentVerslagenTableDefinition,
     ]
     ALL_VIEWS:list[Type[ViewDefinition]]= [ 
-                AanvragenViewDefinition,
-                VerslagenViewDefinition,
                 ]
     def __init__(self):
         super().__init__()

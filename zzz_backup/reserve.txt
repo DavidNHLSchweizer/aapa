@@ -1,0 +1,9 @@
+docx==0.2.4
+docx2pdf==0.1.8
+docx_mailmerge==0.5.0
+mailmerge==2.2.1
+pdfplumber==0.7.6
+PyPDF2==3.0.1
+pytest==7.2.1
+python_docx==0.8.11
+pywin32==305

@@ -5,7 +5,7 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.crud.bedrijven import CRUD_bedrijven
-from data.crud.crud_base import CRUDbase
+from data.crud.crud_base import AAPAClass, CRUDbase
 from data.crud.crud_factory import registerCRUD
 from data.crud.studenten import CRUD_studenten
 from database.database import Database
@@ -13,6 +13,11 @@ from database.table_def import TableDefinition
 from general.timeutil import TSC
 
 class CRUD_milestones(CRUDbase):
+    def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
+                    superclass_CRUDs: list[CRUDbase] = [], subclass_CRUDs:dict[str, AAPAClass]={}, 
+                    no_column_ref_for_key = False, autoID=False):
+        super().__init__(database, class_type=class_type, table=table, superclass_CRUDs=superclass_CRUDs, subclass_CRUDs=subclass_CRUDs,
+                         no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
     def _after_init(self):
         self._db_map['stud_id']['attrib'] = 'student.id'
         self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
@@ -29,7 +34,7 @@ class CRUD_milestones(CRUDbase):
     #                 return CRUD_bedrijven(self.database).read(value)
     #     return None
 
-registerCRUD(CRUD_milestones, class_type=Milestone, table=MilestoneTableDefinition(), subclasses={'student': Student, 'bedrijf': Bedrijf}, autoID=True)
+#registerCRUD(CRUD_milestones, class_type=Milestone, table=MilestoneTableDefinition(), subclasses={'student': Student, 'bedrijf': Bedrijf}, autoID=True)
 
 class CRUD_student_milestones(CRUDbase):
     def __init__(self, database: Database):

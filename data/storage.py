@@ -22,7 +22,7 @@ from data.crud.verslagen import CRUD_verslagen
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from data.roots import add_root, encode_path
-from database.sql_view import SQLselectView
+from database.sql_table import SQLselect
 from general.log import log_debug, log_error, log_exception, log_warning
 from general.timeutil import TSC
 
@@ -303,8 +303,6 @@ class FilesStorage(ObjectStorage):
 class AanvraagStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, Aanvraag)
-        self.view = self.crud.view
-        self.view_name = self.view.name
         self.files = FilesStorage(database)
         self.bedrijven = BedrijvenStorage(database)
         self.studenten = StudentenStorage(database)
@@ -341,14 +339,14 @@ class AanvraagStorage(ObjectStorage):
         else:
             return list(filter(filter_func, aanvragen))
     def __read_all_all(self, filter_func = None)->Iterable[Aanvraag]:
-        sql = SQLselectView(self.view, query=f'select VA.id from {self.view_name} as VA where VA.status != ?')
+        sql = SQLselect(self.table_name, query=f'select id from {self.table_name} where status != ?')
         if row:= self.database._execute_sql_command(sql.query, [Aanvraag.Status.DELETED], True):            
             return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
         else:
             return None
     def __read_all_states(self, states:set[Aanvraag.Status]=None, filter_func = None)->Iterable[Aanvraag]:
         params = [state.value for state in states]
-        if row:= self.database._execute_sql_command(f'select id from {self.view_name} where status in ({",".join(["?"]*len(params))})', params, True):
+        if row:= self.database._execute_sql_command(f'select id from {self.table_name} where status in ({",".join(["?"]*len(params))})', params, True):
             return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
     def read_all(self, filter_func = None, states:set[Aanvraag.Status]=None)->Iterable[Aanvraag]:
         if not states:
@@ -362,10 +360,10 @@ class AanvraagStorage(ObjectStorage):
     def find_student_last(self, student: Student)->Aanvraag:
         if student.id == EMPTY_ID:
             return None
-        if row:= self.database._execute_sql_command(f'select max(id) from {self.view_name} where stud_id=?', [student.id], True):            
+        if row:= self.database._execute_sql_command(f'select max(id) from {self.table_name} where stud_id=?', [student.id], True):            
             return self.read(row[0][0])
     def __count_student_aanvragen(self, aanvraag: Aanvraag):
-        if (row := self.database._execute_sql_command(f'select count(id) from {self.view_name} where stud_id=? and status!=?', 
+        if (row := self.database._execute_sql_command(f'select count(id) from {self.table_name} where stud_id=? and status!=?', 
                                                       [aanvraag.student.id,Aanvraag.Status.DELETED], True)):
             return row[0][0]
         else:

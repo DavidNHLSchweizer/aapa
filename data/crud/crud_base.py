@@ -12,8 +12,6 @@ from data.classes.action_log import ActionLog
 from data.classes.verslagen import Verslag
 from database.dbConst import EMPTY_ID
 from database.sql_expr import Ops, SQE
-from database.sql_table import SQLselect
-from database.view_def import ViewDefinition
 from debug.debug import classname
 from general.deep_attr import deep_attr_main_part, deep_attr_sub_part, get_deep_attr, has_deep_attr
 from database.database import Database
@@ -30,41 +28,33 @@ class CRUD(Enum):
     UPDATE=auto()
     DELETE=auto()
 
-CRUDsource=TableDefinition|ViewDefinition
 class CRUDbase:    
     #base class also supporting views for reading (SQLite views only support reading)
     def __init__(self, database: Database, class_type: AAPAClass, 
-                 table: TableDefinition, view: ViewDefinition = None, 
-                                 superclass_CRUDs: list[CRUDbase] = [], 
-                                 subclass_CRUDs:dict[str, AAPAClass]={}, no_column_ref_for_key = False, autoID=False):
+                 table: TableDefinition, 
+                    superclass_CRUDs: list[CRUDbase] = [], 
+                    subclass_CRUDs:dict[str, AAPAClass]={}, no_column_ref_for_key = False, autoID=False):
         self.database = database
         self.table = table
-        self.view = view
         self.superclass_CRUDs = superclass_CRUDs
         self.subclass_CRUDs = subclass_CRUDs
-        self._db_map = {column_name: {'attrib':column_name, 'obj2db': None, 'db2obj': None} for column_name in self._get_all_columns(use_view=True)}
+        self._db_map = {column_name: {'attrib':column_name, 'obj2db': None, 'db2obj': None} for column_name in self._get_all_columns()}
         self.class_type = class_type
         self.no_column_ref_for_key = no_column_ref_for_key
         self.autoID = autoID
         self._after_init()
     def _after_init(self): 
         pass        
-    def _get_all_columns(self, include_key = True, use_view=False)->list[str]:
-        if self.view and use_view:
-            return self.view.column_names
-        else:
-            return([column.name for column in self.table.columns if include_key or (not column.is_primary())])
+    def _get_all_columns(self, include_key = True)->list[str]:
+        return([column.name for column in self.table.columns if include_key or (not column.is_primary())])
     def get_keys(self)->Iterable[str]:
-        if self.view:
-            return self.view.get_keys()
-        else:
-            return self.table.keys
+        return self.table.keys
     def __get_column_value(self, aapa_obj: AAPAClass, column_name: str):
         return self.map_object_to_db(column_name, get_deep_attr(aapa_obj, self._db_map[column_name]['attrib'], '???'))
     def _get_key_values(self, aapa_obj: AAPAClass)->Iterable[DBtype]:
         return [self.__get_column_value(aapa_obj, key) for key in self.get_keys()]
-    def _get_all_values(self, aapa_obj: AAPAClass, include_key = True, use_view=False)->Iterable[DBtype]:
-        return [self.__get_column_value(aapa_obj, column_name) for column_name in self._get_all_columns(include_key=include_key, use_view=use_view)]
+    def _get_all_values(self, aapa_obj: AAPAClass, include_key = True)->Iterable[DBtype]:
+        return [self.__get_column_value(aapa_obj, column_name) for column_name in self._get_all_columns(include_key=include_key)]
     def __map_column(self, column_name: str, value, map_name):
         converter = self._db_map[column_name][map_name]        
         return converter(value) if converter else value
@@ -83,8 +73,8 @@ class CRUDbase:
                 return self.read(rows[0][0])
         return None
     def find(self, aapa_obj: AAPAClass)->AAPAClass:        
-        return self.__find_by_column_values(self._get_all_columns(include_key=False, use_view=False), 
-                                            self._get_all_values(aapa_obj, include_key=False, use_view=False))
+        return self.__find_by_column_values(self._get_all_columns(include_key=False), 
+                                            self._get_all_values(aapa_obj, include_key=False))
     def __check_already_there(self, aapa_obj: AAPAClass)->bool:
         if stored := self.find(aapa_obj):
             if stored == aapa_obj:
@@ -122,14 +112,11 @@ class CRUDbase:
             return sub_crud.read(sub_key)
         return None    
     def read_records(self, key: KeyClass)->type[AAPAClass|list]:
-        if self.view:
-            return self.database.read_view_record(self.view,where=SQE(self.view.key, Ops.EQ, self.map_object_to_db(self.view.key, key)))
-        else:
-            return self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.map_object_to_db(self.table.key, key), 
+        return self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.map_object_to_db(self.table.key, key), 
                                                                                     no_column_ref=self.no_column_ref_for_key))        
     def __get_class_dict(self, row)->Tuple[dict,dict]:
         class_dict = {self._db_map[column_name]['attrib']: self.map_db_to_object(column_name, row[column_name]) 
-                        for column_name in self._get_all_columns(use_view=True)}
+                        for column_name in self._get_all_columns()}
         new_dict = {}
         for attr,value in class_dict.items():
             if has_deep_attr(attr):
@@ -142,7 +129,7 @@ class CRUDbase:
         return class_dict, new_dict
     def read(self, key: KeyClass, multiple=False)->type[AAPAClass|list]:
         log_debug(f'CRUD({classname(self)}) read {key}')
-        #NOTE: dit zou niet werken voor superclass vrees ik maar dat wordt opgelost met view, hoop ik
+        #NOTE: dit zou niet werken voor superclass vrees ik maar dat is nu niet erg meer
         #NOTE: dit nog aanpassen aan details, maar misschien hoeft dat niet als er altijd een VIEW is in dat geval?!
         if rows := self.read_records(key):
             if multiple:
