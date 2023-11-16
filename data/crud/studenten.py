@@ -2,7 +2,6 @@ from data.aapa_database import StudentTableDefinition
 from data.classes.studenten import Student
 from data.crud.crud_base import CRUDbase
 from data.crud.crud_factory import registerCRUD
-from database.database import Database
 
 class CRUD_studenten(CRUDbase):
     pass

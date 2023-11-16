@@ -1,6 +1,6 @@
 from data.classes.verslagen import Verslag
 from data.aapa_database import VerslagTableDefinition
-from data.crud.crud_base import AAPAClass, CRUDbase
+from data.crud.crud_base import CRUD, AAPAClass, CRUDbase
 from data.crud.crud_factory import registerCRUD
 from data.crud.milestones import CRUD_milestones
 from data.roots import decode_path, encode_path
@@ -9,22 +9,19 @@ from database.table_def import TableDefinition
 
 class CRUD_verslagen(CRUD_milestones):
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
-                    # superclass_CRUDs: list[CRUDbase] = [], 
                     subclass_CRUDs:dict[str, AAPAClass]={}, 
                     no_column_ref_for_key = False, autoID=False):
         super().__init__(database, class_type=class_type, table=table, 
-                        #  superclass_CRUDs=superclass_CRUDs, 
                         subclass_CRUDs=subclass_CRUDs,
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
-    def _after_init(self):        
-        self._db_map['directory']['db2obj'] = decode_path
-        self._db_map['directory']['obj2db'] = encode_path
-    def _post_process_read(self, aapa_obj: Verslag)->Verslag:
-        #corrects status and beoordeling types (read as ints from database) 
-        aapa_obj.status = Verslag.Status(aapa_obj.status)
-        aapa_obj.beoordeling = Verslag.Beoordeling(aapa_obj.beoordeling)
-        return aapa_obj 
+    def _post_action(self, verslag: Verslag, crud_action: CRUD)->Verslag:        
+        match crud_action:
+            case CRUD.INIT:
+                super()._post_action(verslag, crud_action)
+                self._db_map['directory']['db2obj'] = decode_path
+                self._db_map['directory']['obj2db'] = encode_path
+                self._db_map['status']['db2obj'] = Verslag.Status
+                self._db_map['beoordeling']['db2obj'] = Verslag.Beoordeling
+        return verslag
 
-registerCRUD(CRUD_verslagen, class_type=Verslag, table=VerslagTableDefinition(), 
-                        #  details=[CRUD_milestones(database)], 
-                         autoID=True)
+registerCRUD(CRUD_verslagen, class_type=Verslag, table=VerslagTableDefinition(), autoID=True)

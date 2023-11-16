@@ -4,7 +4,7 @@ from typing import Iterable
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
 from data.classes.action_log  import ActionLog
 from data.crud.aanvragen import CRUD_aanvragen
-from data.crud.crud_base import AAPAClass, CRUDbase, CRUDbaseDetails
+from data.crud.crud_base import CRUD, AAPAClass, CRUDbase, CRUDbaseDetails
 from data.crud.crud_factory import registerCRUD
 from data.crud.files import CRUD_files
 from database.database import Database
@@ -26,12 +26,16 @@ class CRUD_action_log_invalid_files(CRUDbaseDetails):
 
 
 class CRUD_action_log(CRUDbase):
-    def _after_init(self):
-        self._db_map['date']['db2obj'] = TSC.str_to_timestamp
-        self._db_map['date']['obj2db'] = TSC.timestamp_to_str
-        self._db_map['can_undo']['db2obj'] = bool
-        self._db_map['can_undo']['obj2db'] = int
-        self._db_map['action']['db2obj'] = ActionLog.Action  
+    def _post_action(self, action_log: ActionLog, crud_action: CRUD)->ActionLog:        
+        match crud_action:
+            case CRUD.INIT:        
+                self._db_map['date']['db2obj'] = TSC.str_to_timestamp
+                self._db_map['date']['obj2db'] = TSC.timestamp_to_str
+                self._db_map['can_undo']['db2obj'] = bool
+                self._db_map['can_undo']['obj2db'] = int
+                self._db_map['action']['db2obj'] = ActionLog.Action  
+            case _: pass
+        return action_log
     def add_details(self, action_log: ActionLog, crud_details: CRUDbaseDetails, crud_table: CRUDbase):
         for record in crud_details.read(action_log.id):
             action_log.add(crud_table.read(record.detail_id))

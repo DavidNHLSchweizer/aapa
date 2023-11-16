@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum, auto
-from typing import Iterable
+from typing import Any, Iterable
 from data.aapa_database import create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.base_dirs import BaseDir
@@ -40,6 +40,10 @@ class ObjectStorage:
         self.crud.update(object)
     def delete(self, key: KeyClass):
         self.crud.delete(key)
+    def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
+        return self.crud.find_keys(column_names, values)
+    def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:
+        return self.crud.find(column_names, column_values)
     @property
     def table_name(self)->str:
         return self.crud.table.name
@@ -72,14 +76,10 @@ class StudentenStorage(ObjectStorage):
     #     else:
     #         super().create(student)
     def find_by_column_value(self, column_name: str, value: str)->Student:
-        if row:=self.database._execute_sql_command(f'select id from {self.table_name} where ({column_name}=?)', [value], True):
-            return self.read(row[0][0])
-        return None
+        return self.find([column_name], [value])
     def find_student_by_name_or_email(self, student: Student)->Student:
         for column_name in ['full_name', 'email']:
-            if result:=self.find_by_column_value(column_name, getattr(student, column_name)):
-                return result
-        return None        
+            return self.find_by_column_value(column_name, getattr(student, column_name))
     def create_unique_student_nr(self, student: Student)->str:
         n = 1
         if not (result := student.stud_nr):
@@ -192,13 +192,10 @@ class FilesStorage(ObjectStorage):
         else:
             log_debug(f'creating new file [{file}]')
             super().create(file)
-    def _find_name_id(self, filename: str)->Iterable[int]:
-        if rows := self.database._execute_sql_command(f'select id from {self.table_name} where filename=? order by id desc', [self.crud_files.map_object_to_db('filename', filename)], True):
-            result = []
-            for row in rows:
-                result.append(row['id'])
-            return result
-        return None                                    
+    def _find_name_id(self, filename: str)->list[int]:
+        result= sorted(self.crud.find_keys(['filename'], [filename]), reverse=True)
+        log_debug(f'FIND_NAME_ID {result}')
+        return result
     def find_name(self, filename: str)->File:
         if ids := self._find_name_id(filename):
             return self.read(ids[0])
@@ -275,10 +272,11 @@ class FilesStorage(ObjectStorage):
         return self.find_digest(File.get_digest(filename))
     def read_filename(self, filename: str)->File:
         files = self.crud_files
-        if (rows:=self.database._execute_sql_command(f'select id from {files.table.name} where filename=?', [files.map_object_to_db('filename', filename)],True)):
-            result =  files.read(rows[0][0])
-            return result
-        return None
+        return files.find(['filename'], [filename])
+        # if (rows:=self.database._execute_sql_command(f'select id from {files.table.name} where filename=?', [files._helper.map_object_to_db('filename', filename)],True)):
+        #     result =  files.read(rows[0][0])
+        #     return result
+        # return None
     def store_invalid(self, filename: str, filetype = File.Type.INVALID_PDF)->File:
         log_debug('store_invalid')
         if (stored:=self.read_filename(filename)):
@@ -308,7 +306,7 @@ class AanvraagStorage(ObjectStorage):
         self.studenten = StudentenStorage(database)
         # self.super_table_name = self.crud.super_CRUD.table.name
     def create(self, aanvraag: Aanvraag):
-        log_debug(f'AANVRAAGSTORAGE create ({aanvraag})')
+        log_debug(f'AANVRAAGSTORAGE create ({aanvraag}) ({aanvraag.datum})')
         # self.__create_table_references(aanvraag)
         log_debug(f'AANVRAAGSTORAGE 2')
         # aanvraag.files.set_info(source_file)
@@ -474,10 +472,7 @@ class BaseDirStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, BaseDir)
     def find_base_dir(self, directory: str)->BaseDir:
-        if (row := self.database._execute_sql_command('select id from BASEDIRS where directory=?', 
-                                                      [self.crud.map_object_to_db('directory', directory)], True)):
-            return self.crud.read(row[0]['id'])
-        return None
+        return self.crud.find(['directory'], [directory])
     
 class AAPAStorage: 
     #main interface with the database
