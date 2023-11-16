@@ -6,7 +6,7 @@ from data.roots import decode_path, encode_path
 from database.database import Database
 
 class CRUD_basedirs(CRUDbase):
-    def _after_init_(self):        
+    def _after_init(self):        
         self._db_map['directory']['db2obj'] = decode_path
         self._db_map['directory']['obj2db'] = encode_path
 

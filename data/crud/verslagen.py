@@ -16,7 +16,7 @@ class CRUD_verslagen(CRUD_milestones):
                         #  superclass_CRUDs=superclass_CRUDs, 
                         subclass_CRUDs=subclass_CRUDs,
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
-    def _after_init_(self):        
+    def _after_init(self):        
         self._db_map['directory']['db2obj'] = decode_path
         self._db_map['directory']['obj2db'] = encode_path
     def _post_process_read(self, aapa_obj: Verslag)->Verslag:

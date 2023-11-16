@@ -17,7 +17,7 @@ class Milestone:
         def __str__(self):
             _MB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
             return _MB_STRS[self]
-    def __init__(self, student:Student, datum: datetime.datetime, bedrijf: Bedrijf = None, kans=1, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
+    def __init__(self, student:Student, datum: datetime.datetime, bedrijf: Bedrijf = None, kans=0, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
         self._id = id
         self.datum = datum
         self.student = student

@@ -79,8 +79,7 @@ class CRUDbase:
                 log_debug(f'--- already in database ----')                
             else:
                 log_debug(f'--- different in database ----')
-                # self.update(aapa_obj) denk ik niet nodig
-            #find checks without key, so the key could still be EMPTY_ID
+            #find checks without key, so the key could still be EMPTY_ID, make sure aapa_obj receives this change
             setattr(aapa_obj, self.table.key, getattr(stored, self.table.key))
             return True
         return False
@@ -117,7 +116,6 @@ class CRUDbase:
         for attr,value in class_dict.items():
             if has_deep_attr(attr):
                 new_dict[attr] = {'new_attr': deep_attr_main_part(attr), 'sub_attr': deep_attr_sub_part(attr), 'sub_attr_key': value} 
-                                #    self._read_sub_attrib(deep_attr_main_part(attr), value)}
         for attr, record in new_dict.items():
             class_dict[record['new_attr']] = None # first initialize as None
             del class_dict[attr]                
@@ -136,8 +134,8 @@ class CRUDbase:
                 if self.subclass_CRUDs:
                     for attr,new_dict_entry in new_dict.items():                        
                         setattr(result, new_dict_entry['new_attr'], self._read_sub_attrib(deep_attr_main_part(attr),new_dict_entry['sub_attr_key']))
-                return result
-                # return self._post_process(, CRUD.READ)
+                # return result
+                return self._post_action(result, CRUD.READ)
         return None 
     def update(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) update {str(aapa_obj)}')
@@ -158,7 +156,7 @@ class CRUDbase:
 
     def _pre_process(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
         return aapa_obj # placeholder for possible postprocessing in read objects
-    def _post_process(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
+    def _post_action(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
         return aapa_obj # placeholder for possible postprocessing in read objects
 
 class CRUDbaseDetails(CRUDbase):pass

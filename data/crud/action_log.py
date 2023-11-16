@@ -26,7 +26,7 @@ class CRUD_action_log_invalid_files(CRUDbaseDetails):
 
 
 class CRUD_action_log(CRUDbase):
-    def _after_init_(self):
+    def _after_init(self):
         self._db_map['date']['db2obj'] = TSC.str_to_timestamp
         self._db_map['date']['obj2db'] = TSC.timestamp_to_str
         self._db_map['can_undo']['db2obj'] = bool

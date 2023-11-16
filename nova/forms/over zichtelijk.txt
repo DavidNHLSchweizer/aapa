@@ -2,7 +2,8 @@
 \# #.##0,0
 
 =(6*B3+4*b4)/10
-=D2+D3+D4+D5+D6+D7+D8+D9+D10
+	
+=C2+C3+C4+C5+C6
 
 C:\repos\aapa\nova\forms\veldwerk0.xlsx
 C:\repos\aapa\nova\2020-2021\veldwerk0.xlsx

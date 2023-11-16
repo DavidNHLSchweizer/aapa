@@ -312,9 +312,11 @@ class AanvraagStorage(ObjectStorage):
         # self.__create_table_references(aanvraag)
         log_debug(f'AANVRAAGSTORAGE 2')
         # aanvraag.files.set_info(source_file)
-        aanvraag.kans = self.__count_student_aanvragen(aanvraag) + 1
-        log_debug(f'AANVRAAGSTORAGE 3')
         super().create(aanvraag)
+        if not aanvraag.kans:
+            aanvraag.kans = self.__count_student_aanvragen(aanvraag)
+            super().update(aanvraag)
+        log_debug(f'AANVRAAGSTORAGE 3')
         log_debug('sync_files (CREATE)')
         self.sync_files(aanvraag, {File.Type.AANVRAAG_PDF})
         log_debug('ready create')

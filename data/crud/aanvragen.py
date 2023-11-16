@@ -9,7 +9,7 @@ from data.classes.aanvragen import Aanvraag
 from data.crud.crud_factory import registerCRUD
 from data.crud.files import CRUD_files
 from data.crud.milestones import CRUD_milestones
-from data.crud.crud_base import AAPAClass, CRUDbase
+from data.crud.crud_base import CRUD, AAPAClass, CRUDbase
 from data.crud.studenten import CRUD_studenten
 from database.database import Database
 from database.table_def import TableDefinition
@@ -27,27 +27,13 @@ class CRUD_aanvragen(CRUD_milestones):
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
     def _after_init(self): 
         super()._after_init()
-        # self._db_map['stud_id']['attrib'] = 'student.id'
-        # self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
-        # # self._db_map['source_file_id']['attrib'] = 'source_info.id'
-        # self._db_map['datum']['db2obj'] = TSC.str_to_timestamp
-        # self._db_map['datum']['obj2db'] = TSC.timestamp_to_str
-    # def _read_sub_attrib(self, main_part: str, sub_attrib_name: str, value)->Student|Bedrijf:
-    #     if sub_attrib_name == 'id':
-    #         match main_part:
-    #             # case 'student': 
-    #             #     return CRUD_studenten(self.database).read(value)
-    #             # case 'bedrijf': 
-    #             #     return CRUD_bedrijven(self.database).read(value)
-    #             case 'source_info': 
-    #                 return CRUD_files(self.database).read(value)
-    #     return None
-    def _post_process_read(self, aanvraag: Aanvraag)->Aanvraag:
+    def _post_action(self, aanvraag: Aanvraag, crud_action: CRUD)->Aanvraag:
         #corrects status and beoordeling types (read as ints from database) 
-        # aanvraag.status = Aanvraag.Status(aanvraag.status)
-        # aanvraag.beoordeling = Aanvraag.Beoordeling(aanvraag.beoordeling)
-        aanvraag.files = self.find_all(aanvraag.id)
-        print('pos t process -read- doe iets')
+        match crud_action:
+            case CRUD.READ:
+                aanvraag.status = Aanvraag.Status(aanvraag.status)
+                aanvraag.beoordeling = Aanvraag.Beoordeling(aanvraag.beoordeling)
+                # aanvraag.files = self.find_all(aanvraag.id)
         return aanvraag 
     def __load(self, aanvraag_id: int, filetypes: set[File.Type], crud_files: CRUD_files)->Iterable[File]:
         log_debug('__load')
