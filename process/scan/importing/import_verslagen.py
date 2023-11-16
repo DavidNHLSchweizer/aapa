@@ -21,11 +21,11 @@ class VerslagFromZipImporter(VerslagCreator):
         self.parser = FilenameInZipParser()
 
     def create_from_parsed(self, storage: AAPAStorage, filename: str, parsed: FilenameInZipParser.Parsed)->Verslag:
-        VerslagTypes = {'plan van aanpak': Milestone.Type.PVA, 
-                        'onderzoeksverslag': Milestone.Type.ONDERZOEKS_VERSLAG, 
-                        'technisch verslag': Milestone.Type.TECHNISCH_VERSLAG, 
-                        'eindverslag': Milestone.Type.EIND_VERSLAG}
-        def get_verslag_type(product_type: str)->Milestone.Type:
+        VerslagTypes = {'plan van aanpak': Verslag.Type.PVA, 
+                        'onderzoeksverslag': Verslag.Type.ONDERZOEKS_VERSLAG, 
+                        'technisch verslag': Verslag.Type.TECHNISCH_VERSLAG, 
+                        'eindverslag': Verslag.Type.EIND_VERSLAG}
+        def get_verslag_type(product_type: str)->Verslag.Type:
             if (result := VerslagTypes.get(product_type.lower(), None)):
                 return result
             raise VerslagParseException(f'Onbekend verslagtype: {[product_type]}')

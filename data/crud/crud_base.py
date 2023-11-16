@@ -32,11 +32,9 @@ class CRUDbase:
     #base class also supporting views for reading (SQLite views only support reading)
     def __init__(self, database: Database, class_type: AAPAClass, 
                  table: TableDefinition, 
-                    superclass_CRUDs: list[CRUDbase] = [], 
                     subclass_CRUDs:dict[str, AAPAClass]={}, no_column_ref_for_key = False, autoID=False):
         self.database = database
         self.table = table
-        self.superclass_CRUDs = superclass_CRUDs
         self.subclass_CRUDs = subclass_CRUDs
         self._db_map = {column_name: {'attrib':column_name, 'obj2db': None, 'db2obj': None} for column_name in self._get_all_columns()}
         self.class_type = class_type
@@ -94,8 +92,6 @@ class CRUDbase:
             return
         if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
-        for superclass_CRUD in self.superclass_CRUDs:
-            superclass_CRUD.create(aapa_obj)
         self.database.create_record(self.table, columns=self._get_all_columns(), values=self._get_all_values(aapa_obj)) 
     def __create_subclass_if_not_exists(self, aapa_obj: AAPAClass, attr: str, sub_crud: CRUDbase)->AAPAClass:
         sub_object = getattr(aapa_obj, attr)
@@ -145,8 +141,6 @@ class CRUDbase:
         return None 
     def update(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) update {str(aapa_obj)}')
-        for detail_CRUD in self.superclass_CRUDs:
-            detail_CRUD.update(aapa_obj)
         where = None
         for key,value in zip(self.table.keys, self._get_key_values(aapa_obj)):
             new_where_part = SQE(key, Ops.EQ, value, no_column_ref=self.no_column_ref_for_key)
@@ -158,8 +152,6 @@ class CRUDbase:
                                     values=self._get_all_values(aapa_obj, include_key=False), where=where)
     def delete(self, value: DBtype):
         log_debug(f'CRUD({classname(self)}) delete {str(value)}')
-        for superclass_CRUD in self.superclass_CRUDs:
-            superclass_CRUD.delete(value)
         key = self.table.key
         attrib = self._db_map[key]['attrib']
         self.database.delete_record(self.table, where=SQE(key, Ops.EQ, self.map_object_to_db(attrib, value), no_column_ref=self.no_column_ref_for_key))

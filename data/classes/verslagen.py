@@ -18,8 +18,21 @@ class Verslag(Milestone):
             STRS = {Verslag.Status.NEW: 'nieuw', Verslag.Status.NEEDS_GRADING: 'te beoordelen', Verslag.Status.GRADED: 'beoordeeld', 
                     Verslag.Status.READY: 'geheel verwerkt'}
             return STRS[self.value]
-    def __init__(self, verslag_type: Milestone.Type, student:Student, file: File, datum: datetime.datetime, kans: int=1, id=EMPTY_ID, titel='', cijfer=''):
-        super().__init__(milestone_type=verslag_type, student=student, datum=datum, status=Verslag.Status.NEW, titel=titel, id=id)        
+    class Type(IntEnum):
+        UNKNOWN             = 0
+        PVA                 = 1
+        ONDERZOEKS_VERSLAG  = 2
+        TECHNISCH_VERSLAG   = 3
+        EIND_VERSLAG        = 4
+        def __str__(self):
+            _MT_STRS = {Verslag.Type.UNKNOWN: '', Verslag.Type.PVA: 'plan van aanpak', 
+                        Verslag.Type.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', Verslag.Type.TECHNISCH_VERSLAG: 'technisch verslag',
+                        Verslag.Type.EIND_VERSLAG: 'eindverslag'                       
+            }
+            return _MT_STRS[self]
+    def __init__(self, verslag_type: Verslag.Type, student:Student, file: File, datum: datetime.datetime, kans: int=1, id=EMPTY_ID, titel='', cijfer=''):
+        super().__init__(student=student, datum=datum, status=Verslag.Status.NEW, titel=titel, id=id)   
+        self.verslag_type = verslag_type     
         self.cijfer = ''
         if file:
             self._files.set_file(file)
@@ -28,9 +41,6 @@ class Verslag(Milestone):
             self._files.reset()
             self.directory = ''
         self.kans=kans
-    @property
-    def verslag_type(self)->Milestone.Type:
-        return self.milestone_type
     def __str__(self):        
         s = f'{TSC.get_date_str(self.datum)}: {self.verslag_type} ({self.kans}) {str(self.student)} ' +\
               f'"{self.titel}" [{str(self.status)}]'

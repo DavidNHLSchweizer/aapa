@@ -17,21 +17,7 @@ class Milestone:
         def __str__(self):
             _MB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
             return _MB_STRS[self]
-    class Type(IntEnum):
-        UNKNOWN             = 0
-        AANVRAAG            = 1
-        PVA                 = 2
-        ONDERZOEKS_VERSLAG  = 3
-        TECHNISCH_VERSLAG   = 4
-        EIND_VERSLAG        = 5
-        def __str__(self):
-            _MT_STRS = {Milestone.Type.UNKNOWN: '', Milestone.Type.AANVRAAG: 'aanvraag', Milestone.Type.PVA: 'plan van aanpak', 
-                        Milestone.Type.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', Milestone.Type.TECHNISCH_VERSLAG: 'technisch verslag',
-                        Milestone.Type.EIND_VERSLAG: 'eindverslag'                       
-            }
-            return _MT_STRS[self]
-    def __init__(self, milestone_type: Milestone.Type, student:Student, datum: datetime.datetime, bedrijf: Bedrijf = None, kans=1, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
-        self.milestone_type = milestone_type
+    def __init__(self, student:Student, datum: datetime.datetime, bedrijf: Bedrijf = None, kans=1, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
         self._id = id
         self.datum = datum
         self.student = student
@@ -72,20 +58,21 @@ class StudentMilestones:
     @property
     def milestones(self)->list[Milestone]:
         return self._milestones
-    def get(self, milestone_type: set[Milestone.Type])->list[Milestone]:
-        return [milestone for milestone in self._milestones if milestone.milestone_type in milestone_type]  
+    # def get(self, milestone_type: set[Verslag.Type])->list[Milestone]:
+    #     return [milestone for milestone in self._milestones if milestone.milestone_type in milestone_type]  
     def add(self, milestone: Milestone):
         self.milestones.append(milestone)
         self._standardize()
     def _standardize(self):
-        self.milestones.sort(key=lambda ms: (ms.milestone_type, ms.datum))
-        cur_type = Milestone.Type.UNKNOWN
-        for milestone in self.milestones:
-            if milestone.milestone_type != cur_type:
-                kans = 1
-                cur_type = milestone.milestone_type
-            else:
-                kans += 1
-            milestone.kans = kans
+        pass
+        # self.milestones.sort(key=lambda ms: (ms.milestone_type, ms.datum))
+        # cur_type = Verslag.Type.UNKNOWN
+        # for milestone in self.milestones:
+        #     if milestone.milestone_type != cur_type:
+        #         kans = 1
+        #         cur_type = milestone.milestone_type
+        #     else:
+        #         kans += 1
+        #     milestone.kans = kans
 
     

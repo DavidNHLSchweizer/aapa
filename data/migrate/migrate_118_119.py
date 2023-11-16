@@ -1,13 +1,11 @@
 from data.aapa_database import BaseDirsTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
         StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
-from data.classes.milestones import Milestone
 from data.roots import encode_path
 from data.storage import AAPAStorage
 from database.sql_table import SQLcreateTable
 from database.database import Database
 from database.table_def import ForeignKeyAction, TableDefinition
-from database.sql_view import SQLcreateView
 from general.name_utils import Names
 import database.dbConst as dbc
 # Wijzigingen in 1.19 voor migratie:
@@ -98,28 +96,6 @@ def create_new_tables(database: Database):
     database.execute_sql_command(SQLcreateTable(StudentVerslagenTableDefinition())) 
     print('--- klaar toevoegen nieuwe tabellen')
 
-# def create_milestones_table(database: Database):
-#     print('toevoegen nieuwe tabel MILESTONES en aanpassen AANVRAGEN')
-#     database.execute_sql_command(SQLcreateTable(MilestoneTableDefinition()))
-#     print('kopieren data in AANVRAGEN naar MILESTONES')
-#     sql = "select id,stud_id,bedrijf_id,titel,kans,status,beoordeling from AANVRAGEN"
-#     sql2 = "insert into MILESTONES(id,milestone_type,stud_id,bedrijf_id,titel,kans,beoordeling,status) values(?,?,?,?,?,?,?,?)"
-#     for row in database._execute_sql_command(sql, [], True):
-#         database._execute_sql_command(sql2,[row['id'],int(Milestone.Type.AANVRAAG),
-#                                             row['stud_id'],row['bedrijf_id'],
-#                                             row['titel'],row['kans'],row['beoordeling'],row['status']])
-#     # database.commit()
-#     database._execute_sql_command('UPDATE MILESTONES SET datum=\
-#                 (select timestamp from FILES WHERE FILES.aanvraag_id=MILESTONES.ID and filetype=0)',
-#             [])            
-#     print('aanpassen tabel AANVRAGEN')
-#     database._execute_sql_command('alter table AANVRAGEN RENAME TO OLD_AANVRAGEN')
-#     database.execute_sql_command(SQLcreateTable(AanvraagTableDefinition()))
-#     sql = "insert into AANVRAGEN(id,datum_str) select id,datum_str FROM OLD_AANVRAGEN"
-#     database._execute_sql_command(sql, [])
-#     database._execute_sql_command('drop table OLD_AANVRAGEN')
-#     print('--- klaar toevoegen nieuwe tabel MILESTONES en aanpassen AANVRAGEN')
-
 #aanpassen voornamen waar nodig
 def correct_first_names(database: Database):
     print('correcting incorrect first names in STUDENTEN')
@@ -130,18 +106,9 @@ def correct_first_names(database: Database):
             database._execute_sql_command('update STUDENTEN set first_name=? where id=?', [parsed.first_name, row['id']])
     print('--- ready incorrect first names in STUDENTEN')
 
-# #create VW_AANVRAGEN view:
-# def create_view(database: Database):
-#     print('--- creating views VIEW_AANVRAGEN en VIEW_VERSLAGEN ...')
-#     database.execute_sql_command(SQLcreateView(AanvragenViewDefinition()))
-#     database.execute_sql_command(SQLcreateView(VerslagenViewDefinition()))    
-#     print('--- klaar creating views VIEW_AANVRAGEN en VIEW_VERSLAGEN')
-
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
         modify_studenten_table(database)
         modify_aanvragen_table(database)    
         create_new_tables(database)
         correct_first_names(database)
-        # create_milestones_table(database)
-        # create_view(database)

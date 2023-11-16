@@ -14,9 +14,12 @@ from general.timeutil import TSC
 
 class CRUD_milestones(CRUDbase):
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
-                    superclass_CRUDs: list[CRUDbase] = [], subclass_CRUDs:dict[str, AAPAClass]={}, 
+                    # superclass_CRUDs: list[CRUDbase] = [], 
+                    subclass_CRUDs:dict[str, AAPAClass]={}, 
                     no_column_ref_for_key = False, autoID=False):
-        super().__init__(database, class_type=class_type, table=table, superclass_CRUDs=superclass_CRUDs, subclass_CRUDs=subclass_CRUDs,
+        super().__init__(database, class_type=class_type, table=table, 
+                        #  superclass_CRUDs=superclass_CRUDs, 
+                         subclass_CRUDs=subclass_CRUDs,
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
     def _after_init(self):
         self._db_map['stud_id']['attrib'] = 'student.id'
@@ -76,13 +79,14 @@ class CRUD_milestone_details_aanvragen(CRUD_milestones_details):
     def __init__(self, database: Database):
         super().__init__(database, AanvraagTableDefinition())
     def _get_objects(self, milestones: StudentMilestones)->Iterable[Milestone]:
-        return milestones.get({Milestone.Type.AANVRAAG})
+        return None #milestones.get({Verslag.Type.AANVRAAG})
 
 class CRUD_milestone_details_verslagen(CRUD_milestones_details):
     def __init__(self, database: Database):
         super().__init__(database, VerslagTableDefinition())
     def _get_objects(self, milestones: StudentMilestones)->Iterable[Milestone]:
-        types = {milestone_type for milestone_type in Milestone.Type 
-                    if milestone_type not in {Milestone.Type.UNKNOWN, 
-                                              Milestone.Type.AANVRAAG}}
+        # types = {milestone_type for milestone_type in Verslag.Type 
+        #             if milestone_type not in {Verslag.Type.UNKNOWN, 
+        #                                       Verslag.Type.AANVRAAG}}
+        return None
         return milestones.get(types)

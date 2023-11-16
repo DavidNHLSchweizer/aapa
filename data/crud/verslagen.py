@@ -9,9 +9,12 @@ from database.table_def import TableDefinition
 
 class CRUD_verslagen(CRUD_milestones):
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
-                    superclass_CRUDs: list[CRUDbase] = [], subclass_CRUDs:dict[str, AAPAClass]={}, 
+                    # superclass_CRUDs: list[CRUDbase] = [], 
+                    subclass_CRUDs:dict[str, AAPAClass]={}, 
                     no_column_ref_for_key = False, autoID=False):
-        super().__init__(database, class_type=class_type, table=table, superclass_CRUDs=superclass_CRUDs, subclass_CRUDs=subclass_CRUDs,
+        super().__init__(database, class_type=class_type, table=table, 
+                        #  superclass_CRUDs=superclass_CRUDs, 
+                        subclass_CRUDs=subclass_CRUDs,
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
     def _after_init_(self):        
         self._db_map['directory']['db2obj'] = decode_path

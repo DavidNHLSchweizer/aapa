@@ -80,7 +80,6 @@ class MilestoneTableDefinition(TableDefinition):
     def __init__(self, name: str):
         super().__init__(name)
         self.add_column('id', dbc.INTEGER, primary = True) 
-        self.add_column('milestone_type', dbc.INTEGER)
         self.add_column('datum', dbc.TEXT)
         self.add_column('stud_id', dbc.INTEGER)
         self.add_column('bedrijf_id', dbc.INTEGER)
@@ -99,6 +98,7 @@ class AanvraagTableDefinition(MilestoneTableDefinition):
 class VerslagTableDefinition(MilestoneTableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
+        self.add_column('verslag_type', dbc.INTEGER)
         self.add_column('cijfer', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
 
