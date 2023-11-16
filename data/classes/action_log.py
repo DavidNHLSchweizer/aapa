@@ -14,6 +14,12 @@ from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 
 ActionLogData=Type[Aanvraag|File]       
+class ActionLogAggregator(Aggregator):
+    def __init__(self):
+        super().__init__()
+        self.add_class(Aanvraag, 'aanvragen')
+        self.add_class(File, 'invalid_files')
+
 class ActionLog:
     class Action(IntEnum):
         NOLOG   = 0
@@ -30,30 +36,24 @@ class ActionLog:
         self.description = description
         self.date:datetime.datetime = date
         self.user = user
-        self._data = self.__init_data()
+        self._data = ActionLogAggregator()
         self.can_undo = can_undo
-    def __init_data(self)->Aggregator:
-        result = Aggregator()
-        result.add_class(Aanvraag, 'aanvraag')
-        result.add_class(File, 'invalid_file')
-        return result
     @property
     def aanvragen(self)->list[Aanvraag]:
-        return self._data.as_list('aanvraag')
+        return self._data.as_list('aanvragen')
     @aanvragen.setter
     def aanvragen(self, value: list[Aanvraag]):
-        self._data.clear('aanvraag')
+        self._data.clear('aanvragen')
         self._data.add(value)
     @property
     def invalid_files(self)->list[File]:
-        return self._data.as_list('invalid_file')
+        return self._data.as_list('invalid_files')
     @invalid_files.setter
     def invalid_files(self, value: list[File]):
-        self._data.clear('invalid_file')
+        self._data.clear('invalid_files')
         self._data.add(value)
     def start(self):
-        self.clear_aanvragen()
-        self.clear_invalid_files()
+        self._data.clear()
         self.date = datetime.datetime.now()
     def stop(self):
         pass # voor latere toevoegingen
@@ -75,13 +75,13 @@ class ActionLog:
         return len(self.aanvragen)
     def is_empty(self, class_alias: str='')->bool:
         match class_alias:
-            case 'aanvraag': return self.nr_aanvragen == 0
-            case 'invalid_file': return self.nr_invalid_files == 0
+            case 'aanvragen': return self.nr_aanvragen == 0
+            case 'invalid_files': return self.nr_invalid_files == 0
             case _: return self.nr_aanvragen == 0 and self.nr_invalid_files == 0
     def __str_aanvragen(self)->str:
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
         result = f'{self.action} {date_str} [{self.user}] ({self.id})' 
-        if self.is_empty('aanvraag'):
+        if self.is_empty('aanvragen'):
             return result + ' (geen aanvragen)'
         else:
             result = result + f'!{self.nr_aanvragen} {sop(self.nr_aanvragen, "aanvraag", "aanvragen")}'
@@ -93,5 +93,5 @@ class ActionLog:
     def summary(self)->str:
         log_debug(f'full action: {str(self)}')
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
-        aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty('aanvraag') else 'geen'
+        aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty('aanvragen') else 'geen'
         return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen", False)})'

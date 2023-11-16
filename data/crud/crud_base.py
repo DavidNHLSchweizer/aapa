@@ -2,14 +2,16 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Tuple, Type
 from data.classes.aanvragen import Aanvraag
+from data.classes.aggregator import Aggregator
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
 from data.classes.milestones import Milestone
 from data.classes.studenten import Student
-from data.classes.action_log import ActionLog
+from data.classes.action_log import ActionLog, ActionLogAggregator
 from data.classes.verslagen import Verslag
+
 from database.dbConst import EMPTY_ID
 from database.sql_expr import Ops, SQE
 from debug.debug import classname
@@ -19,9 +21,22 @@ from database.table_def import TableDefinition
 from general.keys import get_next_key
 from general.log import log_debug
 
+
+@dataclass
+class CRUD_AggregatorData:
+    main_table_key: CRUDbase
+    aggregator: Aggregator
+    attribute: str
 DBtype = type[str|int|float]
-AAPAClass = type[Bedrijf|Student|File|Files|Aanvraag|ActionLog|Verslag|Milestone]
-KeyClass = type[int|str]
+
+@dataclass
+class DetailRec:
+    main_key: int 
+    detail_key: int
+DetailRecs = list[DetailRec]
+
+AAPAClass = Type[Bedrijf|Student|File|Files|Aanvraag|ActionLog|Verslag|Milestone|DetailRec]
+KeyClass = Type[int|str]
 class CRUD(Enum):
     INIT = auto()
     CREATE=auto()
@@ -69,7 +84,9 @@ class CRUDbaseHelper:
             return result
         return []
     def find_by_column_values(self, column_names: list[str], values: list[Any], map_values=True)->AAPAClass|list[AAPAClass]:
-        log_debug( f'FBCV start' )
+        log_debug( f'FBCV start: {column_names}, {values} ({map_values=})' )
+        if not column_names:
+            return None
         if keys := self.find_keys_by_column_values(column_names, values, map_values=map_values):
             log_debug( f'FBCV: {keys}' )
             if len(keys) > 1:
@@ -123,14 +140,14 @@ class CRUDbaseHelper:
 class CRUDbase:    
     #base class also supporting views for reading (SQLite views only support reading)
     def __init__(self, database: Database, class_type: AAPAClass, 
-                 table: TableDefinition, 
-                    subclass_CRUDs:dict[str, AAPAClass]={}, no_column_ref_for_key = False, autoID=False):
+                 table: TableDefinition, subclass_CRUDs:dict[str, AAPAClass]={}, no_column_ref_for_key = False, autoID=False):
         self.database = database
         self.table = table
         self.subclass_CRUDs = subclass_CRUDs
         self.class_type = class_type
         self.no_column_ref_for_key = no_column_ref_for_key
         self.autoID = autoID
+        self.aggregator_CRUD_temp: CRUDbase = None
         self._helper = CRUDbaseHelper(self)
         self._db_map = {column_name: {'attrib':column_name, 'obj2db': None, 'db2obj': None} for column_name in self._helper.get_all_columns()}
         self._post_action(None, CRUD.INIT)
@@ -142,7 +159,11 @@ class CRUDbase:
             return
         if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
+        log_debug(f'columns={self._helper.get_all_columns()}  values={self._helper.get_all_values(aapa_obj)}' )
         self.database.create_record(self.table, columns=self._helper.get_all_columns(), values=self._helper.get_all_values(aapa_obj)) 
+        if self.aggregator_CRUD_temp:
+            self.aggregator_CRUD_temp.create(aapa_obj)
+        self._post_action(aapa_obj, CRUD.CREATE)
     def read(self, key: KeyClass, multiple=False)->type[AAPAClass|list]:
         log_debug(f'CRUD({classname(self)}) read {key}')
         #NOTE: dit zou niet werken voor superclass vrees ik maar dat is nu niet erg meer
@@ -169,6 +190,7 @@ class CRUDbase:
                 where = SQE(where, Ops.AND, new_where_part)
         self.database.update_record(self.table, columns=self._helper.get_all_columns(include_key=False), 
                                     values=self._helper.get_all_values(aapa_obj, include_key=False), where=where)
+        self._post_action(aapa_obj, CRUD.UPDATE)
     def delete(self, value: DBtype):
         log_debug(f'CRUD({classname(self)}) delete {str(value)}')
         key = self.table.key
@@ -185,49 +207,3 @@ class CRUDbase:
     def find(self, column_names: list[str], values: list[Any])->AAPAClass|list[AAPAClass]:
         return self._helper.find_by_column_values(column_names, values)
     
-class CRUDbaseDetails(CRUDbase):pass
-# #solution for n-n relation tabel 
-#     @dataclass
-#     class DetailRec:
-#         main_id: int 
-#         detail_id: int
-#     DetailRecs = list[DetailRec]
-
-#     def __init__(self, CRUD_main: CRUDbase, detail_table: TableDefinition):
-#         assert len(detail_table.keys) == 2
-#         super().__init__(CRUD_main.database, class_type=None, table=detail_table)
-#     def _get_relation_column_name(self)->str:
-#         log_debug(f'GRC: {self.table.keys[1]}')
-#         return self.table.keys[1]
-#     @abstractmethod
-#     def _get_objects(self, object: AAPAClass)->Iterable[AAPAClass]:
-#         return None #implement in descendants
-#     def get_detail_records(self, main: AAPAClass)->DetailRecs:
-#         return [CRUDbaseDetails.DetailRec(main.id, detail.id) 
-#                 for detail in sorted(self._get_objects(main), key=lambda d: d.id)]
-#                 #gesorteerd om dat het anders in onlogische volgorde wordt gedaan en vergelijking ook lastig wordt (zie update)
-#     def read(self, main_id: int)->DetailRecs:
-#         result = []
-#         if rows:=super().read(main_id, multiple=True):
-#             for row in rows:
-#                 result.append(CRUDbaseDetails.DetailRec(main_id=main_id, detail_id=row[self._get_relation_column_name()]))
-#         return result
-#     def update(self, main: AAPAClass):
-#         def is_changed()->bool:
-#             new_records = self.get_detail_records(main)
-#             current_records= self.read(main.id)
-#             if len(new_records) != len(current_records):
-#                 return True
-#             else:
-#                 for new, current in zip(new_records, current_records):
-#                     if new != current:
-#                         return True
-#             return False
-#         if is_changed():
-#             self._update(main)
-#     def _update(self, main: AAPAClass):        
-#         self.delete(main.id)    
-#         self.create(main)
-#     def delete_relation(self, detail_id: int):
-#         self.database._execute_sql_command(f'delete from {self.table.name} where {self._get_relation_column_name()}=?', [detail_id])        
-
