@@ -16,9 +16,9 @@ class CRUD_files(CRUDbase):
     def _post_action(self, file: File, crud_action: CRUD)->File:        
         match crud_action:
             case CRUD.INIT:
-                self.adapter.set_adapter(FilenameColumnAdapter('filename'))
-                self.adapter.set_adapter(TimeColumnAdapter('timestamp'))
-                self.adapter.set_adapter(FileTypeColumnAdapter('filetype'))
+                self.set_adapter(FilenameColumnAdapter('filename'))
+                self.set_adapter(TimeColumnAdapter('timestamp'))
+                self.set_adapter(FileTypeColumnAdapter('filetype'))
             case _: pass
         return file
 

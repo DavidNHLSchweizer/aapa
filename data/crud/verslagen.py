@@ -29,9 +29,9 @@ class CRUD_verslagen(CRUD_milestones):
         match crud_action:
             case CRUD.INIT:
                 super()._post_action(verslag, crud_action)
-                self.adapter.set_adapter(FilenameColumnAdapter('directory'))
-                self.adapter.set_adapter(VerslagStatusColumnAdapter('status'))
-                self.adapter.set_adapter(VerslagBeoordelingColumnAdapter('beoordeling'))
+                self.set_adapter(FilenameColumnAdapter('directory'))
+                self.set_adapter(VerslagStatusColumnAdapter('status'))
+                self.set_adapter(VerslagBeoordelingColumnAdapter('beoordeling'))
         return verslag
 
 registerCRUD(CRUD_verslagen, class_type=Verslag, table=VerslagTableDefinition(), autoID=True)

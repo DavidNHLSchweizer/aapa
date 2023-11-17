@@ -11,8 +11,8 @@ from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.classes.action_log import ActionLog, ActionLogAggregator
 from data.classes.verslagen import Verslag
-from data.crud.adapters import TableAdapter, generate_find_SQL, generate_where_clause_from_object
-from data.crud.crud_const import AAPAClass, KeyClass
+from data.crud.adapters import ColumnAdapter, TableAdapter, generate_find_SQL, generate_where_clause_from_object
+from data.crud.crud_const import AAPAClass, DBtype, KeyClass
 
 from database.dbConst import EMPTY_ID
 from database.sql_expr import Ops, SQE
@@ -59,10 +59,14 @@ class CRUDbase:
     @property
     def table(self)->TableDefinition:
         return self.adapter.table
+    @property
+    def class_type(self)->AAPAClass:
+        return self.adapter.class_type
+    def set_adapter(self, column_adapter: ColumnAdapter):
+        self.adapter.set_adapter(column_adapter)
     def _set_key(self, aapa_obj: AAPAClass):
         if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
-
     def create(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) create {str(aapa_obj)}')
         if self.check_already_there(aapa_obj):
@@ -110,7 +114,7 @@ class CRUDbase:
         # placeholder for possible postprocessing, may modify object
         return aapa_obj  
     def check_already_there(self, aapa_obj: AAPAClass)->bool:
-        if stored := self.find_object(aapa_obj):
+        if stored := self.find_object(aapa_obj): dit gaat niet goed bij aanvragen, wschlijk om de student?
             if stored == aapa_obj:
                 log_debug(f'--- already in database ----')                
             else:
@@ -121,7 +125,9 @@ class CRUDbase:
             return True
         return False
     def _generate_find_SQL_from_object(self, aapa_obj: AAPAClass)->SQLselect:
-        return generate_find_SQL(self.adapter, aapa_obj, where_attribute_names=self.adapter.table_keys(), no_column_ref_for_key=self.no_column_ref_for_key)
+        return generate_find_SQL(self.adapter, aapa_obj, columns=self.adapter.table_keys(), 
+                                 where_attribute_names=self.adapter.columns(include_key=False), 
+                                 no_column_ref_for_key=self.no_column_ref_for_key)
     def _generate_find_SQL_from_values(self, attribute_names: list[str], attribute_values: list[Any])->SQLselect:
         return generate_find_SQL(self.adapter, attribute_values=attribute_values, where_attribute_names=attribute_names, no_column_ref_for_key=self.no_column_ref_for_key)
     # def _generate_find_SQL(self, column_names: list[str], attribute_names= list[Any])->SQLselect:
@@ -131,3 +137,13 @@ class CRUDbase:
     def _generate_where_clause_from_object(self, aapa_obj: AAPAClass, column_names: list[str], attribute_names: list[str]=None)->SQE:
         return generate_where_clause_from_object(self.adapter, aapa_obj, column_names=column_names, attribute_names=attribute_names,
                                                                 no_column_ref_for_key=self.no_column_ref_for_key)
+
+class CRUDColumnAdapter(ColumnAdapter):
+    def __init__(self, column_name: str, attribute_name:str, crud: CRUDbase, attribute_key:str='id'):
+        super().__init__(column_name=column_name, attribute_name=attribute_name)
+        self.crud = crud
+        self.attribute_key = attribute_key
+    def map_value_to_db(self, value: AAPAClass)->DBtype:
+        return getattr(value, self.attribute_key, None)
+    def map_db_to_value(self, db_value: DBtype)->Any:
+        return self.crud.read(db_value)

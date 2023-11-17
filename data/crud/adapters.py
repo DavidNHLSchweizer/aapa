@@ -122,11 +122,10 @@ class TableAdapter:
     def _get_columns_from_attributes(self, attribute_names: list[str]):
         return [self._find_adapter(attribute).column_name for attribute in attribute_names]
 
-
 def _generate_where_clause(columns: list[str], values: list[Any], no_column_ref_for_key=False)->SQE:
     result = None
     for (key,value) in zip(columns, values):
-        new_where_part = SQE(key, Ops.EQ, value, no_column_ref_for_key=no_column_ref_for_key)
+        new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
         if result is None:
             result = new_where_part
         else:

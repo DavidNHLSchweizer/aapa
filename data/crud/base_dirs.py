@@ -9,7 +9,7 @@ class CRUD_basedirs(CRUDbase):
     def _post_action(self, basedir: BaseDir, crud_action: CRUD)->BaseDir:        
         match crud_action:
             case CRUD.INIT:
-                self.adapter.set_adapter(FilenameColumnAdapter('directory'))
+                self.set_adapter(FilenameColumnAdapter('directory'))
             case _: pass
         return basedir
 

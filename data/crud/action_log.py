@@ -57,9 +57,9 @@ class CRUD_action_log(CRUDbase):
                 ]
         match crud_action:
             case CRUD.INIT:        
-                self.adapter.set_adapter(TimeColumnAdapter('date'))
-                self.adapter.set_adapter(BoolColumnAdapter('can_undo'))
-                self.adapter.set_adapter(ActionLogActionColumnAdapter('action'))
+                self.set_adapter(TimeColumnAdapter('date'))
+                self.set_adapter(BoolColumnAdapter('can_undo'))
+                self.set_adapter(ActionLogActionColumnAdapter('action'))
                 # self.aggregator_CRUD_temp = createCRUD(self.database, ActionAanvragenDetailRec)
         # #adds detail records as needed
         #         # for record in DETAILS:

@@ -31,7 +31,16 @@ class StorageException(Exception): pass
 class ObjectStorage:
     def __init__(self, database: Database, class_type: AAPAClass):
         self.database = database
-        self.crud  = createCRUD(database, class_type)
+        self._cruds: list[CRUDbase] = [createCRUD(database, class_type)]
+    @property
+    def crud(self)->CRUDbase:
+        return self._cruds[0]
+    def _get_crud(self, aapa_obj: AAPAClass)->CRUDbase:
+        for crud in self._cruds:
+            if isinstance(aapa_obj, crud.class_type):
+                return crud
+        self._cruds.append(createCRUD(self.database, type(aapa_obj)))
+        return self._cruds[-1]
     def create(self, object: AAPAClass):
         self.crud.create(object)
     def read(self, key)->AAPAClass:
@@ -40,6 +49,17 @@ class ObjectStorage:
         self.crud.update(object)
     def delete(self, key: KeyClass):
         self.crud.delete(key)
+    def ensure_exists(self, aapa_obj: AAPAClass, attribute: str, attribute_key: str = 'id'):
+        if not (attr_obj := getattr(aapa_obj, attribute, None)):
+            return
+        crud = self._get_crud(attr_obj)
+        if getattr(attr_obj, attribute_key) == EMPTY_ID:
+            if stored := crud.find_object(attr_obj):
+                setattr(attr_obj, attribute_key, getattr(stored, attribute_key))
+                if stored != attr_obj:
+                    crud.update(attr_obj)
+            else:
+                crud.create(attr_obj)
     def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
         return []# self.crud.find_keys(column_names, values) TBD
     def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:
@@ -60,21 +80,10 @@ class ObjectStorage:
 class BedrijvenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, Bedrijf)
-    # def create(self, bedrijf: Bedrijf):
-    #     if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (name=?)', [bedrijf.name], True):
-    #         bedrijf.id = row[0]['id']
-    #     else:
-    #         super().create(bedrijf)
 
 class StudentenStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, Student)
-    # # def create(self, student: Student):
-    #     if row:= self.database._execute_sql_command(f'select * from {self.table_name} where (stud_nr=? or full_name=? or email=?)', 
-    #                                                 [student.stud_nr, student.full_name, student.email], True):
-    #         student.id = row[0]['id']
-    #     else:
-    #         super().create(student)
     def find_by_column_value(self, column_name: str, value: str)->Student:
         return None #self.find([column_name], [value])
     def find_student_by_name_or_email(self, student: Student)->Student:
@@ -307,7 +316,7 @@ class AanvraagStorage(ObjectStorage):
         # self.super_table_name = self.crud.super_CRUD.table.name
     def create(self, aanvraag: Aanvraag):
         log_debug(f'AANVRAAGSTORAGE create ({aanvraag}) ({aanvraag.datum})')
-        # self.__create_table_references(aanvraag)
+        self.__create_table_references(aanvraag)
         log_debug(f'AANVRAAGSTORAGE 2')
         # aanvraag.files.set_info(source_file)
         super().create(aanvraag)
@@ -369,14 +378,8 @@ class AanvraagStorage(ObjectStorage):
         else:
             return 0    
     def __create_table_references(self, aanvraag: Aanvraag):
-        return
-        if (not self.bedrijven.read(aanvraag.bedrijf.id)) and \
-            (row:= self.database._execute_sql_command(f'select * from {self.bedrijven.table_name} where (name=?)', [aanvraag.bedrijf.name], True)):
-            aanvraag.bedrijf.id = row[0]['id']
-        else:
-            self.bedrijven.create(aanvraag.bedrijf)
-        if not (self.studenten.read(aanvraag.student.id)):
-            self.studenten.create(aanvraag.student)
+        self.ensure_exists(aanvraag, 'student')
+        self.ensure_exists(aanvraag, 'bedrijf')
 
 class ActionLogRelationStorage:
     def __init__(self, crud: CRUDbase, rel_storage: ObjectStorage, add_method: str):

@@ -163,5 +163,5 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
     report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
-    log_info(f'...Import afgerond ({sop(n_processed, "nieuw bestand", "nieuwe bestanden")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
+    log_info(f'...Import afgerond ({sop(n_processed, "nieuwe aanvraag", "nieuwe aanvragen")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
     return n_processed, n_files      

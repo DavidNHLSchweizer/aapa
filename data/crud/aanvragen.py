@@ -33,8 +33,8 @@ class CRUD_aanvragen(CRUD_milestones):
         match crud_action:
             case CRUD.INIT:
                 super()._post_action(aanvraag, crud_action)
-                self.adapter.set_adapter(AanvraagStatusColumnAdapter('status'))
-                self.adapter.set_adapter(AanvraagBeoordelingColumnAdapter('beoordeling'))
+                self.set_adapter(AanvraagStatusColumnAdapter('status'))
+                self.set_adapter(AanvraagBeoordelingColumnAdapter('beoordeling'))
             case CRUD.READ:
                 pass # aanvraag.files = self.find_all(aanvraag.id)
             case _: pass

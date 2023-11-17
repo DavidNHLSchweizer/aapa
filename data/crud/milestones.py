@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from typing import Iterable
+from data.classes.bedrijven import Bedrijf
 from data.aapa_database import AanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
 from data.classes.milestones import Milestone, StudentMilestones
+from data.classes.studenten import Student
 from data.crud.adapters import IgnoreColumnAdapter, TimeColumnAdapter
-from data.crud.crud_base import CRUD, AAPAClass, CRUDbase
+from data.crud.crud_base import CRUD, AAPAClass, CRUDColumnAdapter, CRUDbase
+from data.crud.crud_factory import createCRUD
 from database.database import Database
 from database.table_def import TableDefinition
 from general.timeutil import TSC
@@ -19,9 +22,9 @@ class CRUD_milestones(CRUDbase):
     def _post_action(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
         match action:
             case CRUD.INIT:
-                self.adapter.set_adapter(TimeColumnAdapter('datum'))
-                self.adapter.set_adapter(IgnoreColumnAdapter('stud_id', attribute_name='student'))
-                self.adapter.set_adapter(IgnoreColumnAdapter('bedrijf_id', attribute_name='bedrijf'))
+                self.set_adapter(TimeColumnAdapter('datum'))
+                self.set_adapter(CRUDColumnAdapter('stud_id', attribute_name='student', crud=createCRUD(self.database, Student)))
+                self.set_adapter(CRUDColumnAdapter('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(self.database, Bedrijf)))
             case _: pass
         return aapa_obj
 
