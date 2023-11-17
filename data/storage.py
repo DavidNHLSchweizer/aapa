@@ -41,9 +41,9 @@ class ObjectStorage:
     def delete(self, key: KeyClass):
         self.crud.delete(key)
     def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
-        return self.crud.find_keys(column_names, values)
+        return []# self.crud.find_keys(column_names, values) TBD
     def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:
-        return self.crud.find(column_names, column_values)
+        return self.crud.find_from_values(column_names=column_names, attribute_values=column_values)
     @property
     def table_name(self)->str:
         return self.crud.table.name
@@ -76,7 +76,7 @@ class StudentenStorage(ObjectStorage):
     #     else:
     #         super().create(student)
     def find_by_column_value(self, column_name: str, value: str)->Student:
-        return self.find([column_name], [value])
+        return None #self.find([column_name], [value])
     def find_student_by_name_or_email(self, student: Student)->Student:
         for column_name in ['full_name', 'email']:
             return self.find_by_column_value(column_name, getattr(student, column_name))
@@ -193,7 +193,7 @@ class FilesStorage(ObjectStorage):
             log_debug(f'creating new file [{file}]')
             super().create(file)
     def _find_name_id(self, filename: str)->list[int]:
-        result= sorted(self.crud.find_keys(['filename'], [filename]), reverse=True)
+        result= [] #sorted(self.crud.find_keys(['filename'], [filename]), reverse=True)
         log_debug(f'FIND_NAME_ID {result}')
         return result
     def find_name(self, filename: str)->File:
@@ -272,7 +272,7 @@ class FilesStorage(ObjectStorage):
         return self.find_digest(File.get_digest(filename))
     def read_filename(self, filename: str)->File:
         files = self.crud_files
-        return files.find(['filename'], [filename])
+        return None #files.find(['filename'], [filename])
         # if (rows:=self.database._execute_sql_command(f'select id from {files.table.name} where filename=?', [files._helper.map_object_to_db('filename', filename)],True)):
         #     result =  files.read(rows[0][0])
         #     return result
@@ -472,7 +472,7 @@ class BaseDirStorage(ObjectStorage):
     def __init__(self, database: Database):
         super().__init__(database, BaseDir)
     def find_base_dir(self, directory: str)->BaseDir:
-        return self.crud.find(['directory'], [directory])
+        return self.crud.find_from_values(attribute_names=['directory'], attribute_values=[directory])
     
 class AAPAStorage: 
     #main interface with the database

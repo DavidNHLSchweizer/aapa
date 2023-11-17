@@ -1,11 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Any, Iterable
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
 from data.classes.action_log  import ActionLog, ActionLogAggregator
 from data.crud.aanvragen import CRUD_aanvragen
+from data.crud.adapters import BoolColumnAdapter, ColumnAdapter, TimeColumnAdapter
 from data.crud.aggregator import CRUD_Aggregator
-from data.crud.crud_base import CRUD, AAPAClass, CRUD_AggregatorData, CRUDbase, DetailRec
+from data.crud.crud_base import CRUD, AAPAClass, CRUD_AggregatorData, CRUDbase
+from data.crud.crud_const import DBtype, DetailRec
 from data.crud.crud_factory import createCRUD, registerCRUD
 from data.crud.files import CRUD_files
 from database.database import Database
@@ -18,8 +20,8 @@ class CRUD_action_log_aanvragen(CRUD_Aggregator):
     def _post_action(self, detail_rec: DetailRec, crud_action: CRUD)->ActionLog:        
         match crud_action:
             case CRUD.INIT:        
-                self._db_map['log_id']['attrib'] = 'main_key'
-                self._db_map['aanvraag_id']['attrib'] = 'detail_key'
+                self.adapter.set_attribute('main_key', 'log_id')
+                self.adapter.set_attribute('detail_key', 'aanvraag_id')
             case _: pass
         return detail_rec
     # def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, aggregator: AggregatorCRUDdata=None
@@ -34,14 +36,18 @@ class CRUD_action_log_invalid_files(CRUD_Aggregator):
     def _post_action(self, detail_rec: DetailRec, crud_action: CRUD)->ActionLog:        
         match crud_action:
             case CRUD.INIT:        
-                self._db_map['log_id']['attrib']  = 'main_key'
-                self._db_map['file_id']['attrib'] = 'detail_key'
+                self.adapter.set_attribute('main_key', 'log_id')
+                self.adapter.set_attribute('detail_key', 'file_id')
             case _: pass
         return detail_rec
     # # def __init__(self, database: Database):
     # #     super().__init__(CRUD_action_log(database), ActionLogFilesTableDefinition())
     # def _get_objects(self, action_log: ActionLog)->Iterable[AAPAClass]:
     #     return action_log.invalid_files
+
+class ActionLogActionColumnAdapter(ColumnAdapter):
+    def map_db_to_value(self, db_value: DBtype)->Any:
+        return ActionLog.Action(db_value)
 
 class CRUD_action_log(CRUDbase):
     def _post_action(self, action_log: ActionLog, crud_action: CRUD)->ActionLog:        
@@ -51,12 +57,10 @@ class CRUD_action_log(CRUDbase):
                 ]
         match crud_action:
             case CRUD.INIT:        
-                self._db_map['date']['db2obj'] = TSC.str_to_timestamp
-                self._db_map['date']['obj2db'] = TSC.timestamp_to_str
-                self._db_map['can_undo']['db2obj'] = bool
-                self._db_map['can_undo']['obj2db'] = int
-                self._db_map['action']['db2obj'] = ActionLog.Action  
-                self.aggregator_CRUD_temp = createCRUD(self.database, ActionAanvragenDetailRec)
+                self.adapter.set_adapter(TimeColumnAdapter('date'))
+                self.adapter.set_adapter(BoolColumnAdapter('can_undo'))
+                self.adapter.set_adapter(ActionLogActionColumnAdapter('action'))
+                # self.aggregator_CRUD_temp = createCRUD(self.database, ActionAanvragenDetailRec)
         # #adds detail records as needed
         #         # for record in DETAILS:
         #         self.crud_aggregator = CRUD_Aggregator(self.database, ActionLogAggregator())

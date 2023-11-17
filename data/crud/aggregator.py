@@ -1,7 +1,8 @@
 from attr import dataclass
 from data.classes.action_log import ActionLogAggregator
 from data.classes.aggregator import Aggregator
-from data.crud.crud_base import AAPAClass, CRUD_AggregatorData, CRUDbase, DetailRec, DetailRecs
+from data.crud.crud_base import CRUD_AggregatorData, CRUDbase
+from data.crud.crud_const import AAPAClass, DetailRec, DetailRecs
 from data.crud.crud_factory import createCRUD
 from database.database import Database
 from database.table_def import TableDefinition

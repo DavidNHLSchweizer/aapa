@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Iterable
 from data.aapa_database import AanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
 from data.classes.milestones import Milestone, StudentMilestones
+from data.crud.adapters import IgnoreColumnAdapter, TimeColumnAdapter
 from data.crud.crud_base import CRUD, AAPAClass, CRUDbase
 from database.database import Database
 from database.table_def import TableDefinition
@@ -18,19 +19,17 @@ class CRUD_milestones(CRUDbase):
     def _post_action(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
         match action:
             case CRUD.INIT:
-                self._db_map['stud_id']['attrib'] = 'student.id'
-                self._db_map['bedrijf_id']['attrib'] = 'bedrijf.id'
-                self._db_map['beoordeling']['db2obj'] = Milestone.Beoordeling
-                self._db_map['datum']['db2obj'] = TSC.str_to_timestamp
-                self._db_map['datum']['obj2db'] = TSC.timestamp_to_str
+                self.adapter.set_adapter(TimeColumnAdapter('datum'))
+                self.adapter.set_adapter(IgnoreColumnAdapter('stud_id', attribute_name='student'))
+                self.adapter.set_adapter(IgnoreColumnAdapter('bedrijf_id', attribute_name='bedrijf'))
             case _: pass
         return aapa_obj
 
 class CRUD_student_milestones(CRUDbase):
     def __init__(self, database: Database):
         super().__init__(database, StudentMilestonesTableDefinition(), class_type=StudentMilestones, autoID=True)
-        self._db_map['student_id']['attrib'] = 'student.id'
-        self._db_map['basedir_id']['attrib'] = 'base_dir.id'
+        # self._db_map['student_id']['attrib'] = 'student.id'
+        # self._db_map['basedir_id']['attrib'] = 'base_dir.id'
 
 @dataclass
 class MilestoneDetailRelationRec:

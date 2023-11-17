@@ -1,16 +1,25 @@
-from typing import Iterable
+from typing import Any, Iterable
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
 from data.classes.studenten import Student
 from data.aapa_database import AanvraagTableDefinition
 from data.classes.aanvragen import Aanvraag
+from data.crud.adapters import ColumnAdapter
+from data.crud.crud_const import AAPAClass, DBtype
 from data.crud.crud_factory import registerCRUD
 from data.crud.files import CRUD_files
 from data.crud.milestones import CRUD_milestones
-from data.crud.crud_base import CRUD, AAPAClass
+from data.crud.crud_base import CRUD
 from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug
+
+class AanvraagStatusColumnAdapter(ColumnAdapter):
+    def map_db_to_value(self, db_value: DBtype)->Any:
+        return Aanvraag.Status(db_value)
+class AanvraagBeoordelingColumnAdapter(ColumnAdapter):
+    def map_db_to_value(self, db_value: DBtype)->Any:
+        return Aanvraag.Beoordeling(db_value)
 
 class CRUD_aanvragen(CRUD_milestones):
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
@@ -24,8 +33,8 @@ class CRUD_aanvragen(CRUD_milestones):
         match crud_action:
             case CRUD.INIT:
                 super()._post_action(aanvraag, crud_action)
-                self._db_map['status']['db2obj'] = Aanvraag.Status
-                self._db_map['beoordeling']['db2obj'] = Aanvraag.Beoordeling
+                self.adapter.set_adapter(AanvraagStatusColumnAdapter('status'))
+                self.adapter.set_adapter(AanvraagBeoordelingColumnAdapter('beoordeling'))
             case CRUD.READ:
                 pass # aanvraag.files = self.find_all(aanvraag.id)
             case _: pass
