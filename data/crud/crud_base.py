@@ -114,7 +114,7 @@ class CRUDbase:
         # placeholder for possible postprocessing, may modify object
         return aapa_obj  
     def check_already_there(self, aapa_obj: AAPAClass)->bool:
-        if stored := self.find_object(aapa_obj): dit gaat niet goed bij aanvragen, wschlijk om de student?
+        if stored := self.find_object(aapa_obj): #dit gaat niet goed bij aanvragen, wschlijk om de student?
             if stored == aapa_obj:
                 log_debug(f'--- already in database ----')                
             else:
@@ -126,7 +126,7 @@ class CRUDbase:
         return False
     def _generate_find_SQL_from_object(self, aapa_obj: AAPAClass)->SQLselect:
         return generate_find_SQL(self.adapter, aapa_obj, columns=self.adapter.table_keys(), 
-                                 where_attribute_names=self.adapter.columns(include_key=False), 
+                                 where_attribute_names=self.adapter.attributes(include_key=False), 
                                  no_column_ref_for_key=self.no_column_ref_for_key)
     def _generate_find_SQL_from_values(self, attribute_names: list[str], attribute_values: list[Any])->SQLselect:
         return generate_find_SQL(self.adapter, attribute_values=attribute_values, where_attribute_names=attribute_names, no_column_ref_for_key=self.no_column_ref_for_key)

@@ -5,6 +5,7 @@ from data.roots import decode_path, encode_path
 from database.sql_expr import SQE, Ops
 from database.sql_table import SQLselect
 from database.table_def import TableDefinition
+from general.log import log_debug
 from general.timeutil import TSC
 
 class DBrecord(dict): 
@@ -80,6 +81,8 @@ class TableAdapter:
         return [adapter for adapter in self._adapters.values() if not column_names or adapter.column_name in column_names]
     def columns(self, include_key = True)->list[str]:
         return [key for key in self._adapters.keys() if include_key or not (key in self.table.keys)]
+    def attributes(self, include_key = True)->list[str]:
+        return [adapter.attribute_name for key,adapter in self._adapters.items() if include_key or not (key in self.table.keys)]
     def table_keys(self)->list[str]:
         return self.table.keys
     def set_adapter(self, adapter: ColumnAdapter):
@@ -89,7 +92,9 @@ class TableAdapter:
     def keys_to_db(self, aapa_obj: AAPAClass)->tuple[list[str], list[Any]]:
         return self.object_to_db(aapa_obj, column_names=self.table_keys)
     def object_to_db(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
+        log_debug(f'start o2db {column_names=}  {attribute_names=}   {self.columns(include_key)=}')
         columns = column_names if column_names else self._get_columns_from_attributes(attribute_names) if attribute_names else self.columns(include_key)
+        log_debug(f'{columns=}')
         for column_name in columns:
             self._adapters[column_name].map_object_to_db(aapa_obj, self.db_record)
         return (columns, self.db_record.get_column_values(columns))
@@ -124,7 +129,9 @@ class TableAdapter:
 
 def _generate_where_clause(columns: list[str], values: list[Any], no_column_ref_for_key=False)->SQE:
     result = None
+    log_debug(f'GW: {columns}    {values}')
     for (key,value) in zip(columns, values):
+        log_debug(f'{key} {value}   {result}')
         new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
         if result is None:
             result = new_where_part
@@ -134,7 +141,10 @@ def _generate_where_clause(columns: list[str], values: list[Any], no_column_ref_
 
 def generate_where_clause_from_object(adapter: TableAdapter, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
                                       column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
-    return _generate_where_clause(*adapter.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
+    log_debug('start GW')
+    result = _generate_where_clause(*adapter.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
+    log_debug(f'GW{result.parametrized}, {result.parameters}')
+    return result #_generate_where_clause(*adapter.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
 
 def generate_where_clause_from_values(adapter: TableAdapter, attribute_values: list[Any], map_values=True, attribute_names: list[str]=None, 
                                       column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
@@ -146,8 +156,11 @@ def generate_find_SQL(adapter: TableAdapter, aapa_obj: AAPAClass=None, attribute
                        columns: list[str] = None, no_column_ref_for_key=False)->SQLselect:
     columns=columns if columns else adapter.table_keys()
     if aapa_obj:
-        return SQLselect(adapter.table, columns=columns, where=generate_where_clause_from_object(adapter, aapa_obj, include_key=False, attribute_names=where_attribute_names, 
-                                                                                                 column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key)
+        log_debug('start GFSQL')
+        result=SQLselect(adapter.table, columns=columns, where=generate_where_clause_from_object(adapter, aapa_obj, include_key=False, attribute_names=where_attribute_names, 
+                                                                                                 column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key) 
+        log_debug(f'GFSQL{result.query}, {result.parameters}')
+        return result
     else:
         return SQLselect(adapter.table, columns=columns, where=generate_where_clause_from_values(adapter, attribute_values=attribute_values, map_values=map_values, 
                                                                                                  attribute_names=where_attribute_names, column_names=where_column_names), 
