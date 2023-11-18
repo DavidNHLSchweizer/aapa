@@ -89,8 +89,6 @@ class TableMapper:
         self._mappers[mapper.column_name] = mapper
     def set_attribute(self, column_name: str, attribute_name: str):
         self._mappers[column_name].attribute_name = attribute_name
-    def keys_to_db(self, aapa_obj: AAPAClass)->tuple[list[str], list[Any]]:
-        return self.object_to_db(aapa_obj, column_names=self.table_keys)
     def object_to_db(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
         log_debug(f'start o2db {column_names=}  {attribute_names=}   {self.columns(include_key)=}')
         columns = column_names if column_names else self._get_columns_from_attributes(attribute_names) if attribute_names else self.columns(include_key)
@@ -99,7 +97,7 @@ class TableMapper:
             self._mappers[column_name].map_object_to_db(aapa_obj, self.db_record)
         return (columns, self.db_record.get_column_values(columns))
     def values_to_db(self, attribute_values: list[Any], map_values=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
-        #generate list of values for database from predefined values, if attribute names not supplied: not converted but return directly
+        #generate paired list of columns/values for database from predefined values, if map_values False or attribute names not supplied: not converted but return directly
         columns = column_names if column_names else self._get_columns_from_attributes(attribute_names) if attribute_names else self.columns()
         if map_values:
             attribute_names = attribute_names if attribute_names else [mapper.attribute_name for mapper in self.mappers(columns)]
@@ -111,9 +109,11 @@ class TableMapper:
         column_mapper = self._find_mapper(attribute_name)
         return column_mapper.map_value_to_db(value)
     def db_to_object(self, row: sql3.Row, include_key=True)->AAPAClass:
+        #generate object from database record
         self.db_record.set_row_values(row)
-        return self._db_to_object(include_key)
-    def _db_to_object(self, include_key=True)->AAPAClass:
+        return self.__db_to_object(include_key)
+    def __db_to_object(self, include_key=True)->AAPAClass:
+        #map dbrecord and instantiate a new object
         class_dict = {}
         for column_name in self.columns(include_key):
             mapper = self._mappers[column_name]
@@ -127,42 +127,78 @@ class TableMapper:
     def _get_columns_from_attributes(self, attribute_names: list[str]):
         return [self._find_mapper(attribute).column_name for attribute in attribute_names]
 
-def _generate_where_clause(columns: list[str], values: list[Any], no_column_ref_for_key=False)->SQE:
-    result = None
-    log_debug(f'GW: {columns}    {values}')
-    for (key,value) in zip(columns, values):
-        log_debug(f'{key} {value}   {result}')
-        new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
-        if result is None:
-            result = new_where_part
-        else:
-            result = SQE(result, Ops.AND, new_where_part, no_column_ref_for_key=no_column_ref_for_key)
-    return result
 
-def generate_where_clause_from_object(mapper: TableMapper, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
-                                      column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
-    log_debug('start GW')
-    result = _generate_where_clause(*mapper.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
-    log_debug(f'GW{result.parametrized}, {result.parameters}')
-    return result #_generate_where_clause(*mapper.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
-
-def generate_where_clause_from_values(mapper: TableMapper, attribute_values: list[Any], map_values=True, attribute_names: list[str]=None, 
-                                      column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
-    return _generate_where_clause(*mapper.values_to_db(attribute_values=attribute_values, map_values=map_values, attribute_names=attribute_names, 
-                                                       column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
-
-
-def generate_find_SQL(mapper: TableMapper, aapa_obj: AAPAClass=None, attribute_values: list[Any]=None, map_values = True, where_attribute_names: list[str]=None, where_column_names: list[str]=None, 
-                       columns: list[str] = None, no_column_ref_for_key=False)->SQLselect:
-    columns=columns if columns else mapper.table_keys()
-    if aapa_obj:
-        log_debug('start GFSQL')
-        result=SQLselect(mapper.table, columns=columns, where=generate_where_clause_from_object(mapper, aapa_obj, include_key=False, attribute_names=where_attribute_names, 
-                                                                                                 column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key) 
-        log_debug(f'GFSQL{result.query}, {result.parameters}')
+class MapperSearcher:
+    def __init__(self, mapper: TableMapper):
+        self.mapper = mapper
+    def _generate_where_clause(self, columns: list[str], values: list[Any], no_column_ref_for_key=False)->SQE:
+        result = None
+        log_debug(f'GW: {columns}    {values}')
+        for (key,value) in zip(columns, values):
+            log_debug(f'{key} {value}   {result}')
+            new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
+            if result is None:
+                result = new_where_part
+            else:
+                result = SQE(result, Ops.AND, new_where_part, no_column_ref_for_key=no_column_ref_for_key)
         return result
-    else:
-        return SQLselect(mapper.table, columns=columns, where=generate_where_clause_from_values(mapper, attribute_values=attribute_values, map_values=map_values, 
-                                                                                                 attribute_names=where_attribute_names, column_names=where_column_names), 
-                                                                                                 no_column_ref_for_key=no_column_ref_for_key)
+    def generate_where_clause() #abstractify more!
+    def generate_find_SQL(self, aapa_obj: AAPAClass=None, attribute_values: list[Any]=None, map_values = True, where_attribute_names: list[str]=None, where_column_names: list[str]=None, 
+                        columns: list[str] = None, no_column_ref_for_key=False)->SQLselect:
+        columns=columns if columns else self.mapper.table_keys()
+        if aapa_obj:
+            log_debug('start GFSQL')
+            result=SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_object(aapa_obj, include_key=False, attribute_names=where_attribute_names, 
+                                                                                                    column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key) 
+            log_debug(f'GFSQL{result.query}, {result.parameters}')
+            return result
+        else:
+            return SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_values(attribute_values=attribute_values, map_values=map_values, 
+                                                                                                    attribute_names=where_attribute_names, column_names=where_column_names), 
+                                                                                                    no_column_ref_for_key=no_column_ref_for_key)
+
+
+
+
+class MapperObjectSearcher(MapperSearcher):
+    def generate_where_clause(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
+                                        column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
+        log_debug('start GWfo')
+        result = self._generate_where_clause(*self.mapper.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
+        log_debug(f'GW{result.parametrized}, {result.parameters}')
+        return result
+    def generate_find_SQL(self, aapa_obj: AAPAClass=None, attribute_values: list[Any]=None, map_values = True, where_attribute_names: list[str]=None, where_column_names: list[str]=None, 
+                        columns: list[str] = None, no_column_ref_for_key=False)->SQLselect:
+        columns=columns if columns else self.mapper.table_keys()
+        if aapa_obj:
+            log_debug('start GFSQL')
+            result=SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_object(aapa_obj, include_key=False, attribute_names=where_attribute_names, 
+                                                                                                    column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key) 
+            log_debug(f'GFSQL{result.query}, {result.parameters}')
+            return result
+        else:
+            return SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_values(attribute_values=attribute_values, map_values=map_values, 
+                                                                                                    attribute_names=where_attribute_names, column_names=where_column_names), 
+                                                                                                    no_column_ref_for_key=no_column_ref_for_key)
+
+class MapperValuesSearcher(MapperSearcher):
+    def generate_where_clause(self, attribute_values: list[Any], map_values=True, attribute_names: list[str]=None, 
+                                        column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
+        return self._generate_where_clause(*self.mapper.values_to_db(attribute_values=attribute_values, map_values=map_values, attribute_names=attribute_names, 
+                                                        column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
+
+
+    def generate_find_SQL(self, aapa_obj: AAPAClass=None, attribute_values: list[Any]=None, map_values = True, where_attribute_names: list[str]=None, where_column_names: list[str]=None, 
+                        columns: list[str] = None, no_column_ref_for_key=False)->SQLselect:
+        columns=columns if columns else self.mapper.table_keys()
+        if aapa_obj:
+            log_debug('start GFSQL')
+            result=SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_object(aapa_obj, include_key=False, attribute_names=where_attribute_names, 
+                                                                                                    column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key) 
+            log_debug(f'GFSQL{result.query}, {result.parameters}')
+            return result
+        else:
+            return SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_values(attribute_values=attribute_values, map_values=map_values, 
+                                                                                                    attribute_names=where_attribute_names, column_names=where_column_names), 
+                                                                                                    no_column_ref_for_key=no_column_ref_for_key)
 
