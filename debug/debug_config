@@ -43,6 +43,7 @@ data.crud.studenten
 data.crud.milestones
 data.crud.verslagen
 data.crud.mappers
+data.crud.table_search
 database.database
 #database.dbargparser
 #database.dbConst

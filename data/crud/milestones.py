@@ -16,12 +16,13 @@ class CRUD_milestones(CRUDbase):
                     no_column_ref_for_key = False, autoID=False):
         super().__init__(database, class_type=class_type, table=table, 
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
+    def customize_mapper(self):
+        self.set_mapper(TimeColumnMapper('datum'))
+        self.set_mapper(CRUDColumnMapper('stud_id', attribute_name='student', crud=createCRUD(self.database, Student)))
+        self.set_mapper(CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(self.database, Bedrijf)))
     def _post_action(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
         match action:
-            case CRUD.INIT:
-                self.set_mapper(TimeColumnMapper('datum'))
-                self.set_mapper(CRUDColumnMapper('stud_id', attribute_name='student', crud=createCRUD(self.database, Student)))
-                self.set_mapper(CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(self.database, Bedrijf)))
+            case CRUD.INIT:pass
             case _: pass
         return aapa_obj
 

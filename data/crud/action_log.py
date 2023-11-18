@@ -12,11 +12,12 @@ from data.crud.files import CRUD_files
 
 class ActionAanvragenDetailRec(DetailRec): pass
 class CRUD_action_log_aanvragen(CRUD_Aggregator):
+    def customize_mapper(self):
+        self.mapper.set_attribute('main_key', 'log_id')
+        self.mapper.set_attribute('detail_key', 'aanvraag_id')
     def _post_action(self, detail_rec: DetailRec, crud_action: CRUD)->ActionLog:        
         match crud_action:
-            case CRUD.INIT:        
-                self.mapper.set_attribute('main_key', 'log_id')
-                self.mapper.set_attribute('detail_key', 'aanvraag_id')
+            case CRUD.INIT:    pass    
             case _: pass
         return detail_rec
     # def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, aggregator: AggregatorCRUDdata=None
@@ -28,11 +29,12 @@ class CRUD_action_log_aanvragen(CRUD_Aggregator):
 
 class ActionInvalidFilesDetailRec(DetailRec): pass
 class CRUD_action_log_invalid_files(CRUD_Aggregator): 
+    def customize_mapper(self):
+        self.mapper.set_attribute('main_key', 'log_id')
+        self.mapper.set_attribute('detail_key', 'file_id')
     def _post_action(self, detail_rec: DetailRec, crud_action: CRUD)->ActionLog:        
         match crud_action:
-            case CRUD.INIT:        
-                self.mapper.set_attribute('main_key', 'log_id')
-                self.mapper.set_attribute('detail_key', 'file_id')
+            case CRUD.INIT:pass        
             case _: pass
         return detail_rec
     # # def __init__(self, database: Database):
@@ -45,16 +47,17 @@ class ActionLogActionColumnMapper(ColumnMapper):
         return ActionLog.Action(db_value)
 
 class CRUD_action_log(CRUDbase):
+    def customize_mapper(self):
+        self.set_mapper(TimeColumnMapper('date'))
+        self.set_mapper(BoolColumnMapper('can_undo'))
+        self.set_mapper(ActionLogActionColumnMapper('action'))
     def _post_action(self, action_log: ActionLog, crud_action: CRUD)->ActionLog:        
         DETAILS = [
                 { 'crud_details':CRUD_action_log_aanvragen, 'crud_table': CRUD_aanvragen},
                 { 'crud_details':CRUD_action_log_invalid_files, 'crud_table': CRUD_files}
                 ]
         match crud_action:
-            case CRUD.INIT:        
-                self.set_mapper(TimeColumnMapper('date'))
-                self.set_mapper(BoolColumnMapper('can_undo'))
-                self.set_mapper(ActionLogActionColumnMapper('action'))
+            case CRUD.INIT:pass        
                 # self.aggregator_CRUD_temp = createCRUD(self.database, ActionAanvragenDetailRec)
         # #adds detail records as needed
         #         # for record in DETAILS:

@@ -5,10 +5,11 @@ from data.crud.crud_base import CRUD, CRUDbase
 from data.crud.crud_factory import registerCRUD
 
 class CRUD_basedirs(CRUDbase):
+    def customize_mapper(self):
+        self.set_mapper(FilenameColumnMapper('directory'))
     def _post_action(self, basedir: BaseDir, crud_action: CRUD)->BaseDir:        
         match crud_action:
-            case CRUD.INIT:
-                self.set_mapper(FilenameColumnMapper('directory'))
+            case CRUD.INIT:pass
             case _: pass
         return basedir
 

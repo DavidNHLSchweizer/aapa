@@ -26,13 +26,12 @@ class CRUD_aanvragen(CRUD_milestones):
                     no_column_ref_for_key = False, autoID=False):
         super().__init__(database, class_type=class_type, table=table, 
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
-    def _post_action(self, aanvraag: Aanvraag, crud_action: CRUD)->Aanvraag:
-        #corrects status and beoordeling types (read as ints from database) 
+    def customize_mapper(self):
+        super().customize_mapper()
+        self.set_mapper(AanvraagStatusColumnMapper('status'))
+        self.set_mapper(AanvraagBeoordelingColumnMapper('beoordeling'))
+    def _post_action(aanvraag, crud_action):
         match crud_action:
-            case CRUD.INIT:
-                super()._post_action(aanvraag, crud_action)
-                self.set_mapper(AanvraagStatusColumnMapper('status'))
-                self.set_mapper(AanvraagBeoordelingColumnMapper('beoordeling'))
             case CRUD.READ:
                 pass # aanvraag.files = self.find_all(aanvraag.id)
             case _: pass

@@ -22,13 +22,16 @@ class CRUD_verslagen(CRUD_milestones):
                     no_column_ref_for_key = False, autoID=False):
         super().__init__(database, class_type=class_type, table=table, 
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
+    def customize_mapper(self):
+        super().customize_mapper()
+        self.set_mapper(FilenameColumnMapper('directory'))
+        self.set_mapper(VerslagStatusColumnMapper('status'))
+        self.set_mapper(VerslagBeoordelingColumnMapper('beoordeling'))
+
     def _post_action(self, verslag: Verslag, crud_action: CRUD)->Verslag:        
         match crud_action:
             case CRUD.INIT:
                 super()._post_action(verslag, crud_action)
-                self.set_mapper(FilenameColumnMapper('directory'))
-                self.set_mapper(VerslagStatusColumnMapper('status'))
-                self.set_mapper(VerslagBeoordelingColumnMapper('beoordeling'))
         return verslag
 
 registerCRUD(CRUD_verslagen, class_type=Verslag, table=VerslagTableDefinition(), autoID=True)

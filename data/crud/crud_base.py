@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any
 from data.classes.aggregator import Aggregator
-from data.crud.mappers import ColumnMapper, TableMapper, generate_find_SQL, generate_where_clause_from_object
+from data.crud.mappers import ColumnMapper, TableMapper#, generate_find_SQL, generate_where_clause_from_object
 from data.crud.crud_const import AAPAClass, DBtype, KeyClass
+from data.crud.table_search import TableSearcher
 
 from database.dbConst import EMPTY_ID
 from database.sql_expr import Ops, SQE
@@ -44,6 +45,7 @@ class CRUDbase:
         self.autoID = autoID
         self.aggregator_CRUD_temp: CRUDbase = None
         self.mapper = TableMapper(table, class_type)
+        self.customize_mapper()
         self._post_action(None, CRUD.INIT) 
         # can later probably be improved through direct assignment of mapper, now used to adapt column mappers
     @property
@@ -52,12 +54,16 @@ class CRUDbase:
     @property
     def class_type(self)->AAPAClass:
         return self.mapper.class_type
+    def customize_mapper(self):
+        pass #for non-standard column mappers
     def set_mapper(self, column_mapper: ColumnMapper):
         self.mapper.set_mapper(column_mapper)
     def _set_key(self, aapa_obj: AAPAClass):
         if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
     def create(self, aapa_obj: AAPAClass):
+        TS = TableSearcher(self.database, self.mapper)
+        log_debug(TS.find_id(aapa_obj))
         log_debug(f'CRUD({classname(self)}) create {str(aapa_obj)}')
         if self.check_already_there(aapa_obj):
             return
@@ -89,8 +95,10 @@ class CRUDbase:
                                     where=self._generate_where_clause_from_object(aapa_obj, column_names=self.mapper.table_keys()))
         
     def find_object(self, aapa_obj: AAPAClass)->AAPAClass:
-        if rows := self.database.execute_select(self._generate_find_SQL_from_object(aapa_obj)):
-            return self.mapper.db_to_object(rows[0])
+        TS = TableSearcher(self.database, self.mapper)
+        return TS.find_id(aapa_obj)
+        # if rows := self.database.execute_select(self._generate_find_SQL_from_object(aapa_obj)):
+        #     return self.mapper.db_to_object(rows[0])
         return None
     def find_from_values(self, attribute_names: list[str], attribute_values: list[Any])->AAPAClass:
         if rows := self.database.execute_select(self._generate_find_SQL_from_values(attribute_names=attribute_names, attribute_values=attribute_values)):
@@ -115,12 +123,12 @@ class CRUDbase:
             setattr(aapa_obj, self.table.key, getattr(stored, self.table.key))
             return True
         return False
-    def _generate_find_SQL_from_object(self, aapa_obj: AAPAClass)->SQLselect:
-        return generate_find_SQL(self.mapper, aapa_obj, columns=self.mapper.table_keys(), 
-                                 where_attribute_names=self.mapper.attributes(include_key=False), 
-                                 no_column_ref_for_key=self.no_column_ref_for_key)
-    def _generate_find_SQL_from_values(self, attribute_names: list[str], attribute_values: list[Any])->SQLselect:
-        return generate_find_SQL(self.mapper, attribute_values=attribute_values, where_attribute_names=attribute_names, no_column_ref_for_key=self.no_column_ref_for_key)
+    # def _generate_find_SQL_from_object(self, aapa_obj: AAPAClass)->SQLselect:
+    #     return generate_find_SQL(self.mapper, aapa_obj, columns=self.mapper.table_keys(), 
+    #                              where_attribute_names=self.mapper.attributes(include_key=False), 
+    #                              no_column_ref_for_key=self.no_column_ref_for_key)
+    # def _generate_find_SQL_from_values(self, attribute_names: list[str], attribute_values: list[Any])->SQLselect:
+    #     return generate_find_SQL(self.mapper, attribute_values=attribute_values, where_attribute_names=attribute_names, no_column_ref_for_key=self.no_column_ref_for_key)
     # def _generate_find_SQL(self, column_names: list[str], attribute_names= list[Any])->SQLselect:
 
     #     attribute_names=self.mapper.table_keys(), 

@@ -10,12 +10,13 @@ class FileTypeColumnMapper(ColumnMapper):
         return File.Type(db_value)
 
 class CRUD_files(CRUDbase):
+    def customize_mapper(self):
+        self.set_mapper(FilenameColumnMapper('filename'))
+        self.set_mapper(TimeColumnMapper('timestamp'))
+        self.set_mapper(FileTypeColumnMapper('filetype'))
     def _post_action(self, file: File, crud_action: CRUD)->File:        
         match crud_action:
-            case CRUD.INIT:
-                self.set_mapper(FilenameColumnMapper('filename'))
-                self.set_mapper(TimeColumnMapper('timestamp'))
-                self.set_mapper(FileTypeColumnMapper('filetype'))
+            case CRUD.INIT:pass
             case _: pass
         return file
 
