@@ -42,7 +42,7 @@ data.crud.aanvragen
 data.crud.studenten
 data.crud.milestones
 data.crud.verslagen
-data.crud.adapters
+data.crud.mappers
 database.database
 #database.dbargparser
 #database.dbConst

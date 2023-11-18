@@ -1,31 +1,26 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
 from data.classes.action_log  import ActionLog, ActionLogAggregator
 from data.crud.aanvragen import CRUD_aanvragen
-from data.crud.adapters import BoolColumnAdapter, ColumnAdapter, TimeColumnAdapter
+from data.crud.mappers import BoolColumnMapper, ColumnMapper, TimeColumnMapper
 from data.crud.aggregator import CRUD_Aggregator
-from data.crud.crud_base import CRUD, AAPAClass, CRUD_AggregatorData, CRUDbase
+from data.crud.crud_base import CRUD,  CRUD_AggregatorData, CRUDbase
 from data.crud.crud_const import DBtype, DetailRec
-from data.crud.crud_factory import createCRUD, registerCRUD
+from data.crud.crud_factory import registerCRUD
 from data.crud.files import CRUD_files
-from database.database import Database
-from database.table_def import TableDefinition
-from general.log import log_debug
-from general.timeutil import TSC
 
 class ActionAanvragenDetailRec(DetailRec): pass
 class CRUD_action_log_aanvragen(CRUD_Aggregator):
     def _post_action(self, detail_rec: DetailRec, crud_action: CRUD)->ActionLog:        
         match crud_action:
             case CRUD.INIT:        
-                self.adapter.set_attribute('main_key', 'log_id')
-                self.adapter.set_attribute('detail_key', 'aanvraag_id')
+                self.mapper.set_attribute('main_key', 'log_id')
+                self.mapper.set_attribute('detail_key', 'aanvraag_id')
             case _: pass
         return detail_rec
     # def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, aggregator: AggregatorCRUDdata=None
-    #             subclass_CRUDs:dict[str, AAPAClass]={}, no_column_ref_for_key = False, autoID=False):)
+    #   no_column_ref_for_key = False, autoID=False):)
     # def __init__(self, database: Database, table: TableDefinition, main_crud: CRUDbase, aggregator: Aggregator,  attribute: str):
     # #     super().__init__(CRUD_action_log(database), ActionLogAanvragenTableDefinition())
     # def _get_objects(self, action_log: ActionLog)->Iterable[AAPAClass]:
@@ -36,8 +31,8 @@ class CRUD_action_log_invalid_files(CRUD_Aggregator):
     def _post_action(self, detail_rec: DetailRec, crud_action: CRUD)->ActionLog:        
         match crud_action:
             case CRUD.INIT:        
-                self.adapter.set_attribute('main_key', 'log_id')
-                self.adapter.set_attribute('detail_key', 'file_id')
+                self.mapper.set_attribute('main_key', 'log_id')
+                self.mapper.set_attribute('detail_key', 'file_id')
             case _: pass
         return detail_rec
     # # def __init__(self, database: Database):
@@ -45,7 +40,7 @@ class CRUD_action_log_invalid_files(CRUD_Aggregator):
     # def _get_objects(self, action_log: ActionLog)->Iterable[AAPAClass]:
     #     return action_log.invalid_files
 
-class ActionLogActionColumnAdapter(ColumnAdapter):
+class ActionLogActionColumnMapper(ColumnMapper):
     def map_db_to_value(self, db_value: DBtype)->Any:
         return ActionLog.Action(db_value)
 
@@ -57,9 +52,9 @@ class CRUD_action_log(CRUDbase):
                 ]
         match crud_action:
             case CRUD.INIT:        
-                self.set_adapter(TimeColumnAdapter('date'))
-                self.set_adapter(BoolColumnAdapter('can_undo'))
-                self.set_adapter(ActionLogActionColumnAdapter('action'))
+                self.set_mapper(TimeColumnMapper('date'))
+                self.set_mapper(BoolColumnMapper('can_undo'))
+                self.set_mapper(ActionLogActionColumnMapper('action'))
                 # self.aggregator_CRUD_temp = createCRUD(self.database, ActionAanvragenDetailRec)
         # #adds detail records as needed
         #         # for record in DETAILS:

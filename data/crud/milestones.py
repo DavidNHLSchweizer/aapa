@@ -4,35 +4,30 @@ from data.classes.bedrijven import Bedrijf
 from data.aapa_database import AanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
-from data.crud.adapters import IgnoreColumnAdapter, TimeColumnAdapter
-from data.crud.crud_base import CRUD, AAPAClass, CRUDColumnAdapter, CRUDbase
+from data.crud.mappers import TimeColumnMapper
+from data.crud.crud_base import CRUD, AAPAClass, CRUDColumnMapper, CRUDbase
 from data.crud.crud_factory import createCRUD
 from database.database import Database
 from database.table_def import TableDefinition
-from general.timeutil import TSC
 
 class CRUD_milestones(CRUDbase):
     # semi-abstract base class for AANVRAGEN and VERSLAGEN, handles the common parts
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
-                    subclass_CRUDs:dict[str, AAPAClass]={}, 
                     no_column_ref_for_key = False, autoID=False):
         super().__init__(database, class_type=class_type, table=table, 
-                         subclass_CRUDs=subclass_CRUDs,
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
     def _post_action(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
         match action:
             case CRUD.INIT:
-                self.set_adapter(TimeColumnAdapter('datum'))
-                self.set_adapter(CRUDColumnAdapter('stud_id', attribute_name='student', crud=createCRUD(self.database, Student)))
-                self.set_adapter(CRUDColumnAdapter('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(self.database, Bedrijf)))
+                self.set_mapper(TimeColumnMapper('datum'))
+                self.set_mapper(CRUDColumnMapper('stud_id', attribute_name='student', crud=createCRUD(self.database, Student)))
+                self.set_mapper(CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(self.database, Bedrijf)))
             case _: pass
         return aapa_obj
 
 class CRUD_student_milestones(CRUDbase):
     def __init__(self, database: Database):
         super().__init__(database, StudentMilestonesTableDefinition(), class_type=StudentMilestones, autoID=True)
-        # self._db_map['student_id']['attrib'] = 'student.id'
-        # self._db_map['basedir_id']['attrib'] = 'base_dir.id'
 
 @dataclass
 class MilestoneDetailRelationRec:

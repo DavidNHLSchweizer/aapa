@@ -1,14 +1,11 @@
-from data.crud.adapters import ColumnAdapter, FilenameColumnAdapter, TimeColumnAdapter
+from data.crud.mappers import ColumnMapper, FilenameColumnMapper, TimeColumnMapper
 from data.crud.crud_base import CRUD, CRUDbase
 from data.crud.crud_const import DBtype
 from data.crud.crud_factory import registerCRUD
-from data.roots import decode_path, encode_path
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File
-from general.timeutil import TSC
 
-
-class FileTypeColumnAdapter(ColumnAdapter):
+class FileTypeColumnMapper(ColumnMapper):
     def map_db_to_value(self, db_value: DBtype)->File.Type:
         return File.Type(db_value)
 
@@ -16,9 +13,9 @@ class CRUD_files(CRUDbase):
     def _post_action(self, file: File, crud_action: CRUD)->File:        
         match crud_action:
             case CRUD.INIT:
-                self.set_adapter(FilenameColumnAdapter('filename'))
-                self.set_adapter(TimeColumnAdapter('timestamp'))
-                self.set_adapter(FileTypeColumnAdapter('filetype'))
+                self.set_mapper(FilenameColumnMapper('filename'))
+                self.set_mapper(TimeColumnMapper('timestamp'))
+                self.set_mapper(FileTypeColumnMapper('filetype'))
             case _: pass
         return file
 

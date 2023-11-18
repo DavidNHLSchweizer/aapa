@@ -32,7 +32,7 @@ class DBrecord(dict):
     def set_row_values(self, row: sql3.Row):
         self.set_column_values(row.keys(), [row[key] for key in row.keys()])
 
-class ColumnAdapter:
+class ColumnMapper:
     def __init__(self, column_name: str, attribute_name:str=None):
         self.column_name = column_name
         self.attribute_name = attribute_name if attribute_name else column_name
@@ -45,50 +45,50 @@ class ColumnAdapter:
     def map_db_to_value(self, db_value: DBtype)->Any:
         return db_value
     
-class IgnoreColumnAdapter(ColumnAdapter):
+class IgnoreColumnMapper(ColumnMapper):
     def map_value_to_db(self, value: Any)->DBtype:
         return None
     def map_db_to_value(self, db_value: DBtype)->Any:
         return None
 
-class BoolColumnAdapter(ColumnAdapter):
+class BoolColumnMapper(ColumnMapper):
     def map_value_to_db(self, value: bool)->DBtype:
         return int(value)
     def map_db_to_value(self, db_value: int)->Any:
         return bool(db_value)
 
-class TimeColumnAdapter(ColumnAdapter):
+class TimeColumnMapper(ColumnMapper):
     def map_value_to_db(self, value: Any)->DBtype:
         return TSC.timestamp_to_str(value)
     def map_db_to_value(self, db_value: DBtype)->Any:
         return TSC.str_to_timestamp(db_value)
 
-class FilenameColumnAdapter(ColumnAdapter):
+class FilenameColumnMapper(ColumnMapper):
     def map_value_to_db(self, value: Any)->DBtype:
         return encode_path(value)
     def map_db_to_value(self, db_value: DBtype)->Any:
         return decode_path(db_value)
 
-class TableAdapter:
+class TableMapper:
     def __init__(self, table: TableDefinition, class_type: AAPAClass):
         self.table = table
         self.db_record = DBrecord(table)
         self.class_type = class_type        
-        self._adapters: dict[str,ColumnAdapter] = {}     
+        self._mappers: dict[str,ColumnMapper] = {}     
         for column in self.table.columns:   
-            self._adapters[column.name] = ColumnAdapter(column.name)
-    def adapters(self, column_names: list[str] = None)->list[ColumnAdapter]:
-        return [adapter for adapter in self._adapters.values() if not column_names or adapter.column_name in column_names]
+            self._mappers[column.name] = ColumnMapper(column.name)
+    def mappers(self, column_names: list[str] = None)->list[ColumnMapper]:
+        return [mapper for mapper in self._mappers.values() if not column_names or mapper.column_name in column_names]
     def columns(self, include_key = True)->list[str]:
-        return [key for key in self._adapters.keys() if include_key or not (key in self.table.keys)]
+        return [key for key in self._mappers.keys() if include_key or not (key in self.table.keys)]
     def attributes(self, include_key = True)->list[str]:
-        return [adapter.attribute_name for key,adapter in self._adapters.items() if include_key or not (key in self.table.keys)]
+        return [mapper.attribute_name for key,mapper in self._mappers.items() if include_key or not (key in self.table.keys)]
     def table_keys(self)->list[str]:
         return self.table.keys
-    def set_adapter(self, adapter: ColumnAdapter):
-        self._adapters[adapter.column_name] = adapter
+    def set_mapper(self, mapper: ColumnMapper):
+        self._mappers[mapper.column_name] = mapper
     def set_attribute(self, column_name: str, attribute_name: str):
-        self._adapters[column_name].attribute_name = attribute_name
+        self._mappers[column_name].attribute_name = attribute_name
     def keys_to_db(self, aapa_obj: AAPAClass)->tuple[list[str], list[Any]]:
         return self.object_to_db(aapa_obj, column_names=self.table_keys)
     def object_to_db(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
@@ -96,36 +96,36 @@ class TableAdapter:
         columns = column_names if column_names else self._get_columns_from_attributes(attribute_names) if attribute_names else self.columns(include_key)
         log_debug(f'{columns=}')
         for column_name in columns:
-            self._adapters[column_name].map_object_to_db(aapa_obj, self.db_record)
+            self._mappers[column_name].map_object_to_db(aapa_obj, self.db_record)
         return (columns, self.db_record.get_column_values(columns))
     def values_to_db(self, attribute_values: list[Any], map_values=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
         #generate list of values for database from predefined values, if attribute names not supplied: not converted but return directly
         columns = column_names if column_names else self._get_columns_from_attributes(attribute_names) if attribute_names else self.columns()
         if map_values:
-            attribute_names = attribute_names if attribute_names else [adapter.attribute_name for adapter in self.adapters(columns)]
+            attribute_names = attribute_names if attribute_names else [mapper.attribute_name for mapper in self.mappers(columns)]
             values = [self.value_to_db(value, attribute) for value,attribute in zip(attribute_values, attribute_names)]
         else:
             values = attribute_values
         return columns,values
     def value_to_db(self, value: Any, attribute_name: str)->DBtype:
-        column_adapter = self._find_adapter(attribute_name)
-        return column_adapter.map_value_to_db(value)
+        column_mapper = self._find_mapper(attribute_name)
+        return column_mapper.map_value_to_db(value)
     def db_to_object(self, row: sql3.Row, include_key=True)->AAPAClass:
         self.db_record.set_row_values(row)
         return self._db_to_object(include_key)
     def _db_to_object(self, include_key=True)->AAPAClass:
         class_dict = {}
         for column_name in self.columns(include_key):
-            adapter = self._adapters[column_name]
-            class_dict[adapter.attribute_name] = adapter.map_db_to_object(self.db_record)
+            mapper = self._mappers[column_name]
+            class_dict[mapper.attribute_name] = mapper.map_db_to_object(self.db_record)
         return self.class_type(**class_dict)        
-    def _find_adapter(self, attribute_name: str)->ColumnAdapter:
-        for adapter in self._adapters.values():
-            if adapter.attribute_name == attribute_name:
-                return adapter
+    def _find_mapper(self, attribute_name: str)->ColumnMapper:
+        for mapper in self._mappers.values():
+            if mapper.attribute_name == attribute_name:
+                return mapper
         return None
     def _get_columns_from_attributes(self, attribute_names: list[str]):
-        return [self._find_adapter(attribute).column_name for attribute in attribute_names]
+        return [self._find_mapper(attribute).column_name for attribute in attribute_names]
 
 def _generate_where_clause(columns: list[str], values: list[Any], no_column_ref_for_key=False)->SQE:
     result = None
@@ -139,30 +139,30 @@ def _generate_where_clause(columns: list[str], values: list[Any], no_column_ref_
             result = SQE(result, Ops.AND, new_where_part, no_column_ref_for_key=no_column_ref_for_key)
     return result
 
-def generate_where_clause_from_object(adapter: TableAdapter, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
+def generate_where_clause_from_object(mapper: TableMapper, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
                                       column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
     log_debug('start GW')
-    result = _generate_where_clause(*adapter.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
+    result = _generate_where_clause(*mapper.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
     log_debug(f'GW{result.parametrized}, {result.parameters}')
-    return result #_generate_where_clause(*adapter.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
+    return result #_generate_where_clause(*mapper.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
 
-def generate_where_clause_from_values(adapter: TableAdapter, attribute_values: list[Any], map_values=True, attribute_names: list[str]=None, 
+def generate_where_clause_from_values(mapper: TableMapper, attribute_values: list[Any], map_values=True, attribute_names: list[str]=None, 
                                       column_names: list[str]=None, no_column_ref_for_key=False)->SQE:
-    return _generate_where_clause(*adapter.values_to_db(attribute_values=attribute_values, map_values=map_values, attribute_names=attribute_names, 
+    return _generate_where_clause(*mapper.values_to_db(attribute_values=attribute_values, map_values=map_values, attribute_names=attribute_names, 
                                                        column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
 
 
-def generate_find_SQL(adapter: TableAdapter, aapa_obj: AAPAClass=None, attribute_values: list[Any]=None, map_values = True, where_attribute_names: list[str]=None, where_column_names: list[str]=None, 
+def generate_find_SQL(mapper: TableMapper, aapa_obj: AAPAClass=None, attribute_values: list[Any]=None, map_values = True, where_attribute_names: list[str]=None, where_column_names: list[str]=None, 
                        columns: list[str] = None, no_column_ref_for_key=False)->SQLselect:
-    columns=columns if columns else adapter.table_keys()
+    columns=columns if columns else mapper.table_keys()
     if aapa_obj:
         log_debug('start GFSQL')
-        result=SQLselect(adapter.table, columns=columns, where=generate_where_clause_from_object(adapter, aapa_obj, include_key=False, attribute_names=where_attribute_names, 
+        result=SQLselect(mapper.table, columns=columns, where=generate_where_clause_from_object(mapper, aapa_obj, include_key=False, attribute_names=where_attribute_names, 
                                                                                                  column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key) 
         log_debug(f'GFSQL{result.query}, {result.parameters}')
         return result
     else:
-        return SQLselect(adapter.table, columns=columns, where=generate_where_clause_from_values(adapter, attribute_values=attribute_values, map_values=map_values, 
+        return SQLselect(mapper.table, columns=columns, where=generate_where_clause_from_values(mapper, attribute_values=attribute_values, map_values=map_values, 
                                                                                                  attribute_names=where_attribute_names, column_names=where_column_names), 
                                                                                                  no_column_ref_for_key=no_column_ref_for_key)
 

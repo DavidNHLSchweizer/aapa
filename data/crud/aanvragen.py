@@ -4,7 +4,7 @@ from data.classes.files import File, Files
 from data.classes.studenten import Student
 from data.aapa_database import AanvraagTableDefinition
 from data.classes.aanvragen import Aanvraag
-from data.crud.adapters import ColumnAdapter
+from data.crud.mappers import ColumnMapper
 from data.crud.crud_const import AAPAClass, DBtype
 from data.crud.crud_factory import registerCRUD
 from data.crud.files import CRUD_files
@@ -14,27 +14,25 @@ from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug
 
-class AanvraagStatusColumnAdapter(ColumnAdapter):
+class AanvraagStatusColumnMapper(ColumnMapper):
     def map_db_to_value(self, db_value: DBtype)->Any:
         return Aanvraag.Status(db_value)
-class AanvraagBeoordelingColumnAdapter(ColumnAdapter):
+class AanvraagBeoordelingColumnMapper(ColumnMapper):
     def map_db_to_value(self, db_value: DBtype)->Any:
         return Aanvraag.Beoordeling(db_value)
 
 class CRUD_aanvragen(CRUD_milestones):
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
-                    subclass_CRUDs:dict[str, AAPAClass]={}, 
                     no_column_ref_for_key = False, autoID=False):
         super().__init__(database, class_type=class_type, table=table, 
-                         subclass_CRUDs=subclass_CRUDs,
                          no_column_ref_for_key=no_column_ref_for_key, autoID=autoID)        
     def _post_action(self, aanvraag: Aanvraag, crud_action: CRUD)->Aanvraag:
         #corrects status and beoordeling types (read as ints from database) 
         match crud_action:
             case CRUD.INIT:
                 super()._post_action(aanvraag, crud_action)
-                self.set_adapter(AanvraagStatusColumnAdapter('status'))
-                self.set_adapter(AanvraagBeoordelingColumnAdapter('beoordeling'))
+                self.set_mapper(AanvraagStatusColumnMapper('status'))
+                self.set_mapper(AanvraagBeoordelingColumnMapper('beoordeling'))
             case CRUD.READ:
                 pass # aanvraag.files = self.find_all(aanvraag.id)
             case _: pass
@@ -59,5 +57,4 @@ class CRUD_aanvragen(CRUD_milestones):
                 result.set_file(file)
         return result        
 
-registerCRUD(CRUD_aanvragen, class_type=Aanvraag, table=AanvraagTableDefinition(), 
-            subclasses={'student': Student, 'bedrijf': Bedrijf}, autoID=True)
+registerCRUD(CRUD_aanvragen, class_type=Aanvraag, table=AanvraagTableDefinition(), autoID=True)
