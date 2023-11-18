@@ -30,7 +30,7 @@ class CRUD_aanvragen(CRUD_milestones):
         super().customize_mapper()
         self.set_mapper(AanvraagStatusColumnMapper('status'))
         self.set_mapper(AanvraagBeoordelingColumnMapper('beoordeling'))
-    def _post_action(aanvraag, crud_action):
+    def _post_action(self, aanvraag, crud_action):
         match crud_action:
             case CRUD.READ:
                 pass # aanvraag.files = self.find_all(aanvraag.id)

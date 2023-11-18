@@ -46,6 +46,7 @@ class CRUDbase:
         self.aggregator_CRUD_temp: CRUDbase = None
         self.mapper = TableMapper(table, class_type)
         self.customize_mapper()
+        self.searcher = TableSearcher(self.database, self.mapper)
         self._post_action(None, CRUD.INIT) 
         # can later probably be improved through direct assignment of mapper, now used to adapt column mappers
     @property
@@ -62,8 +63,6 @@ class CRUDbase:
         if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
     def create(self, aapa_obj: AAPAClass):
-        TS = TableSearcher(self.database, self.mapper)
-        log_debug(TS.find_id(aapa_obj))
         log_debug(f'CRUD({classname(self)}) create {str(aapa_obj)}')
         if self.check_already_there(aapa_obj):
             return
@@ -87,24 +86,16 @@ class CRUDbase:
         log_debug(f'CRUD({classname(self)}) update {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
         self.database.update_record(self.table, columns=columns, values=values, 
-                                    where=self._generate_where_clause_from_object(aapa_obj, column_names=self.mapper.table_keys()))
+                                            where=self.searcher.get_where(aapa_obj, column_names=self.mapper.table_keys()))
         self._post_action(aapa_obj, CRUD.UPDATE)
     def delete(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) delete {str(aapa_obj)}')
         self.database.delete_record(self.table, 
-                                    where=self._generate_where_clause_from_object(aapa_obj, column_names=self.mapper.table_keys()))
-        
-    def find_object(self, aapa_obj: AAPAClass)->AAPAClass:
-        TS = TableSearcher(self.database, self.mapper)
-        return TS.find_id(aapa_obj)
-        # if rows := self.database.execute_select(self._generate_find_SQL_from_object(aapa_obj)):
-        #     return self.mapper.db_to_object(rows[0])
-        return None
+                                    where=self.searcher.get_where(aapa_obj, column_names=self.mapper.table_keys()))        
     def find_from_values(self, attribute_names: list[str], attribute_values: list[Any])->AAPAClass:
         if rows := self.database.execute_select(self._generate_find_SQL_from_values(attribute_names=attribute_names, attribute_values=attribute_values)):
             return self.mapper.db_to_object(rows[0])
         return None
-
     def _pre_action(self, aapa_obj: AAPAClass, crud_action: CRUD)->AAPAClass:
         # placeholder for possible preprocessing, may modify object
         pass
@@ -113,14 +104,10 @@ class CRUDbase:
         return aapa_obj  
     def check_already_there(self, aapa_obj: AAPAClass)->bool:
 #todo: move this to storage
-        if stored := self.find_object(aapa_obj): #dit gaat niet goed bij aanvragen, wschlijk om de student?
-            if stored == aapa_obj:
-                log_debug(f'--- already in database ----')                
-            else:
-                log_debug(f'--- different in database ----')
-            #find checks without key, so the key could still be EMPTY_ID, make sure aapa_obj receives this change
+        if stored_id := self.searcher.find_id(aapa_obj): #dit gaat niet goed bij aanvragen, wschlijk om de student?
+            log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
-            setattr(aapa_obj, self.table.key, getattr(stored, self.table.key))
+            setattr(aapa_obj, self.table.key, stored_id)
             return True
         return False
     # def _generate_find_SQL_from_object(self, aapa_obj: AAPAClass)->SQLselect:
@@ -133,9 +120,9 @@ class CRUDbase:
 
     #     attribute_names=self.mapper.table_keys(), 
     #     return generate_find_SQL(self.mapper, where_column_names=column_names, attribute_namesattribute_values=attribute_values, no_column_ref_for_key=self.no_column_ref_for_key)
-    def _generate_where_clause_from_object(self, aapa_obj: AAPAClass, column_names: list[str], attribute_names: list[str]=None)->SQE:
-        return generate_where_clause_from_object(self.mapper, aapa_obj, column_names=column_names, attribute_names=attribute_names,
-                                                                no_column_ref_for_key=self.no_column_ref_for_key)
+    # def _generate_where_clause_from_object(self, aapa_obj: AAPAClass, column_names: list[str], attribute_names: list[str]=None)->SQE:
+    #     return generate_where_clause_from_object(self.mapper, aapa_obj, column_names=column_names, attribute_names=attribute_names,
+    #                                                             no_column_ref_for_key=self.no_column_ref_for_key)
 
 class CRUDColumnMapper(ColumnMapper):
     def __init__(self, column_name: str, attribute_name:str, crud: CRUDbase, attribute_key:str='id'):

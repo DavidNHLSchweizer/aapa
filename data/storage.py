@@ -54,10 +54,8 @@ class ObjectStorage:
             return
         crud = self._get_crud(attr_obj)
         if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored := crud.find_object(attr_obj):
-                setattr(attr_obj, attribute_key, getattr(stored, attribute_key))
-                if stored != attr_obj:
-                    crud.update(attr_obj)
+            if stored_id := crud.searcher.find_id(attr_obj):
+                setattr(attr_obj, attribute_key, stored_id)
             else:
                 crud.create(attr_obj)
     def find_keys(self, column_names: list[str], values: list[Any])->list[int]:

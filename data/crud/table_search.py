@@ -13,27 +13,35 @@ class TableSearcher:
     def find_id(self, aapa_obj: AAPAClass, attributes: list[str] = None)->list[int]:
         attributes = attributes if attributes else self.mapper.attributes(include_key = False)
         columns,values = self.__get_columns_and_values(aapa_obj, include_key=False, map_values=True, attribute_names=attributes)
-        sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__generate_where_clause(columns, values))
-        log_debug(f'TABLESEARCH: {sql.query}, {sql.parameters}')
+        sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__get_where(columns, values))
+        log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
-            return self.mapper.db_to_object(rows[0]) 
+            return self.mapper.db_to_object(rows[0]).id 
         return None   
+    # def find_object(self, aapa_obj: AAPAClass)->list[int]:      
+    #     columns,values = self.__get_columns_and_values(aapa_obj, include_key=False, map_values=True, 
+    #                                                    attribute_names=self.mapper.attributes())
+    #     sql = SQLselect(self.mapper.table, columns=columns, where=self.__generate_where_clause(columns, values))
+    #     log_debug(f'FINDOBJECT: {sql.query}, {sql.parameters}')
+    #     if rows := self.database.execute_select(sql):
+    #         return self.mapper.db_to_object(rows[0]) 
+    #     return None   
     def __get_columns_and_values(self, aapa_obj: AAPAClass, include_key = False, map_values=True, 
                                  column_names: list[str]=None, attribute_names: list[str] = None)->Tuple[list[str], list[str]]:
         columns = column_names if column_names else self.mapper._get_columns_from_attributes(attribute_names) if attribute_names else self.mapper.columns(include_key)        
         values = self.mapper.get_values(aapa_obj, columns, include_key=include_key, map_values=map_values)
         return (columns, values)
-    def __generate_where_clause(self, columns: list[str], values: list[Any])->SQE:
+    def __get_where(self, columns: list[str], values: list[Any])->SQE:
         result = None
         for (key,value) in zip(columns, values):
             new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
             result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
         return result
 
-    # def generate_where_clause(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
-    #                                     column_names: list[str]=None)->SQE:
-        
-    #     self.mapper.object_to_db
+    def get_where(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
+                                        column_names: list[str]=None)->SQE:        
+        return self.__get_where(*self.mapper.object_to_db(aapa_obj, include_key=include_key, 
+                                 attribute_names=attribute_names, column_names=column_names))
 
 
 
