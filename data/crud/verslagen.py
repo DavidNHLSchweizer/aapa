@@ -28,10 +28,10 @@ class CRUD_verslagen(CRUD_milestones):
         self.set_mapper(VerslagStatusColumnMapper('status'))
         self.set_mapper(VerslagBeoordelingColumnMapper('beoordeling'))
 
-    def _post_action(self, verslag: Verslag, crud_action: CRUD)->Verslag:        
-        match crud_action:
-            case CRUD.INIT:
-                super()._post_action(verslag, crud_action)
-        return verslag
+    # def _post_action(self, verslag: Verslag, crud_action: CRUD)->Verslag:        
+    #     match crud_action:
+    #         case CRUD.INIT:
+    #             super()._post_action(verslag, crud_action)
+    #     return verslag
 
 registerCRUD(CRUD_verslagen, class_type=Verslag, table=VerslagTableDefinition(), autoID=True)

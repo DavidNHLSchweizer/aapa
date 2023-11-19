@@ -20,11 +20,11 @@ class CRUD_milestones(CRUDbase):
         self.set_mapper(TimeColumnMapper('datum'))
         self.set_mapper(CRUDColumnMapper('stud_id', attribute_name='student', crud=createCRUD(self.database, Student)))
         self.set_mapper(CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(self.database, Bedrijf)))
-    def _post_action(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
-        match action:
-            case CRUD.INIT:pass
-            case _: pass
-        return aapa_obj
+    # def _post_action(self, aapa_obj: AAPAClass, action: CRUD)->AAPAClass:
+    #     match action:
+    #         case CRUD.INIT:pass
+    #         case _: pass
+    #     return aapa_obj
 
 class CRUD_student_milestones(CRUDbase):
     def __init__(self, database: Database):

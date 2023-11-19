@@ -47,8 +47,7 @@ class CRUDbase:
         self.mapper = TableMapper(table, class_type)
         self.customize_mapper()
         self.searcher = TableSearcher(self.database, self.mapper)
-        self._post_action(None, CRUD.INIT) 
-        # can later probably be improved through direct assignment of mapper, now used to adapt column mappers
+        # self._post_action(None, CRUD.INIT) 
     @property
     def table(self)->TableDefinition:
         return self.mapper.table
@@ -73,7 +72,7 @@ class CRUDbase:
         self.database.create_record(self.table, columns=columns, values=values)
         # if self.aggregator_CRUD_temp:
         #     self.aggregator_CRUD_temp.create(aapa_obj)
-        self._post_action(aapa_obj, CRUD.CREATE)
+        # self._post_action(aapa_obj, CRUD.CREATE)
     def read(self, key: KeyClass, multiple=False)->AAPAClass|list:
         log_debug(f'CRUD({classname(self)}) read {key}')
         if rows := self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.mapper.value_to_db(key, self.table.key))):
@@ -87,7 +86,7 @@ class CRUDbase:
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
         self.database.update_record(self.table, columns=columns, values=values, 
                                             where=self.searcher.build_where(aapa_obj, column_names=self.mapper.table_keys()))
-        self._post_action(aapa_obj, CRUD.UPDATE)
+        # self._post_action(aapa_obj, CRUD.UPDATE)
     def delete(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) delete {str(aapa_obj)}')
         self.database.delete_record(self.table, 
@@ -96,12 +95,12 @@ class CRUDbase:
         if rows := self.database.execute_select(self._generate_find_SQL_from_values(attribute_names=attribute_names, attribute_values=attribute_values)):
             return self.mapper.db_to_object(rows[0])
         return None
-    def _pre_action(self, aapa_obj: AAPAClass, crud_action: CRUD)->AAPAClass:
-        # placeholder for possible preprocessing, may modify object
-        pass
-    def _post_action(self, aapa_obj: AAPAClass, crud_action: CRUD)->AAPAClass:
-        # placeholder for possible postprocessing, may modify object
-        return aapa_obj  
+    # def _pre_action(self, aapa_obj: AAPAClass, crud_action: CRUD)->AAPAClass:
+    #     # placeholder for possible preprocessing, may modify object
+    #     pass
+    # def _post_action(self, aapa_obj: AAPAClass, crud_action: CRUD)->AAPAClass:
+    #     # placeholder for possible postprocessing, may modify object
+    #     return aapa_obj  
     def check_already_there(self, aapa_obj: AAPAClass)->bool:
 #todo: move this to storage
         if stored_id := self.searcher.find_id(aapa_obj): #dit gingt niet goed bij aanvragen, wschlijk om de student?

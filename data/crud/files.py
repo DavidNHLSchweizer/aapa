@@ -14,10 +14,10 @@ class CRUD_files(CRUDbase):
         self.set_mapper(FilenameColumnMapper('filename'))
         self.set_mapper(TimeColumnMapper('timestamp'))
         self.set_mapper(FileTypeColumnMapper('filetype'))
-    def _post_action(self, file: File, crud_action: CRUD)->File:        
-        match crud_action:
-            case CRUD.INIT:pass
-            case _: pass
-        return file
+    # def _post_action(self, file: File, crud_action: CRUD)->File:        
+    #     match crud_action:
+    #         case CRUD.INIT:pass
+    #         case _: pass
+    #     return file
 
 registerCRUD(CRUD_files, class_type=File, table=FilesTableDefinition(),autoID=True)#, no_column_ref_for_key=True)
