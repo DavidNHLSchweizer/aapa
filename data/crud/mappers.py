@@ -8,6 +8,8 @@ from database.table_def import TableDefinition
 from general.log import log_debug
 from general.timeutil import TSC
 
+class MapperException(Exception): pass
+
 class DBrecord(dict): 
     def __init__(self, table: TableDefinition):
         self.update((column.name, None) for column in table.columns)

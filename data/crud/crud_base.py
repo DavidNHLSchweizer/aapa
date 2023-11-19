@@ -86,12 +86,12 @@ class CRUDbase:
         log_debug(f'CRUD({classname(self)}) update {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
         self.database.update_record(self.table, columns=columns, values=values, 
-                                            where=self.searcher.get_where(aapa_obj, column_names=self.mapper.table_keys()))
+                                            where=self.searcher.build_where(aapa_obj, column_names=self.mapper.table_keys()))
         self._post_action(aapa_obj, CRUD.UPDATE)
     def delete(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD({classname(self)}) delete {str(aapa_obj)}')
         self.database.delete_record(self.table, 
-                                    where=self.searcher.get_where(aapa_obj, column_names=self.mapper.table_keys()))        
+                                    where=self.searcher.build_where(aapa_obj, column_names=self.mapper.table_keys()))        
     def find_from_values(self, attribute_names: list[str], attribute_values: list[Any])->AAPAClass:
         if rows := self.database.execute_select(self._generate_find_SQL_from_values(attribute_names=attribute_names, attribute_values=attribute_values)):
             return self.mapper.db_to_object(rows[0])
@@ -104,7 +104,7 @@ class CRUDbase:
         return aapa_obj  
     def check_already_there(self, aapa_obj: AAPAClass)->bool:
 #todo: move this to storage
-        if stored_id := self.searcher.find_id(aapa_obj): #dit gaat niet goed bij aanvragen, wschlijk om de student?
+        if stored_id := self.searcher.find_id(aapa_obj): #dit gingt niet goed bij aanvragen, wschlijk om de student?
             log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
             setattr(aapa_obj, self.table.key, stored_id)

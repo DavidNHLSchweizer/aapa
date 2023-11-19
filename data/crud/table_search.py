@@ -1,23 +1,89 @@
+from __future__ import annotations
+from enum import Enum
 from typing import Any, Tuple
 from data.crud.crud_const import AAPAClass
-from data.crud.mappers import TableMapper
+from data.crud.mappers import MapperException, TableMapper
 from database.database import Database
 from database.sql_expr import SQE, Ops
 from database.sql_table import SQLselect
 from general.log import log_debug
 
+class QueryInfo:
+    class Flags(Enum):
+        INCLUDE_KEY      = 1 # include key in queries 
+        NO_MAP_VALUES    = 2 # do not map values for database
+        ATTRIBUTES       = 3 # given column names are attributes   
+    @staticmethod
+    def include_key(flags)->bool:
+        return QueryInfo.Flags.INCLUDE_KEY in flags
+    @staticmethod
+    def no_map_values(flags)->bool:
+        return QueryInfo.Flags.NO_MAP_VALUES in flags
+    @staticmethod
+    def attributes(flags)->bool:
+        return QueryInfo.Flags.ATTRIBUTES in flags
+    def __init__(self,  mapper: TableMapper):
+        self.mapper = mapper
+    def __get_columns(self, columns: list[str] = [], flags = {Flags.INCLUDE_KEY, Flags.NO_MAP_VALUES}):
+        if QueryInfo.attributes(flags):
+            if columns: 
+                return self.mapper._get_columns_from_attributes(columns)
+            else:
+                raise MapperException(f'Invalid combination: no attribute names with flag ATTRIBUTES') 
+        else:
+            return columns if columns else self.mapper.columns(QueryInfo.include_key)
+    def __get_values(self, data_columns: list[str], aapa_obj: AAPAClass, values: list[Any], no_map_values: bool):
+        if values:
+            if len(values) != len(data_columns):
+                raise MapperException(f'Invalid parameters: {len(data_values)} data_values, but {len(data_columns)} columns')              
+            if no_map_values:
+                data_values = values
+            else:
+                data_values = [self.mapper._mappers[column_name].map_value_to_db(value)  
+                                    for column_name,value in zip[data_columns, values]]
+        else: # get values from object
+            if not aapa_obj:
+                raise MapperException(f'Invalid parameters: provide either an object or values.')
+            data_values = []
+            for column_name in data_columns:
+                mapper = self.mapper._mappers[column_name]
+                value = getattr(aapa_obj, mapper.attribute_name)
+                data_values.append(value if no_map_values else mapper.map_value_to_db(value))
+    def get_data(self, aapa_obj: AAPAClass = None, columns: list[str] = [], values: list[Any] = [], 
+                 flags = {Flags.INCLUDE_KEY, Flags.NO_MAP_VALUES}):
+        data_columns = self.__get_columns(columns, flags)
+        data_values = self.__get_values(aapa_obj, values, QueryInfo.no_map_values(flags)) 
+        return data_columns, data_values
+QIF = QueryInfo.Flags
+
+
+
 class TableSearcher:
     def __init__(self, database: Database, mapper: TableMapper):
         self.database = database
         self.mapper = mapper
+        self.query_info = QueryInfo(mapper)
     def find_id(self, aapa_obj: AAPAClass, attributes: list[str] = None)->list[int]:
         attributes = attributes if attributes else self.mapper.attributes(include_key = False)
-        columns,values = self.__get_columns_and_values(aapa_obj, include_key=False, map_values=True, attribute_names=attributes)
-        sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__get_where(columns, values))
+        where_columns,where_values = self.query_info.get_data(aapa_obj, columns=attributes, 
+                                                                flags={QIF.ATTRIBUTES})
+        sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(where_columns, where_values))
         log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
             return self.mapper.db_to_object(rows[0]).id 
         return None   
+    def __build_where(self, columns: list[str], values: list[Any])->SQE:
+        result = None
+        for (key,value) in zip(columns, values):
+            new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
+            result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
+        return result
+    def build_where(self, aapa_obj: AAPAClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  
+        return self.__build_where(*self.query_info.get_data(aapa_obj, column_names, flags))
+    
+        # return self.__build_where(*self.mapper.object_to_db(aapa_obj, include_key=include_key, 
+        #                          attribute_names=attribute_names, column_names=column_names))
+
     # def find_object(self, aapa_obj: AAPAClass)->list[int]:      
     #     columns,values = self.__get_columns_and_values(aapa_obj, include_key=False, map_values=True, 
     #                                                    attribute_names=self.mapper.attributes())
@@ -26,22 +92,12 @@ class TableSearcher:
     #     if rows := self.database.execute_select(sql):
     #         return self.mapper.db_to_object(rows[0]) 
     #     return None   
-    def __get_columns_and_values(self, aapa_obj: AAPAClass, include_key = False, map_values=True, 
-                                 column_names: list[str]=None, attribute_names: list[str] = None)->Tuple[list[str], list[str]]:
-        columns = column_names if column_names else self.mapper._get_columns_from_attributes(attribute_names) if attribute_names else self.mapper.columns(include_key)        
-        values = self.mapper.get_values(aapa_obj, columns, include_key=include_key, map_values=map_values)
-        return (columns, values)
-    def __get_where(self, columns: list[str], values: list[Any])->SQE:
-        result = None
-        for (key,value) in zip(columns, values):
-            new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
-            result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
-        return result
+    # def __get_columns_and_values(self, aapa_obj: AAPAClass, include_key = False, map_values=True, 
+    #                              column_names: list[str]=None, attribute_names: list[str] = None)->Tuple[list[str], list[str]]:
+    #     columns = column_names if column_names else self.mapper._get_columns_from_attributes(attribute_names) if attribute_names else self.mapper.columns(include_key)        
+    #     values = self.mapper.get_values(aapa_obj, columns, include_key=include_key, map_values=map_values)
+    #     return (columns, values)
 
-    def get_where(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, 
-                                        column_names: list[str]=None)->SQE:        
-        return self.__get_where(*self.mapper.object_to_db(aapa_obj, include_key=include_key, 
-                                 attribute_names=attribute_names, column_names=column_names))
 
 
 

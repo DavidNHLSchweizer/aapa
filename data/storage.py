@@ -41,7 +41,10 @@ class ObjectStorage:
                 return crud
         self._cruds.append(createCRUD(self.database, type(aapa_obj)))
         return self._cruds[-1]
+    def create_references(self, object: AAPAClass):
+        pass #implement in subclasses as needed
     def create(self, object: AAPAClass):
+        self.create_references(object)        
         self.crud.create(object)
     def read(self, key)->AAPAClass:
         return self.crud.read(key)
@@ -314,7 +317,7 @@ class AanvraagStorage(ObjectStorage):
         # self.super_table_name = self.crud.super_CRUD.table.name
     def create(self, aanvraag: Aanvraag):
         log_debug(f'AANVRAAGSTORAGE create ({aanvraag}) ({aanvraag.datum})')
-        self.__create_table_references(aanvraag)
+        self.create_references(aanvraag)
         log_debug(f'AANVRAAGSTORAGE 2')
         # aanvraag.files.set_info(source_file)
         super().create(aanvraag)
@@ -333,7 +336,6 @@ class AanvraagStorage(ObjectStorage):
         # aanvraag.files = self.files.find_all(aanvraag.id)
         return aanvraag
     def update(self, aanvraag: Aanvraag):
-        self.__create_table_references(aanvraag)        
         super().update(aanvraag)
         log_debug('sync_files (UPDATE)')
         self.sync_files(aanvraag)
@@ -375,7 +377,7 @@ class AanvraagStorage(ObjectStorage):
             return row[0][0]
         else:
             return 0    
-    def __create_table_references(self, aanvraag: Aanvraag):
+    def create_references(self, aanvraag: Aanvraag):
         self.ensure_exists(aanvraag, 'student')
         self.ensure_exists(aanvraag, 'bedrijf')
 
@@ -444,7 +446,6 @@ class VerslagStorage(ObjectStorage):
         self.files = FilesStorage(database)
         self.studenten = StudentenStorage(database)
     def create(self, verslag: Verslag):
-        self.__create_table_references(verslag)
         super().create(verslag)
         log_debug('sync_files (CREATE)')
         self.sync_files(verslag, {File.Type.AANVRAAG_PDF})
@@ -465,9 +466,8 @@ class VerslagStorage(ObjectStorage):
     def delete(self, id: int):
         self.files.delete_all(id)
         super().delete(id)  
-    def __create_table_references(self, verslag: Verslag):
-        if not self.studenten.read(verslag.student.id):
-            self.studenten.create(verslag.student)
+    def create_references(self, verslag: Verslag):
+        self.ensure_exists(verslag, 'student')
 
 class BaseDirStorage(ObjectStorage):
     def __init__(self, database: Database):
