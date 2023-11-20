@@ -26,63 +26,12 @@ from database.sql_table import SQLselect
 from general.log import log_debug, log_error, log_exception, log_warning
 from general.timeutil import TSC
 
-class StorageException(Exception): pass
-
-class ObjectStorage:
-    def __init__(self, database: Database, class_type: AAPAClass):
-        self.database = database
-        self._cruds: list[CRUDbase] = [createCRUD(database, class_type)]
-    @property
-    def crud(self)->CRUDbase:
-        return self._cruds[0]
-    def _get_crud(self, aapa_obj: AAPAClass)->CRUDbase:
-        for crud in self._cruds:
-            if isinstance(aapa_obj, crud.class_type):
-                return crud
-        self._cruds.append(createCRUD(self.database, type(aapa_obj)))
-        return self._cruds[-1]
-    def create_references(self, object: AAPAClass):
-        pass #implement in subclasses as needed
-    def create(self, object: AAPAClass):
-        self.create_references(object)        
-        self.crud.create(object)
-    def read(self, key)->AAPAClass:
-        return self.crud.read(key)
-    def update(self, object: AAPAClass):
-        self.crud.update(object)
-    def delete(self, key: KeyClass):
-        self.crud.delete(key)
-    def ensure_exists(self, aapa_obj: AAPAClass, attribute: str, attribute_key: str = 'id'):
-        if not (attr_obj := getattr(aapa_obj, attribute, None)):
-            return
-        crud = self._get_crud(attr_obj)
-        if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored_id := crud.searcher.find_id(attr_obj):
-                setattr(attr_obj, attribute_key, stored_id)
-            else:
-                crud.create(attr_obj)
-    def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
-        return []# self.crud.find_keys(column_names, values) TBD
-    def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:
-        return self.crud.find_from_values(column_names=column_names, attribute_values=column_values)
-    @property
-    def table_name(self)->str:
-        return self.crud.table.name
-    def max_id(self):
-        if (row := self.database._execute_sql_command(f'select max(id) from {self.table_name}', [], True)) and row[0][0]:
-            return row[0][0]           
-        else:
-            return 0                    
-    def read_all(self)->Iterable[AAPAClass]:
-        if (rows := self.database._execute_sql_command(f'select id from {self.table_name}', [],True)):
-            return [self.crud.read(row['id']) for row in rows] 
-        return []  
         
-class BedrijvenStorage(ObjectStorage):
+class BedrijvenStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, Bedrijf)
 
-class StudentenStorage(ObjectStorage):
+class StudentenStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, Student)
     def find_by_column_value(self, column_name: str, value: str)->Student:
@@ -183,7 +132,7 @@ class FileStorageRecord:
             self.status = self.__analyse_stored_digest(storage.find_digest(self.digest))
         return self
     
-class FilesStorage(ObjectStorage):
+class FilesStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, File)
         self.sync_strategy = FileSync(self)
@@ -308,7 +257,7 @@ class FilesStorage(ObjectStorage):
     def get_storage_record(self, filename: str)->FileStorageRecord:
         return FileStorageRecord(filename).analyse(self)
 
-class AanvraagStorage(ObjectStorage):
+class AanvraagStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, Aanvraag)
         self.files = FilesStorage(database)
@@ -382,7 +331,7 @@ class AanvraagStorage(ObjectStorage):
         self.ensure_exists(aanvraag, 'bedrijf')
 
 class ActionLogRelationStorage:
-    def __init__(self, crud: CRUDbase, rel_storage: ObjectStorage, add_method: str):
+    def __init__(self, crud: CRUDbase, rel_storage: StorageBase, add_method: str):
         self.crud = crud
         self.rel_storage = rel_storage
         self.add_method = add_method
@@ -408,7 +357,7 @@ class ActionLogInvalidFilesStorage(ActionLogRelationStorage):
         super().__init__(CRUD_action_log_invalid_files(database), FilesStorage(database), 'add')
 
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
-class ActionLogStorage(ObjectStorage):
+class ActionLogStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, ActionLog)
         # self.details: list[ActionLogRelationStorage] = [ActionLogAanvragenStorage(database), ActionLogInvalidFilesStorage(database)]
@@ -440,7 +389,7 @@ class ActionLogStorage(ObjectStorage):
     def last_action(self)->ActionLog:
         return self._find_action_log()
 
-class VerslagStorage(ObjectStorage):
+class VerslagStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, Verslag)
         self.files = FilesStorage(database)
@@ -469,7 +418,7 @@ class VerslagStorage(ObjectStorage):
     def create_references(self, verslag: Verslag):
         self.ensure_exists(verslag, 'student')
 
-class BaseDirStorage(ObjectStorage):
+class BaseDirStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, BaseDir)
     def find_base_dir(self, directory: str)->BaseDir:

@@ -58,7 +58,7 @@ QIF = QueryInfo.Flags
 
 
 
-class TableSearcher:
+class QueryBuilder:
     def __init__(self, database: Database, mapper: TableMapper):
         self.database = database
         self.mapper = mapper

@@ -5,7 +5,7 @@ from typing import Any
 from data.classes.aggregator import Aggregator
 from data.crud.mappers import ColumnMapper, TableMapper#, generate_find_SQL, generate_where_clause_from_object
 from data.crud.crud_const import AAPAClass, DBtype, KeyClass
-from data.crud.table_search import TableSearcher
+from data.crud.query_builder import QueryBuilder
 
 from database.dbConst import EMPTY_ID
 from database.sql_expr import Ops, SQE
@@ -46,7 +46,7 @@ class CRUDbase:
         self.aggregator_CRUD_temp: CRUDbase = None
         self.mapper = TableMapper(table, class_type)
         self.customize_mapper()
-        self.searcher = TableSearcher(self.database, self.mapper)
+        self.searcher = QueryBuilder(self.database, self.mapper)
         # self._post_action(None, CRUD.INIT) 
     @property
     def table(self)->TableDefinition:
