@@ -20,7 +20,7 @@ class StorageCRUD:
         self.autoID = autoID
         self.aggregator_data = aggregator_data
         self.mapper = TableMapper(table, class_type=class_type)
-        self.searcher = QueryBuilder(self.database, self.mapper)
+        self.query_builder = QueryBuilder(self.database, self.mapper)
     @property
     def table(self)->TableDefinition:
         return self.mapper.table
@@ -43,11 +43,11 @@ class StorageCRUD:
         log_debug(f'CRUD UPDATE ({classname(self)}) {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
         self.database.update_record(self.table, columns=columns, values=values, 
-                                            where=self.searcher.build_where(aapa_obj, column_names=self.mapper.table_keys()))
+                                            where=self.query_builder.build_where(aapa_obj, column_names=self.mapper.table_keys()))
     def delete(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD DELETE ({classname(self)}) {str(aapa_obj)}')
         self.database.delete_record(self.table, 
-                                    where=self.searcher.build_where(aapa_obj, column_names=self.mapper.table_keys()))        
+                                    where=self.query_builder.build_where(aapa_obj, column_names=self.mapper.table_keys()))        
 
 class CRUDColumnMapper(ColumnMapper):
     def __init__(self, column_name: str, attribute_name:str, crud: StorageCRUD, attribute_key:str='id'):
@@ -66,17 +66,23 @@ class StorageBase:
         # self.aggregator_CRUD_temp: CRUDbase = None
         self.mapper = TableMapper(table, class_type)
         self.customize_mapper(self.mapper)
-        self.searcher = QueryBuilder(self.database, self.mapper)
-        self._cruds: list[StorageCRUD] = [createCRUD(database, class_type)]
+        self._cruds: list[StorageCRUD] = [createCRUD(database, class_type)] 
+        # list of associated cruds. 
+        # _cruds[0] is always the main CRUD (for class_type)
+        # other cruds are created as needed (for e.g. associated class types such as Milestone.student)
     @property
     def crud(self)->StorageCRUD:
         return self._cruds[0]
     def get_crud(self, aapa_obj: AAPAClass)->StorageCRUD:
+        #create new crud if needed
         for crud in self._cruds:
             if isinstance(aapa_obj, crud.class_type):
                 return crud
         self._cruds.append(createCRUD(self.database, type(aapa_obj)))
         return self._cruds[-1]
+    @property
+    def query_builder(self)->QueryBuilder:
+        return self.crud.query_builder
     @property
     def table(self)->TableDefinition:
         return self.mapper.table
@@ -108,22 +114,22 @@ class StorageBase:
             return
         crud = self.get_crud(attr_obj)
         if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored_id := crud.find_id(attr_obj):
+            if stored_id := self.query_builder.find_id_from_object(attr_obj):
                 setattr(attr_obj, attribute_key, stored_id)
             else:
                 crud.create(attr_obj)
     def __check_already_there(self, aapa_obj: AAPAClass)->bool:
-        if stored_id := self.searcher.find_id_from_object(aapa_obj): 
+        if stored_id := self.query_builder.find_id_from_object(aapa_obj): 
             log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
             setattr(aapa_obj, self.table.key, stored_id)
             return True
         return False
     # utility functions
-    def find_by_column_value(self, column_name: str, value: str)->AAPAClass:
-        if id := self.searcher.find_id_from_values(columns=[column_name], values=['value']):
+    def find_value(self, attribute_name: str, value: Any|set[Any])->AAPAClass:
+        if id := self.query_builder.find_id_from_values(attributes=[attribute_name], values=[value]):
             return self.read(id)
-
+    
     # def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
     #     return []# self.crud.find_keys(column_names, values) TBD
     # def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:

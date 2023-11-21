@@ -8,6 +8,6 @@ class BasedirsStorage(StorageBase):
     def customize_mapper(self, mapper: TableMapper):
         mapper.set_mapper(FilenameColumnMapper('directory'))
     def find_base_dir(self, directory: str)->BaseDir:
-        return self.find_by_column_value('directory', directory)
+        return self.find_value('directory', directory)
 
 registerCRUD(class_type=BaseDir, table=BaseDirsTableDefinition(),  autoID=True)
