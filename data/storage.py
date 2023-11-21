@@ -19,6 +19,9 @@ from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRU
 from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
 from data.crud.verslagen import CRUD_verslagen
+from data.storage.base_dirs import BasedirsStorage
+from data.storage.studenten import StudentenStorage
+from data.storage.verslagen import VerslagenStorage
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from data.roots import add_root, encode_path
@@ -368,36 +371,36 @@ class ActionLogStorage(StorageBase):
     def last_action(self)->ActionLog:
         return self._find_action_log()
 
-class VerslagStorage(StorageBase):
-    def create(self, verslag: Verslag):
-        super().create(verslag)
-        log_debug('sync_files (CREATE)')
-        self.sync_files(verslag, {File.Type.AANVRAAG_PDF})
-        log_debug('ready create')
-    def sync_files(self, verslag: Verslag, filetypes: set[File.Type]=None):
-        pass # to be determined
-        # self.files.sync_storage_files(aanvraag_id=aanvraag.id, new_files=aanvraag.files, 
-        #                 filetypes=filetypes if filetypes else ({filetype for filetype in File.Type} - {File.Type.UNKNOWN, File.Type.INVALID_PDF}))
-    def read(self, id: int)->Verslag:
-        verslag = super().read(id)
-        verslag.files = self.files.find_all(verslag.id)
-        return verslag
-    def update(self, verslag: Verslag):
-        self.__create_table_references(verslag)        
-        super().update(verslag)
-        log_debug('sync_files (UPDATE)')
-        self.sync_files(verslag)
-    def delete(self, id: int):
-        self.files.delete_all(id)
-        super().delete(id)  
-    def create_references(self, verslag: Verslag):
-        self.ensure_exists(verslag, 'student')
+# class VerslagStorage(StorageBase):
+#     def create(self, verslag: Verslag):
+#         super().create(verslag)
+#         log_debug('sync_files (CREATE)')
+#         self.sync_files(verslag, {File.Type.AANVRAAG_PDF})
+#         log_debug('ready create')
+#     def sync_files(self, verslag: Verslag, filetypes: set[File.Type]=None):
+#         pass # to be determined
+#         # self.files.sync_storage_files(aanvraag_id=aanvraag.id, new_files=aanvraag.files, 
+#         #                 filetypes=filetypes if filetypes else ({filetype for filetype in File.Type} - {File.Type.UNKNOWN, File.Type.INVALID_PDF}))
+#     def read(self, id: int)->Verslag:
+#         verslag = super().read(id)
+#         verslag.files = self.files.find_all(verslag.id)
+#         return verslag
+#     def update(self, verslag: Verslag):
+#         self.__create_table_references(verslag)        
+#         super().update(verslag)
+#         log_debug('sync_files (UPDATE)')
+#         self.sync_files(verslag)
+#     def delete(self, id: int):
+#         self.files.delete_all(id)
+#         super().delete(id)  
+#     def create_references(self, verslag: Verslag):
+#         self.ensure_exists(verslag, 'student')
 
-class BaseDirStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, BaseDir)
-    def find_base_dir(self, directory: str)->BaseDir:
-        return self.crud.find_from_values(attribute_names=['directory'], attribute_values=[directory])
+# class BaseDirStorage(StorageBase):
+#     def __init__(self, database: Database):
+#         super().__init__(database, BaseDir)
+#     def find_base_dir(self, directory: str)->BaseDir:
+#         return self.crud.find_from_values(attribute_names=['directory'], attribute_values=[directory])
     
 class AAPAStorage: 
     #main interface with the database
@@ -405,8 +408,8 @@ class AAPAStorage:
         self.database: Database = database
         self.aanvragen = AanvraagStorage(database)
         self.action_logs = ActionLogStorage(database)
-        self.verslagen = VerslagStorage(database)
-        self.basedirs = BaseDirStorage(database)
+        self.verslagen = VerslagenStorage(database)
+        self.basedirs = BasedirsStorage(database)
     @property
     def files(self)->FilesStorage:
         return self.aanvragen.files

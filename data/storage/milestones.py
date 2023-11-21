@@ -17,6 +17,34 @@ class MilestonesStorage(StorageBase):
         mapper.set_mapper(TimeColumnMapper('datum'))
         mapper.set_mapper(CRUDColumnMapper('stud_id', attribute_name='student', crud=createCRUD(self.database, Student)))
         mapper.set_mapper(CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(self.database, Bedrijf)))
+    def __read_all_filtered(self, milestones: Iterable[Milestone], filter_func = None)->Iterable[Milestone]:
+        if not filter_func:
+            return milestones
+        else:
+            return list(filter(filter_func, milestones))
+    def __read_all_all(self, filter_func = None)->Iterable[Milestone]:
+
+        sql = SQLselect(self.table_name, query=f'select id from {self.table_name} where status != ?')
+        if row:= self.database._execute_sql_command(sql.query, [Aanvraag.Status.DELETED], True):            
+            return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
+        else:
+            return None
+    def __read_all_states(self, states:set[int], filter_func = None)->Iterable[Milestone]:
+        if rows:= self.searcher.find_id_from_values(['status'], [states]):
+            return self.__read_all_filtered([self.read(r['id']) for r in rows], filter_func=filter_func)
+        return None
+    def read_all(self, filter_func = None, states:set[int]=None)->Iterable[Milestone]:
+        if not states:
+            return self.__read_all_all(filter_func=filter_func)        
+        else: 
+            return self.__read_all_states(filter_func=filter_func, states=states)
+
+
+
+
+
+
+
 
 class CRUD_student_milestones(CRUDbase):
     def __init__(self, database: Database):

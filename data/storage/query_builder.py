@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from typing import Any
-from data.crud.mappers import MapperException, TableMapper
+from data.storage.mappers import MapperException, TableMapper
 from data.storage.storage_const import AAPAClass
 from database.database import Database
 from database.sql_expr import SQE, Ops
@@ -61,35 +61,24 @@ class QueryBuilder:
         self.database = database
         self.mapper = mapper
         self.query_info = QueryInfo(mapper)
-    def find_id(self, aapa_obj: AAPAClass, attributes: list[str] = None)->list[int]:
+    def find_id_from_object(self, aapa_obj: AAPAClass, attributes: list[str] = None)->list[int]:
         attributes = attributes if attributes else self.mapper.attributes(include_key = False)
         return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags={QIF.ATTRIBUTES}))
-        # where_columns,where_values = 
-        # sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(where_columns, where_values))
-        # log_debug(f'FINDID: {sql.query}, {sql.parameters}')
-        # if rows := self.database.execute_select(sql):
-        #     return self.mapper.db_to_object(rows[0]).id 
-        # return None   
-    def find_id_from_values(self, attributes: list[str], values: list[Any])->list[int]:
+    def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]])->list[int]:
         return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags={QIF.ATTRIBUTES}))
-        # where_columns,where_values = self.query_info.get_data(columns=attributes, values=values, flags={QIF.ATTRIBUTES})
-        # sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(where_columns, where_values))
-        # log_debug(f'FINDID: {sql.query}, {sql.parameters}')
-        # if rows := self.database.execute_select(sql):
-        #     return self.mapper.db_to_object(rows[0]).id 
-        # return None   
-    def __find_id(self, where_columns: list[str], where_values: list[Any])->list[int]:
+    def __find_id(self, where_columns: list[str], where_values: list[Any|set[Any]])->list[int]:
         sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(*(where_columns,where_values)))
         log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
             return self.mapper.db_to_object(rows[0]).id 
         return None   
-
-
-    def __build_where(self, columns: list[str], values: list[Any])->SQE:
+    def __build_where(self, columns: list[str], values: list[Any|set[Any]])->SQE:
         result = None
         for (key,value) in zip(columns, values):
-            new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
+            if isinstance(value, set):
+                new_where_part = SQE(key, Ops.IN, list(value), no_column_ref=True)
+            else:
+                new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
             result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
         return result
     def build_where(self, aapa_obj: AAPAClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  

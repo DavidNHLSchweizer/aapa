@@ -1,10 +1,9 @@
 from pydoc import classname
 from typing import Any
-from data.crud.crud_const import AAPAClass, DBtype, KeyClass
-from data.crud.crud_factory import createCRUD
-from data.crud.mappers import ColumnMapper, TableMapper
-from data.crud.query_builder import QueryBuilder
-from data.storage.crud_factory import CRUD_AggregatorData
+from data.storage.storage_const import AAPAClass, DBtype, KeyClass
+from data.storage.crud_factory import createCRUD, CRUD_AggregatorData
+from data.storage.mappers import ColumnMapper, TableMapper
+from data.storage.query_builder import QueryBuilder
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops
@@ -114,12 +113,17 @@ class StorageBase:
             else:
                 crud.create(attr_obj)
     def __check_already_there(self, aapa_obj: AAPAClass)->bool:
-        if stored_id := self.searcher.find_id(aapa_obj): 
+        if stored_id := self.searcher.find_id_from_object(aapa_obj): 
             log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
             setattr(aapa_obj, self.table.key, stored_id)
             return True
         return False
+    # utility functions
+    def find_by_column_value(self, column_name: str, value: str)->AAPAClass:
+        if id := self.searcher.find_id_from_values(columns=[column_name], values=['value']):
+            return self.read(id)
+
     # def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
     #     return []# self.crud.find_keys(column_names, values) TBD
     # def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:
