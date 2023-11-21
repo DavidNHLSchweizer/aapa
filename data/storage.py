@@ -26,27 +26,6 @@ from database.sql_table import SQLselect
 from general.log import log_debug, log_error, log_exception, log_warning
 from general.timeutil import TSC
 
-        
-class BedrijvenStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, Bedrijf)
-
-class StudentenStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, Student)
-    def find_by_column_value(self, column_name: str, value: str)->Student:
-        return None #self.find([column_name], [value])
-    def find_student_by_name_or_email(self, student: Student)->Student:
-        for column_name in ['full_name', 'email']:
-            return self.find_by_column_value(column_name, getattr(student, column_name))
-    def create_unique_student_nr(self, student: Student)->str:
-        n = 1
-        if not (result := student.stud_nr):
-            result = f'{student.initials()}{n}'
-        while self.find_by_column_value('stud_nr', result) is not None:
-            n+=1
-        return result
-
 class FileSync:
     class Strategy(Enum):
         IGNORE  = auto()
@@ -390,10 +369,6 @@ class ActionLogStorage(StorageBase):
         return self._find_action_log()
 
 class VerslagStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, Verslag)
-        self.files = FilesStorage(database)
-        self.studenten = StudentenStorage(database)
     def create(self, verslag: Verslag):
         super().create(verslag)
         log_debug('sync_files (CREATE)')
