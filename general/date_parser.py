@@ -26,8 +26,8 @@ def try_return_date(day_str, month_str, year_str, formats)->date:
     return None
 
 class DateParser:
-    INT_DATE_REGEX='(?P<day>\d+)[-/\w](?P<month>\d+)[-/\w](?P<year>(\d\d)+)(?P<rest>.*)'
-    STR_DATE_REGEX='(?P<day>\d+)[-\/\s]+(?P<month>[a-zA-Z]{3,9})[-\/\s]+(?P<year>(\d\d)+)(?P<rest>.*)'
+    INT_DATE_REGEX=r'(?P<day>\d+)[-/\w](?P<month>\d+)[-/\w](?P<year>(\d\d)+)(?P<rest>.*)'
+    STR_DATE_REGEX=r'(?P<day>\d+)[-\/\s]+(?P<month>[a-zA-Z]{3,9})[-\/\s]+(?P<year>(\d\d)+)(?P<rest>.*)'
     def __init__(self):
         self.int_pattern = re.compile(DateParser.INT_DATE_REGEX)
         self.str_pattern = re.compile(DateParser.STR_DATE_REGEX)

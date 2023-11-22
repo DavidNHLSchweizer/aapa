@@ -1,11 +1,11 @@
 from __future__ import annotations
 from enum import Enum, auto
-from data.crud.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
-from data.crud.crud_const import DBtype
-from data.crud.crud_factory import registerCRUD
+from data.storage.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
+from data.storage.storage_const import DBtype
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File, Files
-from data.storage.storage_base import StorageBase
+from data.storage.storage_base import StorageBase, StorageException
+from data.storage.table_registry import register_table
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.log import log_debug, log_exception
@@ -95,8 +95,6 @@ class FileStorageRecord:
         if self.status == FileStorageRecord.Status.UNKNOWN:
             self.status = self.__analyse_stored_digest(storage.find_digest(self.digest))
         return self
-  
-
 
 class FileTypeColumnMapper(ColumnMapper):
     def map_db_to_value(self, db_value: DBtype)->File.Type:
@@ -104,7 +102,7 @@ class FileTypeColumnMapper(ColumnMapper):
 
 class FilesStorage(StorageBase):
     def __init__(self, database: Database):
-        super().__init__(database, File)
+        super().__init__(database, File, autoID=True)
         self.sync_strategy = FileSync(self)
 
     def customize_mapper(self, mapper: TableMapper):
@@ -112,4 +110,4 @@ class FilesStorage(StorageBase):
         mapper.set_mapper(TimeColumnMapper('timestamp'))
         mapper.set_mapper(FileTypeColumnMapper('filetype'))
 
-registerCRUD(class_type=File, table=FilesTableDefinition(),autoID=True)
+register_table(class_type=File, table=FilesTableDefinition(),autoID=True)

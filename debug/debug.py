@@ -4,9 +4,10 @@ import re
 from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
 
-CLASSPATTERN = "<class '.*\.(?P<CLS>.*)'>"
+CLASSPATTERN = r"\<class '.*\.(?P<CLS>.*)'\>"
 def classname(o: object)->str:
-    m = re.match(CLASSPATTERN, str(o.__class__))
+    type_str = str(o) if isinstance(o,type) else str(o.__class__)
+    m = re.match(CLASSPATTERN, type_str)
     if m:
         return m.group('CLS')
     return repr(o)

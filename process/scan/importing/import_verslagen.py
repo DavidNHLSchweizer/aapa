@@ -30,7 +30,7 @@ class VerslagFromZipImporter(VerslagCreator):
                 return result
             raise VerslagParseException(f'Onbekend verslagtype: {[product_type]}')
         def get_kans(kans_decription: str)->int:
-            KANSPATTERN = '(?<n>[\d]+).*kans'
+            KANSPATTERN = r'(?<n>[\d]+).*kans'
             match kans_decription:
                 case '1e kans': return 1
                 case 'herkansing': return 2

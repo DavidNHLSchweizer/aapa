@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from data.classes.action_log import ActionLogAggregator
 from data.classes.aggregator import Aggregator
-from data.crud.crud_base import CRUD_AggregatorData, CRUDbase
-from data.crud.crud_const import AAPAClass, DetailRec, DetailRecs
-from data.crud.crud_factory import createCRUD
 from data.storage.storage_base import StorageBase
+from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
+from data.storage.storage_crud import StorageCRUD
+from data.storage.table_registry import CRUD_AggregatorData
 from database.database import Database
 from database.table_def import TableDefinition
 
@@ -13,7 +13,7 @@ class AggregatorStorage(StorageBase):
     # to be tested!
     def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, aggregator_data: CRUD_AggregatorData):
         super().__init__(database, class_type=class_type, table=table)
-        self.sub_crud = createCRUD(database, class_type=aggregator_data.aggregator.get_class_type(aggregator_data.attribute))        
+        self.sub_crud = StorageCRUD(database, class_type=aggregator_data.aggregator.get_class_type(aggregator_data.attribute))
         self.main_table_key = aggregator_data.main_table_key
         self.attribute = aggregator_data.attribute
     def __create_detail_rec(self, aapa_obj: AAPAClass, associated_obj: AAPAClass)->DetailRec:        
@@ -25,9 +25,7 @@ class AggregatorStorage(StorageBase):
         for detail_rec in self._create_detail_recs(aapa_obj):
             super().create(detail_rec)
 
-
-
-    
+   
 # class CRUDbaseDetails(CRUDbase):
 # #solution for n-n (or 1-1) relation association table
 #     def __init__(self, database: Database):

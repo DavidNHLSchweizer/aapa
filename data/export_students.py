@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from enum import Enum
+from multiprocessing.process import BaseProcess
 import pandas as pd
 from data.classes.action_log import ActionLog
 from general.deep_attr import deep_attr_main_part, get_deep_attr
@@ -47,7 +48,7 @@ class ExcelMapper:
     def sheet_row(self, aanvraag: Aanvraag)->list[str]:
         return [self.get_attrib(aanvraag, key) for key in ExcelMapper.ExcelAanvraagMap.keys()]
   
-class StudentXLSReporter(BaseProcessor):
+class StudentXLSReporter(BaseProcess):
     def __init__(self):
         self.writer = None
         self.sheet = None
@@ -80,7 +81,7 @@ class StudentXLSReporter(BaseProcessor):
              
 def report_aanvragen_XLS(storage: AAPAStorage, xls_filename: str, filter_func = None):
     xls_filename = writable_filename(xls_filename)
-    reporter = AanvraagXLSReporter()
+    reporter = StudentXLSReporter()
     pipeline = AanvragenPipeline('Maken XLS rapportage', reporter, storage, activity=ActionLog.Action.NOLOG, can_undo=False)
     with reporter.open_xls(xls_filename):
         n_reported = pipeline.process()
