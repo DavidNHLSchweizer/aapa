@@ -110,4 +110,23 @@ class FilesStorage(StorageBase):
         mapper.set_mapper(TimeColumnMapper('timestamp'))
         mapper.set_mapper(FileTypeColumnMapper('filetype'))
 
+    def find_all_for_filetype(self, filetypes: File.Type | set[File.Type], aanvraag_id:int = None)->Files:
+        log_debug(f'find_all_for_filetype {filetypes} {aanvraag_id}')
+        # if isinstance(filetypes, set):
+        #     place_holders = f' in ({",".join("?"*len(filetypes))})' 
+        #     params = [ft for ft in filetypes]
+        # else:
+        #     place_holders = '=?'
+        #     params = [filetypes]
+        # if aanvraag_id:
+        #     place_holders += ' and aanvraag_id=?'
+        #     params.append(aanvraag_id)        
+        result = Files(aanvraag_id)
+        for row in self.query_builder.find_id_from_values(attributes=['aanvraag_id','filetype'], values=[aanvraag_id, filetypes]):
+        # for row in self.database._execute_sql_command(f'select id from {self.table_name} where filetype' + place_holders, params, True):
+            result.set_file(self.read(row['id'])) #check hier, komen de ids wel mee?
+        return result
+
+
+
 register_table(class_type=File, table=FilesTableDefinition(),autoID=True)

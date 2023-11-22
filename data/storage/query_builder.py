@@ -32,7 +32,7 @@ class QueryInfo:
                 raise MapperException(f'Invalid combination: no attribute names with flag ATTRIBUTES') 
         else:
             return columns if columns else self.mapper.columns(QueryInfo.include_key)
-    def __get_values(self, data_columns: list[str], aapa_obj: AAPAClass, values: list[Any], no_map_values: bool):
+    def __get_values(self, data_columns: list[str], aapa_obj: AAPAClass, values: list[Any], no_map_values: bool)->list[Any]:
         if values:
             if len(values) != len(data_columns):
                 raise MapperException(f'Invalid parameters: {len(data_values)} data_values, but {len(data_columns)} columns')              
@@ -40,7 +40,7 @@ class QueryInfo:
                 data_values = values
             else:
                 data_values = [self.mapper._mappers[column_name].map_value_to_db(value)  
-                                    for column_name,value in zip[data_columns, values]]
+                                    for column_name,value in zip(data_columns, values)]
         else: # get values from object
             if not aapa_obj:
                 raise MapperException(f'Invalid parameters: provide either an object or values.')
@@ -49,11 +49,12 @@ class QueryInfo:
                 mapper = self.mapper._mappers[column_name]
                 value = getattr(aapa_obj, mapper.attribute_name)
                 data_values.append(value if no_map_values else mapper.map_value_to_db(value))
+        return data_values
     def get_data(self, aapa_obj: AAPAClass = None, columns: list[str] = [], values: list[Any] = [], 
-                 flags = {Flags.INCLUDE_KEY, Flags.NO_MAP_VALUES}):
+                 flags = {Flags.INCLUDE_KEY, Flags.NO_MAP_VALUES})->tuple[list[str], list[Any]]:
         data_columns = self.__get_columns(columns, flags)
-        data_values = self.__get_values(aapa_obj, values, QueryInfo.no_map_values(flags)) 
-        return data_columns, data_values
+        data_values = self.__get_values(aapa_obj=aapa_obj, data_columns=columns, values=values, no_map_values=QueryInfo.no_map_values(flags)) 
+        return (data_columns, data_values)
 QIF = QueryInfo.Flags
 
 class QueryBuilder:
@@ -66,12 +67,18 @@ class QueryBuilder:
         return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags={QIF.ATTRIBUTES}))
     def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]])->list[int]:
         return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags={QIF.ATTRIBUTES}))
+    def find_max_id(self)->int:
+        sql = SQLselect(self.mapper.table, columns=['max(id)'])
+        log_debug(f'QUERY: {sql.query} - {sql.parameters}')
+        if (row := self.database.execute_select(sql)) and row[0][0]:
+            return row[0][0]
+        return 0
     def __find_id(self, where_columns: list[str], where_values: list[Any|set[Any]])->list[int]:
         sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(*(where_columns,where_values)))
         log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
             return self.mapper.db_to_object(rows[0]).id 
-        return None   
+        return []   
     def __build_where(self, columns: list[str], values: list[Any|set[Any]])->SQE:
         result = None
         for (key,value) in zip(columns, values):

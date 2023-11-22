@@ -8,7 +8,7 @@ import database.dbConst as dbc
 from database.view_def import ViewDefinition
 from general.keys import reset_key
 from general.config import config
-from general.log import log_error, log_info, log_warning
+from general.log import log_debug, log_error, log_info, log_warning
 from general.versie import Versie
 from data.roots import add_root, get_roots, get_roots_report, reset_roots
 from data.classes.files import File
@@ -237,9 +237,13 @@ class AAPaDatabase(Database):
             if is_keyed_table(table):
                 reset_key(table.name, self.__find_max_key(table.name))
     def __find_max_key(self, table_name: str):
-        if (row := self._execute_sql_command(f'select max(ID) from {table_name};', return_values = True)) and \
-                                            (r0 := list(row[0])[0]):
-            return r0 
+        sql = SQLselect(self.schema.table(table_name), columns=['max(id)'])
+        if rows := self.execute_select(sql):
+            r = rows[0][0]            
+            return r if r else 0
+        # if (row := self._execute_sql_command(f'select max(ID) from {table_name};', return_values = True)) and \
+        #                                     (r0 := list(row[0])[0]):
+        #     return r0 
         else:
             return 0
     @classmethod

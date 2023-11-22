@@ -27,7 +27,7 @@ tqdm
 #aapa
 #aapa_migrate
 #run_tui
-#data.aapa_database
+data.aapa_database
 data.classes.files
 data.classes.action_log
 #data.migrate
@@ -44,6 +44,7 @@ data.storage.milestones
 data.storage.verslagen
 data.storage.mappers
 data.storage.table_search
+data.storage.query_builder
 database.database
 #database.dbargparser
 #database.dbConst

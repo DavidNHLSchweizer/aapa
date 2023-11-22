@@ -94,7 +94,8 @@ class StorageBase:
     def find_value(self, attribute_name: str, value: Any|set[Any])->AAPAClass:
         if id := self.query_builder.find_id_from_values(attributes=[attribute_name], values=[value]):
             return self.read(id)
-    
+    def max_id(self)->int:
+        return self.query_builder.find_max_id()    
     # def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
     #     return []# self.crud.find_keys(column_names, values) TBD
     # def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:
