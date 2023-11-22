@@ -5,7 +5,7 @@ from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from general.fileutil import summary_string, test_directory_exists
 from general.config import ListValueConvertor, config
 from general.log import log_error, log_info, log_print, log_warning

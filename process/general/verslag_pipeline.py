@@ -1,6 +1,6 @@
 from data.classes.action_log import ActionLog
 from data.classes.verslagen import Verslag
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from process.general.pipeline import FilePipeline
 from process.general.verslag_processor import VerslagCreator
 

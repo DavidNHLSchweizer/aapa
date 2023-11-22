@@ -1,7 +1,7 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from general.fileutil import file_exists, safe_file_name, summary_string
 from general.log import log_debug, log_print
 from general.preview import pva

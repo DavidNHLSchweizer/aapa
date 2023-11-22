@@ -2,7 +2,7 @@ from data.aapa_database import BaseDirsTableDefinition, StudentAanvragenTableDef
         StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.roots import encode_path
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from database.sql_table import SQLcreateTable
 from database.database import Database
 from database.table_def import ForeignKeyAction, TableDefinition

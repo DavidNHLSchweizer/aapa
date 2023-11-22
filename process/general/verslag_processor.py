@@ -1,5 +1,5 @@
 from data.classes.verslagen import Verslag
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from process.general.base_processor import FileProcessor
 
 class VerslagCreator(FileProcessor):

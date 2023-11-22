@@ -13,10 +13,10 @@ from data.classes.verslagen import Verslag
 from data.crud.aanvragen import CRUD_aanvragen
 from data.crud.base_dirs import CRUD_basedirs
 from data.crud.bedrijven import  CRUD_bedrijven
-from data.crud.crud_factory import createCRUD
+# from data.crud.crud_factory import createCRUD
 from data.crud.files import CRUD_files
 from data.crud.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files
-from data.crud.studenten import CRUD_studenten
+# from data.crud.studenten import CRUD_studenten
 from data.crud.crud_base import AAPAClass, CRUDbase, KeyClass
 from data.crud.verslagen import CRUD_verslagen
 from data.storage.base_dirs import BasedirsStorage

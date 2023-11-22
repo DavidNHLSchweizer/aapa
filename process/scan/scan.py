@@ -9,7 +9,7 @@ from process.scan.create_forms.create_diff_file import DifferenceProcessor
 from process.scan.create_forms.create_form import FormCreator
 from process.scan.importing.import_directory import import_directory
 from general.config import config
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 
 def init_config():
     config.init('requests', 'form_template',r'.\templates\template 0.8.docx')

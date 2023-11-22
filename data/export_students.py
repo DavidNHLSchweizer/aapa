@@ -6,7 +6,7 @@ from general.deep_attr import deep_attr_main_part, get_deep_attr
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor
 from data.classes.aanvragen import Aanvraag
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from general.fileutil import writable_filename
 from general.config import config
 from process.general.pipeline import AanvragenPipeline

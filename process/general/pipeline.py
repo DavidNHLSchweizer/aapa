@@ -5,7 +5,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.action_log import ActionLog
 from data.crud.crud_base import AAPAClass
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview

@@ -1,4 +1,4 @@
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from general.log import console_info, log_print
 
 class Preview:

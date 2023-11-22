@@ -5,7 +5,7 @@ from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.action_log import ActionLog
 from data.classes.files import File
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from general.log import log_debug, log_error, log_info
 from general.preview import Preview
 from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor

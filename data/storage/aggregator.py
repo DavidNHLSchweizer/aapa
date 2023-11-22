@@ -1,4 +1,4 @@
-from attr import dataclass
+from dataclasses import dataclass
 from data.classes.action_log import ActionLogAggregator
 from data.classes.aggregator import Aggregator
 from data.crud.crud_base import CRUD_AggregatorData, CRUDbase
