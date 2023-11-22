@@ -4,7 +4,7 @@ from data.classes.base_dirs import BaseDir
 from data.classes.milestones import StudentMilestones
 from data.classes.studenten import Student
 from general.fileutil import path_with_suffix
-from general.log import log_error, log_info, log_print
+from general.log import log_error, log_info, log_print, log_warning
 from general.name_utils import Names
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.scan.importing.detect_student_from_directory import detect_from_directory
@@ -104,8 +104,11 @@ class AAPARunnerContext:
         log_print(banner())
         log_info(f'+++ AAPA started +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}', to_console=True)
         if not (self.configuration.initialize(self.processing_options)):
-            log_error(f'{self.configuration.validation_error}\nKan AAPA niet initialiseren.')
-            return None
+            if AAPAaction.INFO in self.processing_options.actions:
+                log_warning(f'{self.configuration.validation_error}\nKan AAPA niet initialiseren.')
+            else:
+                log_error(f'{self.configuration.validation_error}\nKan AAPA niet initialiseren.')
+                return None
         return self
     def __exit__(self, exc_type, exc_value, exc_traceback):
         log_info('Ready.')

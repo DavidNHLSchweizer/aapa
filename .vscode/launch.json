@@ -4,9 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-
-
         {
             "name": "Python: Current File",
             "type": "python",
@@ -14,6 +11,19 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: info",
+            "type": "python",
+            "request": "launch",
+            "program": "aapa.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "info",
+                "-debug",
+            ]
+
         },
         {
             "name": "Python: zipimport",

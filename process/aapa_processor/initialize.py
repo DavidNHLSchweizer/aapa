@@ -5,6 +5,7 @@ from data.storage.aapa_storage import AAPAStorage
 from general.fileutil import file_exists
 from general.log import log_error
 
+class AAPAInitializationError(Exception):pass
 def __create_database(name, recreate = False, ignore_version=False)->Database:
     try:
         exists = file_exists(name)
@@ -17,7 +18,7 @@ def __create_database(name, recreate = False, ignore_version=False)->Database:
         else:
             print(f'--- OPENEN DATABASE {basename} ---')
             return  db.AAPaDatabase(name, ignore_version=ignore_version)
-    except Exception as Mystery:
+    except AAPAInitializationError as Mystery:
         log_error(f'Fout bij opstarten: {Mystery}')
         return None
 def initialize_database(database_name, recreate = False, ignore_version=False)->Database:

@@ -19,7 +19,7 @@ class VerslagenStorage(MilestonesStorage):
     def __init__(self, database: Database):
         super().__init__(database, Verslag)        
     def customize_mapper(self, mapper: TableMapper):
-        super().customize_mapper() #milestones
+        super().customize_mapper(mapper) #milestones
         mapper.set_mapper(FilenameColumnMapper('directory'))
         mapper.set_mapper(VerslagStatusColumnMapper('status'))
         mapper.set_mapper(VerslagBeoordelingColumnMapper('beoordeling'))
