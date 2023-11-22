@@ -67,6 +67,9 @@ class QueryBuilder:
         return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags={QIF.ATTRIBUTES}))
     def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]])->list[int]:
         return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags={QIF.ATTRIBUTES}))
+    def find_value(self, attribute: str, value: Any)->AAPAClass:
+        log_debug(f'find value: {attribute}  {value}')
+        return self.find_id_from_values([attribute], [value])
     def find_max_id(self)->int:
         sql = SQLselect(self.mapper.table, columns=['max(id)'])
         log_debug(f'QUERY: {sql.query} - {sql.parameters}')

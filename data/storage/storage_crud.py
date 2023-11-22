@@ -14,7 +14,7 @@ class StorageCRUD:
         self.database = database        
         self.autoID = data.autoID
         self.aggregator_data = data.aggregator_data
-        self.mapper = TableMapper(data.table, class_type)
+        self.mapper = TableMapper(data.table, class_type) Dit Loop Nie Lekker!
         self.query_builder = QueryBuilder(self.database, self.mapper)
     @property
     def table(self)->TableDefinition:

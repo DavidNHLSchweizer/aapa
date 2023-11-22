@@ -60,9 +60,12 @@ class StorageBase:
         if self.__check_already_there(aapa_obj):
             return
         #TODO adapt for multiple keys
-        if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
-            setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
+        self.__create_key_if_needed(aapa_obj, self.table, self.autoID)
         self.crud.create(aapa_obj)
+    @staticmethod
+    def __create_key_if_needed(aapa_obj: AAPAClass, table: TableDefinition, autoID=False):
+        if autoID and getattr(aapa_obj, table.key, EMPTY_ID) == EMPTY_ID:
+            setattr(aapa_obj, table.key, get_next_key(table.name))
     def read(self, key: KeyClass, multiple=False)->AAPAClass|list:
         return self.crud.read(key, multiple=multiple)        
     def update(self, aapa_obj: AAPAClass):
@@ -79,9 +82,10 @@ class StorageBase:
             return
         crud = self.get_crud(attr_obj)
         if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored_id := self.query_builder.find_id_from_object(attr_obj):
+            if stored_id := crud.query_builder.find_id_from_object(attr_obj):
                 setattr(attr_obj, attribute_key, stored_id)
             else:
+                self.__create_key_if_needed(attr_obj, crud.table, crud.autoID)
                 crud.create(attr_obj)
     def __check_already_there(self, aapa_obj: AAPAClass)->bool:
         if stored_id := self.query_builder.find_id_from_object(aapa_obj): 
@@ -92,8 +96,9 @@ class StorageBase:
         return False
     # utility functions
     def find_value(self, attribute_name: str, value: Any|set[Any])->AAPAClass:
-        if id := self.query_builder.find_id_from_values(attributes=[attribute_name], values=[value]):
+        if id := self.query_builder.find_value(attribute_name, value):
             return self.read(id)
+        return None
     def max_id(self)->int:
         return self.query_builder.find_max_id()    
     # def find_keys(self, column_names: list[str], values: list[Any])->list[int]:

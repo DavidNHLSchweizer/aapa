@@ -91,7 +91,7 @@ class FileStorageRecord:
                 result = FileStorageRecord.Status.DUPLICATE
         return result
     def analyse(self, storage: FilesStorage)->FileStorageRecord:
-        self.status = self.__analyse_stored_name(storage.find_name(self.filename))
+        self.status = self.__analyse_stored_name(storage.find_filename(self.filename))
         if self.status == FileStorageRecord.Status.UNKNOWN:
             self.status = self.__analyse_stored_digest(storage.find_digest(self.digest))
         return self
@@ -126,7 +126,12 @@ class FilesStorage(StorageBase):
         # for row in self.database._execute_sql_command(f'select id from {self.table_name} where filetype' + place_holders, params, True):
             result.set_file(self.read(row['id'])) #check hier, komen de ids wel mee?
         return result
-
-
+    def get_storage_record(self, filename: str)->FileStorageRecord:
+        return FileStorageRecord(filename).analyse(self)
+    def find_digest(self, digest: str)->File:
+        return self.find_value('digest', digest)
+    def find_filename(self, filename: str)->File:
+        return self.find_value('filename', filename)
+    
 
 register_table(class_type=File, table=FilesTableDefinition(),autoID=True)
