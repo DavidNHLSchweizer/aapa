@@ -4,18 +4,47 @@ from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFiles
 from data.classes.action_log  import ActionLog, ActionLogAggregator
 from data.storage.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.storage_const import DBtype, DetailRec
-from data.storage.table_registry import CRUD_AggregatorData, register_table
+from data.table_registry import CRUD_AggregatorData, register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database
 from database.dbConst import EMPTY_ID
+from database.table_def import TableDefinition
 from general.log import log_warning
 
 class ActionAanvragenDetailRec(DetailRec): pass
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
-class ActionlogAanvragenStorage(StorageBase):
-    def customize_mapper(self, mapper: TableMapper):
-        mapper.set_attribute('main_key', 'log_id')
-        mapper.set_attribute('detail_key', 'aanvraag_id')
+
+class DetailsRecTableMapper(TableMapper):
+    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec], 
+                 main_key: str, detail_key:str):
+        super().__init__(database, table, class_type)
+        self.main_key = main_key
+        self.detail_key=detail_key
+    def _init_column_mapper(self, column_name: str)->ColumnMapper:
+        match column_name:
+            case 'main_key': return ColumnMapper(column_name,attribute_name=self.main_key)
+            case 'detail_key': return ColumnMapper(column_name,attribute_name=self.detail_key)
+            case  _: super()._init_column_mapper(column_name)
+
+class ActionlogAanvragenTableMapper(DetailsRecTableMapper):
+    def __init__(self, database: Database):
+        super().__init__(database, ActionLogAanvragenTableDefinition(), ActionAanvragenDetailRec, 'log_id','aanvraag_id')
+
+# class ActionlogAanvragenStorage(StorageBase):
+#     def customize_mapper(self, mapper: TableMapper):
+#         mapper.set_attribute('main_key', 'log_id')
+#         mapper.set_attribute('detail_key', 'aanvraag_id')
+
+class ActionlogFilesTableMapper(DetailsRecTableMapper):
+    def __init__(self, database: Database):
+        super().__init__(database, ActionLogAanvragenTableDefinition(), ActionAanvragenDetailRec, 'log_id','aanvraag_id')
+class ActionlogFilesTableMapper(TableMapper):
+    def _init_column_mapper(self, column_name: str)->ColumnMapper:
+        match column_name:
+            case 'main_key': return ColumnMapper(column_name,attribute_name='log_id')
+            case 'detail_key': return ColumnMapper(column_name,attribute_name='log_id')
+            case  _: super()._init_column_mapper(column_name)
+
 
 class ActionInvalidFilesDetailRec(DetailRec): pass
 class CRUD_action_log_invalid_files(CRUD_AggregatorData):

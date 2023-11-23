@@ -1,6 +1,6 @@
 from data.aapa_database import StudentTableDefinition
 from data.classes.studenten import Student
-from data.storage.table_registry import register_table
+from data.table_registry import register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database
 

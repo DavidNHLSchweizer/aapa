@@ -6,7 +6,7 @@ from data.aapa_database import AanvraagTableDefinition, StudentMilestonesTableDe
 from data.classes.files import File, Files
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
-from data.storage.mappers import TableMapper, TimeColumnMapper
+from data.storage.mappers import ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.storage_base import CRUDColumnMapper, StorageBase
 from data.storage.storage_const import AAPAClass
 from data.storage.storage_crud import StorageCRUD
@@ -14,14 +14,20 @@ from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug
 
+class MilestonesTableMapper(TableMapper):
+    def _init_column_mapper(self, column_name: str, database: Database)->ColumnMapper:
+        match column_name:
+            case 'datum': return TimeColumnMapper(column_name)
+            case 'stud_id': 
+                return CRUDColumnMapper('stud_id', attribute_name='student', crud=StorageCRUD(database, Student))
+            case 'bedrijf_id': 
+                return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=StorageCRUD(database, Bedrijf))
+            case _: return super()._init_column_mapper(column_name)
+
 class MilestonesStorage(StorageBase):
     def __init__(self, database: Database, class_type: AAPAClass):
         super().__init__(database, class_type, autoID=True)
     # semi-abstract base class for AANVRAGEN and VERSLAGEN, handles the common parts
-    def customize_mapper(self, mapper: TableMapper):
-        mapper.set_mapper(TimeColumnMapper('datum'))
-        mapper.set_mapper(CRUDColumnMapper('stud_id', attribute_name='student', crud=StorageCRUD(self.database, Student)))
-        mapper.set_mapper(CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=StorageCRUD(self.database, Bedrijf)))
 
     def __load(self, milestone_id: int, filetypes: set[File.Type], crud_files: StorageCRUD)->Iterable[File]:
         log_debug(f'__load: {classname(self)} - {milestone_id}: {filetypes}')
@@ -40,8 +46,6 @@ class MilestonesStorage(StorageBase):
             for file in files:
                 result.set_file(file)
         return result        
-
-
 
     def __read_all_filtered(self, milestones: Iterable[Milestone], filter_func = None)->Iterable[Milestone]:
         if not filter_func:

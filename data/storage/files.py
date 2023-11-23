@@ -5,7 +5,7 @@ from data.storage.storage_const import DBtype
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File, Files
 from data.storage.storage_base import StorageBase, StorageException
-from data.storage.table_registry import register_table
+from data.table_registry import register_table
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.log import log_debug, log_exception

@@ -1,6 +1,6 @@
 from data.storage.mappers import TableMapper
 from data.storage.query_builder import QueryBuilder
-from data.storage.table_registry import class_data
+from data.table_registry import class_data
 from data.storage.storage_const import AAPAClass, KeyClass
 from database.database import Database
 from database.sql_expr import SQE, Ops
@@ -9,12 +9,12 @@ from debug.debug import classname
 from general.log import log_debug
 
 class StorageCRUD:
-    def __init__(self, database: Database, class_type: AAPAClass):
+    def __init__(self, database: Database, class_type: AAPAClass, mapper: TableMapper|None):
         data = class_data(class_type)
         self.database = database        
         self.autoID = data.autoID
         self.aggregator_data = data.aggregator_data
-        self.mapper = TableMapper(data.table, class_type) Dit Loop Nie Lekker!
+        self.mapper = mapper if mapper else TableMapper(database, data.table, class_type)
         self.query_builder = QueryBuilder(self.database, self.mapper)
     @property
     def table(self)->TableDefinition:

@@ -1,6 +1,6 @@
 from data.aapa_database import BedrijfTableDefinition
 from data.classes.bedrijven import Bedrijf
-from data.storage.table_registry import register_table
+from data.table_registry import register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database
 
