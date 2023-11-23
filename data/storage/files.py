@@ -100,15 +100,18 @@ class FileTypeColumnMapper(ColumnMapper):
     def map_db_to_value(self, db_value: DBtype)->File.Type:
         return File.Type(db_value)
 
+class FilesTableMapper(TableMapper):
+    def _init_column_mapper(self, column_name: str, database: Database)->ColumnMapper:
+        match column_name:
+            case 'filename': return FilenameColumnMapper(column_name)
+            case 'timestamp': return TimeColumnMapper(column_name) 
+            case 'filetype': return FileTypeColumnMapper(column_name)
+            case _: return super()._init_column_mapper(column_name)
+
 class FilesStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, File, autoID=True)
         self.sync_strategy = FileSync(self)
-
-    def customize_mapper(self, mapper: TableMapper):
-        mapper.set_mapper(FilenameColumnMapper('filename'))
-        mapper.set_mapper(TimeColumnMapper('timestamp'))
-        mapper.set_mapper(FileTypeColumnMapper('filetype'))
 
     def find_all_for_filetype(self, filetypes: File.Type | set[File.Type], aanvraag_id:int = None)->Files:
         log_debug(f'find_all_for_filetype {filetypes} {aanvraag_id}')
@@ -134,4 +137,4 @@ class FilesStorage(StorageBase):
         return self.find_value('filename', filename)
     
 
-register_table(class_type=File, table=FilesTableDefinition(),autoID=True)
+register_table(class_type=File, table=FilesTableDefinition(), mapper_type=FilesTableMapper, autoID=True)
