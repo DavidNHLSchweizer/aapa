@@ -53,7 +53,7 @@ class QueryInfo:
     def get_data(self, aapa_obj: AAPAClass = None, columns: list[str] = [], values: list[Any] = [], 
                  flags = {Flags.INCLUDE_KEY, Flags.NO_MAP_VALUES})->tuple[list[str], list[Any]]:
         data_columns = self.__get_columns(columns, flags)
-        data_values = self.__get_values(aapa_obj=aapa_obj, data_columns=columns, values=values, no_map_values=QueryInfo.no_map_values(flags)) 
+        data_values = self.__get_values(aapa_obj=aapa_obj, data_columns=data_columns, values=values, no_map_values=QueryInfo.no_map_values(flags)) 
         return (data_columns, data_values)
 QIF = QueryInfo.Flags
 

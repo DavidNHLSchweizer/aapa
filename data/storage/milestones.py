@@ -28,7 +28,6 @@ class MilestonesStorage(StorageBase):
     def __init__(self, database: Database, class_type: AAPAClass):
         super().__init__(database, class_type, autoID=True)
     # semi-abstract base class for AANVRAGEN and VERSLAGEN, handles the common parts
-
     def __load(self, milestone_id: int, filetypes: set[File.Type], crud_files: StorageCRUD)->Iterable[File]:
         log_debug(f'__load: {classname(self)} - {milestone_id}: {filetypes}')
         self.get_crud(File)

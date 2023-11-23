@@ -10,7 +10,7 @@ from general.singleton import Singleton
 @dataclass
 class ClassRegistryData:
     table: TableDefinition
-    mapper_type: TableMapper # to use custom mappers
+    mapper_type: type[TableMapper] # to use custom mappers
     autoID: bool
     aggregator_data: CRUD_AggregatorData 
 
@@ -23,19 +23,19 @@ class CRUD_AggregatorData:
 # (self, database: Database, class_type: AAPAClass, table: TableDefinition, autoID=False):
 class TableRegistry(Singleton):
     def __init__(self):
-        self._registered_CRUDs = {}
-    def register(self, class_type: AAPAClass, table: TableDefinition, mapper_type: TableMapper, aggregator_data: CRUD_AggregatorData = None, autoID=False):
+        self._registered_data = {}
+    def register(self, class_type: AAPAClass, table: TableDefinition, mapper_type: type[TableMapper], aggregator_data: CRUD_AggregatorData = None, autoID=False):
         if self._is_registered(class_type):
             raise TypeError(f'Class type {classname(class_type)} already registered.')
-        self._registered_CRUDs[class_type] = ClassRegistryData(table=table, autoID=autoID, 
+        self._registered_data[class_type] = ClassRegistryData(table=table, autoID=autoID, 
                                                                mapper_type = mapper_type, aggregator_data=aggregator_data)
     def _is_registered(self, class_type: AAPAClass)->bool:
-        return class_type in self._registered_CRUDs.keys()
+        return class_type in self._registered_data.keys()
     def class_data(self, class_type: AAPAClass)->ClassRegistryData:
         if not self._is_registered(class_type):
             cn  = classname(class_type)
             raise TypeError(f'Class type {class_type} is not registered.')
-        return self._registered_CRUDs[class_type]
+        return self._registered_data[class_type]
         # if entry['aggregator_data']:
         #     return StorageCRUD(database=database, class_type=class_type, table=entry['table'], aggregator_data = entry['aggregator_data'])
         # else:

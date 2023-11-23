@@ -9,6 +9,7 @@ from data.table_registry import register_table
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.log import log_debug, log_exception
+from general.timeutil import TSC
 
 
 class FileSync:
@@ -112,7 +113,6 @@ class FilesStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, File, autoID=True)
         self.sync_strategy = FileSync(self)
-
     def find_all_for_filetype(self, filetypes: File.Type | set[File.Type], aanvraag_id:int = None)->Files:
         log_debug(f'find_all_for_filetype {filetypes} {aanvraag_id}')
         # if isinstance(filetypes, set):
@@ -135,6 +135,18 @@ class FilesStorage(StorageBase):
         return self.find_value('digest', digest)
     def find_filename(self, filename: str)->File:
         return self.find_value('filename', filename)
+    def store_invalid(self, filename: str, filetype = File.Type.INVALID_PDF)->File:
+        log_debug('store_invalid')
+        if (stored:=self.find_filename(filename)):
+            stored.filetype = filetype
+            stored.aanvraag_id=EMPTY_ID
+            self.update(stored)
+            result = stored
+        else:
+            new_file = File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, 
+                            filetype=filetype, aanvraag_id=EMPTY_ID)
+            self.create(new_file)
+            result = new_file
+        return result
     
-
 register_table(class_type=File, table=FilesTableDefinition(), mapper_type=FilesTableMapper, autoID=True)
