@@ -16,11 +16,11 @@ class AanvraagBeoordelingColumnMapper(ColumnMapper):
         return Aanvraag.Beoordeling(db_value)
 
 class AanvragenTableMapper(MilestonesTableMapper):
-    def _init_column_mapper(self, column_name: str, database: Database)->ColumnMapper:
+    def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'status': return AanvraagStatusColumnMapper(column_name)
             case 'beoordeling': return AanvraagBeoordelingColumnMapper(column_name)
-            case _: return super()._init_column_mapper(column_name)
+            case _: return super()._init_column_mapper(column_name, database)
   
 class AanvragenStorage(MilestonesStorage):
     def __init__(self, database: Database):

@@ -29,7 +29,7 @@ class StorageBase:
         self.autoID = autoID
         # self.aggregator_CRUD_temp: CRUDbase = None
         data = class_data(class_type)
-        self.mapper = data.mapper if data.mapper else TableMapper(database, data.table, class_type) 
+        self.mapper = data.mapper_type(database, data.table, class_type) if data.mapper_type else TableMapper(database, data.table, class_type) 
         self._cruds: list[StorageCRUD] = [StorageCRUD(database, class_type)] 
         # list of associated cruds. 
         # _cruds[0] is always the main CRUD (for class_type)

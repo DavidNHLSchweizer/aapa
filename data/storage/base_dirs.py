@@ -6,10 +6,10 @@ from data.storage.storage_base import StorageBase
 from database.database import Database
 
 class BasedirsTableMapper(TableMapper):
-    def _init_column_mapper(self, column_name: str)->ColumnMapper:
+    def _init_column_mapper(self, column_name: str, database:Database=None)->ColumnMapper:
         match column_name:
             case 'directory': return FilenameColumnMapper(column_name)
-            case  _: super()._init_column_mapper(column_name)
+            case  _: super()._init_column_mapper(column_name, database)
     
 class BasedirsStorage(StorageBase):
     def __init__(self, database: Database):

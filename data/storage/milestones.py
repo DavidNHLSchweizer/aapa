@@ -15,14 +15,14 @@ from database.table_def import TableDefinition
 from general.log import log_debug
 
 class MilestonesTableMapper(TableMapper):
-    def _init_column_mapper(self, column_name: str, database: Database)->ColumnMapper:
+    def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'datum': return TimeColumnMapper(column_name)
             case 'stud_id': 
                 return CRUDColumnMapper('stud_id', attribute_name='student', crud=StorageCRUD(database, Student))
             case 'bedrijf_id': 
                 return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=StorageCRUD(database, Bedrijf))
-            case _: return super()._init_column_mapper(column_name)
+            case _: return super()._init_column_mapper(column_name, database)
 
 class MilestonesStorage(StorageBase):
     def __init__(self, database: Database, class_type: AAPAClass):

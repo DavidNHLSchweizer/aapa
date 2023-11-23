@@ -15,12 +15,12 @@ class VerslagBeoordelingColumnMapper(ColumnMapper):
         return Verslag.Beoordeling(db_value)
 
 class VerslagenTableMapper(MilestonesTableMapper):
-    def _init_column_mapper(self, column_name: str, database: Database)->ColumnMapper:
+    def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'directory': return FilenameColumnMapper(column_name)
             case 'status': return VerslagStatusColumnMapper(column_name)
             case 'beoordeling': return VerslagBeoordelingColumnMapper(column_name)
-            case _: return super()._init_column_mapper(column_name)
+            case _: return super()._init_column_mapper(column_name, database)
 
 class VerslagenStorage(MilestonesStorage):
     def __init__(self, database: Database):

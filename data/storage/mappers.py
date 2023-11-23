@@ -79,7 +79,7 @@ class TableMapper:
         self.db_record = DBrecord(table)
         self.class_type = class_type        
         self._mappers = {column.name: self._init_column_mapper(column.name, database) for column in table.columns}
-    def _init_column_mapper(self, column_name: str, database: Database)->ColumnMapper:
+    def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         return ColumnMapper(column_name) # customize for non-default columns
     def mappers(self, column_names: list[str] = None)->list[ColumnMapper]:
         return [mapper for mapper in self._mappers.values() if not column_names or mapper.column_name in column_names]

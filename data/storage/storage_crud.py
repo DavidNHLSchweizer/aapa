@@ -9,12 +9,12 @@ from debug.debug import classname
 from general.log import log_debug
 
 class StorageCRUD:
-    def __init__(self, database: Database, class_type: AAPAClass, mapper: TableMapper|None):
+    def __init__(self, database: Database, class_type: AAPAClass):
         data = class_data(class_type)
         self.database = database        
         self.autoID = data.autoID
         self.aggregator_data = data.aggregator_data
-        self.mapper = mapper if mapper else TableMapper(database, data.table, class_type)
+        self.mapper = data.mapper_type(database, data.table, class_type) if data.mapper_type else TableMapper(database, data.table, class_type)
         self.query_builder = QueryBuilder(self.database, self.mapper)
     @property
     def table(self)->TableDefinition:

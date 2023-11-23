@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from data.classes.action_log import ActionLogAggregator
 from data.classes.aggregator import Aggregator
+from data.storage.mappers import TableMapper
 from data.storage.storage_base import StorageBase
 from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
 from data.storage.storage_crud import StorageCRUD

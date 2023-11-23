@@ -101,12 +101,12 @@ class FileTypeColumnMapper(ColumnMapper):
         return File.Type(db_value)
 
 class FilesTableMapper(TableMapper):
-    def _init_column_mapper(self, column_name: str, database: Database)->ColumnMapper:
+    def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'filename': return FilenameColumnMapper(column_name)
             case 'timestamp': return TimeColumnMapper(column_name) 
             case 'filetype': return FileTypeColumnMapper(column_name)
-            case _: return super()._init_column_mapper(column_name)
+            case _: return super()._init_column_mapper(column_name, database)
 
 class FilesStorage(StorageBase):
     def __init__(self, database: Database):
