@@ -3,8 +3,8 @@ from data.classes.verslagen import Verslag
 from data.aapa_database import VerslagTableDefinition
 from data.storage.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
 from data.storage.storage_const import DBtype
-from data.table_registry import register_table
-from data.storage.milestones import MilestonesStorage, MilestonesTableMapper
+from data.storage.table_registry import register_table
+from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
 from database.database import Database
 
 class VerslagStatusColumnMapper(ColumnMapper):

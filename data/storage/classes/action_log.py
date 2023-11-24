@@ -4,7 +4,7 @@ from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFiles
 from data.classes.action_log  import ActionLog, ActionLogAggregator
 from data.storage.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.storage_const import DBtype, DetailRec
-from data.table_registry import CRUD_AggregatorData, register_table
+from data.storage.table_registry import CRUD_AggregatorData, register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database
 from database.dbConst import EMPTY_ID

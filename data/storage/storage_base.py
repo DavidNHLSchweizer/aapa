@@ -1,7 +1,7 @@
 from pydoc import classname
 from typing import Any
 from data.storage.storage_const import AAPAClass, DBtype, KeyClass
-from data.table_registry import class_data
+from data.storage.table_registry import class_data
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QueryBuilder
 from data.storage.storage_crud import StorageCRUD

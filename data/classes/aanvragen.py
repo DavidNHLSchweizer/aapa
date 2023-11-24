@@ -27,7 +27,8 @@ class Aanvraag(Milestone):
                     Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'geheel verwerkt', 
                     Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
             return STRS[self.value]
-    def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', source_info: File = None, datum: datetime.datetime = None, 
+    def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
+                 source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=0):
         super().__init__(student=student, bedrijf=bedrijf, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
         self.datum_str = datum_str

@@ -5,7 +5,7 @@ from data.storage.storage_const import DBtype
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File, Files
 from data.storage.storage_base import StorageBase, StorageException
-from data.table_registry import register_table
+from data.storage.table_registry import register_table
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from general.log import log_debug, log_exception
@@ -22,7 +22,7 @@ class FileSync:
     def __init__(self, files: FilesStorage):
         self.files = files
     def __check_known_file(self, file: File)->bool:
-        if (stored_file := self.files.find_name(filename=file.filename)):
+        if (stored_file := self.files.find_filename(filename=file.filename)):
             if stored_file.aanvraag_id != EMPTY_ID and stored_file.aanvraag_id != file.aanvraag_id:
                 log_exception(f'file {stored_file.filename} bestaat al voor aanvraag {stored_file.aanvraag_id}', StorageException)
             elif stored_file.filetype not in {File.Type.UNKNOWN, File.Type.INVALID_PDF}:  

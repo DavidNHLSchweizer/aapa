@@ -5,14 +5,14 @@ from data.storage.mappers import TableMapper
 from data.storage.storage_base import StorageBase
 from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
 from data.storage.storage_crud import StorageCRUD
-from data.table_registry import CRUD_AggregatorData
+from data.storage.table_registry import CRUD_AggregatorData
 from database.database import Database
 from database.table_def import TableDefinition
 
-   
 class AggregatorStorage(StorageBase):
     # to be tested!
-    def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, aggregator_data: CRUD_AggregatorData):
+    def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
+                    aggregator_data: CRUD_AggregatorData):
         super().__init__(database, class_type=class_type, table=table)
         self.sub_crud = StorageCRUD(database, class_type=aggregator_data.aggregator.get_class_type(aggregator_data.attribute))
         self.main_table_key = aggregator_data.main_table_key

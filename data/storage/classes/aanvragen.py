@@ -2,8 +2,8 @@ from typing import Any
 from data.aapa_database import AanvraagTableDefinition
 from data.classes.aanvragen import Aanvraag
 from data.storage.mappers import ColumnMapper, TableMapper
-from data.table_registry import register_table
-from data.storage.milestones import MilestonesStorage, MilestonesTableMapper
+from data.storage.table_registry import register_table
+from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
 from data.storage.storage_const import DBtype
 from database.database import Database
 from general.log import log_debug

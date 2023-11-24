@@ -17,14 +17,14 @@ from data.classes.verslagen import Verslag
 # from data.storage.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files
 # from data.storage.studenten import CRUD_studenten
 # from data.storage.verslagen import CRUD_verslagen
-from data.storage.action_log import ActionlogStorage
-from data.storage.aanvragen import AanvragenStorage
-from data.storage.bedrijven import BedrijvenStorage
-from data.storage.base_dirs import BasedirsStorage
-from data.storage.files import FilesStorage
+from data.storage.classes.action_log import ActionlogStorage
+from data.storage.classes.aanvragen import AanvragenStorage
+from data.storage.classes.bedrijven import BedrijvenStorage
+from data.storage.classes.base_dirs import BasedirsStorage
+from data.storage.classes.files import FilesStorage
 from data.storage.storage_base import StorageBase, StorageException
-from data.storage.studenten import StudentenStorage
-from data.storage.verslagen import VerslagenStorage
+from data.storage.classes.studenten import StudentenStorage
+from data.storage.classes.verslagen import VerslagenStorage
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from data.roots import add_root, encode_path

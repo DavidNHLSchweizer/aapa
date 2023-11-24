@@ -6,7 +6,7 @@ from data.classes.action_log import ActionLog
 from data.storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.storage.files import FileStorageRecord
+from data.storage.classes.files import FileStorageRecord
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop

@@ -48,10 +48,9 @@ class TableRegistry(Singleton):
 
 _table_registry = TableRegistry()
 
-# def create_CRUD(database: Database, class_type: AAPAClass)->StorageCRUD:
-#     return _table_registry.create_CRUD(database, class_type)
 def class_data(class_type: AAPAClass)->ClassRegistryData:
     return _table_registry.class_data(class_type)
-def register_table(class_type: AAPAClass, table: TableDefinition=None, mapper_type: TableMapper = None, 
+def register_table(class_type: AAPAClass, table: TableDefinition=None, 
+                   mapper_type: type[TableMapper] = None, 
                    aggregator_data: CRUD_AggregatorData = None, autoID=False):
     _table_registry.register(class_type, table=table, mapper_type=mapper_type, aggregator_data=aggregator_data,  autoID=autoID)

@@ -1,6 +1,6 @@
 from data.storage.mappers import TableMapper
 from data.storage.query_builder import QueryBuilder
-from data.table_registry import class_data
+from data.storage.table_registry import class_data
 from data.storage.storage_const import AAPAClass, KeyClass
 from database.database import Database
 from database.sql_expr import SQE, Ops
