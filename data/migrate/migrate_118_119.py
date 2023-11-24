@@ -1,13 +1,16 @@
 from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
         StudentTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
+from data.classes.files import File
 from data.roots import encode_path
 from data.storage.aapa_storage import AAPAStorage
 from database.sql_table import SQLcreateTable
 from database.database import Database
 from database.table_def import ForeignKeyAction, TableDefinition
+from general.log import log_debug
 from general.name_utils import Names
 import database.dbConst as dbc
+from general.timeutil import TSC
 # Wijzigingen in 1.19 voor migratie:
 #
 # studenten krijgt ook zijn eigen ID. Aanpassingen aan AANVRAGEN hiervoor
@@ -33,16 +36,15 @@ def modify_aanvragen_table(database: Database):
     aanvragen_table = AanvraagTableDefinition() 
     database.execute_sql_command(SQLcreateTable(aanvragen_table))
     #copying the data
-    database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,kans,status,beoordeling,versie)'+ \
-                                  ' select id,bedrijf_id,datum_str,titel,aanvraag_nr,status,beoordeling,aanvraag_nr from OLD_AANVRAGEN', [])
+    database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,status,beoordeling,kans,versie)'+ \
+                                  ' select id,bedrijf_id,datum_str,titel,status,beoordeling,aanvraag_nr,aanvraag_nr from OLD_AANVRAGEN', [])
     print('adding new STUDENT references to AANVRAGEN table.')
     sql = 'SELECT AANVRAGEN.id,STUDENTEN.id FROM AANVRAGEN,OLD_AANVRAGEN,STUDENTEN \
         WHERE ((STUDENTEN.stud_nr=OLD_AANVRAGEN.stud_nr) AND (AANVRAGEN.ID=OLD_AANVRAGEN.ID))'
     for row in database._execute_sql_command(sql, [], True):
         database._execute_sql_command('update AANVRAGEN set stud_id=? where id=?', [row[1], row[0]])
     database._execute_sql_command('drop table OLD_AANVRAGEN')
-
-    doe ook iets aan "KANS!"
+    #kans en versie komt niet echt uit de verf, maar dat is lastig oplosbaar, laat eerst maar zo. 
     print('end modifying STUDENT references to AANVRAGEN table.')
     print('end modifying AANVRAGEN table.')
 
@@ -57,15 +59,28 @@ class OldFilesTableDefinition(TableDefinition):
         self.add_column('aanvraag_id', dbc.INTEGER)
 
 def modify_files_table(database: Database):
+    def transform_time_str(value: str)->str:
+        return TSC.timestamp_to_sortable_str(TSC.str_to_timestamp(value))
     print('modifying FILES table.')
     database._execute_sql_command('alter table FILES RENAME TO OLD_FILES')
-    print('copying the timestamps to AANVRAGEN table.')
-    database._execute_sql_command(f'update aanvragen set datum = (SELECT timestamp from OLD_FILES WHERE AANVRAAG_ID=AANVRAGEN.ID)')
+    # print('copying the timestamps to AANVRAGEN table.')
+    # database._execute_sql_command(f'update aanvragen set datum = (SELECT timestamp from OLD_FILES WHERE AANVRAAG_ID=AANVRAGEN.ID)')
     print('creating the new FILES table')
     database.execute_sql_command(SQLcreateTable(FilesTableDefinition()))
-    #copying the data
-    database._execute_sql_command('insert into FILES(id,filename, timestamp, digest,filetype)'+ \
-                                  ' select id,filename, timestamp, digest,filetype from OLD_FILES')
+    #copying the data except the timestamp
+    database._execute_sql_command('insert into FILES(id,filename, digest,filetype)'+ \
+                                  ' select id,filename, digest,filetype from OLD_FILES')
+    #copying and transforming the timestamps
+    for row in database._execute_sql_command('select id, timestamp, filetype, filename from OLD_FILES', [], True):
+        database._execute_sql_command('update FILES set timestamp=? where id=?', [transform_time_str(row['timestamp']), row['id']]) 
+    print('copying the timestamps to AANVRAGEN table.')
+
+    database._execute_sql_command(f'update aanvragen set datum = (SELECT timestamp from OLD_FILES WHERE AANVRAAG_ID=AANVRAGEN.ID and filetype=?)',
+                                  [File.Type.AANVRAAG_PDF])
+    # transforming the timestamps
+    for row in database._execute_sql_command('select id, datum from AANVRAGEN', [], True):
+        database._execute_sql_command('update AANVRAGEN set datum=? where id=?', [transform_time_str(row['datum']), row['id']]) 
+    
     print('creating new AANVRAGEN_FILES table')
     database.execute_sql_command(SQLcreateTable(AanvraagFilesTableDefinition()))
     #copying the data

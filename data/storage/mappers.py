@@ -62,9 +62,9 @@ class BoolColumnMapper(ColumnMapper):
 
 class TimeColumnMapper(ColumnMapper):
     def map_value_to_db(self, value: Any)->DBtype:
-        return TSC.timestamp_to_str(value)
+        return TSC.timestamp_to_sortable_str(value)
     def map_db_to_value(self, db_value: DBtype)->Any:
-        return TSC.str_to_timestamp(db_value)
+        return TSC.sortable_str_to_timestamp(db_value)
 
 class FilenameColumnMapper(ColumnMapper):
     def map_value_to_db(self, value: Any)->DBtype:
