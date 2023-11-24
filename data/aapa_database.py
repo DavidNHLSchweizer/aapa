@@ -59,6 +59,16 @@ def load_roots(database: Database):
         for record in row:   
             add_root(record['root'], record['code']) 
             
+class DetailTableDefinition(TableDefinition):
+    def __init__(self, name: str, 
+                 main_table_name: str, main_alias_id: str, 
+                 detail_table_name: str, detail_alias_id: str):
+        super().__init__(name)
+        self.add_column(main_alias_id, dbc.INTEGER, primary = True)
+        self.add_column(detail_alias_id, dbc.INTEGER, primary = True)  
+        self.add_foreign_key(main_alias_id, main_table_name, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        self.add_foreign_key(detail_alias_id, detail_table_name, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+
 class StudentTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('STUDENTEN')
@@ -115,7 +125,6 @@ class FilesTableDefinition(TableDefinition):
         self.add_column('timestamp', dbc.TEXT)
         self.add_column('digest', dbc.TEXT)
         self.add_column('filetype', dbc.INTEGER)
-        self.add_column('aanvraag_id', dbc.INTEGER)
         # self.add_index('name_index', 'filename')
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])
@@ -132,7 +141,13 @@ class FilesTableDefinition(TableDefinition):
         #
         # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel. Dan kan de koppeltable met een (tweetal) foreign keys 
         # werken en mogen files ook ongekoppeld blijven.
-        
+
+class AanvragenFilesTableDefinition(DetailTableDefinition):
+    def __init__(self):
+        super().__init__('AANVRAGEN_FILES', 
+                         main_table_name='AANVRAGEN', main_alias_id='aanvraag_id',
+                         detail_table_name='FILES', detail_alias_id='file_id')
+
 class ActionLogTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('ACTIONLOG')
@@ -143,21 +158,17 @@ class ActionLogTableDefinition(TableDefinition):
         self.add_column('date', dbc.DATE)   
         self.add_column('can_undo', dbc.INTEGER)
 
-class ActionLogDetailsTableDefinition(TableDefinition):
-    def __init__(self, name: str, detail_id: int, detail_table: str):
-        super().__init__(name)
-        self.add_column('log_id', dbc.INTEGER, primary = True)
-        self.add_column(detail_id, dbc.INTEGER, primary = True)  
-        self.add_foreign_key('log_id', 'ACTIONLOG', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.add_foreign_key(detail_id, detail_table, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-
-class ActionLogAanvragenTableDefinition(ActionLogDetailsTableDefinition):
+class ActionLogAanvragenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('ACTIONLOG_AANVRAGEN', 'aanvraag_id', 'AANVRAGEN')
+        super().__init__('ACTIONLOG_AANVRAGEN', 
+                         main_table_name='ACTIONLOG', main_alias_id='log_id', 
+                         detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
        
-class ActionLogFilesTableDefinition(ActionLogDetailsTableDefinition):
+class ActionLogFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('ACTIONLOG_FILES', 'file_id', 'FILES')
+        super().__init__('ACTIONLOG_FILES', 
+                         main_table_name='ACTIONLOG', main_alias_id='log_id', 
+                         detail_table_name='FILES', detail_alias_id='file_id')
     
 class BaseDirsTableDefinition(TableDefinition):
     def __init__(self):
@@ -177,21 +188,17 @@ class StudentMilestonesTableDefinition(TableDefinition):
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class StudentMilestonesDetailsTableDefinition(TableDefinition):
-    def __init__(self, name: str, detail_id: int, detail_table: str):
-        super().__init__(name)
-        self.add_column('sms_id', dbc.INTEGER, primary = True)
-        self.add_column(detail_id, dbc.INTEGER, primary = True)  
-        self.add_foreign_key('sms_id', 'STUDENT_MILESTONES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.add_foreign_key(detail_id, detail_table, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-
-class StudentAanvragenTableDefinition(StudentMilestonesDetailsTableDefinition):
+class StudentAanvragenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_AANVRAGEN', 'aanvraag_id', 'AANVRAGEN')
+        super().__init__('STUDENT_AANVRAGEN', 
+                         main_table_name='STUDENTEN', main_alias_id='stud_id',
+                         detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
 
-class StudentVerslagenTableDefinition(StudentMilestonesDetailsTableDefinition):
+class StudentVerslagenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_VERSLAGEN', 'verslag_id', 'VERSLAGEN')
+        super().__init__('STUDENT_VERSLAGEN', 
+                         main_table_name='STUDENTEN', main_alias_id='stud_id',
+                         detail_table_name='VERSLAGEN', detail_alias_id='verslag_id')
 
 
 class AAPaSchema(Schema):

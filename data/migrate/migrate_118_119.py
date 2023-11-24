@@ -1,4 +1,4 @@
-from data.aapa_database import BaseDirsTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
+from data.aapa_database import AanvragenFilesTableDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
         StudentTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.roots import encode_path
@@ -59,6 +59,34 @@ def modify_aanvragen_table(database: Database):
     print('end modifying STUDENT references to AANVRAGEN table.')
     print('end modifying AANVRAGEN table.')
 
+class OldFilesTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('FILES')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('filename', dbc.TEXT)
+        self.add_column('timestamp', dbc.TEXT)
+        self.add_column('digest', dbc.TEXT)
+        self.add_column('filetype', dbc.INTEGER)
+        self.add_column('aanvraag_id', dbc.INTEGER)
+
+def modify_files_table(database: Database):
+    print('modifying FILES table.')
+    database._execute_sql_command('alter table FILES RENAME TO OLD_FILES')
+    print('creating the new FILES table')
+    database.execute_sql_command(SQLcreateTable(FilesTableDefinition()))
+    #copying the data
+    database._execute_sql_command('insert into FILES(id,filename, timestamp, digest,filetype)'+ \
+                                  ' select id,filename, timestamp, digest,filetype from OLD_FILES')
+    print('creating new AANVRAGEN_FILES table')
+    database.execute_sql_command(SQLcreateTable(AanvragenFilesTableDefinition()))
+    #copying the data
+    database._execute_sql_command('insert into AANVRAGEN_FILES(aanvraag_id,file_id)'+ \
+                                  ' select aanvraag_id,id from OLD_FILES where aanvraag_id != ?', [-1])
+    database._execute_sql_command('drop table OLD_FILES')
+    print('end creating AANVRAGEN_FILES table.')
+    print('end modifying FILES table.')
+
+# AanvragenFilesTableDefinition
 def _init_base_directories(database: Database):
     known_bases = [
                BaseDir(2020, '1', 'v2.2b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1'),
@@ -83,7 +111,7 @@ def _init_base_directories(database: Database):
 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
 # toevoegen STUDENT_MILESTONES en STUDENT_MILESTONES_DETAILS tabel
-def create_new_tables(database: Database):
+def create_verslagen_tables(database: Database):
     print('toevoegen nieuwe tabel VERSLAGEN')
     database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
     print('toevoegen nieuwe tabel BASEDIRS')
@@ -110,5 +138,6 @@ def migrate_database(database: Database):
     with database.pause_foreign_keys():
         modify_studenten_table(database)
         modify_aanvragen_table(database)    
-        create_new_tables(database)
+        modify_files_table(database)
+        create_verslagen_tables(database)
         correct_first_names(database)
