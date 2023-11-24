@@ -112,6 +112,14 @@ class VerslagTableDefinition(MilestoneTableDefinition):
         self.add_column('cijfer', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
 
+class VerslagFilesTableDefinition(DetailTableDefinition):
+    def __init__(self):
+        super().__init__('VERSLAGEN_FILES', 
+                         main_table_name='VERSLAGEN', main_alias_id='verslag_id',
+                         detail_table_name='FILES', detail_alias_id='file_id')
+
+
+
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
 # Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (700 files) 
 # geen noemenswaardige tijdswinst oplevert. Dit kan dus beter wachten.
@@ -142,7 +150,7 @@ class FilesTableDefinition(TableDefinition):
         # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel. Dan kan de koppeltable met een (tweetal) foreign keys 
         # werken en mogen files ook ongekoppeld blijven.
 
-class AanvragenFilesTableDefinition(DetailTableDefinition):
+class AanvraagFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN_FILES', 
                          main_table_name='AANVRAGEN', main_alias_id='aanvraag_id',
@@ -208,7 +216,9 @@ class AAPaSchema(Schema):
         StudentTableDefinition,
         BedrijfTableDefinition,
         AanvraagTableDefinition,
+        AanvraagFilesTableDefinition,
         VerslagTableDefinition,
+        VerslagFilesTableDefinition,
         FilesTableDefinition,
         ActionLogTableDefinition,
         ActionLogAanvragenTableDefinition,

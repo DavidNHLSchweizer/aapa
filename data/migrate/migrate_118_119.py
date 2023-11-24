@@ -1,5 +1,5 @@
-from data.aapa_database import AanvragenFilesTableDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
-        StudentTableDefinition, VerslagTableDefinition, load_roots
+from data.aapa_database import AanvraagFilesTableDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
+        StudentTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.roots import encode_path
 from data.storage.aapa_storage import AAPAStorage
@@ -78,7 +78,7 @@ def modify_files_table(database: Database):
     database._execute_sql_command('insert into FILES(id,filename, timestamp, digest,filetype)'+ \
                                   ' select id,filename, timestamp, digest,filetype from OLD_FILES')
     print('creating new AANVRAGEN_FILES table')
-    database.execute_sql_command(SQLcreateTable(AanvragenFilesTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(AanvraagFilesTableDefinition()))
     #copying the data
     database._execute_sql_command('insert into AANVRAGEN_FILES(aanvraag_id,file_id)'+ \
                                   ' select aanvraag_id,id from OLD_FILES where aanvraag_id != ?', [-1])
@@ -112,8 +112,9 @@ def _init_base_directories(database: Database):
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
 # toevoegen STUDENT_MILESTONES en STUDENT_MILESTONES_DETAILS tabel
 def create_verslagen_tables(database: Database):
-    print('toevoegen nieuwe tabel VERSLAGEN')
+    print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
     database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(VerslagFilesTableDefinition()))
     print('toevoegen nieuwe tabel BASEDIRS')
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     print('initialiseren waardes voor BASEDIRS')

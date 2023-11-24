@@ -120,6 +120,9 @@ class TableMapper:
     def value_to_db(self, value: Any, attribute_name: str)->DBtype:
         column_mapper = self._find_mapper(attribute_name)
         return column_mapper.map_value_to_db(value)
+    def db_to_value(self, value: DBtype, attribute_name: str)->Any:
+        column_mapper = self._find_mapper(attribute_name)
+        return column_mapper.map_db_to_value(value)
     def db_to_object(self, row: sql3.Row, include_key=True)->AAPAClass:
         #generate object from database record
         self.db_record.set_row_values(row)

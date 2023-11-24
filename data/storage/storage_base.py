@@ -61,7 +61,7 @@ class StorageBase:
         #TODO adapt for multiple keys
         self.__create_key_if_needed(aapa_obj, self.table, self.autoID)
         self.crud.create(aapa_obj)
-    @staticmethod
+    @staticmethod #TODO remove duplication with StorageCRUD
     def __create_key_if_needed(aapa_obj: AAPAClass, table: TableDefinition, autoID=False):
         if autoID and getattr(aapa_obj, table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, table.key, get_next_key(table.name))

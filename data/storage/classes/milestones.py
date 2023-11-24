@@ -8,7 +8,7 @@ from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.storage.mappers import ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.storage_base import CRUDColumnMapper, StorageBase
-from data.storage.storage_const import AAPAClass
+from data.storage.storage_const import AAPAClass, DetailRec
 from data.storage.storage_crud import StorageCRUD
 from database.database import Database
 from database.table_def import TableDefinition

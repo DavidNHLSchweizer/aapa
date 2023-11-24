@@ -70,6 +70,10 @@ class QueryBuilder:
     def find_value(self, attribute: str, value: Any)->AAPAClass:
         log_debug(f'find value: {attribute}  {value}')
         return self.find_id_from_values([attribute], [value])
+    def find_all_temp(self, columns: list[str], where: SQE)->list[Any]:
+        sql = SQLselect(self.mapper.table, columns=[columns], where=where)
+        log_debug(f'find all: {columns}  {where}:\n\t{sql.query}-{sql.parameters}')
+        return self.database.execute_select(sql) 
     def find_max_id(self)->int:
         sql = SQLselect(self.mapper.table, columns=['max(id)'])
         log_debug(f'QUERY: {sql.query} - {sql.parameters}')
@@ -80,7 +84,10 @@ class QueryBuilder:
         sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(*(where_columns,where_values)))
         log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
-            return self.mapper.db_to_object(rows[0]).id 
+            x = rows[0]
+            y = x['id']
+            result = [self.mapper.db_to_value(row['id'], 'id') for row in rows] 
+            return result
         return []   
     def __build_where(self, columns: list[str], values: list[Any|set[Any]])->SQE:
         result = None
@@ -91,8 +98,10 @@ class QueryBuilder:
                 new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
             result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
         return result
-    def build_where(self, aapa_obj: AAPAClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  
+    def build_where_from_object(self, aapa_obj: AAPAClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  
         return self.__build_where(*self.query_info.get_data(aapa_obj, column_names, flags))
+    def build_where_from_values(self, column_names: list[str], values: list[Any], flags={QIF.ATTRIBUTES})->SQE:  
+        return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags))
     
         # return self.__build_where(*self.mapper.object_to_db(aapa_obj, include_key=include_key, 
         #                          attribute_names=attribute_names, column_names=column_names))

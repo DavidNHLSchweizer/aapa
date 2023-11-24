@@ -12,26 +12,25 @@ class ClassRegistryData:
     table: TableDefinition
     mapper_type: type[TableMapper] # to use custom mappers
     autoID: bool
-    aggregator_data: CRUD_AggregatorData 
+    aggregator_data: ClassAggregatorData 
 
 @dataclass
-class CRUD_AggregatorData:
-    main_table_key: str # TBD, weet niet meer waar dit voor dient
-    aggregator: Aggregator
+class ClassAggregatorData:
     attribute: str
+    class_type: type[AAPAClass]
 
 # (self, database: Database, class_type: AAPAClass, table: TableDefinition, autoID=False):
 class TableRegistry(Singleton):
     def __init__(self):
         self._registered_data = {}
-    def register(self, class_type: AAPAClass, table: TableDefinition, mapper_type: type[TableMapper], aggregator_data: CRUD_AggregatorData = None, autoID=False):
+    def register(self, class_type: type[AAPAClass], table: TableDefinition, mapper_type: type[TableMapper], aggregator_data: ClassAggregatorData = None, autoID=False):
         if self._is_registered(class_type):
             raise TypeError(f'Class type {classname(class_type)} already registered.')
         self._registered_data[class_type] = ClassRegistryData(table=table, autoID=autoID, 
                                                                mapper_type = mapper_type, aggregator_data=aggregator_data)
     def _is_registered(self, class_type: AAPAClass)->bool:
         return class_type in self._registered_data.keys()
-    def class_data(self, class_type: AAPAClass)->ClassRegistryData:
+    def class_data(self, class_type: type[AAPAClass])->ClassRegistryData:
         if not self._is_registered(class_type):
             cn  = classname(class_type)
             raise TypeError(f'Class type {class_type} is not registered.')
@@ -48,9 +47,9 @@ class TableRegistry(Singleton):
 
 _table_registry = TableRegistry()
 
-def class_data(class_type: AAPAClass)->ClassRegistryData:
+def class_data(class_type: type[AAPAClass])->ClassRegistryData:
     return _table_registry.class_data(class_type)
-def register_table(class_type: AAPAClass, table: TableDefinition=None, 
+def register_table(class_type: type[AAPAClass], table: TableDefinition=None, 
                    mapper_type: type[TableMapper] = None, 
-                   aggregator_data: CRUD_AggregatorData = None, autoID=False):
+                   aggregator_data: ClassAggregatorData = None, autoID=False):
     _table_registry.register(class_type, table=table, mapper_type=mapper_type, aggregator_data=aggregator_data,  autoID=autoID)

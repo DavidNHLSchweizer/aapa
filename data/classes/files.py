@@ -83,7 +83,7 @@ class File:
         return True
     
 class Files(Aggregator):
-    def __init__(self, aanvraag_id: int, file_types:set[File.Type] = {ft for ft in File.Type if ft != File.Type.UNKNOWN}):
+    def __init__(self, aanvraag_id: int=None, file_types:set[File.Type] = {ft for ft in File.Type if ft != File.Type.UNKNOWN}):
         super().__init__()
         self.aanvraag_id = aanvraag_id
         self.file_types = file_types
@@ -91,6 +91,7 @@ class Files(Aggregator):
     def add(self, file:File):
         if not file.filetype in self.file_types:
             raise FilesException(f'Invalid File:{file}')
+        super().add(file)
     @property
     def files(self)->list[File]:
         return self.as_list('files')

@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from data.classes.aggregator import Aggregator
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
@@ -6,35 +5,54 @@ from data.storage.storage_crud import StorageCRUD
 from data.storage.table_registry import class_data
 from database.database import Database
 from database.table_def import TableDefinition
+from general.log import log_debug
 
-
-
-
-
+class DetailsRecTableMapper(TableMapper):
+    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec], 
+                 main_key: str, detail_key:str):
+        self.main_key = main_key
+        self.detail_key=detail_key
+        super().__init__(database, table, class_type)
+    def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
+        match column_name:
+            case self.main_key: return ColumnMapper(column_name,attribute_name='main_key')
+            case self.detail_key: return ColumnMapper(column_name,attribute_name='detail_key')
+            case  _: super()._init_column_mapper(column_name, database)
 
 class ListAttribute:
-    def __init__(self, attribute_name: str, aggregator_key: str, 
-                        detail_rec_type: type[DetailRec]):
-        self.attribute_name = attribute_name        
+    def __init__(self, class_type: type[AAPAClass], aggregator_key: str, detail_rec_type: type[DetailRec]):
+        self.class_type = class_type
         self.aggregator_key = aggregator_key
-        # self.class_type = self.aggregator.get_class_type(self.aggregator_key)
         self.detail_rec_type = detail_rec_type
-        super().__init__()
-    # def items(self)->list[AAPAClass]:
-    #     return self.aggregator.as_list(self.class_type)
-    # def get_details(self, aggregator: Aggregator, main_id: int)->DetailRecs:
-    #     return [self.detail_rec_type(main_key=main_id, detail_key=item.id) for item in self.items()]
+        aggregator_data = class_data(class_type).aggregator_data               
+        self.attribute_name = aggregator_data.attribute
+        self.associated_class_type = aggregator_data.class_type
     
-class ListAttributeCrud(StorageCRUD):
+class ListAttributeCRUD(StorageCRUD):
     def __init__(self, database: Database, attribute: ListAttribute):
         self.attribute = attribute
         super().__init__(database, attribute.detail_rec_type)
+        self.associated_crud = StorageCRUD(self.database, attribute.associated_class_type)
     def create(self, aapa_obj: AAPAClass):
         aggregator:Aggregator = getattr(aapa_obj, self.attribute.attribute_name)
         main_id:int = getattr(aapa_obj, 'id')
         class_type = aggregator.get_class_type(self.attribute.aggregator_key)
-        details = [self.attribute.detail_rec_type(main_key=main_id, detail_key=item.id) for item in aggregator.as_list(class_type)]
-                    
+        details = []
+        for item in aggregator.as_list(class_type):
+            self.associated_crud._create_key_if_needed(item)
+            self.associated_crud.create(item)
+            details.append(self.attribute.detail_rec_type(main_key=main_id, detail_key=item.id))
+        for detail in details:
+            super().create(detail)
+    def read(self, aapa_obj: AAPAClass):
+        aggregator:Aggregator = getattr(aapa_obj, self.attribute.attribute_name)
+        main_id:int = getattr(aapa_obj, 'id')
+        class_type = aggregator.get_class_type(self.attribute.aggregator_key)
+        query_builder = self.associated_crud.query_builder
+        where = query_builder.build_where_from_values(['main_key'], [main_id])
+        for row in query_builder.find_all_temp(['detail_key'], where=query_builder.build_where_from_values(['main_key'], [main_id])):
+            aggregator.add(self.associated_crud.read(row[0]))
+
     # def add(set_details(self, main_id: int, values: list[int]):
     #     self.aggregator.clear(self.classtype)
     #     for item in values: 
@@ -53,8 +71,8 @@ class ListAttributeCrud(StorageCRUD):
     #     self.detail_mapper_type = detail_class_data.mapper_type
 
 
-        self.aggregator_table = 
-        self.detail_rec_type = detail_rec_type
+        # self.aggregator_table = 
+        # self.detail_rec_type = detail_rec_type
 
 
                  

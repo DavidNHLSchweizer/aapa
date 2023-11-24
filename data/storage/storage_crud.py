@@ -3,9 +3,11 @@ from data.storage.query_builder import QueryBuilder
 from data.storage.table_registry import class_data
 from data.storage.storage_const import AAPAClass, KeyClass
 from database.database import Database
+from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops
 from database.table_def import TableDefinition
 from debug.debug import classname
+from general.keys import get_next_key
 from general.log import log_debug
 
 class StorageCRUD:
@@ -22,6 +24,9 @@ class StorageCRUD:
     @property
     def class_type(self)->AAPAClass:
         return self.mapper.class_type
+    def _create_key_if_needed(self, aapa_obj: AAPAClass):
+        if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
+            setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
     def create(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD CREATE ({classname(self)}) {str(aapa_obj)}')
         columns,values = self.mapper.object_to_db(aapa_obj)
@@ -38,11 +43,11 @@ class StorageCRUD:
         log_debug(f'CRUD UPDATE ({classname(self)}) {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
         self.database.update_record(self.table, columns=columns, values=values, 
-                                            where=self.query_builder.build_where(aapa_obj, column_names=self.mapper.table_keys()))
+                                            where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))
     def delete(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD DELETE ({classname(self)}) {str(aapa_obj)}')
         self.database.delete_record(self.table, 
-                                    where=self.query_builder.build_where(aapa_obj, column_names=self.mapper.table_keys()))        
+                                    where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))        
 
 # def create_CRUD(self, database: Database, class_type: AAPAClass)->StorageCRUD:
     

@@ -95,6 +95,8 @@ class RootFiles(Singleton):
                 return self.encode_root(root.encode_root(path))
         return path
     def decode_root(self, path)-> str:
+        if not path:
+            return ''
         for root in self._rootconv:
             if root.contains_root_code(path):
                 return self.decode_root(root.decode_root(path))

@@ -125,9 +125,10 @@ class FilesStorage(StorageBase):
         #     place_holders += ' and aanvraag_id=?'
         #     params.append(aanvraag_id)        
         result = Files(aanvraag_id)
-        for row in self.query_builder.find_id_from_values(attributes=['aanvraag_id','filetype'], values=[aanvraag_id, filetypes]):
+        for id in self.query_builder.find_id_from_values(attributes=['filetype'], values=[filetypes]):
+            dinges = self.read(id)
         # for row in self.database._execute_sql_command(f'select id from {self.table_name} where filetype' + place_holders, params, True):
-            result.set_file(self.read(row['id'])) #check hier, komen de ids wel mee?
+            result.set_file(self.read(id)) #check hier, komen de ids wel mee?
         return result
     def get_storage_record(self, filename: str)->FileStorageRecord:
         return FileStorageRecord(filename).analyse(self)
