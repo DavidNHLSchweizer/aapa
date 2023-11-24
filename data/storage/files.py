@@ -35,7 +35,7 @@ class FileSync:
         log_debug(f'old_filetypes: {old_filetypes}' )
         new_filetypes = {ft for ft in new_files.get_filetypes()} 
         log_debug(f'new_filetypes: {new_filetypes}' )
-        for file in new_files.get_files():
+        for file in new_files.files:
             if self.__check_known_file(file):
                 new_filetypes.remove(file.filetype) # don't reprocess
                 result[file.filetype] = FileSync.Strategy.REPLACE

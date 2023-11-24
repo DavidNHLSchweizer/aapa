@@ -1,16 +1,15 @@
-from __future__ import annotations 
-from copy import copy
+from __future__ import annotations
 import datetime
 from enum import IntEnum
 from pathlib import Path
-from typing import Any, Iterable
-from data.classes.aggregator import Aggregator
+from typing import Iterable
 from database.dbConst import EMPTY_ID
+
 from general.filehash import hash_file_digest
 from general.fileutil import summary_string
+from general.log import log_debug
 from general.timeutil import TSC
 
-class FilesException(Exception): pass
 class File:
     AUTODIGEST = ''
     class Type(IntEnum):
@@ -82,62 +81,64 @@ class File:
             return False
         return True
     
-class Files(Aggregator):
-    def __init__(self, aanvraag_id: int, file_types:set[File.Type] = {ft for ft in File.Type if ft != File.Type.UNKNOWN}):
-        super().__init__()
+class EmptyFile(File):
+    def __init__(self, filetype: File.Type):
+        super().__init__(filename='', timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=filetype)
+
+class Files:
+    def __init__(self, aanvraag_id=EMPTY_ID):
         self.aanvraag_id = aanvraag_id
-        self.file_types = file_types
-        self.add_class(File, 'files')
-    def add(self, file:File):
-        if not file.filetype in self.file_types:
-            raise FilesException(f'Invalid File:{file}')
-    @property
-    def files(self)->list[File]:
-        return self.as_list('files')
-    def _remove_filetype(self, ft: File.Type):
-        if file := self._get(ft):
-            self.remove(file)
-    def _get(self, ft: File.Type)->File:
-        for file in self.files:
-            if file.filetype == ft:
-                return file
-        return None
-    def __get_attr(self, ft: File.Type, attr_name: str, default: Any)->Any:
-        if file := self._get(ft):
-            return getattr(file, attr_name)
-        return default
-    def __set_attr(self, ft: File.Type, attr_name: str, value: Any):
-        if file := self._get(ft):
-            setattr(file, attr_name, value)
+        self.__files = {ft:{'id': EMPTY_ID, 'filename': '', 'timestamp':TSC.AUTOTIMESTAMP, 'digest':File.AUTODIGEST} for ft in File.Type if ft != File.Type.UNKNOWN}
+    def get_id(self, ft: File.Type)->int:
+        return self.__files[ft]['id']
+    def set_id(self, ft: File.Type, value: int):
+        self.__files[ft]['id'] = value
     def get_filename(self, ft: File.Type)->str:
-        return self.__get_attr(ft, 'filename', '')
+        return self.__files[ft]['filename']
+    def set_filename(self, ft: File.Type, value: str):
+        self.__files[ft]['filename'] = value
     def get_timestamp(self, ft: File.Type)->datetime.datetime:
-        return self.__get_attr(ft, 'timestamp', TSC.AUTOTIMESTAMP)
+        return self.__files[ft]['timestamp']
+    def set_timestamp(self, ft: File.Type, value:datetime.datetime):
+        self.__files[ft]['timestamp'] = value
     def get_digest(self, ft: File.Type)->str:
-        return self.__get_attr(ft, 'digest',File.AUTODIGEST)
+        return self.__files[ft]['digest']
+    def set_digest(self, ft: File.Type, value: str):
+        self.__files[ft]['digest'] = value
+    def get_files(self, skip_empty=True)->Iterable[File]:
+        result = []
+        for ft in File.Type:
+            if (file:=self.get_file(ft)) and (not skip_empty or not file.is_empty()):
+                result.append(file)
+        return result
     def get_file(self, ft: File.Type)->File:
-        if ft != File.Type.UNKNOWN and (file := self._get(ft)):
-            return copy(file)
-        return None
+        if ft == File.Type.UNKNOWN:
+            return None
+        else:
+            return File(id=self.get_id(ft), filename=self.get_filename(ft), timestamp=self.get_timestamp(ft), 
+                        digest=self.get_digest(ft), filetype=ft, aanvraag_id=self.aanvraag_id)
     def set_file(self, file: File):
-        if file.filetype == File.Type.UNKNOWN or not file.filetype in self.file_types:
-            return
-        if current := self._get(file.filetype):
-            self.remove(current)
-        self.add(copy(file))
+        if file.filetype != File.Type.UNKNOWN:
+            self.set_filename(file.filetype, file.filename)
+            self.set_timestamp(file.filetype, file.timestamp)
+            self.set_digest(file.filetype, file.digest)
+            self.set_id(file.filetype, file.id)
     def reset_file(self, file_type: File.Type | set[File.Type]):
         if isinstance(file_type, set):
-            all_file_types = [file.filetype for file in self.files if file.filetype in file_type]
+            for ft in file_type:
+                self.set_file(EmptyFile(ft))
         else:
-            all_file_types = [file_type]                 
-        for ft in all_file_types:
-            self._remove_filetype(ft)
+            self.set_file(EmptyFile(file_type))
     def reset(self):
         self.reset_file({ft for ft in File.Type if ft != File.Type.UNKNOWN})
     def get_filetypes(self)->Iterable[File.Type]:
-        return [file.type for file in self.files]
+        result = []
+        for ft in File.Type:
+            if ft != File.Type.UNKNOWN and self.get_filename(ft):
+                result.append(ft)
+        return result
     def set_files(self, files: Iterable[File]):
         for file in files:
             self.set_file(file)
     def summary(self)->str:
-        return "\n".join([f'{file.summary()}' for file in self.files])
+        return "\n".join([f'{file.summary()}' for file in self.f(skip_empty=True)])

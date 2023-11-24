@@ -24,7 +24,7 @@ class Pipeline:
             self._processors.append(processors)
         self.storage = storage
         self.action_log = ActionLog(activity, description, can_undo=can_undo)
-        self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type}).get_files()
+        self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type}).files
     @property
     def description(self)->str:
         return self.action_log.description
