@@ -41,12 +41,18 @@ class AanvragenStorage(MilestonesStorage):
         return aapa_obj
     def find_kans(self, student: Student):
         qb = self.query_builder
-        result = qb.find_count('id', where=qb.build_where_from_values(column_names=['stud_id'], values=[student.id]))        
+        stud_crud = self.get_crud(Student)
+        stud_crud._create_key_if_needed(self, student)        
+        result = qb.find_count(where=qb.build_where_from_values(column_names=['student'], values=[student.id]))        
         return result
     def find_versie(self, student: Student, bedrijf: Bedrijf):
         qb = self.query_builder
-        result = qb.find_max_value('versie',                                                
-                                   where=qb.build_where_from_values(column_names=['stud_id', 'bedrijf_id'],
+        bedr_crud = self.get_crud(Bedrijf)
+        bedr_crud._create_key_if_needed(self, bedrijf)        
+        stud_crud = self.get_crud(Student)
+        stud_crud._create_key_if_needed(self, student)        
+        result = qb.find_max_value(attribute='versie',                                                
+                                   where=qb.build_where_from_values(column_names=['student', 'bedrijf'],
                                                                     values=[student.id, bedrijf.id]))
         return result
     

@@ -62,8 +62,10 @@ class AanvraagValidator:
     def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
     def __insert_versie_en_kans(self):
-        self.validated_aanvraag.versie = self.storage.aanvragen.find_versie(self.validated_aanvraag.student, self.validated_aanvraag.bedrijf) + 1
-        self.validated_aanvrage.kans = self.storage.aanvragen.find_count(self.validated_aanvraag.student)
+        versie = self.storage.aanvragen.find_versie(self.validated_aanvraag.student, self.validated_aanvraag.bedrijf) 
+        self.validated_aanvraag.versie = (versie + 1) if versie else 1 
+        kans = self.storage.aanvragen.find_kans(self.validated_aanvraag.student)
+        self.validated_aanvraag.kans = (kans + 1) if kans else 1
 
 class AanvraagPDFImporter(FileProcessor):
     def __init__(self):

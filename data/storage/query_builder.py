@@ -71,10 +71,12 @@ class QueryBuilder:
         log_debug(f'find value: {attribute}  {value}')
         return self.find_id_from_values([attribute], [value])
     def find_max_value(self, attribute: str, where:SQE = None)->Any:        
-        column = self.mapper._find_mapper(attribute)
-        log_debug(f'find max value: {attribute} (={column})')
-        sql = SQLselect(self.mapper.table, columns=[f'max({column})'], where=where)
-        return self.database.execute_select(sql) 
+        col_mapper = self.mapper._find_mapper(attribute)
+        log_debug(f'find max value: {attribute} (={col_mapper.column_name})')
+        sql = SQLselect(self.mapper.table, columns=[f'max({col_mapper.column_name})'], where=where)
+        if row:= self.database.execute_select(sql):
+            return row[0][0]
+        return None 
     def find_all_temp(self, columns: list[str], where: SQE)->list[Any]:
         sql = SQLselect(self.mapper.table, columns=[columns], where=where)
         log_debug(f'find all: {columns}  {where}:\n\t{sql.query}-{sql.parameters}')
@@ -85,7 +87,7 @@ class QueryBuilder:
         if (row := self.database.execute_select(sql)) and row[0][0]:
             return row[0][0]
         return 0
-    def find_count(self, where: SQE=None)->int:
+    def find_count(self, where:SQE=None)->int:
         sql = SQLselect(self.mapper.table, columns=['count(id)'], where=where)
         log_debug(f'QUERY: {sql.query} - {sql.parameters}')
         if (row := self.database.execute_select(sql)) and row[0][0]:
