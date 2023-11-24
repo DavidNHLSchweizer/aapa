@@ -14,7 +14,7 @@ class FilesException(Exception): pass
 class File:
     AUTODIGEST = ''
     class Type(IntEnum):
-        # INVALID_DOCX        = -3
+        INVALID_DOCX        = -3
         INVALID_PDF         = -2
         UNKNOWN             = -1
         AANVRAAG_PDF        = 0
@@ -33,6 +33,9 @@ class File:
                         File.Type.DIFFERENCE_HTML: 'verschilbestand met vorige versie aanvraag'
                         }
             return STR_DICT.get(self, '!unknown')
+        @staticmethod
+        def is_invalid(filetype: File.Type)->bool:
+            return filetype in {File.Type.INVALID_PDF, File.Type.INVALID_DOCX}
 
     @staticmethod
     def get_timestamp(filename: str)-> datetime.datetime:

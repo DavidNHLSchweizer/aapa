@@ -84,8 +84,6 @@ class QueryBuilder:
         sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(*(where_columns,where_values)))
         log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
-            x = rows[0]
-            y = x['id']
             result = [self.mapper.db_to_value(row['id'], 'id') for row in rows] 
             return result
         return []   

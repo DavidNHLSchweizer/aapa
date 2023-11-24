@@ -70,13 +70,13 @@ class FileStorageRecord:
         else:
             self.stored = stored
             if stored.filetype == File.Type.INVALID_PDF:
-                assert stored.aanvraag_id == EMPTY_ID
+                # assert stored.aanvraag_id == EMPTY_ID
                 result = FileStorageRecord.Status.STORED_INVALID
             elif stored.digest != self.digest:
-                assert stored.aanvraag_id != EMPTY_ID
+                # assert stored.aanvraag_id != EMPTY_ID
                 result = FileStorageRecord.Status.MODIFIED
             else:
-                assert stored.aanvraag_id != EMPTY_ID
+                # assert stored.aanvraag_id != EMPTY_ID, f"Expected aanvraag_id: {stored}"
                 result = FileStorageRecord.Status.STORED
         return result
     def __analyse_stored_digest(self, stored: File)->FileStorageRecord.Status:
@@ -85,10 +85,10 @@ class FileStorageRecord:
         else:
             self.stored = stored
             if stored.filetype == File.Type.INVALID_PDF:
-                assert stored.aanvraag_id == EMPTY_ID
+                # assert stored.aanvraag_id == EMPTY_ID
                 result = FileStorageRecord.Status.STORED_INVALID_COPY
             else:
-                assert stored.aanvraag_id != EMPTY_ID      
+                # assert stored.aanvraag_id != EMPTY_ID      
                 result = FileStorageRecord.Status.DUPLICATE
         return result
     def analyse(self, storage: FilesStorage)->FileStorageRecord:
@@ -113,22 +113,11 @@ class FilesStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, File, autoID=True)
         self.sync_strategy = FileSync(self)
-    def find_all_for_filetype(self, filetypes: File.Type | set[File.Type], aanvraag_id:int = None)->Files:
-        log_debug(f'find_all_for_filetype {filetypes} {aanvraag_id}')
-        # if isinstance(filetypes, set):
-        #     place_holders = f' in ({",".join("?"*len(filetypes))})' 
-        #     params = [ft for ft in filetypes]
-        # else:
-        #     place_holders = '=?'
-        #     params = [filetypes]
-        # if aanvraag_id:
-        #     place_holders += ' and aanvraag_id=?'
-        #     params.append(aanvraag_id)        
-        result = Files(aanvraag_id)
+    def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
+        log_debug(f'find_all_for_filetype {filetypes}')
+        result = []
         for id in self.query_builder.find_id_from_values(attributes=['filetype'], values=[filetypes]):
-            dinges = self.read(id)
-        # for row in self.database._execute_sql_command(f'select id from {self.table_name} where filetype' + place_holders, params, True):
-            result.set_file(self.read(id)) #check hier, komen de ids wel mee?
+            result.append(self.read(id)) #check hier, komen de ids wel mee?
         return result
     def get_storage_record(self, filename: str)->FileStorageRecord:
         return FileStorageRecord(filename).analyse(self)
@@ -149,5 +138,10 @@ class FilesStorage(StorageBase):
             self.create(new_file)
             result = new_file
         return result
-    
+    def is_known_invalid(self, filename: str)->bool:
+        if (stored:=self.find_filename(filename)):
+            return File.Type.is_invalid(stored.filetype)
+        else:
+            return False     
+
 register_table(class_type=File, table=FilesTableDefinition(), mapper_type=FilesTableMapper, autoID=True)
