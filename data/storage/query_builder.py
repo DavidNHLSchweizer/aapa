@@ -70,12 +70,23 @@ class QueryBuilder:
     def find_value(self, attribute: str, value: Any)->AAPAClass:
         log_debug(f'find value: {attribute}  {value}')
         return self.find_id_from_values([attribute], [value])
+    def find_max_value(self, attribute: str, where:SQE = None)->Any:        
+        column = self.mapper._find_mapper(attribute)
+        log_debug(f'find max value: {attribute} (={column})')
+        sql = SQLselect(self.mapper.table, columns=[f'max({column})'], where=where)
+        return self.database.execute_select(sql) 
     def find_all_temp(self, columns: list[str], where: SQE)->list[Any]:
         sql = SQLselect(self.mapper.table, columns=[columns], where=where)
         log_debug(f'find all: {columns}  {where}:\n\t{sql.query}-{sql.parameters}')
         return self.database.execute_select(sql) 
     def find_max_id(self)->int:
         sql = SQLselect(self.mapper.table, columns=['max(id)'])
+        log_debug(f'QUERY: {sql.query} - {sql.parameters}')
+        if (row := self.database.execute_select(sql)) and row[0][0]:
+            return row[0][0]
+        return 0
+    def find_count(self, where: SQE=None)->int:
+        sql = SQLselect(self.mapper.table, columns=['count(id)'], where=where)
         log_debug(f'QUERY: {sql.query} - {sql.parameters}')
         if (row := self.database.execute_select(sql)) and row[0][0]:
             return row[0][0]

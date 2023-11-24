@@ -1,7 +1,9 @@
 from typing import Any
 from data.aapa_database import AanvraagTableDefinition, AanvraagFilesTableDefinition
 from data.classes.aanvragen import Aanvraag
+from data.classes.bedrijven import Bedrijf
 from data.classes.files import File
+from data.classes.studenten import Student
 from data.storage.aggr_column import DetailsRecTableMapper, ListAttribute, ListAttributeCRUD
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.table_registry import ClassAggregatorData, register_table
@@ -37,6 +39,16 @@ class AanvragenStorage(MilestonesStorage):
         if aapa_obj := super().read(key):
             self.filesCRUD.read(aapa_obj)
         return aapa_obj
+    def find_kans(self, student: Student):
+        qb = self.query_builder
+        result = qb.find_count('id', where=qb.build_where_from_values(column_names=['stud_id'], values=[student.id]))        
+        return result
+    def find_versie(self, student: Student, bedrijf: Bedrijf):
+        qb = self.query_builder
+        result = qb.find_max_value('versie',                                                
+                                   where=qb.build_where_from_values(column_names=['stud_id', 'bedrijf_id'],
+                                                                    values=[student.id, bedrijf.id]))
+        return result
     
 class AanvragenFilesDetailRec(DetailRec): pass
 class AanvragenFilesTableMapper(DetailsRecTableMapper):

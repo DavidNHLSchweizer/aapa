@@ -1,4 +1,4 @@
-from data.aapa_database import AanvraagFilesTableDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
+from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
         StudentTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.roots import encode_path
@@ -26,36 +26,23 @@ def modify_studenten_table(database: Database):
     database._execute_sql_command('drop table OLD_STUDENTEN')
     print('end adding primary key to STUDENTEN table.')
 
-
-class OldAanvraagTableDefinition(TableDefinition):
-    def __init__(self):
-        super().__init__('AANVRAGEN')
-        self.add_column('id', dbc.INTEGER, primary = True) 
-        self.add_column('stud_id', dbc.INTEGER)
-        self.add_column('bedrijf_id', dbc.INTEGER)
-        self.add_column('datum_str', dbc.TEXT)
-        self.add_column('titel', dbc.TEXT)
-        self.add_column('kans', dbc.INTEGER)
-        self.add_column('status', dbc.INTEGER)
-        self.add_column('beoordeling', dbc.INTEGER)
-        self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-
 def modify_aanvragen_table(database: Database):
     print('modifying AANVRAGEN table.')
     database._execute_sql_command('alter table AANVRAGEN RENAME TO OLD_AANVRAGEN')
     print('creating the new table')
-    aanvragen_table = OldAanvraagTableDefinition() 
+    aanvragen_table = AanvraagTableDefinition() 
     database.execute_sql_command(SQLcreateTable(aanvragen_table))
     #copying the data
-    database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,kans,status,beoordeling)'+ \
-                                  ' select id,bedrijf_id,datum_str,titel,aanvraag_nr,status,beoordeling from OLD_AANVRAGEN', [])
+    database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,kans,status,beoordeling,versie)'+ \
+                                  ' select id,bedrijf_id,datum_str,titel,aanvraag_nr,status,beoordeling,aanvraag_nr from OLD_AANVRAGEN', [])
     print('adding new STUDENT references to AANVRAGEN table.')
     sql = 'SELECT AANVRAGEN.id,STUDENTEN.id FROM AANVRAGEN,OLD_AANVRAGEN,STUDENTEN \
         WHERE ((STUDENTEN.stud_nr=OLD_AANVRAGEN.stud_nr) AND (AANVRAGEN.ID=OLD_AANVRAGEN.ID))'
     for row in database._execute_sql_command(sql, [], True):
         database._execute_sql_command('update AANVRAGEN set stud_id=? where id=?', [row[1], row[0]])
     database._execute_sql_command('drop table OLD_AANVRAGEN')
+
+    doe ook iets aan "KANS!"
     print('end modifying STUDENT references to AANVRAGEN table.')
     print('end modifying AANVRAGEN table.')
 
@@ -72,6 +59,8 @@ class OldFilesTableDefinition(TableDefinition):
 def modify_files_table(database: Database):
     print('modifying FILES table.')
     database._execute_sql_command('alter table FILES RENAME TO OLD_FILES')
+    print('copying the timestamps to AANVRAGEN table.')
+    database._execute_sql_command(f'update aanvragen set datum = (SELECT timestamp from OLD_FILES WHERE AANVRAAG_ID=AANVRAGEN.ID)')
     print('creating the new FILES table')
     database.execute_sql_command(SQLcreateTable(FilesTableDefinition()))
     #copying the data

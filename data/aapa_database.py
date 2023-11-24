@@ -104,6 +104,7 @@ class AanvraagTableDefinition(MilestoneTableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
         self.add_column('datum_str', dbc.TEXT)
+        self.add_column('versie', dbc.INTEGER)
 
 class VerslagTableDefinition(MilestoneTableDefinition):
     def __init__(self):

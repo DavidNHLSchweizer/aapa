@@ -41,6 +41,7 @@ class AanvraagValidator:
             return False
         if not self.__check_titel():
             return False
+        self.__insert_versie_en_kans()
         return True
     def __check_email(self)->bool:
         if not is_valid_email(self.validated_aanvraag.student.email):
@@ -60,6 +61,9 @@ class AanvraagValidator:
         return True
     def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
+    def __insert_versie_en_kans(self):
+        self.validated_aanvraag.versie = self.storage.aanvragen.find_versie(self.validated_aanvraag.student, self.validated_aanvraag.bedrijf) + 1
+        self.validated_aanvrage.kans = self.storage.aanvragen.find_count(self.validated_aanvraag.student)
 
 class AanvraagPDFImporter(FileProcessor):
     def __init__(self):
