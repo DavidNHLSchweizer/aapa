@@ -2,6 +2,7 @@ from typing import Type
 from data.classes.aggregator import Aggregator
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
+from data.storage.storage_base import StorageException
 from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
 from data.storage.storage_crud import StorageCRUD
 from data.storage.table_registry import class_data
@@ -61,6 +62,10 @@ class ListAttributeCRUD(StorageCRUD):
         for row in rows:
             aggregator.add(self.associated_crud.read(row[0]))
         log_debug(f'END ASS READ {aggregator.as_list(class_type)}')
+    def update(self, aapa_obj: AAPAClass):
+        raise StorageException('IMPLEMENTEER UPDATE!')
+    def delete(self, aapa_obj: AAPAClass):
+        raise StorageException('IMPLEMENTEER DEL:ETE!')
 
     # def add(set_details(self, main_id: int, values: list[int]):
     #     self.aggregator.clear(self.classtype)
