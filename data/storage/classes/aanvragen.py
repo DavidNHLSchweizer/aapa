@@ -4,7 +4,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File
 from data.classes.studenten import Student
-from data.storage.aggr_column import DetailsRecTableMapper, ListAttribute, ListAttributeCRUD
+from data.storage.aggr_column import DetailsRecTableMapper, AggregatorDetails, ListAttributeCRUDs
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
 from data.storage.table_registry import ClassAggregatorData, register_table
@@ -24,7 +24,8 @@ class AanvragenTableMapper(MilestonesTableMapper):
 class AanvragenStorage(MilestonesStorage):
     def __init__(self, database: Database):
         super().__init__(database, Aanvraag)  
-        self.filesCRUD = ListAttributeCRUD(database, ListAttribute(class_type=Aanvraag, aggregator_key='files', detail_rec_type=AanvragenFilesDetailRec))
+        self.filesCRUD = ListAttributeCRUDs(database, AggregatorDetails(class_type=Aanvraag, aggregator_keys=['files'], 
+                                                                   detail_rec_types=[AanvragenFilesDetailRec]))
         log_debug(self.filesCRUD)
     def create(self, aapa_obj: AAPAClass):
         super().create(aapa_obj)

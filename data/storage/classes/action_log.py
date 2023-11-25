@@ -38,6 +38,10 @@ class ActionlogTableMapper(TableMapper):
 class ActionlogStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, ActionLog, autoID=True)   
+    #     self.aanvragenCRUD = ListAttributeCRUD(database, 
+    #                                        ListAttribute(class_type=Aanvraag, aggregator_key='aanvragen', detail_rec_type=ActionlogAanvragenDetailRec))        
+    #     self.invalid_filesCRUD = ListAttributeCRUD(database, 
+    #                                        ListAttribute(class_type=File, aggregator_key='invalid_files', detail_rec_type=ActionlogInvalidFilesDetailRec))        
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id != EMPTY_ID:
             id = self.query_builder.find_max_id()[0]

@@ -4,7 +4,7 @@ from data.storage.storage_const import AAPAClass, DBtype, KeyClass
 from data.storage.table_registry import class_data
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QueryBuilder
-from data.storage.storage_crud import StorageCRUD
+from data.storage.storage_crud import CRUDs, StorageCRUD
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.table_def import TableDefinition
@@ -30,20 +30,13 @@ class StorageBase:
         # self.aggregator_CRUD_temp: CRUDbase = None
         data = class_data(class_type)
         self.mapper = data.mapper_type(database, data.table, class_type) if data.mapper_type else TableMapper(database, data.table, class_type) 
-        self._cruds: list[StorageCRUD] = [StorageCRUD(database, class_type)] 
-        # list of associated cruds. 
-        # _cruds[0] is always the main CRUD (for class_type)
-        # other cruds are created as needed (for e.g. associated class types such as Milestone.student)
+        self.cruds = CRUDs(database, class_type)
+        self._crud = self.cruds.get(class_type) 
     @property
     def crud(self)->StorageCRUD:
-        return self._cruds[0]
+        return self._crud
     def get_crud(self, aapa_obj: AAPAClass)->StorageCRUD:
-        #create new crud if needed
-        for crud in self._cruds:
-            if isinstance(aapa_obj, crud.class_type):
-                return crud
-        self._cruds.append(StorageCRUD(self.database, aapa_obj))
-        return self._cruds[-1]
+        return self.cruds.get_crud(aapa_obj)
     @property
     def query_builder(self)->QueryBuilder:
         return self.crud.query_builder

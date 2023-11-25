@@ -1,3 +1,4 @@
+from __future__ import annotations
 from data.storage.mappers import TableMapper
 from data.storage.query_builder import QueryBuilder
 from data.storage.table_registry import class_data
@@ -9,6 +10,20 @@ from database.table_def import TableDefinition
 from debug.debug import classname
 from general.keys import get_next_key
 from general.log import log_debug
+
+class CRUDs(dict):
+    # dict of associated cruds. 
+    # other cruds are created as needed (for e.g. associated class types such as Milestone.student)
+    def __init__(self, database: Database, class_type: AAPAClass):
+        self.database=database
+        self[class_type] = StorageCRUD(database, class_type)
+    def get_crud(self, aapa_obj: AAPAClass)->StorageCRUD:
+        #create new crud if needed
+        Hier is het soms een type en soms niet!
+        if not (crud := self.get(aapa_obj, None)):
+            crud = StorageCRUD(self.database, aapa_obj)
+        self[aapa_obj] = crud
+        return crud
 
 class StorageCRUD:
     def __init__(self, database: Database, class_type: AAPAClass):
