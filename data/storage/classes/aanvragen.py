@@ -13,18 +13,11 @@ from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug
 
-class AanvraagStatusColumnMapper(ColumnMapper):
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return Aanvraag.Status(db_value)
-class AanvraagBeoordelingColumnMapper(ColumnMapper):
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return Aanvraag.Beoordeling(db_value)
-
 class AanvragenTableMapper(MilestonesTableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
-            case 'status': return AanvraagStatusColumnMapper(column_name)
-            case 'beoordeling': return AanvraagBeoordelingColumnMapper(column_name)
+            case 'status': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Status)
+            case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
   
 class AanvragenStorage(MilestonesStorage):
@@ -42,15 +35,15 @@ class AanvragenStorage(MilestonesStorage):
     def find_kans(self, student: Student):
         qb = self.query_builder
         stud_crud = self.get_crud(Student)
-        stud_crud._create_key_if_needed(self, student)        
+        stud_crud._create_key_if_needed(student)        
         result = qb.find_count(where=qb.build_where_from_values(column_names=['student'], values=[student.id]))        
         return result
     def find_versie(self, student: Student, bedrijf: Bedrijf):
         qb = self.query_builder
         bedr_crud = self.get_crud(Bedrijf)
-        bedr_crud._create_key_if_needed(self, bedrijf)        
+        bedr_crud._create_key_if_needed(bedrijf)        
         stud_crud = self.get_crud(Student)
-        stud_crud._create_key_if_needed(self, student)        
+        stud_crud._create_key_if_needed(student)        
         result = qb.find_max_value(attribute='versie',                                                
                                    where=qb.build_where_from_values(column_names=['student', 'bedrijf'],
                                                                     values=[student.id, bedrijf.id]))

@@ -97,16 +97,12 @@ class FileStorageRecord:
             self.status = self.__analyse_stored_digest(storage.find_digest(self.digest))
         return self
 
-class FileTypeColumnMapper(ColumnMapper):
-    def map_db_to_value(self, db_value: DBtype)->File.Type:
-        return File.Type(db_value)
-
 class FilesTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'filename': return FilenameColumnMapper(column_name)
             case 'timestamp': return TimeColumnMapper(column_name) 
-            case 'filetype': return FileTypeColumnMapper(column_name)
+            case 'filetype': return ColumnMapper(column_name=column_name, db_to_obj=File.Type)
             case _: return super()._init_column_mapper(column_name, database)
 
 class FilesStorage(StorageBase):

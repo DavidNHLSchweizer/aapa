@@ -27,16 +27,12 @@ class ActionlogInvalidFilesTableMapper(DetailsRecTableMapper):
     def __init__(self, database: Database):
         super().__init__(database, ActionLogAanvragenTableDefinition(), ActionlogInvalidFilesDetailRec, 'log_id','files_id')
 
-class ActionLogActionColumnMapper(ColumnMapper):
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return ActionLog.Action(db_value)
-
 class ActionlogTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'date': return TimeColumnMapper(column_name)
             case 'can_undo': return BoolColumnMapper(column_name)
-            case 'action': return ActionLogActionColumnMapper(column_name)
+            case 'action': return ColumnMapper(column_name=column_name, db_to_obj=ActionLog.Action)
             case _: return super()._init_column_mapper(column_name, database)
 
 class ActionlogStorage(StorageBase):

@@ -1,4 +1,4 @@
-from typing import Any, Iterable
+from typing import Any, Iterable, Type
 import sqlite3 as sql3
 from data.roots import decode_path, encode_path
 from data.storage.storage_const import AAPAClass, DBtype
@@ -35,17 +35,26 @@ class DBrecord(dict):
         self.set_column_values(row.keys(), [row[key] for key in row.keys()])
 
 class ColumnMapper:
-    def __init__(self, column_name: str, attribute_name:str=None):
+    def __init__(self, column_name: str, attribute_name:str=None, 
+                 db_to_obj:Type[Any]=None, obj_to_db: Type[Any]=None):
         self.column_name = column_name
         self.attribute_name = attribute_name if attribute_name else column_name
+        self.__db_to_obj = db_to_obj
+        self.__obj_to_db = obj_to_db
     def map_object_to_db(self, aapa_obj: AAPAClass, db_record: DBrecord):
         db_record.set_value(self.column_name, self.map_value_to_db(getattr(aapa_obj, self.attribute_name)))
     def map_db_to_object(self, db_record: DBrecord)->Any:
         return self.map_db_to_value(db_record.get_value(self.column_name))
     def map_value_to_db(self, value: Any)->DBtype:
-        return value
+        if not self.__obj_to_db:
+            return value
+        else:
+            if isinstance(value, set):
+                return set(self.map_value_to_db(val) for val in value)
+            else:
+                return self.__obj_to_db(value)
     def map_db_to_value(self, db_value: DBtype)->Any:
-        return db_value
+        return db_value if not self.__db_to_obj else self.__db_to_obj(db_value)
 ColumnMapperType = type[ColumnMapper]
 
 class IgnoreColumnMapper(ColumnMapper):
@@ -55,25 +64,23 @@ class IgnoreColumnMapper(ColumnMapper):
         return None
 
 class BoolColumnMapper(ColumnMapper):
-    def map_value_to_db(self, value: bool)->DBtype:
-        return int(value)
-    def map_db_to_value(self, db_value: int)->Any:
-        return bool(db_value)
+    def __init__(self, column_name: str, attribute_name:str=None):
+        super().__init__(column_name=column_name, attribute_name=attribute_name, 
+                         db_to_obj=bool, obj_to_db=int)
 
 class TimeColumnMapper(ColumnMapper):
-    def map_value_to_db(self, value: Any)->DBtype:
-        return TSC.timestamp_to_sortable_str(value)
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return TSC.sortable_str_to_timestamp(db_value)
-
+    def __init__(self, column_name: str, attribute_name:str=None):
+        super().__init__(column_name=column_name, attribute_name=attribute_name, 
+                         db_to_obj=TSC.sortable_str_to_timestamp, 
+                         obj_to_db=TSC.timestamp_to_sortable_str)
+            
 class FilenameColumnMapper(ColumnMapper):
-    def map_value_to_db(self, value: Any)->DBtype:
-        return encode_path(value)
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return decode_path(db_value)
+    def __init__(self, column_name: str, attribute_name:str=None):
+        super().__init__(column_name=column_name, attribute_name=attribute_name, 
+                         db_to_obj=decode_path, 
+                         obj_to_db=encode_path)
 
 class TableMapper:
-    CUSTOM_COLUMNS = {} # override in subclasses for non-default column mappers
     def __init__(self, database: Database, table: TableDefinition, class_type: AAPAClass):
         self.table = table
         self.db_record = DBrecord(table)

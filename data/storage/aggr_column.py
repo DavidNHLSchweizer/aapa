@@ -1,3 +1,4 @@
+from typing import Type
 from data.classes.aggregator import Aggregator
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
@@ -20,7 +21,7 @@ class DetailsRecTableMapper(TableMapper):
             case  _: super()._init_column_mapper(column_name, database)
 
 class ListAttribute:
-    def __init__(self, class_type: type[AAPAClass], aggregator_key: str, detail_rec_type: type[DetailRec]):
+    def __init__(self, class_type: Type[AAPAClass], aggregator_key: str, detail_rec_type: type[DetailRec]):
         self.class_type = class_type
         self.aggregator_key = aggregator_key
         self.detail_rec_type = detail_rec_type

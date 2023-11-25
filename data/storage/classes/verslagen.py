@@ -7,19 +7,12 @@ from data.storage.table_registry import register_table
 from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
 from database.database import Database
 
-class VerslagStatusColumnMapper(ColumnMapper):
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return Verslag.Status(db_value)
-class VerslagBeoordelingColumnMapper(ColumnMapper):
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return Verslag.Beoordeling(db_value)
-
 class VerslagenTableMapper(MilestonesTableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'directory': return FilenameColumnMapper(column_name)
-            case 'status': return VerslagStatusColumnMapper(column_name)
-            case 'beoordeling': return VerslagBeoordelingColumnMapper(column_name)
+            case 'status': return ColumnMapper(column_name=column_name, db_to_obj=Verslag.Status)
+            case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Verslag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
 
 class VerslagenStorage(MilestonesStorage):

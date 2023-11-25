@@ -42,7 +42,7 @@ class StorageBase:
         for crud in self._cruds:
             if isinstance(aapa_obj, crud.class_type):
                 return crud
-        self._cruds.append(StorageCRUD(self.database, type(aapa_obj)))
+        self._cruds.append(StorageCRUD(self.database, aapa_obj))
         return self._cruds[-1]
     @property
     def query_builder(self)->QueryBuilder:
