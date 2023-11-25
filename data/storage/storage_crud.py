@@ -24,9 +24,20 @@ class StorageCRUD:
     @property
     def class_type(self)->AAPAClass:
         return self.mapper.class_type
+    def _check_already_there(self, aapa_obj: AAPAClass)->bool:
+        if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
+            log_debug(f'--- already in database ----')                
+            #TODO adapt for multiple keys
+            setattr(aapa_obj, self.table.key, stored_ids[0])
+            return True
+        return False
     def _create_key_if_needed(self, aapa_obj: AAPAClass):
         if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
+    def ensure_key(self, aapa_obj: AAPAClass):
+        if not self._check_already_there(aapa_obj):
+            self._create_key_if_needed(aapa_obj)
+        self.database.commit()
     def create(self, aapa_obj: AAPAClass):
         log_debug(f'CRUD CREATE ({classname(self)}) {str(aapa_obj)}')
         columns,values = self.mapper.object_to_db(aapa_obj)

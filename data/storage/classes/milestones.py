@@ -52,15 +52,13 @@ class MilestonesStorage(StorageBase):
         else:
             return list(filter(filter_func, milestones))
     def __read_all_all(self, filter_func = None)->Iterable[Milestone]:
-        # sql = SQLselect(self.table_name, query=f'select id from {self.table_name} where status != ?')
-        # if row:= self.database._execute_sql_command(sql.query, [Aanvraag.Status.DELETED], True):            
-        #     return self.__read_all_filtered([self.read(r['id']) for r in row], filter_func=filter_func)
-        # else:
-        return None
+        if ids := self.query_builder.find_id():
+            return self.__read_all_filtered([self.read(id) for id in ids], filter_func=filter_func)
+        return []
     def __read_all_states(self, states:set[int], filter_func = None)->Iterable[Milestone]:
-        if rows:= self.query_builder.find_id_from_values(['status'], [states]):
-            return self.__read_all_filtered([self.read(r['id']) for r in rows], filter_func=filter_func)
-        return None
+        if ids:= self.query_builder.find_id_from_values(['status'], [states]):
+            return self.__read_all_filtered([self.read(id) for id in ids], filter_func=filter_func)
+        return []
     def read_all(self, filter_func = None, states:set[int]=None)->Iterable[Milestone]:
         if not states:
             return self.__read_all_all(filter_func=filter_func)        

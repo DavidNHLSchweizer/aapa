@@ -6,6 +6,7 @@ from data.classes.files import File
 from data.classes.studenten import Student
 from data.storage.aggr_column import DetailsRecTableMapper, ListAttribute, ListAttributeCRUD
 from data.storage.mappers import ColumnMapper, TableMapper
+from data.storage.query_builder import QIF
 from data.storage.table_registry import ClassAggregatorData, register_table
 from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
 from data.storage.storage_const import AAPAClass, DBtype, DetailRec, KeyClass
@@ -35,18 +36,26 @@ class AanvragenStorage(MilestonesStorage):
     def find_kans(self, student: Student):
         qb = self.query_builder
         stud_crud = self.get_crud(Student)
-        stud_crud._create_key_if_needed(student)        
-        result = qb.find_count(where=qb.build_where_from_values(column_names=['student'], values=[student.id]))        
+        stud_crud.ensure_key(student)     
+        log_debug(f'FIND KANS {student.id}')   
+        result = qb.find_count(where=qb.build_where_from_values(column_names=['student'], 
+                                                                values=[student.id], 
+                                                                flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))        
+        log_debug(f'FOUND  KANS {result}')   
         return result
     def find_versie(self, student: Student, bedrijf: Bedrijf):
         qb = self.query_builder
+        log_debug('FIND VERSIE')
         bedr_crud = self.get_crud(Bedrijf)
-        bedr_crud._create_key_if_needed(bedrijf)        
+        bedr_crud.ensure_key(bedrijf)        
         stud_crud = self.get_crud(Student)
-        stud_crud._create_key_if_needed(student)        
+        stud_crud.ensure_key(student) 
         result = qb.find_max_value(attribute='versie',                                                
                                    where=qb.build_where_from_values(column_names=['student', 'bedrijf'],
-                                                                    values=[student.id, bedrijf.id]))
+                                                                    values=[student.id, bedrijf.id], 
+                                                                    flags={QIF.ATTRIBUTES,QIF.NO_MAP_VALUES})
+                                                                    )
+        log_debug(f'FIND VERSIE EINDE {result}')
         return result
     
 class AanvragenFilesDetailRec(DetailRec): pass

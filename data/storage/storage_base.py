@@ -81,16 +81,20 @@ class StorageBase:
             return
         crud = self.get_crud(attr_obj)
         if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored_id := crud.query_builder.find_id_from_object(attr_obj):
-                setattr(attr_obj, attribute_key, stored_id)
+            if stored_ids := crud.query_builder.find_id_from_object(attr_obj):
+                setattr(attr_obj, attribute_key, stored_ids[0])
             else:
                 self.__create_key_if_needed(attr_obj, crud.table, crud.autoID)
                 crud.create(attr_obj)
+        else:
+            # key already set elsewhere, could not yet be in database
+            if not (stored_ids := crud.query_builder.find_id_from_object(attr_obj)):
+                crud.create(attr_obj)
     def __check_already_there(self, aapa_obj: AAPAClass)->bool:
-        if stored_id := self.query_builder.find_id_from_object(aapa_obj): 
+        if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
             log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
-            setattr(aapa_obj, self.table.key, stored_id)
+            setattr(aapa_obj, self.table.key, stored_ids[0])
             return True
         return False
     # utility functions

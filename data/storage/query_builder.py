@@ -10,6 +10,7 @@ from general.log import log_debug
 
 class QueryInfo:
     class Flags(Enum):
+        NOFLAGS          = 0 # simple way to signal no flag at all
         INCLUDE_KEY      = 1 # include key in queries 
         NO_MAP_VALUES    = 2 # do not map values for database
         ATTRIBUTES       = 3 # given column names are attributes   
@@ -77,8 +78,10 @@ class QueryBuilder:
         if row:= self.database.execute_select(sql):
             return row[0][0]
         return None 
+    def find_id(self, where:SQE = None):
+        return self.__find_id()
     def find_all_temp(self, columns: list[str], where: SQE)->list[Any]:
-        sql = SQLselect(self.mapper.table, columns=[columns], where=where)
+        sql = SQLselect(self.mapper.table, columns=columns, where=where)
         log_debug(f'find all: {columns}  {where}:\n\t{sql.query}-{sql.parameters}')
         return self.database.execute_select(sql) 
     def find_max_id(self)->int:
@@ -93,8 +96,12 @@ class QueryBuilder:
         if (row := self.database.execute_select(sql)) and row[0][0]:
             return row[0][0]
         return 0
-    def __find_id(self, where_columns: list[str], where_values: list[Any|set[Any]])->list[int]:
-        sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), where=self.__build_where(*(where_columns,where_values)))
+    def __find_id(self, where_columns: list[str]=None, where_values: list[Any|set[Any]]=None)->list[int]:
+        if where_columns: 
+            sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), 
+                        where=self.__build_where(*(where_columns,where_values)))
+        else:
+            sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys())
         log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
             result = [self.mapper.db_to_value(row['id'], 'id') for row in rows] 

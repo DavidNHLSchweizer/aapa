@@ -76,6 +76,7 @@ class FilePipeline(Pipeline):
         for processor in self.processors:
             log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
             if not self._process_file_processor(processor, str(filename), preview, **kwargs):
+                log_debug('returning false...')
                 return False
         return True
     def _sorted(self, files: Iterable[Path])->Iterable[Path]:

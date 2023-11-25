@@ -1,6 +1,7 @@
 from typing import Type
 from data.classes.aggregator import Aggregator
 from data.storage.mappers import ColumnMapper, TableMapper
+from data.storage.query_builder import QIF
 from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
 from data.storage.storage_crud import StorageCRUD
 from data.storage.table_registry import class_data
@@ -50,9 +51,16 @@ class ListAttributeCRUD(StorageCRUD):
         main_id:int = getattr(aapa_obj, 'id')
         class_type = aggregator.get_class_type(self.attribute.aggregator_key)
         query_builder = self.associated_crud.query_builder
-        where = query_builder.build_where_from_values(['main_key'], [main_id])
-        for row in query_builder.find_all_temp(['detail_key'], where=query_builder.build_where_from_values(['main_key'], [main_id])):
+        # where = query_builder.build_where_from_values(['main_key'], [main_id])
+        log_debug('START ASS READ')
+        column_names = self.mapper._get_columns_from_attributes(['main_key', 'detail_key'])
+        where = self.query_builder.build_where_from_values([column_names[0]], [main_id], 
+                                               flags={QIF.NO_MAP_VALUES})
+        log_debug(f'where: {where}')
+        rows = self.query_builder.find_all_temp([column_names[1]], where=where)
+        for row in rows:
             aggregator.add(self.associated_crud.read(row[0]))
+        log_debug(f'END ASS READ {aggregator.as_list(class_type)}')
 
     # def add(set_details(self, main_id: int, values: list[int]):
     #     self.aggregator.clear(self.classtype)
