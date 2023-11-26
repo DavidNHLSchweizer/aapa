@@ -4,6 +4,7 @@ from enum import IntEnum
 import os
 from typing import Type
 from data.classes.aanvragen import Aanvraag
+from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.files import File
 from debug.debug import classname
@@ -20,7 +21,7 @@ class ActionLogAggregator(Aggregator):
         self.add_class(Aanvraag, 'aanvragen')
         self.add_class(File, 'invalid_files')
 
-class ActionLog:
+class ActionLog(AAPAclass):
     class Action(IntEnum):
         NOLOG   = 0
         SCAN    = 1
@@ -31,8 +32,8 @@ class ActionLog:
         def __str__(self):
             return self.name
     def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), can_undo=True):
+        super().__init__(id)
         self.action = action        
-        self.id = id #KEY
         self.description = description
         self.date:datetime.datetime = date
         self.user = user

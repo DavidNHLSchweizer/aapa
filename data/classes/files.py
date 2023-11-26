@@ -4,6 +4,7 @@ import datetime
 from enum import IntEnum
 from pathlib import Path
 from typing import Any, Iterable
+from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from database.dbConst import EMPTY_ID
 from general.filehash import hash_file_digest
@@ -11,7 +12,7 @@ from general.fileutil import summary_string
 from general.timeutil import TSC
 
 class FilesException(Exception): pass
-class File:
+class File(AAPAclass):
     AUTODIGEST = ''
     class Type(IntEnum):
         INVALID_DOCX        = -3
@@ -44,7 +45,7 @@ class File:
     def get_digest(filename: str)->str:
         return hash_file_digest(filename)
     def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, filetype=Type.UNKNOWN, id=EMPTY_ID, aanvraag_id=EMPTY_ID):
-        self.id = id
+        super().__init__(id)
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file():
             if timestamp == TSC.AUTOTIMESTAMP:
@@ -65,8 +66,7 @@ class File:
     def summary(self, len_filename = 72)->str:
         return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)} [{TSC.timestamp_to_str(self.timestamp)}]'     
     @property    
-    def timestamp(self):
-        return self._timestamp
+    def timestamp(self): return self._timestamp
     @timestamp.setter
     def timestamp(self, value):
         self._timestamp = TSC.rounded_timestamp(value)

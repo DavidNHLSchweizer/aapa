@@ -41,10 +41,7 @@ class Aanvraag(Milestone):
         #     self._files.reset()
         #     self.datum = None
     @property
-    def timestamp(self):
-        return self.datum #self.files.get_timestamp(File.Type.AANVRAAG_PDF)
-    def timestamp_str(self):
-        return TSC.timestamp_to_str(self.timestamp)
+    def timestamp(self): return self.datum 
     def aanvraag_source_file_path(self)->Path:
         return Path(self.files.get_filename(File.Type.AANVRAAG_PDF))
     def source_file_name(self)->str:

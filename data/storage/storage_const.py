@@ -1,11 +1,5 @@
 from dataclasses import dataclass
-from data.classes.aanvragen import Aanvraag
-from data.classes.action_log import ActionLog
-from data.classes.bedrijven import Bedrijf
-from data.classes.files import File, Files
-from data.classes.milestones import Milestone
-from data.classes.studenten import Student
-from data.classes.verslagen import Verslag
+from data.classes.aapa_class import AAPAclass
 
 DBtype = str|int|float
 
@@ -15,5 +9,5 @@ class DetailRec:
     detail_key: int
 DetailRecs = list[DetailRec]
 
-AAPAClass = Bedrijf|Student|File|Files|Aanvraag|ActionLog|Verslag|Milestone|DetailRec
+AAPAClass = AAPAclass|DetailRec
 KeyClass = int|str

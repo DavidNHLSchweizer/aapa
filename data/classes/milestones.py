@@ -1,6 +1,7 @@
 from __future__ import annotations
 import datetime
 from enum import IntEnum
+from data.classes.aapa_class import AAPAclass
 from data.classes.base_dirs import BaseDir
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
@@ -9,7 +10,7 @@ from database.dbConst import EMPTY_ID
 from general.log import log_print
 from general.timeutil import TSC
 
-class Milestone:            
+class Milestone(AAPAclass):            
     class Beoordeling(IntEnum):
         TE_BEOORDELEN = 0
         ONVOLDOENDE   = 1
@@ -18,7 +19,7 @@ class Milestone:
             _MB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
             return _MB_STRS[self]
     def __init__(self, student:Student, datum: datetime.datetime, bedrijf: Bedrijf = None, kans=0, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
-        self._id = id
+        super().__init__(id)
         self.datum = datum
         self.student = student
         self.bedrijf = bedrijf
@@ -27,16 +28,15 @@ class Milestone:
         self.kans = kans
         self.status = status
         self.beoordeling = beoordeling
+    # @property
+    # def id(self):
+    #     return self._id
+    # @id.setter
+    # def id(self, value):
+    #     self._id = value
+    #     self._files.aanvraag_id = value
     @property
-    def id(self):
-        return self._id
-    @id.setter
-    def id(self, value):
-        self._id = value
-        self._files.aanvraag_id = value
-    @property
-    def files(self)->Files:
-        return self._files
+    def files(self)->Files: return self._files
     @files.setter
     def files(self, files: Files):
         for ft in File.Type:
@@ -49,15 +49,14 @@ class Milestone:
     def summary(self)->str:
         return str(self)
 
-class StudentMilestones:
+class StudentMilestones(AAPAclass):
     def __init__(self, student: Student, base_dir: BaseDir = None, id: int = EMPTY_ID):
-        self.id = id #key
+        super().__init__(id)        
         self.student = student
         self.base_dir = base_dir
         self._milestones: list[Milestone] = []
     @property
-    def milestones(self)->list[Milestone]:
-        return self._milestones
+    def milestones(self)->list[Milestone]: return self._milestones
     # def get(self, milestone_type: set[Verslag.Type])->list[Milestone]:
     #     return [milestone for milestone in self._milestones if milestone.milestone_type in milestone_type]  
     def add(self, milestone: Milestone):

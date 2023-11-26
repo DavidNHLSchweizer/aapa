@@ -1,12 +1,12 @@
 from __future__ import annotations
-from typing import Tuple
+from data.classes.aapa_class import AAPAclass
 from database.dbConst import EMPTY_ID
 from general.name_utils import Names
 from general.valid_email import is_valid_email
 
-class Student:
+class Student(AAPAclass):
     def __init__(self, full_name='', first_name = '', stud_nr='', tel_nr='', email='', id=EMPTY_ID):        
-        self.id = id
+        super().__init__(id)
         self.full_name = full_name
         self.first_name = first_name if first_name else Names.first_name(full_name)
         self.stud_nr = stud_nr
