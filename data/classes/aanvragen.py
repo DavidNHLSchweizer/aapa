@@ -31,7 +31,7 @@ class Aanvraag(Milestone):
                  source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=0, versie=1):
         super().__init__(student=student, bedrijf=bedrijf, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
-        self.datum_str = datum_str
+        self._datum_str = datum_str
         self.versie=versie
         if source_info:
             self._files.set_file(source_info)
@@ -72,9 +72,9 @@ class Aanvraag(Milestone):
         return self.student.valid() and self.bedrijf.valid() 
     @property 
     def datum_str(self):
-        return self.__datum_str
+        return self._datum_str
     @datum_str.setter
     def datum_str(self, value):
-        self.__datum_str = value.replace('\r', ' ').replace('\n', ' ')
+        self._datum_str = value.replace('\r', ' ').replace('\n', ' ')
 
 

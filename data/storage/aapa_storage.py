@@ -5,7 +5,6 @@ from data.aapa_database import create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.base_dirs import BaseDir
 from data.classes.bedrijven import Bedrijf
-from data.classes.files import File, Files
 from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.classes.action_log import ActionLog
@@ -22,7 +21,6 @@ from data.storage.classes.aanvragen import AanvragenStorage
 from data.storage.classes.bedrijven import BedrijvenStorage
 from data.storage.classes.base_dirs import BasedirsStorage
 from data.storage.classes.files import FilesStorage
-from data.storage.storage_base import StorageBase, StorageException
 from data.storage.classes.studenten import StudentenStorage
 from data.storage.classes.verslagen import VerslagenStorage
 from database.database import Database

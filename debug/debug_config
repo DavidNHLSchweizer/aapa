@@ -42,7 +42,6 @@ data.storage.classes.aanvragen
 data.storage.classes.studenten
 data.storage.classes.milestones
 data.storage.classes.verslagen
-data.storage.aggr_column
 data.storage.mappers
 data.storage.table_search
 data.storage.query_builder 

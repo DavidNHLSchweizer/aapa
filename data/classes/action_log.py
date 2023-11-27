@@ -7,7 +7,6 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.files import File
-from debug.debug import classname
 from general.log import log_debug, log_warning
 from general.singular_or_plural import sop
 from general.timeutil import TSC
@@ -16,8 +15,8 @@ from general.fileutil import summary_string
 
 ActionLogData=Type[Aanvraag|File]       
 class ActionLogAggregator(Aggregator):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, owner: ActionLog):
+        super().__init__(owner=owner)
         self.add_class(Aanvraag, 'aanvragen')
         self.add_class(File, 'invalid_files')
 
@@ -37,8 +36,10 @@ class ActionLog(AAPAclass):
         self.description = description
         self.date:datetime.datetime = date
         self.user = user
-        self._data = ActionLogAggregator()
+        self._data = ActionLogAggregator(self)
         self.can_undo = can_undo
+        # print(self._data.get_detail_rec_data(Aanvraag))        
+        # print(self._data.get_detail_rec_data(File))        
     @property
     def aanvragen(self)->list[Aanvraag]:
         return self._data.as_list('aanvragen')

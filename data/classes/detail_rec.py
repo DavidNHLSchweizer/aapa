@@ -1,8 +1,7 @@
 from dataclasses import dataclass
+from typing import Type
 
 from data.classes.aapa_class import AAPAclass
-
-
 
 @dataclass
 class DetailRec:
@@ -12,8 +11,7 @@ DetailRecs = list[DetailRec]
 
 @dataclass
 class DetailRecData:
-    main_class: AAPAclass
-    main_key_name: str
-    detail_class: AAPAclass
-    detail_key_name: str
+    aggregator_name: str
+    detail_aggregator_key: str
+    detail_rec_type: Type[DetailRec]    
     

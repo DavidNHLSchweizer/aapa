@@ -1,6 +1,8 @@
 from typing import Any, Tuple, Type
 
 from data.classes.aapa_class import AAPAclass
+from data.classes.detail_rec import DetailRecData
+from general.classutil import find_attribute_name
 
 main_key_name: str
 
@@ -66,6 +68,11 @@ class Aggregator(dict):
         if isinstance(class_type, str):
             return self._get_ids(class_type)
         return self._get_ids(self.__get_class_attribute(class_type))
+    # def get_detail_rec_data(self, class_type: AAPAclass)->DetailRecData:
+    #     if not class_type in self.class_types():
+    #         raise TypeError(f'class type: {class_type} not in this aggregator.')
+    #     return DetailRecData(find_attribute_name(self.owner, self), type(self.owner),  
+    #                          class_type, None)
     def __type_error(self, object):
         raise TypeError(f'Not supported in Aggregator: {object.__class__}')
     

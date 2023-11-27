@@ -3,12 +3,12 @@ from typing import Any
 
 from pytest import File
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
-from data.classes.aanvragen import Aanvraag
-from data.classes.action_log  import ActionLog, ActionLogAggregator
-from data.classes.detail_rec import DetailRec
-from data.storage.aggr_column import DetailsRecTableMapper
+from data.classes.aapa_class import AAPAclass
+from data.classes.action_log  import ActionLog
+from data.classes.detail_rec import DetailRec, DetailRecData
+from data.storage.detail_rec import DetailsRecTableMapper
 from data.storage.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
-from data.storage.table_registry import ClassAggregatorData, register_table
+from data.storage.table_registry import register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database
 from database.dbConst import EMPTY_ID
@@ -19,13 +19,13 @@ NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 
 class ActionlogAanvragenDetailRec(DetailRec): pass
 class ActionlogAanvragenTableMapper(DetailsRecTableMapper):
-    def __init__(self, database: Database):
-        super().__init__(database, ActionLogAanvragenTableDefinition(), ActionlogAanvragenDetailRec, 'log_id','aanvraag_id')
+    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
+        super().__init__(database, table,  class_type, 'log_id','aanvraag_id')
 
 class ActionlogInvalidFilesDetailRec(DetailRec): pass
 class ActionlogInvalidFilesTableMapper(DetailsRecTableMapper):
-    def __init__(self, database: Database):
-        super().__init__(database, ActionLogAanvragenTableDefinition(), ActionlogInvalidFilesDetailRec, 'log_id','files_id')
+    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
+        super().__init__(database, table,  class_type, 'log_id','file_id')
 
 class ActionlogTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
@@ -36,12 +36,6 @@ class ActionlogTableMapper(TableMapper):
             case _: return super()._init_column_mapper(column_name, database)
 
 class ActionlogStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, ActionLog, autoID=True)   
-    #     self.aanvragenCRUD = ListAttributeCRUD(database, 
-    #                                        ListAttribute(class_type=Aanvraag, aggregator_key='aanvragen', detail_rec_type=ActionlogAanvragenDetailRec))        
-    #     self.invalid_filesCRUD = ListAttributeCRUD(database, 
-    #                                        ListAttribute(class_type=File, aggregator_key='invalid_files', detail_rec_type=ActionlogInvalidFilesDetailRec))        
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id != EMPTY_ID:
             id = self.query_builder.find_max_id()[0]
@@ -53,13 +47,23 @@ class ActionlogStorage(StorageBase):
         return self.read(id)
     def last_action(self)->ActionLog:
         return self._find_action_log()
-   # # def add_details(self, action_log: ActionLog, crud_details: CRUDbaseDetails, crud_table: CRUDbase):
-    #     for record in crud_details.read(action_log.id):
-    #         action_log.add(crud_table.read(record.detail_key))
 
 action_log_table = ActionLogTableDefinition()
-register_table(class_type=ActionLog, table=action_log_table, mapper_type=ActionlogTableMapper, autoID=True)
+
+register_table(class_type=ActionLog, table=action_log_table, 
+               mapper_type=ActionlogTableMapper, 
+                details_data=
+                    [
+                        DetailRecData(aggregator_name='_data', detail_aggregator_key='aanvragen', 
+                                   detail_rec_type=ActionlogAanvragenDetailRec),
+                        DetailRecData(aggregator_name='_data', detail_aggregator_key='invalid_files', 
+                                   detail_rec_type=ActionlogInvalidFilesDetailRec),
+                    ],
+               autoID=True)
+
+
+
 register_table(class_type=ActionlogAanvragenDetailRec, table=ActionLogAanvragenTableDefinition(),
-             aggregator_data=ClassAggregatorData(attribute='aanvragen', class_type=Aanvraag), mapper_type=ActionlogAanvragenTableMapper)
+                    mapper_type=ActionlogAanvragenTableMapper)
 register_table(class_type=ActionlogInvalidFilesDetailRec, table=ActionLogFilesTableDefinition(), 
-             aggregator_data=ClassAggregatorData(attribute='invalid_files', class_type=File), mapper_type=ActionlogInvalidFilesTableMapper)
+                    mapper_type=ActionlogInvalidFilesTableMapper)

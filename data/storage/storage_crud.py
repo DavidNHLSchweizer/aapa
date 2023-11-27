@@ -1,5 +1,4 @@
 from __future__ import annotations
-from data.classes.aapa_class import AAPAclass
 from data.storage.mappers import TableMapper
 from data.storage.query_builder import QueryBuilder
 from data.storage.table_registry import class_data
@@ -8,13 +7,14 @@ from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops
 from database.table_def import TableDefinition
-from debug.debug import classname
+from general.classutil import classname
 from general.keys import get_next_key
 from general.log import log_debug
 
 class CRUDs(dict):
     # dict of associated cruds. 
-    # other cruds are created as needed (for e.g. associated class types such as Milestone.student)
+    # other cruds are created as needed 
+    # (for e.g. associated class types such as Milestone.student, or detail tables)
     def __init__(self, database: Database, class_type: StoredClass):
         self.database=database
         self[class_type] = StorageCRUD(database, class_type)
@@ -26,11 +26,11 @@ class CRUDs(dict):
         return crud
 
 class StorageCRUD:
+    #basic CRUD operations on one table
     def __init__(self, database: Database, class_type: StoredClass):
         data = class_data(class_type)
         self.database = database        
         self.autoID = data.autoID
-        self.aggregator_data = data.aggregator_data
         self.mapper = data.mapper_type(database, data.table, class_type) if data.mapper_type else TableMapper(database, data.table, class_type)
         self.query_builder = QueryBuilder(self.database, self.mapper)
     @property
@@ -59,12 +59,13 @@ class StorageCRUD:
         self.database.create_record(self.table, columns=columns, values=values)
     def read(self, key: KeyClass, multiple=False)->StoredClass|list:
         log_debug(f'CRUD READ ({classname(self)}) {key}')
+        result = None
         if rows := self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.mapper.value_to_db(key, self.table.key))):
             if multiple:
-                return rows #deal with this later!
+                result= rows #deal with this later!
             else:
-                return self.mapper.db_to_object(rows[0])
-        return None 
+                result = self.mapper.db_to_object(rows[0])
+        return result
     def update(self, aapa_obj: StoredClass):
         log_debug(f'CRUD UPDATE ({classname(self)}) {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
@@ -75,12 +76,3 @@ class StorageCRUD:
         self.database.delete_record(self.table, 
                                     where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))        
 
-# def create_CRUD(self, database: Database, class_type: AAPAClass)->StorageCRUD:
-    
-#     if not self._is_registered(class_type):
-#         return None
-#     entry = self._registered_CRUDs[class_type]
-#     if entry['aggregator_data']:
-#         return StorageCRUD(database=database, class_type=class_type, table=entry['table'], aggregator_data = entry['aggregator_data'])
-#     else:
-#         return StorageCRUD(database=database, class_type=class_type, table=entry['table'], autoID=entry['autoID'])

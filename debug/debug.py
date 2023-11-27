@@ -1,34 +1,7 @@
-import inspect
 import logging
-import re
+from general.classutil import find_calling_module
 from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
-
-CLASSPATTERN = r"\<class '.*\.(?P<CLS>.*)'\>"
-def classname(o: object)->str:
-    type_str = str(o) if isinstance(o,type) else str(o.__class__)
-    m = re.match(CLASSPATTERN, type_str)
-    if m:
-        return m.group('CLS')
-    return repr(o)
-
-def _find_calling_module(calling_module: str)->str:
-    def find_module_name(module_str: str)->str:
-        if (m := re.match("\<module '(?P<module>.*)' from (?P<file>.*)\>", module_str)):
-            return m.group("module")
-        return ""
-    def _caller_(stack_frame: inspect.FrameInfo)->str:
-        return find_module_name(str(inspect.getmodule(stack_frame[0])))       
-    stack = inspect.stack()
-    level = 0
-    cur_module = _caller_(stack[level])
-    while level < len(stack) and cur_module != calling_module:
-        cur_module = _caller_(stack[level])
-        level+=1
-    while level < len(stack) and cur_module == calling_module:
-        cur_module = _caller_(stack[level])
-        level+=1
-    return cur_module
 
 class DebugConfig(Singleton):
     def __init__(self):
@@ -104,7 +77,7 @@ def disable_module(module_name: str):
 def module_is_enabled(module_name: str)->bool:
     return _debug_config.module_is_enabled(module_name)
 def check_caller_is_enabled(calling_module: str)->bool:
-    caller = _find_calling_module(calling_module)
+    caller = find_calling_module(calling_module)
     return module_is_enabled(caller)
 def get_disabled_loggers()->list[str]:
     return list(_debug_config._disabled_loggers)
