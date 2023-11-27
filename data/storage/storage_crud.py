@@ -3,7 +3,7 @@ from data.classes.aapa_class import AAPAclass
 from data.storage.mappers import TableMapper
 from data.storage.query_builder import QueryBuilder
 from data.storage.table_registry import class_data
-from data.storage.storage_const import StoredClass, DetailRec, KeyClass
+from data.storage.storage_const import StoredClass, KeyClass
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops

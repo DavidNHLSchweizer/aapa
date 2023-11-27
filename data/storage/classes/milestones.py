@@ -8,7 +8,7 @@ from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.storage.mappers import ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.storage_base import CRUDColumnMapper, StorageBase
-from data.storage.storage_const import StoredClass, DetailRec
+from data.storage.storage_const import StoredClass
 from data.storage.storage_crud import StorageCRUD
 from database.database import Database
 from database.table_def import TableDefinition
@@ -36,15 +36,15 @@ class MilestonesStorage(StorageBase):
             result = [crud_files.read(id) for id in file_IDs]
             return result
         return []
-    def find_all(self, aanvraag_id: int)->Files:
-        log_debug('find_all')
-        result = Files(aanvraag_id)        
-        filetypes = {ft for ft in File.Type if ft != File.Type.UNKNOWN}
-        result.reset_file(filetypes)
-        if files := self.__load(aanvraag_id, filetypes):
-            for file in files:
-                result.set_file(file)
-        return result        
+    # def find_all(self, aanvraag_id: int)->Files:
+    #     log_debug('find_all')
+    #     result = Files(aanvraag_id)        
+    #     filetypes = {ft for ft in File.Type if ft != File.Type.UNKNOWN}
+    #     result.reset_file(filetypes)
+    #     if files := self.__load(aanvraag_id, filetypes):
+    #         for file in files:
+    #             result.set_file(file)
+    #     return result        
 
     def __read_all_filtered(self, milestones: Iterable[Milestone], filter_func = None)->Iterable[Milestone]:
         if not filter_func:

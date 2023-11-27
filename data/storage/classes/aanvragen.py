@@ -2,6 +2,7 @@ from typing import Any
 from data.aapa_database import AanvraagTableDefinition, AanvraagFilesTableDefinition
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
+from data.classes.detail_rec import DetailRec
 from data.classes.files import File
 from data.classes.studenten import Student
 from data.storage.aggr_column import DetailsRecTableMapper, AggregatorDetails, ListAttributeCRUDs
@@ -9,7 +10,7 @@ from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
 from data.storage.table_registry import ClassAggregatorData, register_table
 from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
-from data.storage.storage_const import StoredClass, DBtype, DetailRec, KeyClass
+from data.storage.storage_const import StoredClass, DBtype, KeyClass
 from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug

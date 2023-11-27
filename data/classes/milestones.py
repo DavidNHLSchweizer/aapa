@@ -24,7 +24,7 @@ class Milestone(AAPAclass):
         self.student = student
         self.bedrijf = bedrijf
         self.titel = titel
-        self._files = Files(id)
+        self._files = Files(owner=self)
         self.kans = kans
         self.status = status
         self.beoordeling = beoordeling

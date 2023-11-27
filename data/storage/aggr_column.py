@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import Type
 from data.classes.aggregator import Aggregator
+from data.classes.detail_rec import DetailRec
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
 from data.storage.storage_base import StorageException
-from data.storage.storage_const import StoredClass, DetailRec, DetailRecs
+from data.storage.storage_const import StoredClass
 from data.storage.storage_crud import CRUDs, StorageCRUD
 from data.storage.table_registry import ClassAggregatorData, ClassRegistryData, class_data
 from database.database import Database

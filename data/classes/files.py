@@ -86,9 +86,8 @@ class File(AAPAclass):
         return True
     
 class Files(Aggregator):
-    def __init__(self, aanvraag_id: int=None, file_types:set[File.Type] = {ft for ft in File.Type if ft != File.Type.UNKNOWN}):
-        super().__init__()
-        self.aanvraag_id = aanvraag_id
+    def __init__(self, owner: AAPAclass, file_types:set[File.Type] = {ft for ft in File.Type if ft != File.Type.UNKNOWN}):
+        super().__init__(owner=owner)
         self.file_types = file_types
         self.add_class(File, 'files')
     def add(self, file:File):

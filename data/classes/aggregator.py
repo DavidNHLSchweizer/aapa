@@ -1,8 +1,13 @@
 from typing import Any, Tuple, Type
 
+from data.classes.aapa_class import AAPAclass
+
+main_key_name: str
+
 class Aggregator(dict):  
-    def __init__(self):
+    def __init__(self, owner: AAPAclass=None):
         self._classes: list[dict] = []
+        self.owner = owner
     @property
     def classes(self)->list[dict]:
         return self._classes

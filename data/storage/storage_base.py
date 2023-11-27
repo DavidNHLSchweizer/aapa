@@ -1,7 +1,7 @@
-from pydoc import classname
 from typing import Any
 from data.classes.aapa_class import AAPAclass
-from data.storage.storage_const import StoredClass, DBtype, DetailRec, KeyClass
+from data.classes.detail_rec import DetailRec
+from data.storage.storage_const import StoredClass, DBtype,KeyClass
 from data.storage.table_registry import class_data
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QueryBuilder
@@ -9,6 +9,7 @@ from data.storage.storage_crud import CRUDs, StorageCRUD
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.table_def import TableDefinition
+from debug.debug import classname
 from general.keys import get_next_key
 from general.log import log_debug
 
@@ -46,9 +47,13 @@ class StorageBase:
         return self.mapper.table
     def customize_mapper(self, mapper: TableMapper):
         pass #for non-standard column mappers, define this in subclass
-  
+    def __check_valid(self, aapa_obj, msg: str):
+        if not isinstance(aapa_obj, StoredClass):
+            raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')
+
     # --------------- CRUD functions ----------------
     def create(self, aapa_obj: StoredClass):
+        self.__check_valid(aapa_obj, f"{classname(self)}.create")
         self.__create_references(aapa_obj)        
         if self.__check_already_there(aapa_obj):
             return
@@ -62,9 +67,11 @@ class StorageBase:
     def read(self, key: KeyClass, multiple=False)->StoredClass|list:
         return self.crud.read(key, multiple=multiple)        
     def update(self, aapa_obj: StoredClass):
+        self.__check_valid(aapa_obj, f"{classname(self)}.update")
         self.__create_references(aapa_obj)
         self.crud.update(aapa_obj)
     def delete(self, aapa_obj: StoredClass):
+        self.__check_valid(aapa_obj, f"{classname(self)}.delete")
         self.crud.delete(aapa_obj)
     def __create_references(self, aapa_obj: StoredClass):
         for mapper in self.mapper.mappers():
@@ -73,7 +80,7 @@ class StorageBase:
     def __ensure_exists(self, aapa_obj: StoredClass, attribute: str, attribute_key: str = 'id'):
         if not (attr_obj := getattr(aapa_obj, attribute, None)):
             return
-        crud = self.get_crud(attr_obj)
+        crud = self.get_crud(type(attr_obj))
         if getattr(attr_obj, attribute_key) == EMPTY_ID:
             if stored_ids := crud.query_builder.find_id_from_object(attr_obj):
                 setattr(attr_obj, attribute_key, stored_ids[0])

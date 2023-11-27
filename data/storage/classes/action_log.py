@@ -5,9 +5,9 @@ from pytest import File
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
 from data.classes.aanvragen import Aanvraag
 from data.classes.action_log  import ActionLog, ActionLogAggregator
+from data.classes.detail_rec import DetailRec
 from data.storage.aggr_column import DetailsRecTableMapper
 from data.storage.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
-from data.storage.storage_const import DBtype, DetailRec
 from data.storage.table_registry import ClassAggregatorData, register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database
