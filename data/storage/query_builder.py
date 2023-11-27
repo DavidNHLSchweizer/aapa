@@ -117,7 +117,7 @@ class QueryBuilder:
             result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
         return result
     def build_where_from_object(self, aapa_obj: StoredClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  
-        return self.__build_where(*self.query_info.get_data(aapa_obj, column_names, flags))
+        return self.__build_where(*self.query_info.get_data(aapa_obj, columns=column_names, flags=flags))
     def build_where_from_values(self, column_names: list[str], values: list[Any], flags={QIF.ATTRIBUTES})->SQE:  
         return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags))
     

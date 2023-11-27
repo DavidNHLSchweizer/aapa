@@ -1,9 +1,5 @@
 from __future__ import annotations
-from typing import Any
-
-from pytest import File
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
-from data.classes.aapa_class import AAPAclass
 from data.classes.action_log  import ActionLog
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.detail_rec import DetailsRecTableMapper
@@ -36,11 +32,11 @@ class ActionlogTableMapper(TableMapper):
             case _: return super()._init_column_mapper(column_name, database)
 
 class ActionlogStorage(StorageBase):
+    def __init__(self, database: Database):
+        super().__init__(database, class_type=ActionLog, autoID=True)
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id != EMPTY_ID:
             id = self.query_builder.find_max_id()[0]
-            # # if (row := self.database._execute_sql_command(f'select id from {self.table_name} where can_undo = ? group by can_undo having max(id)', [1], True)):
-            #     id = row[0][0]
         if id is None or id == EMPTY_ID:
             log_warning(NoUNDOwarning)
             return None
@@ -49,7 +45,6 @@ class ActionlogStorage(StorageBase):
         return self._find_action_log()
 
 action_log_table = ActionLogTableDefinition()
-
 register_table(class_type=ActionLog, table=action_log_table, 
                mapper_type=ActionlogTableMapper, 
                 details_data=
@@ -60,9 +55,6 @@ register_table(class_type=ActionLog, table=action_log_table,
                                    detail_rec_type=ActionlogInvalidFilesDetailRec),
                     ],
                autoID=True)
-
-
-
 register_table(class_type=ActionlogAanvragenDetailRec, table=ActionLogAanvragenTableDefinition(),
                     mapper_type=ActionlogAanvragenTableMapper)
 register_table(class_type=ActionlogInvalidFilesDetailRec, table=ActionLogFilesTableDefinition(), 

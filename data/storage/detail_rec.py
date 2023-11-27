@@ -5,7 +5,7 @@ from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
 from data.storage.storage_const import StoredClass, StorageException
-from data.storage.storage_crud import CRUDs
+from data.storage.storage_crud import CRUDs, StorageCRUD
 from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug
@@ -66,9 +66,27 @@ class DetailRecCRUDs:
         for row in crud.query_builder.find_all_temp([column_names[1]], where=where):
             aggregator.add(details_crud.read(row[0]))
     def update(self, aapa_obj: StoredClass):
-        raise StorageException('IMPLEMENTEER UPDATE!')
+        self.delete(aapa_obj)
+        self.create(aapa_obj) #the simplest!
     def delete(self, aapa_obj: StoredClass):
-        raise StorageException('IMPLEMENTEER DEL:ETE!')
+        for details in self.detail_rec_data:
+            self.__delete_details( getattr(aapa_obj, 'id'), 
+                                 getattr(aapa_obj, details.aggregator_name),
+                                 details.detail_aggregator_key,
+                                 details.detail_rec_type)                                       
+    def __delete_details(self, main_id: int, aggregator: Aggregator, 
+                            detail_aggregator_key: str, detail_rec_type: Type[DetailRec]):                          
+        detail_class_type = aggregator.get_class_type(detail_aggregator_key)
+        details_crud = self.cruds.get_crud(detail_class_type)
+        crud = self.cruds.get_crud(detail_rec_type)
+        column_names = crud.mapper._get_columns_from_attributes(['main_key', 'detail_key'])
+        where = crud.query_builder.build_where_from_values([column_names[0]], [main_id], 
+                                               flags={QIF.NO_MAP_VALUES})
+        for row in crud.query_builder.find_all_temp([column_names[1]], where=where):
+            item = details_crud.read(row[0])
+            crud.delete(item)
+            aggregator.remove(item)
+        log_debug('end delete')
 
          
         

@@ -22,6 +22,8 @@ class AanvragenTableMapper(MilestonesTableMapper):
             case _: return super()._init_column_mapper(column_name, database)
   
 class AanvragenStorage(MilestonesStorage):
+    def __init__(self, database: Database):
+        super().__init__(database, class_type=Aanvraag)
     def find_kans(self, student: Student):
         qb = self.query_builder
         stud_crud = self.get_crud(Student)

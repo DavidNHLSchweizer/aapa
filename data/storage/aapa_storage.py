@@ -1,21 +1,5 @@
 from __future__ import annotations
-from enum import Enum, auto
-from typing import Any, Iterable
 from data.aapa_database import create_root
-from data.classes.aanvragen import Aanvraag
-from data.classes.base_dirs import BaseDir
-from data.classes.bedrijven import Bedrijf
-from data.classes.milestones import Milestone
-from data.classes.studenten import Student
-from data.classes.action_log import ActionLog
-from data.classes.verslagen import Verslag
-# from data.storage.aanvragen import CRUD_aanvragen
-# from data.storage.base_dirs import CRUD_basedirs
-# from data.storage.bedrijven import  CRUD_bedrijven
-# from data.storage.files import CRUD_files
-# from data.storage.action_log import CRUD_action_log, CRUD_action_log_aanvragen, CRUD_action_log_invalid_files
-# from data.storage.studenten import CRUD_studenten
-# from data.storage.verslagen import CRUD_verslagen
 from data.storage.classes.action_log import ActionlogStorage
 from data.storage.classes.aanvragen import AanvragenStorage
 from data.storage.classes.bedrijven import BedrijvenStorage
@@ -24,11 +8,7 @@ from data.storage.classes.files import FilesStorage
 from data.storage.classes.studenten import StudentenStorage
 from data.storage.classes.verslagen import VerslagenStorage
 from database.database import Database
-from database.dbConst import EMPTY_ID
 from data.roots import add_root, encode_path
-from database.sql_table import SQLselect
-from general.log import log_debug, log_error, log_exception, log_warning
-from general.timeutil import TSC
 
 # class FileSync:
 #     class Strategy(Enum):
@@ -406,14 +386,13 @@ from general.timeutil import TSC
 class AAPAStorage: 
     #main interface with the database
     def __init__(self, database: Database):
-#class_type: AAPAClass, table: TableDefinition, autoID=False
-
         self.database: Database = database
         self.aanvragen = AanvragenStorage(database)
         self.files = FilesStorage(database)
         self.action_logs = ActionlogStorage(database)
         self.verslagen = VerslagenStorage(database)
         self.basedirs = BasedirsStorage(database)
+        self.bedrijven = BedrijvenStorage(database)
         self.studenten = StudentenStorage(database)
     def add_file_root(self, root: str, code = None)->str:
         encoded_root = encode_path(root)
