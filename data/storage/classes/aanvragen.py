@@ -9,7 +9,7 @@ from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
 from data.storage.table_registry import ClassAggregatorData, register_table
 from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
-from data.storage.storage_const import AAPAClass, DBtype, DetailRec, KeyClass
+from data.storage.storage_const import StoredClass, DBtype, DetailRec, KeyClass
 from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug
@@ -27,10 +27,10 @@ class AanvragenStorage(MilestonesStorage):
         self.filesCRUD = ListAttributeCRUDs(database, AggregatorDetails(class_type=Aanvraag, aggregator_keys=['files'], 
                                                                    detail_rec_types=[AanvragenFilesDetailRec]))
         log_debug(self.filesCRUD)
-    def create(self, aapa_obj: AAPAClass):
+    def create(self, aapa_obj: StoredClass):
         super().create(aapa_obj)
         self.filesCRUD.create(aapa_obj)
-    def read(self, key: KeyClass)->AAPAClass|list:
+    def read(self, key: KeyClass)->StoredClass|list:
         if aapa_obj := super().read(key):
             self.filesCRUD.read(aapa_obj)
         return aapa_obj

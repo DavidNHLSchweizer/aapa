@@ -3,7 +3,7 @@ from data.classes.action_log import ActionLogAggregator
 from data.classes.aggregator import Aggregator
 from data.storage.mappers import TableMapper
 from data.storage.storage_base import StorageBase
-from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
+from data.storage.storage_const import StoredClass, DetailRec, DetailRecs
 from data.storage.storage_crud import StorageCRUD
 from data.storage.table_registry import ClassAggregatorData
 from database.database import Database
@@ -11,18 +11,18 @@ from database.table_def import TableDefinition
 
 class AggregatorStorage(StorageBase):
     # to be tested!
-    def __init__(self, database: Database, class_type: AAPAClass, table: TableDefinition, 
+    def __init__(self, database: Database, class_type: StoredClass, table: TableDefinition, 
                     aggregator_data: ClassAggregatorData):
         super().__init__(database, class_type=class_type, table=table)
         self.sub_crud = StorageCRUD(database, class_type=aggregator_data.aggregator.get_class_type(aggregator_data.attribute))
         self.main_table_key = aggregator_data.main_table_key
         self.attribute = aggregator_data.attribute
-    def __create_detail_rec(self, aapa_obj: AAPAClass, associated_obj: AAPAClass)->DetailRec:        
+    def __create_detail_rec(self, aapa_obj: StoredClass, associated_obj: StoredClass)->DetailRec:        
         return DetailRec(main_key=getattr(aapa_obj, self.main_table_key), 
                          detail_key=getattr(associated_obj, self.sub_crud.table.key))
     def _create_detail_recs(self, aapa_obj)->DetailRecs:
         return [self.__create_detail_rec(aapa_obj, associated_obj) for associated_obj in getattr(aapa_obj, self.attribute)]
-    def create(self, aapa_obj: AAPAClass):
+    def create(self, aapa_obj: StoredClass):
         for detail_rec in self._create_detail_recs(aapa_obj):
             super().create(detail_rec)
 

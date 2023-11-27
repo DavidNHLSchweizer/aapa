@@ -4,7 +4,7 @@ from data.classes.aggregator import Aggregator
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
 from data.storage.storage_base import StorageException
-from data.storage.storage_const import AAPAClass, DetailRec, DetailRecs
+from data.storage.storage_const import StoredClass, DetailRec, DetailRecs
 from data.storage.storage_crud import CRUDs, StorageCRUD
 from data.storage.table_registry import ClassAggregatorData, ClassRegistryData, class_data
 from database.database import Database
@@ -28,15 +28,15 @@ class AggregatorDetail:
     aggregator_key: str
     aggregator_data: ClassAggregatorData
     attribute_name: str
-    associated_class_type: AAPAClass
+    associated_class_type: StoredClass
 
 class AggregatorDetails(dict):
-    def __init__(self, class_type: Type[AAPAClass], aggregator_keys: list[str], detail_rec_types: list[Type[DetailRec]]):
+    def __init__(self, class_type: Type[StoredClass], aggregator_keys: list[str], detail_rec_types: list[Type[DetailRec]]):
         self.class_type = class_type
         for aggregator_key,detail_rec_type in zip(aggregator_keys,detail_rec_types):
             data = class_data(class_type).aggregator_data
             self[detail_rec_type] = AggregatorDetail(aggregator_key,data,data.attribute,data.class_type) 
-    def get_details(self, detail_rec_type: AAPAClass)->AggregatorDetail:
+    def get_details(self, detail_rec_type: StoredClass)->AggregatorDetail:
         return self.get(detail_rec_type, None)
     
 class ListAttributeCRUDs:
@@ -44,12 +44,12 @@ class ListAttributeCRUDs:
         self.details = details
         self.database = database
         self.cruds = CRUDs(database, details.class_type)
-    def create(self, aapa_obj: AAPAClass):
+    def create(self, aapa_obj: StoredClass):
         for detail_rec_type in self.details.keys():
             self.__create_details(aapa_obj, 
                                   getattr(aapa_obj, self.details.get_details(detail_rec_type).attribute_name), 
                                   getattr(aapa_obj, 'id'), detail_rec_type)
-    def __create_details(self, aapa_obj: AAPAClass, aggregator: Aggregator, main_id: int, 
+    def __create_details(self, aapa_obj: StoredClass, aggregator: Aggregator, main_id: int, 
                          detail_rec_type: Type[DetailRec]):
         detail_data = self.details.get_details(detail_rec_type)
         class_type = aggregator.get_class_type(detail_data.aggregator_key)
@@ -62,11 +62,11 @@ class ListAttributeCRUDs:
         crud = self.cruds.get_crud(detail_rec_type)
         for detail in detail_items:
             crud.create(detail)
-    def read(self, aapa_obj: AAPAClass):
+    def read(self, aapa_obj: StoredClass):
         for detail_rec_type in self.details.keys():
             self.__read(aapa_obj, getattr(aapa_obj, self.details.get_details(detail_rec_type).attribute_name), 
                                   getattr(aapa_obj, 'id'), detail_rec_type)
-    def __read(self, aapa_obj: AAPAClass, aggregator: Aggregator, main_id: int, 
+    def __read(self, aapa_obj: StoredClass, aggregator: Aggregator, main_id: int, 
                          detail_rec_type: Type[DetailRec]): 
         detail_data = self.details.get_details(detail_rec_type)
         class_type = aggregator.get_class_type(detail_data.aggregator_key)
@@ -82,9 +82,9 @@ class ListAttributeCRUDs:
         for row in rows:
             aggregator.add(associated_crud.read(row[0]))
         log_debug(f'END ASS READ {aggregator.as_list(class_type)}')
-    def update(self, aapa_obj: AAPAClass):
+    def update(self, aapa_obj: StoredClass):
         raise StorageException('IMPLEMENTEER UPDATE!')
-    def delete(self, aapa_obj: AAPAClass):
+    def delete(self, aapa_obj: StoredClass):
         raise StorageException('IMPLEMENTEER DEL:ETE!')
 
     # def add(set_details(self, main_id: int, values: list[int]):

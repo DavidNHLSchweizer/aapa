@@ -1,6 +1,7 @@
 from pydoc import classname
 from typing import Any
-from data.storage.storage_const import AAPAClass, DBtype, KeyClass
+from data.classes.aapa_class import AAPAclass
+from data.storage.storage_const import StoredClass, DBtype, DetailRec, KeyClass
 from data.storage.table_registry import class_data
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QueryBuilder
@@ -18,13 +19,13 @@ class CRUDColumnMapper(ColumnMapper):
         super().__init__(column_name=column_name, attribute_name=attribute_name)
         self.crud = crud
         self.attribute_key = attribute_key
-    def map_value_to_db(self, value: AAPAClass)->DBtype:
+    def map_value_to_db(self, value: StoredClass)->DBtype:
         return getattr(value, self.attribute_key, None)
     def map_db_to_value(self, db_value: DBtype)->Any:
         return self.crud.read(db_value)
 
 class StorageBase:
-    def __init__(self, database: Database, class_type: AAPAClass, autoID=False):
+    def __init__(self, database: Database, class_type: StoredClass, autoID=False):
         self.database = database
         self.autoID = autoID
         # self.aggregator_CRUD_temp: CRUDbase = None
@@ -35,8 +36,8 @@ class StorageBase:
     @property
     def crud(self)->StorageCRUD:
         return self._crud
-    def get_crud(self, aapa_obj: AAPAClass)->StorageCRUD:
-        return self.cruds.get_crud(aapa_obj)
+    def get_crud(self, class_type: AAPAclass|DetailRec)->StorageCRUD:
+        return self.cruds.get_crud(class_type)
     @property
     def query_builder(self)->QueryBuilder:
         return self.crud.query_builder
@@ -47,7 +48,7 @@ class StorageBase:
         pass #for non-standard column mappers, define this in subclass
   
     # --------------- CRUD functions ----------------
-    def create(self, aapa_obj: AAPAClass):
+    def create(self, aapa_obj: StoredClass):
         self.__create_references(aapa_obj)        
         if self.__check_already_there(aapa_obj):
             return
@@ -55,21 +56,21 @@ class StorageBase:
         self.__create_key_if_needed(aapa_obj, self.table, self.autoID)
         self.crud.create(aapa_obj)
     @staticmethod #TODO remove duplication with StorageCRUD
-    def __create_key_if_needed(aapa_obj: AAPAClass, table: TableDefinition, autoID=False):
+    def __create_key_if_needed(aapa_obj: StoredClass, table: TableDefinition, autoID=False):
         if autoID and getattr(aapa_obj, table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, table.key, get_next_key(table.name))
-    def read(self, key: KeyClass, multiple=False)->AAPAClass|list:
+    def read(self, key: KeyClass, multiple=False)->StoredClass|list:
         return self.crud.read(key, multiple=multiple)        
-    def update(self, aapa_obj: AAPAClass):
+    def update(self, aapa_obj: StoredClass):
         self.__create_references(aapa_obj)
         self.crud.update(aapa_obj)
-    def delete(self, aapa_obj: AAPAClass):
+    def delete(self, aapa_obj: StoredClass):
         self.crud.delete(aapa_obj)
-    def __create_references(self, aapa_obj: AAPAClass):
+    def __create_references(self, aapa_obj: StoredClass):
         for mapper in self.mapper.mappers():
             if isinstance(mapper, CRUDColumnMapper):
                 self.__ensure_exists(aapa_obj, mapper.attribute_name, mapper.attribute_key)
-    def __ensure_exists(self, aapa_obj: AAPAClass, attribute: str, attribute_key: str = 'id'):
+    def __ensure_exists(self, aapa_obj: StoredClass, attribute: str, attribute_key: str = 'id'):
         if not (attr_obj := getattr(aapa_obj, attribute, None)):
             return
         crud = self.get_crud(attr_obj)
@@ -83,7 +84,7 @@ class StorageBase:
             # key already set elsewhere, could not yet be in database
             if not (stored_ids := crud.query_builder.find_id_from_object(attr_obj)):
                 crud.create(attr_obj)
-    def __check_already_there(self, aapa_obj: AAPAClass)->bool:
+    def __check_already_there(self, aapa_obj: StoredClass)->bool:
         if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
             log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
@@ -91,7 +92,7 @@ class StorageBase:
             return True
         return False
     # utility functions
-    def find_value(self, attribute_name: str, value: Any|set[Any])->AAPAClass:
+    def find_value(self, attribute_name: str, value: Any|set[Any])->StoredClass:
         if id := self.query_builder.find_value(attribute_name, value):
             return self.read(id)
         return None

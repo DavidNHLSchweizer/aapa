@@ -1,14 +1,14 @@
 from __future__ import annotations
 from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
-from data.storage.storage_const import AAPAClass
+from data.storage.storage_const import StoredClass
 
 class BaseProcessor:
     def __init__(self, description: str = ''):
         self.description = description
-    def must_process(self, object: AAPAClass, **kwargs)->bool:
+    def must_process(self, object: StoredClass, **kwargs)->bool:
         return True
-    def process(self, object: AAPAClass, preview = False, **kwargs)->bool:
+    def process(self, object: StoredClass, preview = False, **kwargs)->bool:
         return False
 
 class FileProcessor(BaseProcessor):

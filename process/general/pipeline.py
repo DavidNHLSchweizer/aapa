@@ -5,7 +5,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.action_log import ActionLog
 from data.storage.aapa_storage import AAPAStorage
-from data.storage.storage_const import AAPAClass
+from data.storage.storage_const import StoredClass
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview
@@ -54,7 +54,7 @@ class FilePipeline(Pipeline):
             self._invalid_files.append({'filename': filename, 'filetype': self.invalid_file_type})
     def _skip(self, filename: str)->bool:
         return False
-    def _store_new(self, object: AAPAClass):
+    def _store_new(self, object: StoredClass):
         pass
     @property
     def processors(self)->list[FileProcessor]:

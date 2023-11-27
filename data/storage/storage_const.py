@@ -9,5 +9,5 @@ class DetailRec:
     detail_key: int
 DetailRecs = list[DetailRec]
 
-AAPAClass = AAPAclass|DetailRec
+StoredClass = AAPAclass|DetailRec
 KeyClass = int|str

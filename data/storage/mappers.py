@@ -1,7 +1,7 @@
 from typing import Any, Iterable, Type
 import sqlite3 as sql3
 from data.roots import decode_path, encode_path
-from data.storage.storage_const import AAPAClass, DBtype
+from data.storage.storage_const import StoredClass, DBtype
 from database.database import Database
 from database.sql_expr import SQE, Ops
 from database.sql_table import SQLselect
@@ -41,7 +41,7 @@ class ColumnMapper:
         self.attribute_name = attribute_name if attribute_name else column_name
         self.__db_to_obj = db_to_obj
         self.__obj_to_db = obj_to_db
-    def map_object_to_db(self, aapa_obj: AAPAClass, db_record: DBrecord):
+    def map_object_to_db(self, aapa_obj: StoredClass, db_record: DBrecord):
         db_record.set_value(self.column_name, self.map_value_to_db(getattr(aapa_obj, self.attribute_name)))
     def map_db_to_object(self, db_record: DBrecord)->Any:
         return self.map_db_to_value(db_record.get_value(self.column_name))
@@ -81,7 +81,7 @@ class FilenameColumnMapper(ColumnMapper):
                          obj_to_db=encode_path)
 
 class TableMapper:
-    def __init__(self, database: Database, table: TableDefinition, class_type: AAPAClass):
+    def __init__(self, database: Database, table: TableDefinition, class_type: StoredClass):
         self.table = table
         self.db_record = DBrecord(table)
         self.class_type = class_type        
@@ -100,14 +100,14 @@ class TableMapper:
         self._mappers[mapper.column_name] = mapper
     def set_attribute(self, column_name: str, attribute_name: str):
         self._mappers[column_name].attribute_name = attribute_name
-    def object_to_db(self, aapa_obj: AAPAClass, include_key=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
+    def object_to_db(self, aapa_obj: StoredClass, include_key=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
         log_debug(f'start o2db {column_names=}  {attribute_names=}   {self.columns(include_key)=}')
         columns = column_names if column_names else self._get_columns_from_attributes(attribute_names) if attribute_names else self.columns(include_key)
         log_debug(f'{columns=}')
         for column_name in columns:
             self._mappers[column_name].map_object_to_db(aapa_obj, self.db_record)
         return (columns, self.db_record.get_column_values(columns))
-    def get_values(self, aapa_obj: AAPAClass, columns: list[str]=None, include_key=True, map_values=True)->list[Any]:
+    def get_values(self, aapa_obj: StoredClass, columns: list[str]=None, include_key=True, map_values=True)->list[Any]:
         columns = columns if columns else self.columns(include_key)
         result = []
         for column_name in columns: 
@@ -130,11 +130,11 @@ class TableMapper:
     def db_to_value(self, value: DBtype, attribute_name: str)->Any:
         column_mapper = self._find_mapper(attribute_name)
         return column_mapper.map_db_to_value(value)
-    def db_to_object(self, row: sql3.Row, include_key=True)->AAPAClass:
+    def db_to_object(self, row: sql3.Row, include_key=True)->StoredClass:
         #generate object from database record
         self.db_record.set_row_values(row)
         return self.__db_to_object(include_key)
-    def __db_to_object(self, include_key=True)->AAPAClass:
+    def __db_to_object(self, include_key=True)->StoredClass:
         #map dbrecord and instantiate a new object
         class_dict = {}
         for column_name in self.columns(include_key):
