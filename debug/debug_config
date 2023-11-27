@@ -2,8 +2,7 @@
 #block because some still have debugging calls
 [DISABLED]
 rich
-concurrent.futures
-concurrent
+concurrent.*
 asyncio
 charset_normalizer
 pdfminer.*

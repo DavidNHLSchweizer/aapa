@@ -43,7 +43,6 @@ class DebugConfig(Singleton):
         ENABLED = "[ENABLED]"
         if not file_exists(filename):
             return
-        disabled = False
         enabled =  False
         with open(filename, mode='r') as file:
             for l in file.readlines():
@@ -51,10 +50,9 @@ class DebugConfig(Singleton):
                 if not l:
                     continue
                 if l in {DISABLED, ENABLED}:
-                    disabled = l == DISABLED
                     enabled = l == ENABLED
                     continue
-                elif l and l[0] == '#':
+                elif l[0] == '#':
                     continue
                 self.info.add(l, enabled)
     def module_is_enabled(self, module_name: str)->bool:
