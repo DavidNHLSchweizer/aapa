@@ -78,10 +78,6 @@ def _load_debug_config():
         print(f'Fout bij lezen debug-configuratiebestand {debug_config_file}: {E}')
 _load_debug_config()
 
-def enable_module(module_name: str):
-    _debug_config.enable_module(module_name)
-def disable_module(module_name: str):
-    _debug_config.disable_module(module_name)
 def module_is_enabled(module_name: str)->bool:
     return _debug_config.module_is_enabled(module_name)
 def check_caller_is_enabled(calling_module: str)->bool:
