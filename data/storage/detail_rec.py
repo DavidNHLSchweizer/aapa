@@ -41,6 +41,7 @@ class DetailRecCRUDs:
         detail_items = []
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
         details_crud = self.cruds.get_crud(detail_class_type)
+        log_debug('CREATE DETAILS')
         for item in aggregator.as_list(detail_class_type):            
             details_crud._create_key_if_needed(item)
             if not details_crud._check_already_there(item):
@@ -49,6 +50,7 @@ class DetailRecCRUDs:
         crud = self.cruds.get_crud(detail_rec_type)
         for detail in detail_items:
             crud.create(detail)
+        log_debug('END CREATE DETAILS')
     def read(self, aapa_obj: StoredClass):
         for details in self.detail_rec_data:
             self.__read_details( getattr(aapa_obj, 'id'), 
@@ -82,6 +84,7 @@ class DetailRecCRUDs:
         column_names = crud.mapper._get_columns_from_attributes(['main_key', 'detail_key'])
         where = crud.query_builder.build_where_from_values([column_names[0]], [main_id], 
                                                flags={QIF.NO_MAP_VALUES})
+        log_debug('DELETE DETAILS')
         for row in crud.query_builder.find_all_temp([column_names[1]], where=where):
             item = details_crud.read(row[0])
             crud.delete(item)

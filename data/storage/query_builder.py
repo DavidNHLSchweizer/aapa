@@ -63,11 +63,11 @@ class QueryBuilder:
         self.database = database
         self.mapper = mapper
         self.query_info = QueryInfo(mapper)
-    def find_id_from_object(self, aapa_obj: StoredClass, attributes: list[str] = None)->list[int]:
+    def find_id_from_object(self, aapa_obj: StoredClass, attributes: list[str] = None, flags={QIF.ATTRIBUTES})->list[int]:
         attributes = attributes if attributes else self.mapper.attributes(include_key = False)
-        return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags={QIF.ATTRIBUTES}))
-    def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]])->list[int]:
-        return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags={QIF.ATTRIBUTES}))
+        return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags=flags))
+    def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]], flags={QIF.ATTRIBUTES})->list[int]:
+        return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags=flags))
     def find_value(self, attribute: str, value: Any)->StoredClass:
         log_debug(f'find value: {attribute}  {value}')
         return self.find_id_from_values([attribute], [value])
@@ -78,7 +78,7 @@ class QueryBuilder:
         if row:= self.database.execute_select(sql):
             return row[0][0]
         return None 
-    def find_id(self, where:SQE = None):
+    def find_id(self):
         return self.__find_id()
     def find_all_temp(self, columns: list[str], where: SQE)->list[Any]:
         sql = SQLselect(self.mapper.table, columns=columns, where=where)

@@ -109,7 +109,13 @@ class Database:
                 self.log_info(string)
                 c.execute('' + string + '')
             if return_values:
-                return c.fetchall()
+                result = c.fetchall()
+                if result:
+                    for rows in result:
+                        log_debug(f'Queryresult:({len(rows)})')
+                        values = ",".join([str(r) for r in rows])
+                        log_debug(f'\t{values}')
+                return result
         except sql3.Error as e:
             self.log_error('***ERROR***: '+str(e))
             if self.raise_error:

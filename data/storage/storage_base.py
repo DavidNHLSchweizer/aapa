@@ -95,8 +95,12 @@ class StorageBase:
         self.__check_valid(aapa_obj, f"{classname(self)}.update")
         self.__create_references(aapa_obj)
         self.crud.update(aapa_obj)
+        if self.details:
+            self.details.update(aapa_obj)
     def delete(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.delete")
+        if self.details:
+            self.details.delete(aapa_obj)
         self.crud.delete(aapa_obj)
     def __create_references(self, aapa_obj: StoredClass):
         for mapper in self.mapper.mappers():

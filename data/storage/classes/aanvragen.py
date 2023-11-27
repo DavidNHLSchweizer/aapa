@@ -48,6 +48,21 @@ class AanvragenStorage(MilestonesStorage):
                                                                     )
         log_debug(f'FIND VERSIE EINDE {result}')
         return result
+    def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
+        if aanvraag.versie == 1:
+            return None
+        qb = self.query_builder
+        stud_crud = self.get_crud(Student)
+        stud_crud.ensure_key(aanvraag.student) 
+        log_debug('FIND PREVIOUS')
+        if ids := qb.find_id_from_values(['versie', 'student'], 
+                                         [aanvraag.versie-1, aanvraag.student.id], 
+                                         flags={QIF.ATTRIBUTES,QIF.NO_MAP_VALUES}):
+            result = self.read(ids[0])
+            log_debug(f'ding dong previous: {result}')
+            return result
+
+        
     
 class AanvragenFilesDetailRec(DetailRec): pass
 class AanvragenFilesTableMapper(DetailsRecTableMapper):
