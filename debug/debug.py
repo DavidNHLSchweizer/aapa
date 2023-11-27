@@ -4,7 +4,7 @@ from general.classutil import find_calling_module
 from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
 
-class ModuleData:
+class _ModuleData:
     def __init__(self, module_name: str, enabled: bool = True):
         if (root_loc := module_name.find('*')) != -1:
             self.module_name = module_name[:root_loc-1 ]
@@ -15,11 +15,12 @@ class ModuleData:
         if not self.enabled:
             return False
         return module_name[:len(module_name)] == self.module_name
-class ModuleInfo(list[ModuleData]):
+    
+class _ModuleInfo(list[_ModuleData]):
     def add(self, module_name: str, enabled: bool=True):
-        self.append(ModuleData(module_name, enabled=enabled))
+        self.append(_ModuleData(module_name, enabled=enabled))
         self.sort(key=lambda m: (m.module_name, len(m.module_name)), reverse=True)
-    def _find(self, module_name:str)->ModuleData:
+    def _find(self, module_name:str)->_ModuleData:
         for data in self:
             if module_name == data.module_name or module_name.find(data.module_name) == 0:
                 return data
@@ -32,12 +33,12 @@ class ModuleInfo(list[ModuleData]):
 
 class DebugConfig(Singleton):
     def __init__(self):
-        self.info = ModuleInfo()
+        self.info = _ModuleInfo()
         self.info.add('__main__')
     def enabled_loggers(self)->list[str]:
-        return [data.module_name for data in self.info if data.enabled]
+        return [info.module_name for info in self.info if info.enabled]
     def disabled_loggers(self)->list[str]:
-        return [data.module_name for data in self.info if not data.enabled]
+        return [info.module_name for info in self.info if not info.enabled]
     def read(self, filename: str)->bool:
         DISABLED = "[DISABLED]"
         ENABLED = "[ENABLED]"
