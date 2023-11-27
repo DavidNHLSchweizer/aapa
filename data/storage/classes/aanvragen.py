@@ -60,10 +60,8 @@ class AanvragenStorage(MilestonesStorage):
                                          flags={QIF.ATTRIBUTES,QIF.NO_MAP_VALUES}):
             result = self.read(ids[0])
             log_debug(f'ding dong previous: {result}')
-            return result
+            return result    
 
-        
-    
 class AanvragenFilesDetailRec(DetailRec): pass
 class AanvragenFilesTableMapper(DetailsRecTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):

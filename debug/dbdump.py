@@ -1,6 +1,8 @@
-from database.SQLtable import SQLselect
+import sqlite3 as sql3
+from typing import Any
 from database.database import Database, Schema
-from database.tabledef import TableDefinition
+from database.sql_table import SQLselect
+from database.table_def import TableDefinition
 from general.log import log_info
 
 class DatabaseDumper:
@@ -17,6 +19,10 @@ class DatabaseDumper:
         for table in self.tables:
             if table.table_name == table_name:
                 self._DumpTable(table, include_schema)
+    @staticmethod
+    def convert_row(row: sql3.Row)->list[Any]:
+        return [row[key] for key in row.keys()]
+
     def _DumpTable(self, table: TableDefinition, include_schema = False):
         if include_schema:
             print(table)
@@ -25,5 +31,5 @@ class DatabaseDumper:
         log_info(f'dumping {table.tablename}')
         sql = SQLselect(table)
         for record in self.database._execute_sql_command(sql.query, parameters=sql.parameters, return_values=True):
-            print(list(record))
+            print(DatabaseDumper.convert_row(record))
         log_info(f'end dumping {table.tablename}')

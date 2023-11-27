@@ -1,6 +1,7 @@
 from __future__ import annotations
 from contextlib import contextmanager
 import sqlite3 as sql3
+from typing import Any
 import database.dbConst as dbc
 from database.table_def import TableDefinition
 from database.view_def import ViewDefinition
@@ -10,6 +11,7 @@ from database.sql_table import SQLTablebase, SQLdelete, SQLinsert, SQLselect, SQ
 from database.sql_expr import Ops, SQE
 from general.fileutil import file_exists
 from general.log import log_debug, log_error, log_exception, log_info
+from general.singular_or_plural import sop
 
 class DatabaseException(Exception): pass
 
@@ -69,6 +71,9 @@ class Database:
             for view in schema.views():
                 self.drop_view(view)
             self.commit()
+    @staticmethod
+    def convert_row(row: sql3.Row)->list[Any]:
+        return [row[key] for key in row.keys()]
     def log_info(self, str):
         log_info(f'DB:{one_line(str)}')
     def log_error(self, str):
@@ -110,11 +115,10 @@ class Database:
                 c.execute('' + string + '')
             if return_values:
                 result = c.fetchall()
+                log_debug(f'\tQuery result: {sop(len(result), "row", "rows")}')
                 if result:
-                    for rows in result:
-                        log_debug(f'Queryresult:({len(rows)})')
-                        values = ",".join([str(r) for r in rows])
-                        log_debug(f'\t{values}')
+                    for n,row in enumerate(result):
+                        log_debug(f'\t{n}: {self.convert_row(row)}')
                 return result
         except sql3.Error as e:
             self.log_error('***ERROR***: '+str(e))
