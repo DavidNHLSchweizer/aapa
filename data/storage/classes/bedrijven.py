@@ -6,6 +6,6 @@ from database.database import Database
 
 class BedrijvenStorage(StorageBase):
     def __init__(self, database: Database):
-        super().__init__(database, Bedrijf, autoID=True)   
+        super().__init__(database, Bedrijf)   
 
 register_table(class_type=Bedrijf, table=BedrijfTableDefinition(), autoID=True)

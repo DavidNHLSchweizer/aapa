@@ -5,7 +5,6 @@ from data.classes.detail_rec import DetailRec, DetailRecs
 from data.storage.mappers import TableMapper
 from data.storage.storage_base import StorageBase
 from data.storage.storage_const import StoredClass
-from data.storage.storage_crud import StorageCRUD
 from data.storage.table_registry import ClassAggregatorData
 from database.database import Database
 from database.table_def import TableDefinition
@@ -15,7 +14,7 @@ class AggregatorStorage(StorageBase):
     def __init__(self, database: Database, class_type: StoredClass, table: TableDefinition, 
                     aggregator_data: ClassAggregatorData):
         super().__init__(database, class_type=class_type, table=table)
-        self.sub_crud = StorageCRUD(database, class_type=aggregator_data.aggregator.get_class_type(aggregator_data.attribute))
+        self.sub_crud = CRUD(database, class_type=aggregator_data.aggregator.get_class_type(aggregator_data.attribute))
         self.main_table_key = aggregator_data.main_table_key
         self.attribute = aggregator_data.attribute
     def __create_detail_rec(self, aapa_obj: StoredClass, associated_obj: StoredClass)->DetailRec:        

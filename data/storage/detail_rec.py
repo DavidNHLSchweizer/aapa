@@ -6,7 +6,7 @@ from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
 from data.storage.storage_const import StoredClass, StorageException
-from data.storage.storage_crud import CRUDs, StorageCRUD
+from data.storage.table_registry import CRUD
 from database.database import Database
 from database.table_def import TableDefinition
 from general.classutil import classname
@@ -24,12 +24,11 @@ class DetailsRecTableMapper(TableMapper):
             case self.detail_key: return ColumnMapper(column_name,attribute_name='detail_key')
             case  _: super()._init_column_mapper(column_name, database)
    
-class DetailRecCRUDs:
-    def __init__(self, database: Database, main_class_type: AAPAclass, detail_rec_data:list[DetailRecData]):
+class DetailRecStorage(CRUD):
+    def __init__(self, database: Database, main_class_type: AAPAclass):
         self.main_class_type = main_class_type
-        self.detail_rec_data = detail_rec_data
+        self.detail_rec_data = self.data.detail_rec_data
         self.database = database
-        self.cruds = CRUDs(database, self.main_class_type)   
     def create(self, aapa_obj: StoredClass):
         log_debug(f'DRC: CREATE ({classname(aapa_obj)}: {str(aapa_obj)})')
         for details in self.detail_rec_data:

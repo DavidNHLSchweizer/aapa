@@ -6,12 +6,12 @@ from data.aapa_database import AanvraagTableDefinition, StudentMilestonesTableDe
 from data.classes.files import File, Files
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
+from data.storage.CRUDbase import CRUD, createCRUD
 from data.storage.mappers import ColumnMapper, TableMapper, TimeColumnMapper
-from data.storage.storage_base import CRUDColumnMapper, StorageBase
+from data.storage.simple_crud import CRUDColumnMapper
+from data.storage.storage_base import StorageBase
 from data.storage.storage_const import StoredClass
-from data.storage.storage_crud import StorageCRUD
 from database.database import Database
-from database.table_def import TableDefinition
 from general.log import log_debug
 
 class MilestonesTableMapper(TableMapper):
@@ -19,23 +19,23 @@ class MilestonesTableMapper(TableMapper):
         match column_name:
             case 'datum': return TimeColumnMapper(column_name)
             case 'stud_id': 
-                return CRUDColumnMapper('stud_id', attribute_name='student', crud=StorageCRUD(database, Student))
+                return CRUDColumnMapper('stud_id', attribute_name='student', crud=createCRUD(database, Student))
             case 'bedrijf_id': 
-                return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=StorageCRUD(database, Bedrijf))
+                return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(database, Bedrijf))
             case _: return super()._init_column_mapper(column_name, database)
 
 class MilestonesStorage(StorageBase):
     def __init__(self, database: Database, class_type: StoredClass):
-        super().__init__(database, class_type, autoID=True)
+        super().__init__(database, class_type)
     # semi-abstract base class for AANVRAGEN and VERSLAGEN, handles the common parts
-    def __load(self, milestone_id: int, filetypes: set[File.Type], crud_files: StorageCRUD)->Iterable[File]:
-        log_debug(f'__load: {classname(self)} - {milestone_id}: {filetypes}')
-        self.get_crud(File)
-        if file_IDs := crud_files.query_builder.find_id_from_values(attributes=['aanvraag_id', 'filetype'], values = [milestone_id, filetypes]):
-            log_debug(f'found: {file_IDs}')
-            result = [crud_files.read(id) for id in file_IDs]
-            return result
-        return []
+    # def __load(self, milestone_id: int, filetypes: set[File.Type], crud_files: CRUD)->Iterable[File]:
+    #     log_debug(f'__load: {classname(self)} - {milestone_id}: {filetypes}')
+    #     self.get_crud(File)
+    #     if file_IDs := crud_files.query_builder.find_id_from_values(attributes=['aanvraag_id', 'filetype'], values = [milestone_id, filetypes]):
+    #         log_debug(f'found: {file_IDs}')
+    #         result = [crud_files.read(id) for id in file_IDs]
+    #         return result
+    #     return []
     # def find_all(self, aanvraag_id: int)->Files:
     #     log_debug('find_all')
     #     result = Files(aanvraag_id)        

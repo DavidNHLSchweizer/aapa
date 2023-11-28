@@ -1,15 +1,12 @@
-RELAX, obsdoleth
 from __future__ import annotations
 from typing import Any
 from data.storage.CRUDbase import CRUD
-from data.storage.mappers import ColumnMapper, TableMapper
-from data.storage.query_builder import QIF, QueryBuilder
-from data.storage.table_registry import class_data
-from data.storage.storage_const import DBtype, StorageException, StoredClass, KeyClass
+from data.storage.mappers import ColumnMapper
+from data.storage.query_builder import QIF
+from data.storage.storage_const import DBtype, StoredClass, KeyClass
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops
-from database.table_def import TableDefinition
 from general.classutil import classname
 from general.keys import get_next_key
 from general.log import log_debug
@@ -26,18 +23,6 @@ class CRUDColumnMapper(ColumnMapper):
 
 class SimpleCRUD(CRUD):
     #basic CRUD operations on one table
-    def __init__(self, database: Database, class_type: StoredClass):
-        data = class_data(class_type)
-        self.database = database        
-        self.autoID = data.autoID
-        self.mapper = data.mapper_type(database, data.table, class_type) if data.mapper_type else TableMapper(database, data.table, class_type)
-        self.query_builder = QueryBuilder(self.database, self.mapper)
-    @property
-    def table(self)->TableDefinition:
-        return self.mapper.table
-    @property
-    def class_type(self)->StoredClass:
-        return self.mapper.class_type
     def _check_already_there(self, aapa_obj: StoredClass)->bool:
         if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
             log_debug(f'--- already in database ----')                
@@ -57,7 +42,7 @@ class SimpleCRUD(CRUD):
         columns,values = self.mapper.object_to_db(aapa_obj)
         self.database.create_record(self.table, columns=columns, values=values)
         log_debug(f'END CRUD CREATE')
-    def read(self, key: KeyClass|list[KeyClass], multiple=False)->StoredClass|list:
+    def read(self, key: KeyClass|list[KeyClass])->StoredClass|list:
         log_debug(f'CRUD READ ({classname(self)}|{self.table.name}) {classname(self.class_type)}:{key=}')
         result = None
         if isinstance(key,list):
@@ -66,11 +51,7 @@ class SimpleCRUD(CRUD):
         else:
             where = SQE(self.table.key, Ops.EQ, self.mapper.value_to_db(key, self.table.key))
         if rows := self.database.read_record(self.table, where=where):
-            if multiple:
-                result = rows # deal with this later!
-                raise StorageException('deal with this now!')                                       
-            else:
-                result = self.mapper.db_to_object(rows[0])
+            result = self.mapper.db_to_object(rows[0])
         log_debug(f'END CRUD READ: {str(result)}')
         return result
     def update(self, aapa_obj: StoredClass):

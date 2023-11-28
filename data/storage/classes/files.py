@@ -107,7 +107,7 @@ class FilesTableMapper(TableMapper):
 
 class FilesStorage(StorageBase):
     def __init__(self, database: Database):
-        super().__init__(database, File, autoID=True)
+        super().__init__(database, class_type=File)
         # self.sync_strategy = FileSync(self)
     def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
         log_debug(f'find_all_for_filetype {filetypes}')

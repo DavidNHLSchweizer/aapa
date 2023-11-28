@@ -4,7 +4,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.classes.studenten import Student
-from data.storage.detail_rec import DetailsRecTableMapper
+from data.storage.detail_rec import DetailRecStorage, DetailsRecTableMapper
 from data.storage.mappers import ColumnMapper
 from data.storage.query_builder import QIF
 from data.storage.table_registry import register_table
@@ -66,13 +66,15 @@ class AanvragenFilesTableMapper(DetailsRecTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
         super().__init__(database, table, class_type, 'aanvraag_id','file_id')
 
-register_table(class_type=Aanvraag, table=AanvraagTableDefinition(), mapper_type=AanvragenTableMapper,              
+register_table(class_type=Aanvraag, table=AanvraagTableDefinition(), mapper_type=AanvragenTableMapper, 
+               crud=AanvragenStorage,             
                 details_data=
                     [DetailRecData(aggregator_name='files', detail_aggregator_key='files', 
                                    detail_rec_type=AanvragenFilesDetailRec),
                     ],
                 autoID=True)
 register_table(class_type=AanvragenFilesDetailRec, table=AanvraagFilesTableDefinition(), 
+               crud=DetailRecStorage,             
                mapper_type=AanvragenFilesTableMapper,
                autoID=True)
 

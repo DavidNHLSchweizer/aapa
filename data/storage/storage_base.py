@@ -1,12 +1,13 @@
 from typing import Any
 from data.classes.aapa_class import AAPAclass
 from data.classes.detail_rec import DetailRec
-from data.storage.detail_rec import DetailRecCRUDs
+from data.storage.CRUDbase import CRUD, CRUDs
+from data.storage.detail_rec import DetailRecStorage
+from data.storage.simple_crud import CRUDColumnMapper, SimpleCRUD
 from data.storage.storage_const import StorageException, StoredClass, DBtype,KeyClass
 from data.storage.table_registry import class_data
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QueryBuilder
-from data.storage.storage_crud import CRUDs, StorageCRUD
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.table_def import TableDefinition
@@ -14,36 +15,17 @@ from general.classutil import classname
 from general.keys import get_next_key
 from general.log import log_debug
 
-class CRUDColumnMapper(ColumnMapper):
-    def __init__(self, column_name: str, attribute_name:str, crud: StorageCRUD, attribute_key:str='id'):
-        super().__init__(column_name=column_name, attribute_name=attribute_name)
-        self.crud = crud
-        self.attribute_key = attribute_key
-    def map_value_to_db(self, value: StoredClass)->DBtype:
-        return getattr(value, self.attribute_key, None)
-    def map_db_to_value(self, db_value: DBtype)->Any:
-        return self.crud.read(db_value)
-
-class StorageBase:
-    def __init__(self, database: Database, class_type: StoredClass, autoID=False):
-        self.database = database
-        self.autoID = autoID
-        data = class_data(class_type)
-        self.mapper = data.mapper_type(database, data.table, class_type) if data.mapper_type else TableMapper(database, data.table, class_type) 
+class StorageBase(SimpleCRUD):
+    def __init__(self, database: Database, class_type: StoredClass):
+        super().__init__(database, class_type)
         self.cruds = CRUDs(database, class_type)
         self._crud = self.cruds.get(class_type) 
-        self.details = DetailRecCRUDs(database, class_type, data.details_data) if data.details_data else None
+        self.details = DetailRecStorage(database, class_type, self.data.details_data) if self.data.details_data else None
     @property
-    def crud(self)->StorageCRUD:
+    def crud(self)->CRUD:
         return self._crud
-    def get_crud(self, class_type: AAPAclass|DetailRec)->StorageCRUD:
+    def get_crud(self, class_type: AAPAclass|DetailRec)->CRUD:
         return self.cruds.get_crud(class_type)
-    @property
-    def query_builder(self)->QueryBuilder:
-        return self.crud.query_builder
-    @property
-    def table(self)->TableDefinition:
-        return self.mapper.table
     def customize_mapper(self, mapper: TableMapper):
         pass #for non-standard column mappers, define this in subclass
     def __check_valid(self, aapa_obj, msg: str):
@@ -128,6 +110,9 @@ class StorageBase:
         return None
     def max_id(self)->int:
         return self.query_builder.find_max_id()    
+
+
+
     # def find_keys(self, column_names: list[str], values: list[Any])->list[int]:
     #     return []# self.crud.find_keys(column_names, values) TBD
     # def find(self, column_names: list[str], column_values: list[Any])->AAPAClass|list[AAPAClass]:

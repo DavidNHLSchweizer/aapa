@@ -13,7 +13,7 @@ class BasedirsTableMapper(TableMapper):
     
 class BasedirsStorage(StorageBase):
     def __init__(self, database: Database):
-        super().__init__(database, BaseDir, autoID=True)   
+        super().__init__(database, BaseDir)   
     def find_base_dir(self, directory: str)->BaseDir:
         return self.find_value('directory', directory)
 

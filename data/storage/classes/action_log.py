@@ -33,7 +33,7 @@ class ActionlogTableMapper(TableMapper):
 
 class ActionlogStorage(StorageBase):
     def __init__(self, database: Database):
-        super().__init__(database, class_type=ActionLog, autoID=True)
+        super().__init__(database, class_type=ActionLog)
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id == EMPTY_ID:
             # id = self.query_builder.find_max_id()
