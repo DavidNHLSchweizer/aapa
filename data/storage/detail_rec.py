@@ -5,6 +5,7 @@ from data.classes.aggregator import Aggregator
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF
+from data.storage.simple_crud import SimpleCRUD
 from data.storage.storage_const import StoredClass, StorageException
 from data.storage.table_registry import CRUD
 from database.database import Database
@@ -24,7 +25,7 @@ class DetailsRecTableMapper(TableMapper):
             case self.detail_key: return ColumnMapper(column_name,attribute_name='detail_key')
             case  _: super()._init_column_mapper(column_name, database)
    
-class DetailRecStorage(CRUD):
+class DetailRecStorage(SimpleCRUD):
     def __init__(self, database: Database, main_class_type: AAPAclass):
         super().__init__(database, main_class_type)
         self.main_class_type = main_class_type
@@ -51,9 +52,9 @@ class DetailRecStorage(CRUD):
             if not details_crud._check_already_there(item):
                 details_crud.create(item)
             detail_items.append(detail_rec_type(main_key=main_id, detail_key=item.id))
-        crud = self.get_crud(detail_rec_type)
+        # crud = self.get_crud(detail_rec_type)
         for detail in detail_items:
-            crud.create(detail)
+            super().create(detail)
         log_debug('DRC: END CREATE DETAILS')
     def read(self, aapa_obj: StoredClass):
         log_debug(f'DRC: START READ ({classname(aapa_obj)}: {str(aapa_obj)})')
