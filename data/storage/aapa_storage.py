@@ -1,5 +1,13 @@
 from __future__ import annotations
+
 from data.aapa_database import create_root
+from data.classes.aanvragen import Aanvraag
+from data.classes.action_log import ActionLog
+from data.classes.base_dirs import BaseDir
+from data.classes.bedrijven import Bedrijf
+from data.classes.files import File
+from data.classes.studenten import Student
+from data.classes.verslagen import Verslag
 from data.storage.classes.action_log import ActionlogStorage
 from data.storage.classes.aanvragen import AanvragenStorage
 from data.storage.classes.bedrijven import BedrijvenStorage
@@ -7,6 +15,7 @@ from data.storage.classes.base_dirs import BasedirsStorage
 from data.storage.classes.files import FilesStorage
 from data.storage.classes.studenten import StudentenStorage
 from data.storage.classes.verslagen import VerslagenStorage
+from data.storage.table_registry import CRUDs
 from database.database import Database
 from data.roots import add_root, encode_path
 
@@ -387,13 +396,14 @@ class AAPAStorage:
     #main interface with the database
     def __init__(self, database: Database):
         self.database: Database = database
-        self.aanvragen = AanvragenStorage(database)
-        self.files = FilesStorage(database)
-        self.action_logs = ActionlogStorage(database)
-        self.verslagen = VerslagenStorage(database)
-        self.basedirs = BasedirsStorage(database)
-        self.bedrijven = BedrijvenStorage(database)
-        self.studenten = StudentenStorage(database)
+        self._cruds  = CRUDs(database)
+        self.aanvragen = self._cruds.get_crud(Aanvraag)
+        self.bedrijven = self._cruds.get_crud(Bedrijf)
+        self.action_logs = self._cruds.get_crud(ActionLog)
+        self.files = self._cruds.get_crud(File)
+        self.verslagen = self._cruds.get_crud(Verslag)
+        self.basedirs = self._cruds.get_crud(BaseDir)
+        self.studenten = self._cruds.get_crud(Student)
     def add_file_root(self, root: str, code = None)->str:
         encoded_root = encode_path(root)
         code = add_root(encoded_root, code)

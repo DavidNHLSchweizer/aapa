@@ -26,12 +26,13 @@ class DetailsRecTableMapper(TableMapper):
    
 class DetailRecStorage(CRUD):
     def __init__(self, database: Database, main_class_type: AAPAclass):
+        super().__init__(database, main_class_type)
         self.main_class_type = main_class_type
-        self.detail_rec_data = self.data.detail_rec_data
+        self.details_data = self.data.details_data
         self.database = database
     def create(self, aapa_obj: StoredClass):
         log_debug(f'DRC: CREATE ({classname(aapa_obj)}: {str(aapa_obj)})')
-        for details in self.detail_rec_data:
+        for details in self.details_data:
             self.__create_details(getattr(aapa_obj, 'id'), 
                                   getattr(aapa_obj, details.aggregator_name),
                                   details.detail_aggregator_key,
@@ -44,19 +45,19 @@ class DetailRecStorage(CRUD):
         log_debug(f'DRC: CREATE DETAILS [{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
         detail_items = []
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
-        details_crud = self.cruds.get_crud(detail_class_type)
+        details_crud = self.get_crud(detail_class_type)
         for item in aggregator.as_list(detail_class_type):            
             details_crud._create_key_if_needed(item)
             if not details_crud._check_already_there(item):
                 details_crud.create(item)
             detail_items.append(detail_rec_type(main_key=main_id, detail_key=item.id))
-        crud = self.cruds.get_crud(detail_rec_type)
+        crud = self.get_crud(detail_rec_type)
         for detail in detail_items:
             crud.create(detail)
         log_debug('DRC: END CREATE DETAILS')
     def read(self, aapa_obj: StoredClass):
         log_debug(f'DRC: START READ ({classname(aapa_obj)}: {str(aapa_obj)})')
-        for details in self.detail_rec_data:
+        for details in self.details_data:
             self.__read_details( getattr(aapa_obj, 'id'), 
                                  getattr(aapa_obj, details.aggregator_name),
                                  details.detail_aggregator_key,
@@ -66,8 +67,8 @@ class DetailRecStorage(CRUD):
                           detail_aggregator_key: str, detail_rec_type: Type[DetailRec]): 
         log_debug(f'DRC: READ DETAILS [{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
-        details_crud = self.cruds.get_crud(detail_class_type)
-        crud = self.cruds.get_crud(detail_rec_type)
+        details_crud = self.get_crud(detail_class_type)
+        crud = self.get_crud(detail_rec_type)
         column_names = crud.mapper._get_columns_from_attributes(['main_key', 'detail_key'])
         where = crud.query_builder.build_where_from_values([column_names[0]], [main_id], 
                                                flags={QIF.NO_MAP_VALUES})
@@ -81,7 +82,7 @@ class DetailRecStorage(CRUD):
         log_debug('DRC: END UPDATE')
     def delete(self, aapa_obj: StoredClass):
         log_debug(f'DRC: DELETE ({classname(aapa_obj)}: {str(aapa_obj)})')
-        for details in self.detail_rec_data:
+        for details in self.details_data:
             self.__delete_details( getattr(aapa_obj, 'id'), 
                                  getattr(aapa_obj, details.aggregator_name),
                                  details.detail_aggregator_key,
@@ -91,8 +92,8 @@ class DetailRecStorage(CRUD):
                             detail_aggregator_key: str, detail_rec_type: Type[DetailRec]):                          
         log_debug(f'DRC: DELETE DETAILS [{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
-        details_crud = self.cruds.get_crud(detail_class_type)
-        crud = self.cruds.get_crud(detail_rec_type)
+        details_crud = self.get_crud(detail_class_type)
+        crud = self.get_crud(detail_rec_type)
         column_names = crud.mapper._get_columns_from_attributes(['main_key', 'detail_key'])
         # column_names = ['main_key', 'detail_key']
         where = crud.query_builder.build_where_from_values([column_names[0]], [main_id], flags={QIF.NO_MAP_VALUES})

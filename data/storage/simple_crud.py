@@ -1,9 +1,10 @@
 from __future__ import annotations
 from typing import Any
-from data.storage.CRUDbase import CRUD
+
 from data.storage.mappers import ColumnMapper
 from data.storage.query_builder import QIF
 from data.storage.storage_const import DBtype, StoredClass, KeyClass
+from data.storage.table_registry import CRUD
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops

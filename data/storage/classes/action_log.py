@@ -2,7 +2,7 @@ from __future__ import annotations
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
 from data.classes.action_log  import ActionLog
 from data.classes.detail_rec import DetailRec, DetailRecData
-from data.storage.detail_rec import DetailsRecTableMapper
+from data.storage.detail_rec import DetailRecStorage, DetailsRecTableMapper
 from data.storage.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.table_registry import register_table
 from data.storage.storage_base import StorageBase
@@ -32,8 +32,8 @@ class ActionlogTableMapper(TableMapper):
             case _: return super()._init_column_mapper(column_name, database)
 
 class ActionlogStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, class_type=ActionLog)
+    # def __init__(self, database: Database):
+    #     super().__init__(database, class_type=ActionLog)
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id == EMPTY_ID:
             # id = self.query_builder.find_max_id()
@@ -49,6 +49,7 @@ class ActionlogStorage(StorageBase):
 action_log_table = ActionLogTableDefinition()
 register_table(class_type=ActionLog, table=action_log_table, 
                mapper_type=ActionlogTableMapper, 
+               crud=ActionlogStorage,
                 details_data=
                     [
                         DetailRecData(aggregator_name='_data', detail_aggregator_key='aanvragen', 
@@ -58,6 +59,8 @@ register_table(class_type=ActionLog, table=action_log_table,
                     ],
                autoID=True)
 register_table(class_type=ActionlogAanvragenDetailRec, table=ActionLogAanvragenTableDefinition(),
+               crud=DetailRecStorage,
                     mapper_type=ActionlogAanvragenTableMapper)
 register_table(class_type=ActionlogInvalidFilesDetailRec, table=ActionLogFilesTableDefinition(), 
+               crud=DetailRecStorage,
                     mapper_type=ActionlogInvalidFilesTableMapper)

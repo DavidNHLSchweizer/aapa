@@ -12,9 +12,9 @@ class BasedirsTableMapper(TableMapper):
             case  _: super()._init_column_mapper(column_name, database)
     
 class BasedirsStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, BaseDir)   
+    # def __init__(self, database: Database):
+    #     super().__init__(database, BaseDir)   
     def find_base_dir(self, directory: str)->BaseDir:
         return self.find_value('directory', directory)
 
-register_table(class_type=BaseDir, table=BaseDirsTableDefinition(),  mapper_type = BasedirsTableMapper, autoID=True)
+register_table(class_type=BaseDir, table=BaseDirsTableDefinition(),  crud=BasedirsStorage, mapper_type = BasedirsTableMapper, autoID=True)

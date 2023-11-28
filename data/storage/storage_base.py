@@ -1,11 +1,10 @@
 from typing import Any
 from data.classes.aapa_class import AAPAclass
 from data.classes.detail_rec import DetailRec
-from data.storage.CRUDbase import CRUD, CRUDs
 from data.storage.detail_rec import DetailRecStorage
 from data.storage.simple_crud import CRUDColumnMapper, SimpleCRUD
 from data.storage.storage_const import StorageException, StoredClass, DBtype,KeyClass
-from data.storage.table_registry import class_data
+from data.storage.table_registry import _class_data
 from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QueryBuilder
 from database.database import Database
@@ -18,16 +17,8 @@ from general.log import log_debug
 class StorageBase(SimpleCRUD):
     def __init__(self, database: Database, class_type: StoredClass):
         super().__init__(database, class_type)
-        self.cruds = CRUDs(database, class_type)
-        self._crud = self.cruds.get(class_type) 
-        self.details = DetailRecStorage(database, class_type, self.data.details_data) if self.data.details_data else None
-    @property
-    def crud(self)->CRUD:
-        return self._crud
-    def get_crud(self, class_type: AAPAclass|DetailRec)->CRUD:
-        return self.cruds.get_crud(class_type)
-    def customize_mapper(self, mapper: TableMapper):
-        pass #for non-standard column mappers, define this in subclass
+        self._crud = self.get_crud(class_type) 
+        self.details = DetailRecStorage(database, class_type) if self.data.details_data else None
     def __check_valid(self, aapa_obj, msg: str):
         if not isinstance(aapa_obj, StoredClass):
             raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')
@@ -57,33 +48,33 @@ class StorageBase(SimpleCRUD):
     def create(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.create")
         self.__create_references(aapa_obj)        
-        if self.crud._check_already_there(aapa_obj):
+        if self._check_already_there(aapa_obj):
             return
         #TODO adapt for multiple keys
         self.__create_key_if_needed(aapa_obj, self.table, self.autoID)
-        self.crud.create(aapa_obj)
+        super().create(aapa_obj)
         if self.details:
             self.details.create(aapa_obj)
     @staticmethod #TODO remove duplication with StorageCRUD
     def __create_key_if_needed(aapa_obj: StoredClass, table: TableDefinition, autoID=False):
         if autoID and getattr(aapa_obj, table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, table.key, get_next_key(table.name))
-    def read(self, key: KeyClass, multiple=False)->StoredClass|list:
-        result = self.crud.read(key, multiple=multiple)        
+    def read(self, key: KeyClass)->StoredClass|list:
+        result = super().read(key)        
         if result and self.details:
             self.details.read(result)
         return result
     def update(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.update")
         self.__create_references(aapa_obj)
-        self.crud.update(aapa_obj)
+        super().update(aapa_obj)
         if self.details:
             self.details.update(aapa_obj)
     def delete(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.delete")
         if self.details:
             self.details.delete(aapa_obj)
-        self.crud.delete(aapa_obj)
+        super().delete(aapa_obj)
     def __create_references(self, aapa_obj: StoredClass):
         for mapper in self.mapper.mappers():
             if isinstance(mapper, CRUDColumnMapper):

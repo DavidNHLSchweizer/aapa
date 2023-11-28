@@ -21,6 +21,44 @@ class ClassRegistryData:
     details_data: DetailRecData 
     crud: Type[CRUD]
 
+class CRUDs(dict):
+    # utility class to access one or more associated cruds
+    # any cruds are created as needed 
+    # (for e.g. associated class types such as Milestone.student, or detail tables)
+    def __init__(self, database: Database):
+        self.database=database
+    def get_crud(self, class_type: StoredClass)->CRUD:
+        if not (crud := self.get(class_type, None)):
+            crud = create_crud(self.database, class_type)
+        self[class_type] = crud
+        return crud
+
+class CRUD:
+    def __init__(self, database: Database, class_type: StoredClass):
+        self.data = _class_data(class_type)
+        self.database = database        
+        self.autoID = self.data.autoID
+        self.mapper = self.data.mapper_type(database, self.data.table, class_type) if self.data.mapper_type \
+                                                            else TableMapper(database, self.data.table, class_type)
+        self.query_builder = QueryBuilder(self.database, self.mapper)
+        self._cruds = CRUDs(database)
+    @property
+    def table(self)->TableDefinition:
+        return self.mapper.table
+    @property
+    def class_type(self)->StoredClass:
+        return self.mapper.class_type   
+    def get_crud(self, class_type)->CRUD:
+        return self if class_type == self.class_type else self._cruds.get_crud(class_type)
+    @abstractmethod
+    def create(self, aapa_obj: StoredClass): pass
+    @abstractmethod
+    def read(self, key: KeyClass|list[KeyClass])->StoredClass: pass
+    @abstractmethod
+    def update(self, aapa_obj: StoredClass): pass
+    @abstractmethod
+    def delete(self, aapa_obj: StoredClass): pass
+
 # (self, database: Database, class_type: AAPAClass, table: TableDefinition, autoID=False):
 class TableRegistry(Singleton):
     def __init__(self):
@@ -47,48 +85,11 @@ class TableRegistry(Singleton):
 
 _table_registry = TableRegistry()
 
-class CRUDs(dict):
-    # utility class to access one or more associated cruds
-    # any cruds are created as needed 
-    # (for e.g. associated class types such as Milestone.student, or detail tables)
-    def __init__(self, database: Database):
-        self.database=database
-    def get_crud(self, class_type: StoredClass)->CRUD:
-        if not (crud := self.get(class_type, None)):
-            crud = create_crud(self.database, class_type)
-        self[class_type] = crud
-        return crud
-
-class CRUD:
-    def __init__(self, database: Database, class_type: StoredClass):
-        self.data = class_data(class_type)
-        self.database = database        
-        self.autoID = self.data.autoID
-        self.mapper = self.data.mapper_type(database, self.data.table, class_type) if self.data.mapper_type \
-                                                            else TableMapper(database, self.data.table, class_type)
-        self.query_builder = QueryBuilder(self.database, self.mapper)
-        self._cruds = CRUDs(database)
-    @property
-    def table(self)->TableDefinition:
-        return self.mapper.table
-    @property
-    def class_type(self)->StoredClass:
-        return self.mapper.class_type   
-    def get_crud(self, class_type)->CRUD:
-        return self if class_type == self.class_type else self._cruds.get_crud(class_type)
-    @abstractmethod
-    def create(self, aapa_obj: StoredClass): pass
-    @abstractmethod
-    def read(self, key: KeyClass|list[KeyClass])->StoredClass: pass
-    @abstractmethod
-    def update(self, aapa_obj: StoredClass): pass
-    @abstractmethod
-    def delete(self, aapa_obj: StoredClass): pass
 
 def create_crud(database: Database, class_type: StoredClass)->CRUD:
-    return class_data(class_type).crud(database, class_type
-                                       )
-def class_data(class_type: Type[StoredClass])->ClassRegistryData:
+    return _class_data(class_type).crud(database, class_type)
+
+def _class_data(class_type: Type[StoredClass])->ClassRegistryData:
     return _table_registry.class_data(class_type)
 def register_table(class_type: Type[StoredClass], crud: CRUD, table: TableDefinition=None, 
                    mapper_type: Type[TableMapper] = None, 

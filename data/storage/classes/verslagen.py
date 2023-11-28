@@ -15,8 +15,8 @@ class VerslagenTableMapper(MilestonesTableMapper):
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Verslag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
 
-class VerslagenStorage(MilestonesStorage):
-    def __init__(self, database: Database):
-        super().__init__(database, Verslag)        
+class VerslagenStorage(MilestonesStorage):pass
+    # def __init__(self, database: Database):
+    #     super().__init__(database, Verslag)        
 
-register_table(class_type=Verslag, table=VerslagTableDefinition(), mapper_type=VerslagenTableMapper, autoID=True)
+register_table(class_type=Verslag, table=VerslagTableDefinition(), crud=VerslagenStorage, mapper_type=VerslagenTableMapper, autoID=True)

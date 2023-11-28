@@ -5,8 +5,8 @@ from data.storage.storage_base import StorageBase
 from database.database import Database
 
 class StudentenStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, Student)        
+    # def __init__(self, database: Database):
+    #     super().__init__(database, Student)        
     def find_student_by_name_or_email(self, student: Student)->Student:
         for column_name in ['full_name', 'email']:
             if result := self.find_value(column_name, getattr(student, column_name)):
@@ -20,4 +20,4 @@ class StudentenStorage(StorageBase):
             n+=1
         return result
 
-register_table(class_type=Student, table=StudentTableDefinition(), autoID=True)
+register_table(class_type=Student, table=StudentTableDefinition(), crud=StudentenStorage, autoID=True)

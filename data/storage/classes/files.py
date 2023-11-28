@@ -106,9 +106,9 @@ class FilesTableMapper(TableMapper):
             case _: return super()._init_column_mapper(column_name, database)
 
 class FilesStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, class_type=File)
-        # self.sync_strategy = FileSync(self)
+    # def __init__(self, database: Database):
+    #     super().__init__(database, class_type=File)
+    #     # self.sync_strategy = FileSync(self)
     def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
         log_debug(f'find_all_for_filetype {filetypes}')
         result = []
@@ -140,4 +140,4 @@ class FilesStorage(StorageBase):
         else:
             return False     
 
-register_table(class_type=File, table=FilesTableDefinition(), mapper_type=FilesTableMapper, autoID=True)
+register_table(class_type=File, table=FilesTableDefinition(), crud=FilesStorage, mapper_type=FilesTableMapper, autoID=True)

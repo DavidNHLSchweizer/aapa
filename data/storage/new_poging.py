@@ -3,7 +3,7 @@ from abc import abstractmethod
 from data.storage.mappers import TableMapper
 from data.storage.query_builder import QueryBuilder
 from data.storage.storage_const import KeyClass, StoredClass
-from data.storage.table_registry import class_data
+from data.storage.table_registry import _class_data
 from database.database import Database
 from database.table_def import TableDefinition
       
@@ -24,7 +24,7 @@ class CRUDs(dict):
 
 class StorageCRUD:
     def __init__(self, database: Database, class_type: StoredClass):
-        data = class_data(class_type)
+        data = _class_data(class_type)
         self.database = database        
         self.autoID = data.autoID
         self.mapper = data.mapper_type(database, data.table, class_type) if data.mapper_type else TableMapper(database, data.table, class_type)

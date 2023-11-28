@@ -6,11 +6,11 @@ from data.aapa_database import AanvraagTableDefinition, StudentMilestonesTableDe
 from data.classes.files import File, Files
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
-from data.storage.CRUDbase import CRUD, createCRUD
 from data.storage.mappers import ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.simple_crud import CRUDColumnMapper
 from data.storage.storage_base import StorageBase
 from data.storage.storage_const import StoredClass
+from data.storage.table_registry import create_crud
 from database.database import Database
 from general.log import log_debug
 
@@ -19,9 +19,9 @@ class MilestonesTableMapper(TableMapper):
         match column_name:
             case 'datum': return TimeColumnMapper(column_name)
             case 'stud_id': 
-                return CRUDColumnMapper('stud_id', attribute_name='student', crud=createCRUD(database, Student))
+                return CRUDColumnMapper('stud_id', attribute_name='student', crud=create_crud(database, Student))
             case 'bedrijf_id': 
-                return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=createCRUD(database, Bedrijf))
+                return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=create_crud(database, Bedrijf))
             case _: return super()._init_column_mapper(column_name, database)
 
 class MilestonesStorage(StorageBase):
