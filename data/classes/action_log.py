@@ -46,14 +46,16 @@ class ActionLog(AAPAclass):
     @aanvragen.setter
     def aanvragen(self, value: list[Aanvraag]):
         self._data.clear('aanvragen')
-        self._data.add(value)
+        if value:
+            self._data.add(value)
     @property
     def invalid_files(self)->list[File]:
         return self._data.as_list('invalid_files', sort_key=lambda f: f.id)
     @invalid_files.setter
     def invalid_files(self, value: list[File]):
         self._data.clear('invalid_files')
-        self._data.add(value)
+        if value:
+            self._data.add(value)
     def start(self):
         self._data.clear()
         self.date = datetime.datetime.now()
@@ -64,7 +66,7 @@ class ActionLog(AAPAclass):
             log_warning(f'Duplicate key in ActionLog: {str(object)} is already registered')
         self._data.add(object)
     def remove(self, object: ActionLogData)->ActionLogData:
-        self._data.remove_filetype(object)
+        self._data.remove(object)
     def clear_aanvragen(self):
         self.aanvragen = []
     def clear_invalid_files(self):

@@ -99,6 +99,6 @@ class DetailRecCRUDs:
         where = crud.query_builder.build_where_from_values([column_names[0]], [main_id], flags={QIF.NO_MAP_VALUES})
         for row in crud.query_builder.find_all([column_names[1]], where=where):
             crud.delete(crud.read(detail_rec_type(main_id,row[0]).as_list()))
-            file = details_crud.read(row[0])
-            aggregator.remove(file)
+            # file = details_crud.read(row[0])
+            # aggregator.remove(file)
         log_debug('DRC: END DELETE DETAILS')

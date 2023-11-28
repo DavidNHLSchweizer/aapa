@@ -49,7 +49,7 @@ class UndoRecipeProcessor(AanvraagProcessor):
         self._process_files_to_forget(aanvraag, preview)
         if self.recipe.final_beoordeling and self.recipe.final_beoordeling != aanvraag.beoordeling:
             aanvraag.beoordeling = self.recipe.final_beoordeling
-        self.action_log.remove_aanvraag(aanvraag)
+        self.action_log.remove(aanvraag)
         log_info(f'Einde ongedaan maken voor aanvraag {aanvraag.summary()}.', to_console=True)
         # if self.recipe.final_state == Aanvraag.Status.DELETED:
         #     log_info(f'Verwijdering aanvraag {aanvraag.summary()} is voltooid.', to_console=True)
@@ -61,7 +61,7 @@ def _process_delete_aanvragen(aanvragen: list[Aanvraag], storage: AAPAStorage):
     log_info(f'\tVerwijderen aanvragen uit database:', to_console=True)
     for aanvraag in aanvragen:
         log_print(f'\t\t{aanvraag.summary()}')
-        storage.aanvragen.delete(aanvraag.id)
+        storage.aanvragen.delete(aanvraag)
     storage.commit()
     log_info(f'\tEinde verwijderen aanvragen uit database.', to_console=True)
 
@@ -72,7 +72,7 @@ def _process_forget_invalid_files(action_log: ActionLog, storage: AAPAStorage):
     log_info(f'\tVerwijderen overige gevonden pdf-bestanden uit database:', to_console=True)
     for file in action_log.invalid_files:
         log_print(f'\t\t{summary_string(file.filename, maxlen=90, initial=16)}')
-        storage.files.delete(file.id)
+        storage.files.delete(file)
     action_log.clear_invalid_files()
     storage.action_logs.update(action_log)
     storage.commit()

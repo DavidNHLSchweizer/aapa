@@ -46,8 +46,7 @@ class Aggregator(dict):
         else:
             self._add(object)
     def __find_key(self, object: Any)->str:
-        if (class_attribute := self.__get_class_attribute(object)) not in self.class_types():
-            return None
+        class_attribute = self.__get_class_attribute(object)
         for key,value in self.items():
             if value['attribute'] == class_attribute and value['object'] == object:
                 return key

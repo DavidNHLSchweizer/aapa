@@ -35,8 +35,10 @@ class ActionlogStorage(StorageBase):
     def __init__(self, database: Database):
         super().__init__(database, class_type=ActionLog, autoID=True)
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
-        if id != EMPTY_ID:
-            id = self.query_builder.find_max_id()[0]
+        if id == EMPTY_ID:
+            # id = self.query_builder.find_max_id()
+            qb = self.query_builder
+            id = qb.find_max_value('id', where = qb.build_where_from_values(column_names=['can_undo'], values=[True]))
         if id is None or id == EMPTY_ID:
             log_warning(NoUNDOwarning)
             return None

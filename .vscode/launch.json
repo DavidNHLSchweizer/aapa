@@ -23,7 +23,6 @@
                 "info",
                 "-debug",
             ]
-
         },
         {
             "name": "Python: zipimport",
@@ -47,8 +46,7 @@
             "justMyCode": true,
             "args": [
                 "scan",
-                "-debug",
-                "-preview"
+                "-debug"
             ]
         },
         {
@@ -60,6 +58,19 @@
             "justMyCode": true,
             "args": [
                 "form",
+                "-preview",
+                "-debug",
+            ]
+        },
+        {
+            "name": "Python: aapa undo",
+            "type": "python",
+            "request": "launch",
+            "program": "aapa.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "undo",
                 "-preview",
                 "-debug",
             ]
