@@ -1,15 +1,14 @@
 from typing import Any, Tuple, Type
-
 from data.classes.aapa_class import AAPAclass
-from data.classes.detail_rec import DetailRecData
-from general.classutil import find_attribute_name
+from general.classutil import classname
+from general.keys import get_next_key
 
 main_key_name: str
-
 class Aggregator(dict):  
     def __init__(self, owner: AAPAclass=None):
         self._classes: list[dict] = []
         self.owner = owner
+        self.key = f'{classname(owner)}{get_next_key('Aggregator')}'
     @property
     def classes(self)->list[dict]:
         return self._classes
@@ -25,7 +24,8 @@ class Aggregator(dict):
     def add_class(self, class_type: Type[Any], attribute: str):
         self._classes.append({'class': class_type, 'attribute': attribute})
     def __get_hash(self, object: Any)->str:
-        return f'{self.__get_class_attribute(object)}|{object.id}'
+        class_attribute = self.__get_class_attribute(object)        
+        return f'{self.key}|{class_attribute}|{get_next_key(self.key)}'
     def __get_class_attribute(self, object: Any):
         target = object if isinstance(object,type) else object.__class__
         for entry in self._classes:
@@ -33,7 +33,10 @@ class Aggregator(dict):
                 return entry['attribute']
         self.__type_error(object)
     def contains(self, object: Any)->bool:
-        return self.get(self.__get_hash(object), None) is not None
+        for item in self.as_list(self.__get_class_attribute(object)):
+            if item==object:
+                return True
+        return False
     def _add(self, object: Any):        
         self[self.__get_hash(object)]={'object': object, 'attribute': self.__get_class_attribute(object)}
     def add(self, object: Any):
@@ -42,11 +45,17 @@ class Aggregator(dict):
                 self._add(o)
         else:
             self._add(object)
+    def __find_key(self, object: Any)->str:
+        if (class_attribute := self.__get_class_attribute(object)) not in self.class_types():
+            return None
+        for key,value in self.items():
+            if value['attribute'] == class_attribute and value['object'] == object:
+                return key
+        return None        
     def remove(self, object: Any)->Any:
-        try:
-            return self.pop(self.__get_hash(object))
-        except KeyError as E:
-            pass
+        if (key:=self.__find_key(object)):
+            return self.pop(key)
+        return None
     def _clear(self, class_type:str):
         for item in self.as_list(class_type).copy():
             self.remove(item)
@@ -56,23 +65,19 @@ class Aggregator(dict):
                 self._clear(class_type)
         else:
             self._clear(class_type)
-    def _as_list(self, class_attribute: str)->list:
-        return [value['object'] for value in self.values() if value['attribute']==class_attribute]
-    def as_list(self, class_type:str|Any)->list:
+    def _as_list(self, class_attribute: str, sort_key=None, sort_reverse=False)->list:
+        result = [value['object'] for value in self.values() if value['attribute']==class_attribute]
+        return result if not sort_key else sorted(result, key=sort_key, reverse=sort_reverse)
+    def as_list(self, class_type:str|Any, sort_key=None, sort_reverse=False)->list:
         if isinstance(class_type, str):
-            return self._as_list(class_type)
-        return self._as_list(self.__get_class_attribute(class_type))
+            return self._as_list(class_type, sort_key=sort_key, sort_reverse=sort_reverse)
+        return self._as_list(self.__get_class_attribute(class_type), sort_reverse=sort_reverse)
     def _get_ids(self, class_attribute: str):
         return [value['object'].id for value in self.values() if value['attribute']==class_attribute]
     def get_ids(self, class_type:str|Any)->list[int]:
         if isinstance(class_type, str):
             return self._get_ids(class_type)
         return self._get_ids(self.__get_class_attribute(class_type))
-    # def get_detail_rec_data(self, class_type: AAPAclass)->DetailRecData:
-    #     if not class_type in self.class_types():
-    #         raise TypeError(f'class type: {class_type} not in this aggregator.')
-    #     return DetailRecData(find_attribute_name(self.owner, self), type(self.owner),  
-    #                          class_type, None)
     def __type_error(self, object):
         raise TypeError(f'Not supported in Aggregator: {object.__class__}')
     
@@ -122,10 +127,10 @@ if __name__=='__main__':
         print(e)
     print('==')
     print(f'removing: {t1}')
-    a.remove(t1)
+    a.remove_filetype(t1)
     for key,value in a.items():
         print(f'{str(key)}: {value}')
-    a.remove(t1)
+    a.remove_filetype(t1)
     d = drie(42, 'galactic')
     try:
         a.add(d)

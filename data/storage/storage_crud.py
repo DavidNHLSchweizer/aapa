@@ -1,8 +1,8 @@
 from __future__ import annotations
 from data.storage.mappers import TableMapper
-from data.storage.query_builder import QueryBuilder
+from data.storage.query_builder import QIF, QueryBuilder
 from data.storage.table_registry import class_data
-from data.storage.storage_const import StoredClass, KeyClass
+from data.storage.storage_const import StorageException, StoredClass, KeyClass
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops
@@ -12,14 +12,13 @@ from general.keys import get_next_key
 from general.log import log_debug
 
 class CRUDs(dict):
-    # dict of associated cruds. 
-    # other cruds are created as needed 
+    # utility class to access one or more associated cruds
+    # any cruds are created as needed 
     # (for e.g. associated class types such as Milestone.student, or detail tables)
     def __init__(self, database: Database, class_type: StoredClass):
         self.database=database
         self[class_type] = StorageCRUD(database, class_type)
     def get_crud(self, class_type: StoredClass)->StorageCRUD:
-        #create new crud if needed
         if not (crud := self.get(class_type, None)):
             crud = StorageCRUD(self.database, class_type)
         self[class_type] = crud
@@ -54,25 +53,35 @@ class StorageCRUD:
             self._create_key_if_needed(aapa_obj)
         self.database.commit()
     def create(self, aapa_obj: StoredClass):
-        log_debug(f'CRUD CREATE ({classname(self)}) {str(aapa_obj)}')
+        log_debug(f'CRUD CREATE ({classname(self)}) {classname(aapa_obj)}: {str(aapa_obj)}')
         columns,values = self.mapper.object_to_db(aapa_obj)
         self.database.create_record(self.table, columns=columns, values=values)
-    def read(self, key: KeyClass, multiple=False)->StoredClass|list:
-        log_debug(f'CRUD READ ({classname(self)}) {key}')
+        log_debug(f'END CRUD CREATE')
+    def read(self, key: KeyClass|list[KeyClass], multiple=False)->StoredClass|list:
+        log_debug(f'CRUD READ ({classname(self)}|{self.table.name}) {classname(self.class_type)}:{key=}')
         result = None
-        if rows := self.database.read_record(self.table, where=SQE(self.table.key, Ops.EQ, self.mapper.value_to_db(key, self.table.key))):
+        if isinstance(key,list):
+            where = self.query_builder.build_where_from_values(column_names=self.table.keys, 
+                                                               values=key,flags={QIF.NO_MAP_VALUES})
+        else:
+            where = SQE(self.table.key, Ops.EQ, self.mapper.value_to_db(key, self.table.key))
+        if rows := self.database.read_record(self.table, where=where):
             if multiple:
-                result= rows #deal with this later!
+                result = rows # deal with this later!
+                raise StorageException('deal with this now!')                                       
             else:
                 result = self.mapper.db_to_object(rows[0])
+        log_debug(f'END CRUD READ: {str(result)}')
         return result
     def update(self, aapa_obj: StoredClass):
-        log_debug(f'CRUD UPDATE ({classname(self)}) {str(aapa_obj)}')
+        log_debug(f'CRUD UPDATE ({classname(self)}|{self.table.name}) {classname(aapa_obj)}: {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
         self.database.update_record(self.table, columns=columns, values=values, 
                                             where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))
+        log_debug(f'END CRUD UPDATE')
     def delete(self, aapa_obj: StoredClass):
-        log_debug(f'CRUD DELETE ({classname(self)}) {str(aapa_obj)}')
+        log_debug(f'CRUD DELETE ({classname(self)}|{self.table.name}) {classname(aapa_obj)}: {str(aapa_obj)}')
         self.database.delete_record(self.table, 
                                     where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))        
+        log_debug(f'END CRUD DELETE')
 

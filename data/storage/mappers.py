@@ -3,10 +3,7 @@ import sqlite3 as sql3
 from data.roots import decode_path, encode_path
 from data.storage.storage_const import StoredClass, DBtype
 from database.database import Database
-from database.sql_expr import SQE, Ops
-from database.sql_table import SQLselect
 from database.table_def import TableDefinition
-from general.log import log_debug
 from general.timeutil import TSC
 
 class MapperException(Exception): pass
@@ -101,9 +98,7 @@ class TableMapper:
     def set_attribute(self, column_name: str, attribute_name: str):
         self._mappers[column_name].attribute_name = attribute_name
     def object_to_db(self, aapa_obj: StoredClass, include_key=True, attribute_names: list[str]=None, column_names: list[str]=None)->tuple[list[str], list[Any]]:
-        log_debug(f'start o2db {column_names=}  {attribute_names=}   {self.columns(include_key)=}')
         columns = column_names if column_names else self._get_columns_from_attributes(attribute_names) if attribute_names else self.columns(include_key)
-        log_debug(f'{columns=}')
         for column_name in columns:
             self._mappers[column_name].map_object_to_db(aapa_obj, self.db_record)
         return (columns, self.db_record.get_column_values(columns))

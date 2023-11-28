@@ -3,10 +3,9 @@ from data.aapa_database import AanvraagTableDefinition, AanvraagFilesTableDefini
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.detail_rec import DetailRec, DetailRecData
-from data.classes.files import File
 from data.classes.studenten import Student
-from data.storage.detail_rec import DetailRecCRUDs, DetailsRecTableMapper
-from data.storage.mappers import ColumnMapper, TableMapper
+from data.storage.detail_rec import DetailsRecTableMapper
+from data.storage.mappers import ColumnMapper
 from data.storage.query_builder import QIF
 from data.storage.table_registry import register_table
 from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper

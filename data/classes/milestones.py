@@ -37,15 +37,15 @@ class Milestone(AAPAclass):
     #     self._files.aanvraag_id = value
     @property
     def files(self)->Files: return self._files
-    @files.setter
-    def files(self, files: Files):
-        for ft in File.Type:
-            if ft != File.Type.UNKNOWN:
-                self.files.set_file(files.get_file(ft))
+    # @files.setter
+    # def files(self, files: Files):
+    #     for ft in File.Type:
+    #         if ft != File.Type.UNKNOWN:
+    #             self.files.set_file(files.get_file(ft))
     def register_file(self, filename: str, filetype: File.Type):
-        self.files.set_file(File(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, aanvraag_id=self.id))
+        self.files.add(File(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype))
     def unregister_file(self, filetype: File.Type):
-        self.files.reset_file(filetype)
+        self.files.remove_filetype(filetype)
     def summary(self)->str:
         return str(self)
 

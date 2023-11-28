@@ -73,7 +73,7 @@ class Database:
             self.commit()
     @staticmethod
     def convert_row(row: sql3.Row)->list[Any]:
-        return [row[key] for key in row.keys()]
+        return ",".join([f"{key}: {row[key]}" for key in row.keys()])
     def log_info(self, str):
         log_info(f'DB:{one_line(str)}')
     def log_error(self, str):
@@ -118,7 +118,7 @@ class Database:
                 log_debug(f'\tQuery result: {sop(len(result), "row", "rows")}')
                 if result:
                     for n,row in enumerate(result):
-                        log_debug(f'\t{n}: {self.convert_row(row)}')
+                        log_debug(f'\t\trow {n}: {self.convert_row(row)}')
                 return result
         except sql3.Error as e:
             self.log_error('***ERROR***: '+str(e))

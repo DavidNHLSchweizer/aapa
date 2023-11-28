@@ -30,7 +30,7 @@ class AanvragenPipeline(Pipeline):
             else:
                 return datetime.datetime.now()
         if self.aanvragen:
-            self.aanvragen.sort(key=comparekey, reverse=True)
+            self.aanvragen.sort(key=comparekey, reverse=False) # TRUE ?!
     def filtered_aanvragen(self, filter_func=None)->list[Aanvraag]:
         if self.aanvragen and filter_func:
             return list(filter(filter_func, self.aanvragen))

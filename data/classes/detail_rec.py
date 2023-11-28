@@ -7,6 +7,8 @@ from data.classes.aapa_class import AAPAclass
 class DetailRec:
     main_key: int 
     detail_key: int
+    def as_list(self)->list[int]:
+        return [self.main_key, self.detail_key]
 DetailRecs = list[DetailRec]
 
 @dataclass

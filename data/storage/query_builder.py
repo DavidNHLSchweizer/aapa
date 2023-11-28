@@ -64,35 +64,38 @@ class QueryBuilder:
         self.mapper = mapper
         self.query_info = QueryInfo(mapper)
     def find_id_from_object(self, aapa_obj: StoredClass, attributes: list[str] = None, flags={QIF.ATTRIBUTES})->list[int]:
+        log_debug(f'QB: FIND_ID_FROM_OBJECT')
         attributes = attributes if attributes else self.mapper.attributes(include_key = False)
         return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags=flags))
     def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]], flags={QIF.ATTRIBUTES})->list[int]:
+        log_debug(f'QB: FIND_ID_FROM_VALUES')
         return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags=flags))
     def find_value(self, attribute: str, value: Any)->StoredClass:
-        log_debug(f'find value: {attribute}  {value}')
+        log_debug(f'QB: FIND_VALUE')
         return self.find_id_from_values([attribute], [value])
     def find_max_value(self, attribute: str, where:SQE = None)->Any:        
+        log_debug(f'QB: FIND_MAX_VALUE')
         col_mapper = self.mapper._find_mapper(attribute)
-        log_debug(f'find max value: {attribute} (={col_mapper.column_name})')
         sql = SQLselect(self.mapper.table, columns=[f'max({col_mapper.column_name})'], where=where)
         if row:= self.database.execute_select(sql):
             return row[0][0]
         return None 
     def find_id(self):
+        log_debug(f'QB: FIND_ID')
         return self.__find_id()
-    def find_all_temp(self, columns: list[str], where: SQE)->list[Any]:
+    def find_all(self, columns: list[str], where: SQE)->list[Any]:
+        log_debug(f'QB: FIND_ALL')
         sql = SQLselect(self.mapper.table, columns=columns, where=where)
-        log_debug(f'find all: {columns}  {where}:\n\t{sql.query}-{sql.parameters}')
         return self.database.execute_select(sql) 
     def find_max_id(self)->int:
+        log_debug(f'QB: FIND_MAX_ID')
         sql = SQLselect(self.mapper.table, columns=['max(id)'])
-        log_debug(f'QUERY: {sql.query} - {sql.parameters}')
         if (row := self.database.execute_select(sql)) and row[0][0]:
             return row[0][0]
         return 0
     def find_count(self, where:SQE=None)->int:
+        log_debug(f'QB: FIND_COUNT')
         sql = SQLselect(self.mapper.table, columns=['count(id)'], where=where)
-        log_debug(f'QUERY: {sql.query} - {sql.parameters}')
         if (row := self.database.execute_select(sql)) and row[0][0]:
             return row[0][0]
         return 0
@@ -102,7 +105,6 @@ class QueryBuilder:
                         where=self.__build_where(*(where_columns,where_values)))
         else:
             sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys())
-        log_debug(f'FINDID: {sql.query}, {sql.parameters}')
         if rows := self.database.execute_select(sql):
             result = [self.mapper.db_to_value(row['id'], 'id') for row in rows] 
             return result
