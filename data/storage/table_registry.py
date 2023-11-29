@@ -4,12 +4,15 @@ from dataclasses import dataclass
 from typing import Type
 from data.classes.aggregator import Aggregator
 from data.classes.detail_rec import DetailRecData
-from data.storage.mappers import TableMapper
-from data.storage.query_builder import QueryBuilder
-from data.storage.storage_const import KeyClass, StoredClass, DetailRec
+from data.storage.general.mappers import TableMapper
+from data.storage.general.query_builder import QueryBuilder
+from data.storage.general.storage_const import KeyClass, StoredClass
 from database.database import Database
+from database.dbConst import EMPTY_ID
 from database.table_def import TableDefinition
 from general.classutil import classname
+from general.keys import get_next_key
+from general.log import log_debug
 from general.singleton import Singleton
 
 class TableRegistryException(Exception): pass
@@ -58,6 +61,39 @@ class CRUD:
     def update(self, aapa_obj: StoredClass): pass
     @abstractmethod
     def delete(self, aapa_obj: StoredClass): pass
+    #utility functions
+    def _check_already_there(self, aapa_obj: StoredClass)->bool:
+        if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
+            log_debug(f'--- already in database ----')                
+            #TODO adapt for multiple keys
+            setattr(aapa_obj, self.table.key, stored_ids[0])
+            return True
+        return False
+    def _create_key_if_needed(self, aapa_obj: StoredClass, table: TableDefinition = None, autoID=True):
+        autoID = autoID if autoID else self.autoID
+        table = table if table else self.table
+        if autoID and getattr(aapa_obj, table.key, EMPTY_ID) == EMPTY_ID:
+            setattr(aapa_obj, table.key, get_next_key(table.name))
+    def ensure_key(self, aapa_obj: StoredClass):
+        if not self._check_already_there(aapa_obj):
+            self._create_key_if_needed(aapa_obj)
+    def ensure_exists(self, aapa_obj: StoredClass, attribute: str, attribute_key: str = 'id'):
+        if not (attr_obj := getattr(aapa_obj, attribute, None)):
+            return
+        crud = self.get_crud(type(attr_obj))
+        if getattr(attr_obj, attribute_key) == EMPTY_ID:
+            if stored_ids := crud.query_builder.find_id_from_object(attr_obj):
+                setattr(attr_obj, attribute_key, stored_ids[0])
+            else:
+                self._create_key_if_needed(attr_obj, crud.table, crud.autoID)
+                crud.create(attr_obj)
+        else:
+            # key already set elsewhere, check whether already in database
+            if not (stored_ids := crud.query_builder.find_id_from_object(attr_obj)):
+                crud.create(attr_obj)
+
+
+
 
 # (self, database: Database, class_type: AAPAClass, table: TableDefinition, autoID=False):
 class TableRegistry(Singleton):

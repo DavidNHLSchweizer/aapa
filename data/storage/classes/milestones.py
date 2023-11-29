@@ -2,14 +2,12 @@ from dataclasses import dataclass
 from pydoc import classname
 from typing import Iterable
 from data.classes.bedrijven import Bedrijf
-from data.aapa_database import AanvraagTableDefinition, StudentMilestonesTableDefinition, VerslagTableDefinition
-from data.classes.files import File, Files
-from data.classes.milestones import Milestone, StudentMilestones
+from data.classes.milestones import Milestone
 from data.classes.studenten import Student
-from data.storage.mappers import ColumnMapper, TableMapper, TimeColumnMapper
-from data.storage.simple_crud import CRUDColumnMapper
+from data.storage.general.mappers import ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.storage_base import StorageBase
-from data.storage.storage_const import StoredClass
+from data.storage.general.storage_const import StoredClass
+from data.storage.table_crud import CRUDColumnMapper
 from data.storage.table_registry import create_crud
 from database.database import Database
 from general.log import log_debug

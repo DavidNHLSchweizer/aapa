@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum, auto
-from data.storage.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
-from data.storage.storage_const import StorageException
+from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
+from data.storage.general.storage_const import StorageException
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File, Files
 from data.storage.storage_base import StorageBase

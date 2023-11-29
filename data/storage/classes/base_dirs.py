@@ -1,6 +1,6 @@
 from data.aapa_database import BaseDirsTableDefinition
 from data.classes.base_dirs import BaseDir
-from data.storage.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
+from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
 from data.storage.table_registry import register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database

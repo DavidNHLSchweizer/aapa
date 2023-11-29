@@ -1,8 +1,8 @@
 from typing import Any
 from data.classes.verslagen import Verslag
 from data.aapa_database import VerslagTableDefinition
-from data.storage.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
-from data.storage.storage_const import DBtype
+from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
+from data.storage.general.storage_const import DBtype
 from data.storage.table_registry import register_table
 from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
 from database.database import Database

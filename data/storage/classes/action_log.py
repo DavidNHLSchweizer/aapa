@@ -3,7 +3,7 @@ from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFiles
 from data.classes.action_log  import ActionLog
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.detail_rec import DetailRecStorage, DetailsRecTableMapper
-from data.storage.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
+from data.storage.general.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.table_registry import register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database

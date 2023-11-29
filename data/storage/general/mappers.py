@@ -1,7 +1,7 @@
 from typing import Any, Iterable, Type
 import sqlite3 as sql3
 from data.roots import decode_path, encode_path
-from data.storage.storage_const import StoredClass, DBtype
+from data.storage.general.storage_const import StoredClass, DBtype
 from database.database import Database
 from database.table_def import TableDefinition
 from general.timeutil import TSC

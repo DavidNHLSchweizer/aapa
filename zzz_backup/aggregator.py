@@ -4,7 +4,7 @@
 # from data.classes.detail_rec import DetailRec, DetailRecs
 # from data.storage.mappers import TableMapper
 # from data.storage.storage_base import StorageBase
-# from data.storage.storage_const import StoredClass
+# from data.storage.general.storage_const import StoredClass
 # from data.storage.table_registry import ClassAggregatorData
 # from database.database import Database
 # from database.table_def import TableDefinition

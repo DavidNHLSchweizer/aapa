@@ -1,20 +1,11 @@
 from typing import Any
-from data.classes.aapa_class import AAPAclass
-from data.classes.detail_rec import DetailRec
 from data.storage.detail_rec import DetailRecStorage
-from data.storage.simple_crud import CRUDColumnMapper, SimpleCRUD
-from data.storage.storage_const import StorageException, StoredClass, DBtype,KeyClass
-from data.storage.table_registry import _class_data
-from data.storage.mappers import ColumnMapper, TableMapper
-from data.storage.query_builder import QueryBuilder
+from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
+from data.storage.table_crud import TableCRUD
 from database.database import Database
-from database.dbConst import EMPTY_ID
-from database.table_def import TableDefinition
 from general.classutil import classname
-from general.keys import get_next_key
-from general.log import log_debug
 
-class StorageBase(SimpleCRUD):
+class StorageBase(TableCRUD):
     def __init__(self, database: Database, class_type: StoredClass):
         super().__init__(database, class_type)
         self._crud = self.get_crud(class_type) 
@@ -22,43 +13,18 @@ class StorageBase(SimpleCRUD):
     def __check_valid(self, aapa_obj, msg: str):
         if not isinstance(aapa_obj, StoredClass):
             raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')
-    # def _create_key_if_needed(self, aapa_obj: StoredClass):
-    #     if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
-    #         setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
-    # def ensure_key(self, aapa_obj: StoredClass):
-    #     if not self._check_already_there(aapa_obj):
-    #         self._create_key_if_needed(aapa_obj)
-    #     self.database.commit()
-    def __ensure_exists(self, aapa_obj: StoredClass, attribute: str, attribute_key: str = 'id'):
-        if not (attr_obj := getattr(aapa_obj, attribute, None)):
-            return
-        crud = self.get_crud(type(attr_obj))
-        if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored_ids := crud.query_builder.find_id_from_object(attr_obj):
-                setattr(attr_obj, attribute_key, stored_ids[0])
-            else:
-                self._create_key_if_needed(attr_obj, crud.table, crud.autoID)
-                crud.create(attr_obj)
-        else:
-            # key already set elsewhere, could not yet be in database
-            if not (stored_ids := crud.query_builder.find_id_from_object(attr_obj)):
-                crud.create(attr_obj)
-
+    
     # --------------- CRUD functions ----------------
     def create(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.create")
-        self.__create_references(aapa_obj)        
+        self.create_references(aapa_obj)        
         if self._check_already_there(aapa_obj):
             return
         #TODO adapt for multiple keys
-        self.__create_key_if_needed(aapa_obj, self.table, self.autoID)
+        self._create_key_if_needed(aapa_obj)
         super().create(aapa_obj)
         if self.details:
             self.details.create(aapa_obj)
-    @staticmethod #TODO remove duplication with StorageCRUD
-    def __create_key_if_needed(aapa_obj: StoredClass, table: TableDefinition, autoID=False):
-        if autoID and getattr(aapa_obj, table.key, EMPTY_ID) == EMPTY_ID:
-            setattr(aapa_obj, table.key, get_next_key(table.name))
     def read(self, key: KeyClass)->StoredClass|list:
         result = super().read(key)        
         if result and self.details:
@@ -66,7 +32,7 @@ class StorageBase(SimpleCRUD):
         return result
     def update(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.update")
-        self.__create_references(aapa_obj)
+        self.create_references(aapa_obj)
         super().update(aapa_obj)
         if self.details:
             self.details.update(aapa_obj)
@@ -75,24 +41,6 @@ class StorageBase(SimpleCRUD):
         if self.details:
             self.details.delete(aapa_obj)
         super().delete(aapa_obj)
-    def __create_references(self, aapa_obj: StoredClass):
-        for mapper in self.mapper.mappers():
-            if isinstance(mapper, CRUDColumnMapper):
-                self.__ensure_exists(aapa_obj, mapper.attribute_name, mapper.attribute_key)
-    def __ensure_exists(self, aapa_obj: StoredClass, attribute: str, attribute_key: str = 'id'):
-        if not (attr_obj := getattr(aapa_obj, attribute, None)):
-            return
-        crud = self.get_crud(type(attr_obj))
-        if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored_ids := crud.query_builder.find_id_from_object(attr_obj):
-                setattr(attr_obj, attribute_key, stored_ids[0])
-            else:
-                self.__create_key_if_needed(attr_obj, crud.table, crud.autoID)
-                crud.create(attr_obj)
-        else:
-            # key already set elsewhere, could not yet be in database
-            if not (stored_ids := crud.query_builder.find_id_from_object(attr_obj)):
-                crud.create(attr_obj)
 
     # utility functions
     def find_value(self, attribute_name: str, value: Any|set[Any])->StoredClass:

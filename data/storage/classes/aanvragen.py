@@ -5,8 +5,8 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.classes.studenten import Student
 from data.storage.detail_rec import DetailRecStorage, DetailsRecTableMapper
-from data.storage.mappers import ColumnMapper
-from data.storage.query_builder import QIF
+from data.storage.general.mappers import ColumnMapper
+from data.storage.general.query_builder import QIF
 from data.storage.table_registry import register_table
 from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
 from database.database import Database

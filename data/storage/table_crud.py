@@ -1,15 +1,11 @@
 from __future__ import annotations
 from typing import Any
-
-from data.storage.mappers import ColumnMapper
-from data.storage.query_builder import QIF
-from data.storage.storage_const import DBtype, StoredClass, KeyClass
+from data.storage.general.mappers import ColumnMapper
+from data.storage.general.query_builder import QIF
+from data.storage.general.storage_const import DBtype, KeyClass, StoredClass
 from data.storage.table_registry import CRUD
-from database.database import Database
-from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops
 from general.classutil import classname
-from general.keys import get_next_key
 from general.log import log_debug
 
 class CRUDColumnMapper(ColumnMapper):
@@ -22,22 +18,8 @@ class CRUDColumnMapper(ColumnMapper):
     def map_db_to_value(self, db_value: DBtype)->Any:
         return self.crud.read(db_value)
 
-class SimpleCRUD(CRUD):
+class TableCRUD(CRUD):
     #basic CRUD operations on one table
-    def _check_already_there(self, aapa_obj: StoredClass)->bool:
-        if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
-            log_debug(f'--- already in database ----')                
-            #TODO adapt for multiple keys
-            setattr(aapa_obj, self.table.key, stored_ids[0])
-            return True
-        return False
-    def _create_key_if_needed(self, aapa_obj: StoredClass):
-        if self.autoID and getattr(aapa_obj, self.table.key, EMPTY_ID) == EMPTY_ID:
-            setattr(aapa_obj, self.table.key, get_next_key(self.table.name))
-    def ensure_key(self, aapa_obj: StoredClass):
-        if not self._check_already_there(aapa_obj):
-            self._create_key_if_needed(aapa_obj)
-        self.database.commit()
     def create(self, aapa_obj: StoredClass):
         log_debug(f'CRUD CREATE ({classname(self)}) {classname(aapa_obj)}: {str(aapa_obj)}')
         columns,values = self.mapper.object_to_db(aapa_obj)
@@ -66,4 +48,8 @@ class SimpleCRUD(CRUD):
         self.database.delete_record(self.table, 
                                     where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))        
         log_debug(f'END CRUD DELETE')
+    def create_references(self, aapa_obj: StoredClass):
+        for mapper in self.mapper.mappers():
+            if isinstance(mapper, CRUDColumnMapper):
+                self.ensure_exists(aapa_obj, mapper.attribute_name, mapper.attribute_key)
 

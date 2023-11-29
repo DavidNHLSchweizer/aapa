@@ -1,7 +1,7 @@
 from __future__ import annotations
 from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
-from data.storage.storage_const import StoredClass
+from data.storage.general.storage_const import StoredClass
 
 class BaseProcessor:
     def __init__(self, description: str = ''):
