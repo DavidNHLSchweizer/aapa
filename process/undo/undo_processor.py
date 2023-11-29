@@ -12,34 +12,37 @@ class UndoException(Exception): pass
 class UndoRecipeProcessor(AanvraagProcessor):
     def __init__(self, action_log: ActionLog):
         self.recipe: UndoRecipe = UndoRecipeFactory().create(action_log.action)
-        self.ids_to_delete = []
+        self.files_to_forget = []
         self.action_log = action_log
         super().__init__(exit_state = self.recipe.final_state, description='Ongedaan maken')
-    def __delete_file(self, filetype: File.Type, filename: str, preview=False):
-        if (filename is None or not file_exists(filename)):            
-            if not filetype in self.recipe.optional_files:
-                log_warning(f'\t\tBestand {summary_string(filename)} ({filetype}) niet aangemaakt of niet gevonden.')
+    def __delete_file(self, file: File, preview=False):
+        if file is None:
+            return
+        if file.filename is None or not file_exists(file.filename):            
+            if not file.filetype in self.recipe.optional_files:
+                log_warning(f'\t\tBestand {summary_string(file.filename)} ({file.filetype}) niet aangemaakt of niet gevonden.')
             return   
-        log_print(f'\t\t{summary_string(filename)}')
+        log_print(f'\t\t{summary_string(file.filename)}')
+        self.files_to_forget.append(file)
         if not preview:
-            delete_if_exists(filename)
+            delete_if_exists(file.filename)
     def _process_files_to_delete(self, aanvraag: Aanvraag, preview=False):
         if not self.recipe.files_to_delete:
             return
         log_info(f'\tVerwijderen aangemaakte bestanden:', to_console=True)
         for filetype in self.recipe.files_to_delete:
-            filename = aanvraag.files.get_filename(filetype)
-            self.__delete_file(filetype, filename, preview=preview)
+            self.__delete_file(aanvraag.files.get_file(filetype), preview=preview)
             aanvraag.unregister_file(filetype) # als het goed is wordt de file daarmee ook uit de database geschrapt!
         log_info(f'\tEinde verwijderen aangemaakte bestanden', to_console=True)
     def _process_files_to_forget(self, aanvraag: Aanvraag, preview=False):
         if not self.recipe.files_to_forget or self.recipe.files_to_forget == []:
             return
-        log_info(f'\tVerwijderen bestanden uit database:', to_console=True)
+        log_info(f'\tBepalen te verwijderen bestanden uit database:', to_console=True)
         for filetype in self.recipe.files_to_forget:
             log_print(f'\t\t{summary_string(aanvraag.files.get_filename(filetype))}')
+            self.files_to_forget.append(aanvraag.files.get_file(filetype))
             aanvraag.unregister_file(filetype) 
-        log_info(f'\tEinde verwijderen bestanden uit database', to_console=True)
+        log_info(f'\tEinde bepalen te verwijderen bestanden uit database', to_console=True)
     def process(self, aanvraag: Aanvraag, preview = False, **kwargs)->bool:
         # if self.recipe.forget_invalid_files:
         #     self.action_log.clear_invalid_files()    
@@ -65,18 +68,27 @@ def _process_delete_aanvragen(aanvragen: list[Aanvraag], storage: AAPAStorage):
     storage.commit()
     log_info(f'\tEinde verwijderen aanvragen uit database.', to_console=True)
 
+def __delete_file(file: File, storage: AAPAStorage):
+    log_print(f'\t\t{summary_string(file.filename, maxlen=90, initial=16)}')
+    storage.files.delete(file)
 
 def _process_forget_invalid_files(action_log: ActionLog, storage: AAPAStorage):
     if not action_log.invalid_files:
         return        
     log_info(f'\tVerwijderen overige gevonden pdf-bestanden uit database:', to_console=True)
     for file in action_log.invalid_files:
-        log_print(f'\t\t{summary_string(file.filename, maxlen=90, initial=16)}')
-        storage.files.delete(file)
+        __delete_file(file, storage)
     action_log.clear_invalid_files()
     storage.action_logs.update(action_log)
     storage.commit()
     log_info(f'\tEinde verwijderen overige gevonden pdf-bestanden uit database.', to_console=True)
+
+def _process_forget_files(files_to_forget: list[File], storage: AAPAStorage):
+    log_info(f'\tVerwijderen te vergeten bestanden uit database:', to_console=True)
+    for file in files_to_forget:
+        __delete_file(file, storage)
+    storage.commit()
+    log_info(f'\tEind verwijderen vergeten bestanden uit database.', to_console=True)
 
 def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
@@ -102,6 +114,8 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
     log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
     if aanvragen_to_delete:
         _process_delete_aanvragen(aanvragen_to_delete, storage)
+    if processor.files_to_forget:
+        _process_forget_files(processor.files_to_forget, storage)
     if processor.recipe.forget_invalid_files:
         _process_forget_invalid_files(action_log, storage)
     return result

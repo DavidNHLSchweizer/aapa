@@ -43,7 +43,7 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories',
             'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
-            'undo': 'Maak de laatste actie (scan of mail) ongedaan',
+            'undo': 'Maak de laatste actie (scan,form of mail) ongedaan',
             'mode_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database',
             'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid',
             'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',

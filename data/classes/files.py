@@ -95,23 +95,23 @@ class Files(Aggregator):
     def files(self)->list[File]:
         return self.as_list('files', sort_key=lambda file: file.filetype)
     def remove_filetype(self, ft: File.Type):
-        if file := self._get(ft):
+        if file := self.get_file(ft):
             self.remove(file)
-    def _get(self, ft: File.Type)->File:
+    def get_file(self, ft: File.Type)->File:
         for file in self.files:
             if file.filetype == ft:
                 return file
         return None
     def get_filename(self, ft: File.Type)->File | list[File]:
-        if file := self._get(ft):
+        if file := self.get_file(ft):
             return file.filename
         return ''
     def get_timestamp(self, ft: File.Type)->datetime.datetime:
-        if file := self._get(ft):
+        if file := self.get_file(ft):
             return file.timestamp
         return ''
     def get_digest(self, ft: File.Type)->str:
-        if file := self._get(ft):
+        if file := self.get_file(ft):
             return file.digest
         return ''
     # def get_file(self, ft: File.Type)->File:

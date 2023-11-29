@@ -10,7 +10,7 @@ class StudentenStorage(StorageBase):
     def find_student_by_name_or_email(self, student: Student)->Student:
         for column_name in ['full_name', 'email']:
             if result := self.find_value(column_name, getattr(student, column_name)):
-                return result
+                return result[0]
         return None
     def create_unique_student_nr(self, student: Student)->str:
         n = 1

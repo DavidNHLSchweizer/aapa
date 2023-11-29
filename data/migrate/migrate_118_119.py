@@ -1,4 +1,4 @@
-from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
+from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
         StudentTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, load_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.files import File
@@ -6,6 +6,7 @@ from data.roots import encode_path
 from data.storage.aapa_storage import AAPAStorage
 from database.sql_table import SQLcreateTable
 from database.database import Database
+from database.sql_view import SQLcreateView
 from database.table_def import ForeignKeyAction, TableDefinition
 from general.log import log_debug
 from general.name_utils import Names
@@ -113,21 +114,12 @@ def _init_base_directories(database: Database):
         database._execute_sql_command(
             "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", [entry.year, entry.period, entry.forms_version, encode_path(entry.directory)])        
 
-# toevoegen VERSLAGEN tabel en BASEDIRS tabel
-# toevoegen STUDENT_MILESTONES en STUDENT_MILESTONES_DETAILS tabel
-def create_verslagen_tables(database: Database):
-    print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
-    database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
-    database.execute_sql_command(SQLcreateTable(VerslagFilesTableDefinition()))
-    print('toevoegen nieuwe tabel BASEDIRS')
-    database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
-    print('initialiseren waardes voor BASEDIRS')
-    _init_base_directories(database)
-    print('toevoegen nieuwe STUDENT_MILESTONES, STUDENT_AANVRAGEN en STUDENT_VERSLAGEN tabellen')
-    database.execute_sql_command(SQLcreateTable(StudentMilestonesTableDefinition()))             
-    database.execute_sql_command(SQLcreateTable(StudentAanvragenTableDefinition())) 
-    database.execute_sql_command(SQLcreateTable(StudentVerslagenTableDefinition())) 
-    print('--- klaar toevoegen nieuwe tabellen')
+def create_views(database: Database):
+    print('creating views')
+    print('aanvragen overzichten')
+    database.execute_sql_command(SQLcreateView(AanvragenOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(AanvragenFileOverzichtDefinition()))
+    print('--- ready creating views')
 
 #aanpassen voornamen waar nodig
 def correct_first_names(database: Database):
@@ -139,10 +131,11 @@ def correct_first_names(database: Database):
             database._execute_sql_command('update STUDENTEN set first_name=? where id=?', [parsed.first_name, row['id']])
     print('--- ready incorrect first names in STUDENTEN')
 
+
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
         modify_studenten_table(database)
         modify_aanvragen_table(database)    
         modify_files_table(database)
-        create_verslagen_tables(database)
+        create_views(database)
         correct_first_names(database)

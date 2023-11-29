@@ -37,9 +37,6 @@ class Aanvraag(Milestone):
             self._files.set_file(source_info)
             if not self.datum:
                 self.datum = self.files.get_timestamp(File.Type.AANVRAAG_PDF)
-        # else:
-        #     self._files.reset()
-        #     self.datum = None
     @property
     def timestamp(self): return self.datum 
     def aanvraag_source_file_path(self)->Path:

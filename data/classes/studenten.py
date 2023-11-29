@@ -31,4 +31,6 @@ class Student(AAPAclass):
         return Names.initials(self.full_name, self.email)
     def valid(self)->bool:
         return self.full_name != '' and self.id != EMPTY_ID and self.stud_nr != '' and is_valid_email(self.email) 
+    def relevant_attributes(self)->list[str]:
+        return {'full_name', 'stud_nr'}
 

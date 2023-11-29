@@ -209,33 +209,52 @@ class StudentVerslagenTableDefinition(DetailTableDefinition):
                          main_table_name='STUDENTEN', main_alias_id='stud_id',
                          detail_table_name='VERSLAGEN', detail_alias_id='verslag_id')
 
-
+class AanvragenOverzichtDefinition(ViewDefinition):
+    def __init__(self):
+        stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
+        bedrijf = '(select name from BEDRIJVEN as B where B.ID = A.bedrijf_id) as bedrijf'
+        beoordeling = '(case beoordeling when 0 then "" when 1 then "onvoldoende" when 2 then "voldoende" end) as beoordeling'
+        super().__init__('AANVRAGEN_OVERZICHT', 
+                         query=f'select id,{stud_name},datum,{bedrijf},titel,versie,kans,{beoordeling} from AANVRAGEN as A order by 2,3')
+        
+class AanvragenFileOverzichtDefinition(ViewDefinition):
+    def __init__(self):
+        stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
+        innerjoins = ' inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id inner join FILES as F on F.ID=AF.file_id'
+        super().__init__('AANVRAGEN_FILE_OVERZICHT', 
+                         query=f'select A.id,{stud_name},titel, F.ID as file_id,F.filename as filename \
+                                from AANVRAGEN as A {innerjoins} where F.filetype=0 order by 2')
+        
 class AAPaSchema(Schema):
-    ALL_TABLES:list[Type[TableDefinition]] = [
+    ALL_TABLES:list[TableDefinition] = [
         VersionTableDefinition,
         FileRootTableDefinition,
         StudentTableDefinition,
         BedrijfTableDefinition,
         AanvraagTableDefinition,
         AanvraagFilesTableDefinition,
-        VerslagTableDefinition,
-        VerslagFilesTableDefinition,
         FilesTableDefinition,
         ActionLogTableDefinition,
         ActionLogAanvragenTableDefinition,
         ActionLogFilesTableDefinition,
-        BaseDirsTableDefinition,
-        StudentMilestonesTableDefinition,      
-        StudentAanvragenTableDefinition,
-        StudentVerslagenTableDefinition,
+    
+    # voor database versie 1.20
+        # VerslagTableDefinition,
+        # VerslagFilesTableDefinition,
+        # BaseDirsTableDefinition,
+        # StudentMilestonesTableDefinition,      
+        # StudentAanvragenTableDefinition,
+        # StudentVerslagenTableDefinition,
     ]
-    ALL_VIEWS:list[Type[ViewDefinition]]= [ 
+    ALL_VIEWS:list[ViewDefinition]= [ 
+                AanvragenOverzichtDefinition,
+                AanvragenFileOverzichtDefinition,
                 ]
     def __init__(self):
         super().__init__()
-        for tabledef in AAPaSchema.ALL_TABLES:
+        for tabledef in self.ALL_TABLES:
             self.add_table(tabledef())
-        for viewdef in AAPaSchema.ALL_VIEWS:
+        for viewdef in self.ALL_VIEWS:
             self.add_view(viewdef())
 
 class AAPaDatabase(Database):

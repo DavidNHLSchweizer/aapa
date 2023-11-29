@@ -51,9 +51,9 @@ class DetailRecStorage(TableCRUD):
             if not details_crud._check_already_there(item):
                 details_crud.create(item)
             detail_items.append(detail_rec_type(main_key=main_id, detail_key=item.id))
-        # crud = self.get_crud(detail_rec_type)
+        detail_rec_crud = self.get_crud(detail_rec_type)
         for detail in detail_items:
-            super().create(detail)
+            detail_rec_crud.create(detail)
         log_debug('DRC: END CREATE DETAILS')
     def read(self, aapa_obj: StoredClass):
         log_debug(f'DRC: START READ ({classname(aapa_obj)}: {str(aapa_obj)})')

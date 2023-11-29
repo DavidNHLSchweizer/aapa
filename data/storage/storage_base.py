@@ -44,8 +44,8 @@ class StorageBase(TableCRUD):
 
     # utility functions
     def find_value(self, attribute_name: str, value: Any|set[Any])->StoredClass:
-        if id := self.query_builder.find_value(attribute_name, value):
-            return self.read(id)
+        if ids := self.query_builder.find_value(attribute_name, value):
+            return [self.read(id) for id in ids]
         return None
     def max_id(self)->int:
         return self.query_builder.find_max_id()    

@@ -70,26 +70,23 @@ class FileStorageRecord:
         else:
             self.stored = stored
             if stored.filetype == File.Type.INVALID_PDF:
-                # assert stored.aanvraag_id == EMPTY_ID
                 result = FileStorageRecord.Status.STORED_INVALID
             elif stored.digest != self.digest:
-                # assert stored.aanvraag_id != EMPTY_ID
                 result = FileStorageRecord.Status.MODIFIED
             else:
-                # assert stored.aanvraag_id != EMPTY_ID, f"Expected aanvraag_id: {stored}"
                 result = FileStorageRecord.Status.STORED
         return result
-    def __analyse_stored_digest(self, stored: File)->FileStorageRecord.Status:
+    def __analyse_stored_digest(self, stored: list[File])->FileStorageRecord.Status:
         if stored is None:
             result = FileStorageRecord.Status.UNKNOWN
         else:
-            self.stored = stored
-            if stored.filetype == File.Type.INVALID_PDF:
-                # assert stored.aanvraag_id == EMPTY_ID
-                result = FileStorageRecord.Status.STORED_INVALID_COPY
-            else:
-                # assert stored.aanvraag_id != EMPTY_ID      
-                result = FileStorageRecord.Status.DUPLICATE
+            for stored_file in stored:
+                if stored_file.filetype == File.Type.INVALID_PDF:
+                    result = FileStorageRecord.Status.STORED_INVALID_COPY
+                    self.stored = stored_file
+                else:
+                    result = FileStorageRecord.Status.DUPLICATE
+                    self.stored = stored_file
         return result
     def analyse(self, storage: FilesStorage)->FileStorageRecord:
         self.status = self.__analyse_stored_name(storage.find_filename(self.filename))
@@ -117,7 +114,8 @@ class FilesStorage(StorageBase):
         return result
     def get_storage_record(self, filename: str)->FileStorageRecord:
         return FileStorageRecord(filename).analyse(self)
-    def find_digest(self, digest: str)->File:
+    def find_digest(self, digest: str)->list[File]:
+
         return self.find_value('digest', digest)
     def find_filename(self, filename: str)->File:
         return self.find_value('filename', filename)

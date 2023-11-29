@@ -28,6 +28,8 @@ class Milestone(AAPAclass):
         self.kans = kans
         self.status = status
         self.beoordeling = beoordeling
+    def relevant_attributes(self)->list[str]:
+        return {'datum', 'student', 'bedrijf'}
     # @property
     # def id(self):
     #     return self._id

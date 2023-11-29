@@ -36,7 +36,8 @@ class QueryInfo:
     def __get_values(self, data_columns: list[str], aapa_obj: StoredClass, values: list[Any], no_map_values: bool)->list[Any]:
         if values:
             if len(values) != len(data_columns):
-                raise MapperException(f'Invalid parameters: {len(data_values)} data_values, but {len(data_columns)} columns')              
+                log_debug(f'values: {values}  columns: {data_columns}')
+                raise MapperException(f'Invalid parameters: {len(values)} values, but {len(data_columns)} columns')              
             if no_map_values:
                 data_values = values
             else:
@@ -66,6 +67,9 @@ class QueryBuilder:
     def find_id_from_object(self, aapa_obj: StoredClass, attributes: list[str] = None, flags={QIF.ATTRIBUTES})->list[int]:
         log_debug(f'QB: FIND_ID_FROM_OBJECT')
         attributes = attributes if attributes else self.mapper.attributes(include_key = False)
+        for attribute in attributes.copy():
+            if not attribute in aapa_obj.relevant_attributes():
+                attributes.remove(attribute)
         return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags=flags))
     def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]], flags={QIF.ATTRIBUTES})->list[int]:
         log_debug(f'QB: FIND_ID_FROM_VALUES')

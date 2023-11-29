@@ -4,6 +4,7 @@ from data.classes.action_log  import ActionLog
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.detail_rec import DetailRecStorage, DetailsRecTableMapper
 from data.storage.general.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
+from data.storage.table_crud import TableCRUD
 from data.storage.table_registry import register_table
 from data.storage.storage_base import StorageBase
 from database.database import Database
@@ -59,8 +60,6 @@ register_table(class_type=ActionLog, table=action_log_table,
                     ],
                autoID=True)
 register_table(class_type=ActionlogAanvragenDetailRec, table=ActionLogAanvragenTableDefinition(),
-               crud=DetailRecStorage,
-                    mapper_type=ActionlogAanvragenTableMapper)
+               crud=TableCRUD, mapper_type=ActionlogAanvragenTableMapper, autoID=False)
 register_table(class_type=ActionlogInvalidFilesDetailRec, table=ActionLogFilesTableDefinition(), 
-               crud=DetailRecStorage,
-                    mapper_type=ActionlogInvalidFilesTableMapper)
+               crud=TableCRUD, mapper_type=ActionlogInvalidFilesTableMapper, autoID=False)
