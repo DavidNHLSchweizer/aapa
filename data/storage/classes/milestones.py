@@ -31,7 +31,7 @@ class MilestonesCRUD(ExtendedCRUD):
             return self.__read_all_filtered([self.read(id) for id in ids], filter_func=filter_func)
         return []
     def __read_all_states(self, states:set[int], filter_func = None)->Iterable[Milestone]:
-        if ids:= self.query_builder.find_id_from_values(['status'], [states]):
+        if ids:= self.query_builder.find_ids_from_values(['status'], [states]):
             return self.__read_all_filtered([self.read(id) for id in ids], filter_func=filter_func)
         return []
     def read_all(self, filter_func = None, states:set[int]=None)->Iterable[Milestone]:

@@ -64,13 +64,13 @@ def _process_delete_aanvragen(aanvragen: list[Aanvraag], storage: AAPAStorage):
     log_info(f'\tVerwijderen aanvragen uit database:', to_console=True)
     for aanvraag in aanvragen:
         log_print(f'\t\t{aanvraag.summary()}')
-        storage.aanvragen.delete(aanvraag)
+        storage.delete('aanvragen', aanvraag)
     storage.commit()
     log_info(f'\tEinde verwijderen aanvragen uit database.', to_console=True)
 
 def __delete_file(file: File, storage: AAPAStorage):
     log_print(f'\t\t{summary_string(file.filename, maxlen=90, initial=16)}')
-    storage.files.delete(file)
+    storage.delete('files', file)
 
 def _process_forget_invalid_files(action_log: ActionLog, storage: AAPAStorage):
     if not action_log.invalid_files:
@@ -79,7 +79,7 @@ def _process_forget_invalid_files(action_log: ActionLog, storage: AAPAStorage):
     for file in action_log.invalid_files:
         __delete_file(file, storage)
     action_log.clear_invalid_files()
-    storage.action_logs.update(action_log)
+    storage.update('action_logs', action_log)
     storage.commit()
     log_info(f'\tEinde verwijderen overige gevonden pdf-bestanden uit database.', to_console=True)
 
@@ -92,7 +92,7 @@ def _process_forget_files(files_to_forget: list[File], storage: AAPAStorage):
 
 def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
-    if not (action_log:=storage.action_logs.last_action()):
+    if not (action_log:=storage.call_helper('action_logs', 'last_action')):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return 0
     nr_aanvragen = action_log.nr_aanvragen 
@@ -109,7 +109,7 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
     result = pipeline.process(preview=preview) 
     if result == nr_aanvragen:
         action_log.can_undo = False
-    storage.action_logs.update(action_log)
+    storage.update(action_log)
     storage.commit()
     log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
     if aanvragen_to_delete:

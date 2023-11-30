@@ -40,9 +40,10 @@ class VerslagFromZipImporter(VerslagCreator):
 
         def get_student(storage: AAPAStorage, student_name: str, email: str)->Student:
             student = Student(full_name=student_name, email=email)
-            if (stored := storage.studenten.find_student_by_name_or_email(student)):                
+            stored:Student = storage.call_helper('studenten','find_student_by_name_or_email', student=student)
+            if stored:                 
                 return stored
-            student.stud_nr = storage.studenten.create_unique_student_nr(student)
+            student.stud_nr = storage.call_helper('studenten', 'create_unique_student_nr', student=student)
             log_warning(f'Student {student_name} niet gevonden in database. Gebruik fake studentnummer {student.stud_nr}')
             return student            
         return Verslag(verslag_type=get_verslag_type(parsed.product_type), student=get_student(storage, parsed.student_name, email=parsed.email), 
@@ -65,7 +66,7 @@ def import_zipfile(zip_filename: str, output_directory: str, storage: AAPAStorag
     log_info(f'Start import uit zipfile {zip_filename}...', to_console=True)
     importer = VerslagenImporter(f'Importeren verslagen uit zip-file {zip_filename}', VerslagFromZipImporter(), storage)
     
-    first_id = storage.aanvragen.max_id() + 1
+    first_id = storage.call_helper('aanvragen','get_max_value', attribute='id') + 1
     reader = ZipFileReader()
     reader.read_info(zip_filename=zip_filename)
     (n_processed, n_files) = importer.process(reader.filenames, preview=preview)

@@ -30,11 +30,12 @@ class Aanvraag(Milestone):
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
                  source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=0, versie=1):
-        super().__init__(student=student, bedrijf=bedrijf, datum = datum, kans=kans, status=status, beoordeling=beoordeling, titel=titel, id=id)
+        super().__init__(student=student, bedrijf=bedrijf, datum = datum, kans=kans, 
+                         status=status, beoordeling=beoordeling, titel=titel, id=id)
         self._datum_str = datum_str
         self.versie=versie
         if source_info:
-            self._files.set_file(source_info)
+            self._files.add(source_info)
             if not self.datum:
                 self.datum = self.files.get_timestamp(File.Type.AANVRAAG_PDF)
     @property

@@ -7,7 +7,6 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.files import File, Files
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
-from general.log import log_print
 from general.timeutil import TSC
 
 class Milestone(AAPAclass):            
@@ -30,20 +29,8 @@ class Milestone(AAPAclass):
         self.beoordeling = beoordeling
     def relevant_attributes(self)->list[str]:
         return {'datum', 'student', 'bedrijf'}
-    # @property
-    # def id(self):
-    #     return self._id
-    # @id.setter
-    # def id(self, value):
-    #     self._id = value
-    #     self._files.aanvraag_id = value
     @property
     def files(self)->Files: return self._files
-    # @files.setter
-    # def files(self, files: Files):
-    #     for ft in File.Type:
-    #         if ft != File.Type.UNKNOWN:
-    #             self.files.set_file(files.get_file(ft))
     def register_file(self, filename: str, filetype: File.Type):
         self.files.add(File(filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype))
     def unregister_file(self, filetype: File.Type):

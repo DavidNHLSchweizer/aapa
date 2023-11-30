@@ -1,6 +1,6 @@
 from typing import Any
 from data.storage.CRUDs import CRUDColumnMapper, CRUD, CRUDhelper
-from data.storage.detail_rec import DetailRecStorage
+from data.storage.detail_rec_crud import DetailRecsCRUD
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
 from general.classutil import classname
@@ -9,7 +9,7 @@ class ExtendedCRUD(CRUD):
     def __init__(self, database: Database, class_type: StoredClass):
         super().__init__(database, class_type)
         self._crud = self.get_crud(class_type) 
-        self.details = DetailRecStorage(database, class_type) if self._data.details_data else None
+        self.details = DetailRecsCRUD(database, class_type) if self._data.details_data else None
     def __check_valid(self, aapa_obj, msg: str):
         if not isinstance(aapa_obj, StoredClass):
             raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')    
@@ -46,9 +46,7 @@ class ExtendedCRUD(CRUD):
         for mapper in self.mapper.mappers():
             if isinstance(mapper, CRUDColumnMapper):
                 CRUDhelper(self).ensure_exists(aapa_obj, mapper.attribute_name, mapper.attribute_key)
-    def find_value(self, attribute_name: str, value: Any|set[Any])->StoredClass:
-        if ids := self.query_builder.find_value(attribute_name, value):
-            return [self.read(id) for id in ids]
-        return None
-    def max_id(self)->int:
-        return self.query_builder.find_max_id()    
+    # def find_value(self, attribute_name: str, value: Any|set[Any])->StoredClass:
+    #     if ids := self.query_builder.find_value(attribute_name, value):
+    #         return [self.read(id) for id in ids]
+    #     return None

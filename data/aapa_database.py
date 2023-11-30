@@ -119,10 +119,8 @@ class VerslagFilesTableDefinition(DetailTableDefinition):
                          main_table_name='VERSLAGEN', main_alias_id='verslag_id',
                          detail_table_name='FILES', detail_alias_id='file_id')
 
-
-
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
-# Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (700 files) 
+# Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (1000 files) 
 # geen noemenswaardige tijdswinst oplevert. Dit kan dus beter wachten.
 # De functionaliteit is al geprogrammeerd, de code kan eenvoudig worden aangezet.
 # er is dan wel nog eenmalig een database migratie nodig.
@@ -138,18 +136,6 @@ class FilesTableDefinition(TableDefinition):
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])
 
-        # de volgende Foreign Key ligt voor de hand. Er kunnen echter ook niet-aanvraag-gelinkte files zijn (File.Type.InvalidPDF) die om efficientieredenen toch worden opgeslagen
-        # (dan worden ze niet steeds opnieuw ingelezen). De eenvoudigste remedie is om de foreign key te laten vervallen. 
-        #
-        # self.add_foreign_key('aanvraag_id', 'AANVRAGEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        #
-        # TODO: Je zou nog kunnen overwegen een check te doen bij de aanmaak. Als er een INSERT of UPDATE is met een invalid aanvraag_id (trigger) kan je een exception raisen. 
-        # Dit is wel ingewikkeld, want moet ook op de AANVRAGEN tabel (on DELETE) worden gechecked. Voorlopig werkt het zo waarschijnlijk ook wel.
-        # Andere oplossing: een "lege" aanvraag opslaan en daarnaar verwijzen. Kan weer andere problemen veroorzaken, maar als het kan worden opgevangen in storage.py is het misschien 
-        # toch de netste oplossing.
-        #
-        # Andere oplossing (netter): haal de aanvraag link naar een koppeltabel. Dan kan de koppeltable met een (tweetal) foreign keys 
-        # werken en mogen files ook ongekoppeld blijven.
 
 class AanvraagFilesTableDefinition(DetailTableDefinition):
     def __init__(self):

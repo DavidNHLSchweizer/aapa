@@ -3,10 +3,8 @@ from enum import Enum, auto
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File
-from data.storage.extended_crud import ExtendedCRUD
-from data.storage.CRUDs import register_crud
+from data.storage.CRUDs import CRUDhelper, register_crud
 from database.database import Database
-from database.dbConst import EMPTY_ID
 from general.log import log_debug
 from general.timeutil import TSC
 
@@ -47,7 +45,7 @@ class FileStorageRecord:
                     result = FileStorageRecord.Status.DUPLICATE
                     self.stored = stored_file
         return result
-    def analyse(self, storage: FilesStorage)->FileStorageRecord:
+    def analyse(self, storage: FilesCRUDhelper)->FileStorageRecord:
         self.status = self.__analyse_stored_name(storage.find_filename(self.filename))
         if self.status == FileStorageRecord.Status.UNKNOWN:
             self.status = self.__analyse_stored_digest(storage.find_digest(self.digest))
@@ -61,31 +59,28 @@ class FilesTableMapper(TableMapper):
             case 'filetype': return ColumnMapper(column_name=column_name, db_to_obj=File.Type)
             case _: return super()._init_column_mapper(column_name, database)
 
-class FilesStorage(ExtendedCRUD):
+class FilesCRUDhelper(CRUDhelper):
     def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
         log_debug(f'find_all_for_filetype {filetypes}')
-        result = []
-        for id in self.query_builder.find_id_from_values(attributes=['filetype'], values=[filetypes]):
-            result.append(self.read(id)) #check hier, komen de ids wel mee?
-        return result
+        if result:= self.find_values('filetype', filetypes):
+            return result
+        return []
     def get_storage_record(self, filename: str)->FileStorageRecord:
         return FileStorageRecord(filename).analyse(self)
     def find_digest(self, digest: str)->list[File]:
-
-        return self.find_value('digest', digest)
+        return self.find_values('digest', digest)
     def find_filename(self, filename: str)->File:
-        return self.find_value('filename', filename)
+        return self.find_values('filename', filename)
     def store_invalid(self, filename: str, filetype = File.Type.INVALID_PDF)->File:
         log_debug('store_invalid')
         if (stored:=self.find_filename(filename)):
             stored.filetype = filetype
-            stored.aanvraag_id=EMPTY_ID
-            self.update(stored)
+            self.crud.update(stored)
             result = stored
         else:
             new_file = File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, 
                             filetype=filetype)
-            self.create(new_file)
+            self.crud.create(new_file)
             result = new_file
         return result
     def is_known_invalid(self, filename: str)->bool:
@@ -97,5 +92,6 @@ class FilesStorage(ExtendedCRUD):
 register_crud(class_type=File, 
                 table=FilesTableDefinition(), 
                 mapper_type=FilesTableMapper,
-                crud=FilesStorage)
+                helper_type=FilesCRUDhelper
+                )
                 

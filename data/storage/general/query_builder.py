@@ -71,12 +71,12 @@ class QueryBuilder:
             if not attribute in aapa_obj.relevant_attributes():
                 attributes.remove(attribute)
         return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags=flags))
-    def find_id_from_values(self, attributes: list[str], values: list[Any|set[Any]], flags={QIF.ATTRIBUTES})->list[int]:
+    def find_ids_from_values(self, attributes: list[str], values: list[Any|set[Any]], flags={QIF.ATTRIBUTES})->list[int]:
         log_debug(f'QB: FIND_ID_FROM_VALUES')
         return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags=flags))
     def find_value(self, attribute: str, value: Any)->StoredClass:
         log_debug(f'QB: FIND_VALUE')
-        return self.find_id_from_values([attribute], [value])
+        return self.find_ids_from_values([attribute], [value])
     def find_max_value(self, attribute: str, where:SQE = None)->Any:        
         log_debug(f'QB: FIND_MAX_VALUE')
         col_mapper = self.mapper._find_mapper(attribute)

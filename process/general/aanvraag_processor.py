@@ -24,5 +24,5 @@ class AanvraagCreator(FileProcessor):
     def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Aanvraag:
         return None
     def is_known_invalid_file(self, filename: str, storage: AAPAStorage, filetype=File.Type.INVALID_PDF):
-        return storage.files.is_known_invalid(filename, filetype=filetype)
+        return storage.call_helper('files', 'is_known_invalid', filename=filename, filetype=filetype)
 

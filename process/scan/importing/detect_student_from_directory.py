@@ -32,13 +32,14 @@ class StudentMilestonesDetector(FileProcessor):
         if not (parsed := self.parser.parsed(student_directory)):
             raise DetectorException(f'directory {student_directory} kan niet worden herkend.')
         student = Student(full_name=parsed.student)
-        if storage and (stored := storage.studenten.find_student_by_name_or_email(student)):            
+        if storage and (stored := storage.call_helper('studenten', 'find_student_by_name_or_email', student=student)):
             return stored
         return student
     def _get_aanvraag(self, student: Student, storage: AAPAStorage)->Aanvraag:
-        return storage.aanvragen.find_student_last(student)
+        return storage.call_helper('aanvragen', 'find_student_last', student=student)
     def _get_basedir(self, dirname: str, storage: AAPAStorage)->BaseDir:
-        if stored:=storage.basedirs.find_base_dir(str(Path(dirname).parent)):
+        if stored:=storage.call_helper('basedirs', 'find_base_dir', 
+                                        dirname=str(Path(dirname).parent)):
             self.base_dir = stored
             return True
         self.base_dir = None

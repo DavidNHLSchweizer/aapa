@@ -17,10 +17,10 @@ class AanvragenPipeline(Pipeline):
         super().__init__(description, processors, storage, activity=activity, can_undo=can_undo)
         self.aanvragen = aanvragen if aanvragen else self.__read_aanvragen_from_storage()
         self.__sort_aanvragen()     
-    def __read_aanvragen_from_storage(self):
+    def __read_aanvragen_from_storage(self)->list[Aanvraag]:
         log_info('Start reading aanvragen from database')
         entry_states = self.processors[0].entry_states
-        result = self.storage.aanvragen.read_all(states=entry_states)
+        result = self.storage.call_helper('aanvragen', 'read_all', states=entry_states)
         log_info('End reading aanvragen from database')
         return result
     def __sort_aanvragen(self):
@@ -59,7 +59,7 @@ class AanvragenPipeline(Pipeline):
                 log_debug(f'processed. Exit state: {processor.exit_state}')
                 if processor.exit_state:
                     aanvraag.status = processor.exit_state                       
-                self.storage.aanvragen.update(aanvraag)
+                self.storage.update(aanvraag)
                 self.storage.commit()
             else:
                 log_debug(f'Not processed: {processor.description} {self.action_log}')
@@ -82,7 +82,7 @@ class AanvraagCreatorPipeline(FilePipeline):
     def _skip(self, filename: str)->bool:
         return False
     def _store_new(self, aanvraag: Aanvraag):
-        self.storage.aanvragen.create(aanvraag)
+        self.storage.create(aanvraag)
         self.log_aanvraag(aanvraag)   
     def _sorted(self, files: Iterable[Path]) -> Iterable[Path]:
         return sorted(files, key=os.path.getmtime)

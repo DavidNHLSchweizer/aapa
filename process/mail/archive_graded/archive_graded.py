@@ -18,7 +18,7 @@ class ArchiveGradedFileProcessor(AanvraagProcessor):
         aanvraag_path = aanvraag.aanvraag_source_file_path().parent
         graded_file = Path(aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX))
         pdf_file_name = str(path_with_suffix(aanvraag_path.joinpath(graded_file.name), '.pdf').resolve())
-        if self.storage.files.is_known_invalid(pdf_file_name):
+        if self.storage.call_helper('files', 'is_known_invalid', filename=pdf_file_name):
             log_warning(f'Bestand {summary_string(pdf_file_name, maxlen=96)} is al bekend in database.\n\tWordt overschreven door nieuw bestand.')
         try:            
             log_print(f'\tFeedback file {pva(preview, "aan te maken", "aanmaken")} en archiveren:\n\t{summary_string(pdf_file_name, maxlen=96)}.')

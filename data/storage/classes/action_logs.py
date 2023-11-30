@@ -2,7 +2,7 @@ from __future__ import annotations
 from data.aapa_database import ActionLogAanvragenTableDefinition, ActionLogFilesTableDefinition, ActionLogTableDefinition
 from data.classes.action_logs  import ActionLog
 from data.classes.detail_rec import DetailRec, DetailRecData
-from data.storage.CRUDs import register_crud
+from data.storage.CRUDs import CRUDhelper, register_crud
 from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.general.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.extended_crud import ExtendedCRUD
@@ -31,16 +31,16 @@ class ActionLogTableMapper(TableMapper):
             case 'action': return ColumnMapper(column_name=column_name, db_to_obj=ActionLog.Action)
             case _: return super()._init_column_mapper(column_name, database)
 
-class ActionLogCRUD(ExtendedCRUD):
+class ActionLogCRUDhelper(CRUDhelper):
     def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
         if id == EMPTY_ID:
-            # id = self.query_builder.find_max_id()
-            qb = self.query_builder
-            id = qb.find_max_value('id', where = qb.build_where_from_values(column_names=['can_undo'], values=[True]))
+            id = self.find_max_value(attribute='id', 
+                                     where_attributes='can_undo',
+                                     where_values = True)
         if id is None or id == EMPTY_ID:
             log_warning(NoUNDOwarning)
             return None
-        return self.read(id)
+        return self.crud.read(id)
     def last_action(self)->ActionLog:
         return self._find_action_log()
 
@@ -48,7 +48,8 @@ action_log_table = ActionLogTableDefinition()
 register_crud(class_type=ActionLog, 
                 table=action_log_table, 
                 mapper_type=ActionLogTableMapper, 
-                crud=ActionLogCRUD,
+                crud=ExtendedCRUD,
+                helper_type=ActionLogCRUDhelper,
                 details_data=
                     [
                         DetailRecData(aggregator_name='_data', detail_aggregator_key='aanvragen', 

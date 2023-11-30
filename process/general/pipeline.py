@@ -23,7 +23,8 @@ class Pipeline:
         else:
             self._processors.append(processors)
         self.storage = storage
-        self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type}-{File.Type.INVALID_PDF, File.Type.UNKNOWN})
+        self.known_files = self.storage.call_helper('files', 'find_all_for_filetype',
+                                                    filetypes={filetype for filetype in File.Type}-{File.Type.INVALID_PDF, File.Type.UNKNOWN})
         self.action_log = ActionLog(activity, description, can_undo=can_undo)
     @property
     def description(self)->str:
@@ -38,10 +39,11 @@ class Pipeline:
         self.action_log.stop()
         log_debug(f'STOPPING aanvragenprocessor {self.action_log}')
         if not self.action_log.is_empty():
-            self.storage.action_logs.create(self.action_log)
+            self.storage.create(self.action_log)
         self.storage.commit()
     def is_known_file(self, filename: str)->bool: 
-        return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
+        return filename in {file.filename for file in self.known_files} or \
+        self.storage.call_helper('files', 'is_known_invalid', filename=str(filename))
 
 class FilePipeline(Pipeline):
     def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 
@@ -96,7 +98,8 @@ class FilePipeline(Pipeline):
             log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
             for entry in self._invalid_files:
                 log_debug(f'invalid file: {entry}')
-                self.action_log.add(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
+                self.action_log.add(self.storage.call_helper('files', 'store_invalid' , 
+                                                             filename=entry['filename'], filetype=entry['filetype']))
             self.storage.commit()
             self.stop_logging()     
             log_debug(f'end process (f"{self.description}") {n_processed=} {n_files=}')       

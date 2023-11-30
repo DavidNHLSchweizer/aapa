@@ -234,7 +234,7 @@ class AAPAApp(App):
         if not configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
             result = None
         else:
-            result = configuration.storage.action_logs.last_action()
+            result: ActionLog = configuration.storage.call_helper('action_logs', 'last_action')
         self.last_action = result 
         return result
     async def enable_buttons(self):

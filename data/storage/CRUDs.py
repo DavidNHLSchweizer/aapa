@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Tuple, Type
+from data.classes.aapa_class import AAPAclass
 from data.classes.detail_rec import DetailRecData
 from data.storage.general.mappers import ColumnMapper, TableMapper
 from data.storage.general.query_builder import QIF, QueryBuilder
@@ -63,6 +64,7 @@ class CRUD:
         self._data = _class_data(class_type)
         self.database = database        
         self.autoID = self._data.autoID
+        self.helper = self._data.helper_type(self)
         self.mapper = self._data.mapper_type(database, self._data.table, class_type) if self._data.mapper_type \
                                                             else TableMapper(database, self._data.table, class_type)
         self.query_builder = QueryBuilder(self.database, self.mapper)
@@ -75,7 +77,6 @@ class CRUD:
         return self.mapper.class_type   
     def get_crud(self, class_type = None)->CRUD:
         return self if not class_type or class_type == self.class_type else self._cruds.get_crud(class_type)
-    
     def create(self, aapa_obj: StoredClass): 
         log_debug(f'CRUD CREATE ({classname(self)}) {classname(aapa_obj)}: {str(aapa_obj)}')
         columns,values = self.mapper.object_to_db(aapa_obj)
@@ -110,18 +111,27 @@ class CRUD:
 
     # ---------------- utility functions ---------------
 class CRUDhelper:
+    # to keep this apart from actual CRUD operations
     def __init__(self, crud: CRUD):
         self.crud = crud
+    def get_crud(self, class_type: StoredClass)->CRUD:
+        return self.crud.get_crud(class_type=class_type)
+    @property
+    def query_builder(self)->QueryBuilder:
+        return self.crud.query_builder
+    @property
+    def table(self)->TableDefinition:
+        return self.crud.table
     def _check_already_there(self, aapa_obj: StoredClass)->bool:
-        if stored_ids := self.crud.query_builder.find_id_from_object(aapa_obj): 
+        if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
             log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
-            setattr(aapa_obj, self.crud.table.key, stored_ids[0])
+            setattr(aapa_obj, self.table.key, stored_ids[0])
             return True
         return False
     def _create_key_if_needed(self, aapa_obj: StoredClass, table: TableDefinition = None, autoID=True):
         autoID = autoID if autoID else self.crud.autoID
-        table = table if table else self.crud.table
+        table = table if table else self.table
         if autoID and getattr(aapa_obj, table.key, EMPTY_ID) == EMPTY_ID:
             setattr(aapa_obj, table.key, get_next_key(table.name))
     def ensure_key(self, aapa_obj: StoredClass):
@@ -130,7 +140,7 @@ class CRUDhelper:
     def ensure_exists(self, aapa_obj: StoredClass, attribute: str, attribute_key: str = 'id'):
         if not (attr_obj := getattr(aapa_obj, attribute, None)):
             return
-        crud = self.crud.get_crud(type(attr_obj))
+        crud = self.get_crud(type(attr_obj))
         if getattr(attr_obj, attribute_key) == EMPTY_ID:
             if stored_ids := crud.query_builder.find_id_from_object(attr_obj):
                 setattr(attr_obj, attribute_key, stored_ids[0])
@@ -141,7 +151,34 @@ class CRUDhelper:
             # key already set elsewhere, check whether already in database
             if not (stored_ids := crud.query_builder.find_id_from_object(attr_obj)):
                 crud.create(attr_obj)
-
+    def __get_wanted_values(self, attributes: str|list[str], values: Any|list[Any])->Tuple[list[str],list[str]]:
+        wanted_attributes = attributes if isinstance(attributes, list) else [attributes]
+        wanted_values = values if isinstance(values, list) else [values]
+        return (wanted_attributes, wanted_values)
+    def find_values(self, attributes: str|list[str], values: Any|list[Any])->list[AAPAclass]:
+        qb = self.query_builder
+        wanted_attributes, wanted_values = self.__get_wanted_values(attributes, values) 
+        if (ids := qb.find_ids_from_values(attributes=wanted_attributes, values=wanted_values, 
+                        flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES})):
+            return [self.crud.read(id) for id in ids]
+        return None
+    def find_count(self, attributes: str|list[str]=None, values: Any|list[Any]=None)->int:
+        qb = self.query_builder
+        wanted_attributes, wanted_values = self.__get_wanted_values(attributes, values) 
+        return qb.find_count(
+                    where=qb.build_where_from_values(
+                        column_names=wanted_attributes, values=wanted_values,
+                            flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))        
+    def find_max_value(self, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->Any:
+        qb = self.query_builder
+        wanted_attributes, wanted_values = self.__get_wanted_values(where_attributes, where_values) 
+        return qb.find_max_value(attribute,
+                    where=qb.build_where_from_values(
+                        column_names=wanted_attributes, values=wanted_values,
+                            flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))        
+    def max_id(self)->int:
+        return self.query_builder.find_max_id()    
+    
 class CRUDColumnMapper(ColumnMapper):
     def __init__(self, column_name: str, attribute_name:str, crud: CRUD, attribute_key:str='id'):
         super().__init__(column_name=column_name, attribute_name=attribute_name)
@@ -151,18 +188,22 @@ class CRUDColumnMapper(ColumnMapper):
         return getattr(value, self.attribute_key, None)
     def map_db_to_value(self, db_value: DBtype)->Any:
         return self.crud.read(db_value)
-
+#----------------------- REGISTRY stuff ----------------
+# enabling initialization of crud from given ClassType
+#-------------------------------------------------------
 class ClassRegistryException(Exception): pass
 class ClassRegistryData:
     def __init__(self, table: TableDefinition,
                         mapper_type = TableMapper, 
                         crud=CRUD,  
+                        helper_type = CRUDhelper,
                         details_data=None,
                         autoID=True,
                         module_name=''):
         self.table = table
         self.mapper_type = mapper_type
         self.crud = crud
+        self.helper_type = helper_type
         self.details_data = details_data
         self.autoID = autoID
         self.module_name = module_name
@@ -183,6 +224,7 @@ class CRUDRegistry(Singleton):
                         table: TableDefinition, 
                         mapper_type=TableMapper, 
                         crud=CRUD,  
+                        helper_type = CRUDhelper,
                         details_data: DetailRecData = None, 
                         autoID=True, 
                         main=True):
@@ -191,6 +233,7 @@ class CRUDRegistry(Singleton):
         self._registered_data[class_type] = ClassRegistryData(table=table,                                                                
                                                               mapper_type = mapper_type, 
                                                               crud=crud,  
+                                                              helper_type = helper_type,
                                                               details_data=details_data,
                                                               autoID=autoID,
                                                               module_name=module_name)
@@ -217,6 +260,7 @@ def register_crud(class_type: Type[StoredClass],
                   table: TableDefinition, 
                   mapper_type: Type[TableMapper] = TableMapper, 
                   crud = CRUD, 
+                  helper_type = CRUDhelper,
                   details_data: DetailRecData = None, 
                   autoID=True, 
                   main=True):
@@ -224,6 +268,7 @@ def register_crud(class_type: Type[StoredClass],
                             table=table, 
                             mapper_type=mapper_type, 
                             crud=crud, 
+                            helper_type=helper_type,
                             details_data=details_data,  
                             autoID=autoID,
                             main=main)

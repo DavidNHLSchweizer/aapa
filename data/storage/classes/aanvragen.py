@@ -4,6 +4,7 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.classes.studenten import Student
 from data.storage.detail_rec_crud import DetailRecsTableMapper
+from data.storage.extended_crud import ExtendedCRUD
 from data.storage.general.mappers import ColumnMapper
 from data.storage.general.query_builder import QIF
 from data.storage.CRUDs import CRUDhelper, register_crud
@@ -19,44 +20,33 @@ class AanvragenTableMapper(MilestonesTableMapper):
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
   
-class AanvragenCRUD(MilestonesCRUD):
+class AanvragenCRUDhelper(CRUDhelper):
     def find_kans(self, student: Student):
-        qb = self.query_builder
-        stud_crud = self.get_crud(Student)
-        CRUDhelper(stud_crud).ensure_key(student)     
+        CRUDhelper(self.get_crud(Student)).ensure_key(student)     
         log_debug(f'FIND KANS {student.id}')   
-        result = qb.find_count(where=qb.build_where_from_values(column_names=['student'], 
-                                                                values=[student.id], 
-                                                                flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))        
+        result = self.find_count('student', student.id)
         log_debug(f'FOUND  KANS {result}')   
         return result
     def find_versie(self, student: Student, bedrijf: Bedrijf):
-        qb = self.query_builder
         log_debug('FIND VERSIE')
-        bedr_crud = self.get_crud(Bedrijf)
-        CRUDhelper(bedr_crud).ensure_key(bedrijf)        
-        stud_crud = self.get_crud(Student)
-        CRUDhelper(stud_crud).ensure_key(student) 
-        result = qb.find_max_value(attribute='versie',                                                
-                                   where=qb.build_where_from_values(column_names=['student', 'bedrijf'],
-                                                                    values=[student.id, bedrijf.id], 
-                                                                    flags={QIF.ATTRIBUTES,QIF.NO_MAP_VALUES})
-                                                                    )
+        CRUDhelper(self.get_crud(Bedrijf)).ensure_key(bedrijf)        
+        CRUDhelper(self.get_crud(Student)).ensure_key(student) 
+        result = self.find_max_value(attribute='versie',                                                
+                                        where_attributes=['student', 'bedrijf'],
+                                        where_values=[student.id, bedrijf.id])
         log_debug(f'FIND VERSIE EINDE {result}')
         return result
     def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
         if aanvraag.versie == 1:
             return None
-        qb = self.query_builder
-        stud_crud = self.get_crud(Student)
-        CRUDhelper(stud_crud).ensure_key(aanvraag.student) 
+        CRUDhelper(self.get_crud(Student)).ensure_key(aanvraag.student) 
         log_debug('FIND PREVIOUS')
-        if ids := qb.find_id_from_values(['versie', 'student'], 
-                                         [aanvraag.versie-1, aanvraag.student.id], 
-                                         flags={QIF.ATTRIBUTES,QIF.NO_MAP_VALUES}):
-            result = self.read(ids[0])
+        if ids := self.find_values(['versie', 'student'], 
+                                   [aanvraag.versie-1, aanvraag.student.id]):
+            result = self.crud.read(ids[0])
             log_debug(f'ding dong previous: {result}')
             return result    
+        return None
 
 class AanvragenFilesDetailRec(DetailRec): pass
 class AanvragenFilesTableMapper(DetailRecsTableMapper):
@@ -65,7 +55,8 @@ class AanvragenFilesTableMapper(DetailRecsTableMapper):
 
 register_crud(class_type=Aanvraag, 
                 table=AanvraagTableDefinition(), 
-                crud=AanvragenCRUD,             
+                crud=ExtendedCRUD,     
+                helper_type=AanvragenCRUDhelper,        
                 mapper_type=AanvragenTableMapper, 
                 details_data=
                     [DetailRecData(aggregator_name='files', detail_aggregator_key='files', 

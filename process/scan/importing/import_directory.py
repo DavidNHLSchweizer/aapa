@@ -62,16 +62,15 @@ class AanvraagValidator:
     def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
     def __insert_versie_en_kans(self):
-        versie = self.storage.aanvragen.find_versie(self.validated_aanvraag.student, self.validated_aanvraag.bedrijf) 
+        versie = self.storage.call_helper('aanvragen', 'find_versie', student=self.validated_aanvraag.student, bedrijf=self.validated_aanvraag.bedrijf) 
         self.validated_aanvraag.versie = (versie + 1) if versie else 1 
-        kans = self.storage.aanvragen.find_kans(self.validated_aanvraag.student)
+        kans = self.storage.call_helper('aanvragen', 'find_kans', student=self.validated_aanvraag.student)
         self.validated_aanvraag.kans = (kans + 1) if kans else 1
-
 class AanvraagPDFImporter(FileProcessor):
     def __init__(self):
         super().__init__(description='PDF Importer')
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
-        record = storage.files.get_storage_record(filename)
+        record = storage.call_helper('files', 'get_storage_record', filename=filename)
         log_debug(f'MUST_PROCESS_FILE {filename}\n\tstorage_record: {record.status}  {record.stored}')
         match record.status:
             case FileStorageRecord.Status.STORED | FileStorageRecord.Status.STORED_INVALID:
@@ -125,7 +124,7 @@ class DirectoryImporter(AanvraagCreatorPipeline):
                 return True 
         return False
     def _check_skip_file(self, filename: Path)->bool:
-        record = self.storage.files.get_storage_record(str(filename))
+        record:FileStorageRecord = self.storage.call_helper('files', 'get_storage_record', filename=str(filename))
         log_debug(f'record: {filename}: {record.status}')
         skip_msg = ''
         warning = False
@@ -166,10 +165,10 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
         skip_directories = set()
     skip_files = config.get('import', 'skip_files')
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
-    first_id = storage.aanvragen.max_id() + 1
+    first_id = storage.call_helper('aanvragen', 'find_max_value', attribute='id') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
-    report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
+    report_imports(importer.storage.call_helper('aanvragen','read_all', filter_func=(lambda a: a.id >= first_id)), preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
     log_info(f'...Import afgerond ({sop(n_processed, "nieuwe aanvraag", "nieuwe aanvragen")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
     return n_processed, n_files      
