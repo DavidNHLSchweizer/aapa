@@ -1,16 +1,12 @@
-from dataclasses import dataclass
-from pydoc import classname
 from typing import Iterable
 from data.classes.bedrijven import Bedrijf
 from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.storage.general.mappers import ColumnMapper, TableMapper, TimeColumnMapper
-from data.storage.storage_base import StorageBase
+from data.storage.extended_crud import ExtendedCRUD
 from data.storage.general.storage_const import StoredClass
-from data.storage.table_crud import CRUDColumnMapper
-from data.storage.table_registry import create_crud
+from data.storage.CRUDs import create_crud, CRUDColumnMapper
 from database.database import Database
-from general.log import log_debug
 
 class MilestonesTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
@@ -22,28 +18,9 @@ class MilestonesTableMapper(TableMapper):
                 return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=create_crud(database, Bedrijf))
             case _: return super()._init_column_mapper(column_name, database)
 
-class MilestonesStorage(StorageBase):
+class MilestonesCRUD(ExtendedCRUD):
     def __init__(self, database: Database, class_type: StoredClass):
         super().__init__(database, class_type)
-    # semi-abstract base class for AANVRAGEN and VERSLAGEN, handles the common parts
-    # def __load(self, milestone_id: int, filetypes: set[File.Type], crud_files: CRUD)->Iterable[File]:
-    #     log_debug(f'__load: {classname(self)} - {milestone_id}: {filetypes}')
-    #     self.get_crud(File)
-    #     if file_IDs := crud_files.query_builder.find_id_from_values(attributes=['aanvraag_id', 'filetype'], values = [milestone_id, filetypes]):
-    #         log_debug(f'found: {file_IDs}')
-    #         result = [crud_files.read(id) for id in file_IDs]
-    #         return result
-    #     return []
-    # def find_all(self, aanvraag_id: int)->Files:
-    #     log_debug('find_all')
-    #     result = Files(aanvraag_id)        
-    #     filetypes = {ft for ft in File.Type if ft != File.Type.UNKNOWN}
-    #     result.reset_file(filetypes)
-    #     if files := self.__load(aanvraag_id, filetypes):
-    #         for file in files:
-    #             result.set_file(file)
-    #     return result        
-
     def __read_all_filtered(self, milestones: Iterable[Milestone], filter_func = None)->Iterable[Milestone]:
         if not filter_func:
             return milestones

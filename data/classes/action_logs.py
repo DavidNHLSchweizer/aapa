@@ -37,9 +37,7 @@ class ActionLog(AAPAclass):
         self.date:datetime.datetime = date
         self.user = user
         self._data = ActionLogAggregator(self)
-        self.can_undo = can_undo
-        # print(self._data.get_detail_rec_data(Aanvraag))        
-        # print(self._data.get_detail_rec_data(File))        
+        self.can_undo = can_undo     
     @property
     def aanvragen(self)->list[Aanvraag]:
         return self._data.as_list('aanvragen', sort_key=lambda a: a.id)

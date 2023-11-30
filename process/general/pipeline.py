@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.general.storage_const import StoredClass
 from general.fileutil import summary_string

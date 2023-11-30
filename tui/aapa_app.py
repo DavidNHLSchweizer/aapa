@@ -9,7 +9,7 @@ from textual.message import Message
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
 from general.log import pop_console, push_console
 from general.versie import BannerPart, banner

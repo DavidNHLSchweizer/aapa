@@ -28,6 +28,7 @@ t?.py
 /temp2/**
 /DEMO/**
 /backup
+/zzz_backup/**
 /logs
 *.pyc
 aapa stroomschema.drawio

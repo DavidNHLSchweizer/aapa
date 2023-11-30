@@ -1,56 +1,15 @@
 from __future__ import annotations
 from enum import Enum, auto
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
-from data.storage.general.storage_const import StorageException
 from data.aapa_database import FilesTableDefinition
-from data.classes.files import File, Files
-from data.storage.storage_base import StorageBase
-from data.storage.table_registry import register_table
+from data.classes.files import File
+from data.storage.extended_crud import ExtendedCRUD
+from data.storage.CRUDs import register_crud
 from database.database import Database
 from database.dbConst import EMPTY_ID
-from general.log import log_debug, log_exception
+from general.log import log_debug
 from general.timeutil import TSC
 
-
-# class FileSync:
-#     class Strategy(Enum):
-#         IGNORE  = auto()
-#         DELETE  = auto()
-#         CREATE  = auto()
-#         UPDATE  = auto()
-#         REPLACE = auto()      
-#     def __init__(self, files: FilesStorage):
-#         self.files = files
-#     def __check_known_file(self, file: File)->bool:
-#         if (stored_file := self.files.find_filename(filename=file.filename)):
-#             if stored_file.aanvraag_id != EMPTY_ID and stored_file.aanvraag_id != file.aanvraag_id:
-#                 log_exception(f'file {stored_file.filename} bestaat al voor aanvraag {stored_file.aanvraag_id}', StorageException)
-#             elif stored_file.filetype not in {File.Type.UNKNOWN, File.Type.INVALID_PDF}:  
-#                 return False 
-#             return True
-#         return False
-#     def get_strategy(self, old_files: Files, new_files: Files)->dict[File.Type]:
-#         result = {ft: FileSync.Strategy.IGNORE for ft in File.Type}
-#         old_filetypes = {ft for ft in old_files.get_filetypes()} 
-#         log_debug(f'old_filetypes: {old_filetypes}' )
-#         new_filetypes = {ft for ft in new_files.get_filetypes()} 
-#         log_debug(f'new_filetypes: {new_filetypes}' )
-#         for file in new_files.files:
-#             if self.__check_known_file(file):
-#                 new_filetypes.remove(file.filetype) # don't reprocess
-#                 result[file.filetype] = FileSync.Strategy.REPLACE
-#         for ft in old_filetypes.difference(new_filetypes):
-#             result[ft] = FileSync.Strategy.DELETE
-#         for ft in new_filetypes.difference(old_filetypes):
-#             result[ft] = FileSync.Strategy.CREATE
-#             new_filetypes.remove(ft)
-#         for ft in new_filetypes: 
-#             if old_files.get_file(ft) != new_files.get_file(ft):
-#                 result[ft] = FileSync.Strategy.UPDATE
-#         summary_str = "\n".join([f'{ft}: {str(result[ft])}' for ft in File.Type if result[ft]!=FileSync.Strategy.IGNORE])
-#         log_debug(f'Strategy: {summary_str}')
-#         return result
-    
 class FileStorageRecord:
     class Status(Enum):
         UNKNOWN             = auto()
@@ -102,10 +61,7 @@ class FilesTableMapper(TableMapper):
             case 'filetype': return ColumnMapper(column_name=column_name, db_to_obj=File.Type)
             case _: return super()._init_column_mapper(column_name, database)
 
-class FilesStorage(StorageBase):
-    # def __init__(self, database: Database):
-    #     super().__init__(database, class_type=File)
-    #     # self.sync_strategy = FileSync(self)
+class FilesStorage(ExtendedCRUD):
     def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
         log_debug(f'find_all_for_filetype {filetypes}')
         result = []
@@ -138,4 +94,8 @@ class FilesStorage(StorageBase):
         else:
             return False     
 
-register_table(class_type=File, table=FilesTableDefinition(), crud=FilesStorage, mapper_type=FilesTableMapper, autoID=True)
+register_crud(class_type=File, 
+                table=FilesTableDefinition(), 
+                mapper_type=FilesTableMapper,
+                crud=FilesStorage)
+                

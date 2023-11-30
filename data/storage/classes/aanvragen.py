@@ -1,15 +1,13 @@
-from typing import Any
 from data.aapa_database import AanvraagTableDefinition, AanvraagFilesTableDefinition
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.classes.studenten import Student
-from data.storage.detail_rec import DetailRecStorage, DetailsRecTableMapper
+from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.general.mappers import ColumnMapper
 from data.storage.general.query_builder import QIF
-from data.storage.table_crud import TableCRUD
-from data.storage.table_registry import register_table
-from data.storage.classes.milestones import MilestonesStorage, MilestonesTableMapper
+from data.storage.CRUDs import CRUDhelper, register_crud
+from data.storage.classes.milestones import MilestonesCRUD, MilestonesTableMapper
 from database.database import Database
 from database.table_def import TableDefinition
 from general.log import log_debug
@@ -21,13 +19,11 @@ class AanvragenTableMapper(MilestonesTableMapper):
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
   
-class AanvragenStorage(MilestonesStorage):
-    # def __init__(self, database: Database):
-    #     super().__init__(database, class_type=Aanvraag)
+class AanvragenCRUD(MilestonesCRUD):
     def find_kans(self, student: Student):
         qb = self.query_builder
         stud_crud = self.get_crud(Student)
-        stud_crud.ensure_key(student)     
+        CRUDhelper(stud_crud).ensure_key(student)     
         log_debug(f'FIND KANS {student.id}')   
         result = qb.find_count(where=qb.build_where_from_values(column_names=['student'], 
                                                                 values=[student.id], 
@@ -38,9 +34,9 @@ class AanvragenStorage(MilestonesStorage):
         qb = self.query_builder
         log_debug('FIND VERSIE')
         bedr_crud = self.get_crud(Bedrijf)
-        bedr_crud.ensure_key(bedrijf)        
+        CRUDhelper(bedr_crud).ensure_key(bedrijf)        
         stud_crud = self.get_crud(Student)
-        stud_crud.ensure_key(student) 
+        CRUDhelper(stud_crud).ensure_key(student) 
         result = qb.find_max_value(attribute='versie',                                                
                                    where=qb.build_where_from_values(column_names=['student', 'bedrijf'],
                                                                     values=[student.id, bedrijf.id], 
@@ -53,7 +49,7 @@ class AanvragenStorage(MilestonesStorage):
             return None
         qb = self.query_builder
         stud_crud = self.get_crud(Student)
-        stud_crud.ensure_key(aanvraag.student) 
+        CRUDhelper(stud_crud).ensure_key(aanvraag.student) 
         log_debug('FIND PREVIOUS')
         if ids := qb.find_id_from_values(['versie', 'student'], 
                                          [aanvraag.versie-1, aanvraag.student.id], 
@@ -63,17 +59,23 @@ class AanvragenStorage(MilestonesStorage):
             return result    
 
 class AanvragenFilesDetailRec(DetailRec): pass
-class AanvragenFilesTableMapper(DetailsRecTableMapper):
+class AanvragenFilesTableMapper(DetailRecsTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
         super().__init__(database, table, class_type, 'aanvraag_id','file_id')
 
-register_table(class_type=Aanvraag, table=AanvraagTableDefinition(), mapper_type=AanvragenTableMapper, 
-               crud=AanvragenStorage,             
+register_crud(class_type=Aanvraag, 
+                table=AanvraagTableDefinition(), 
+                crud=AanvragenCRUD,             
+                mapper_type=AanvragenTableMapper, 
                 details_data=
                     [DetailRecData(aggregator_name='files', detail_aggregator_key='files', 
                                    detail_rec_type=AanvragenFilesDetailRec),
-                    ],
-                autoID=True)
-register_table(class_type=AanvragenFilesDetailRec, table=AanvraagFilesTableDefinition(), 
-               crud=TableCRUD, mapper_type=AanvragenFilesTableMapper, autoID=False)
+                    ]
+                )
+register_crud(class_type=AanvragenFilesDetailRec, 
+                table=AanvraagFilesTableDefinition(), 
+                mapper_type=AanvragenFilesTableMapper, 
+                autoID=False,
+                main=False
+                )
 

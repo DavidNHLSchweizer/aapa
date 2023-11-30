@@ -1,12 +1,8 @@
 from data.aapa_database import StudentTableDefinition
 from data.classes.studenten import Student
-from data.storage.table_registry import register_table
-from data.storage.storage_base import StorageBase
-from database.database import Database
+from data.storage.CRUDs import CRUD, register_crud
 
-class StudentenStorage(StorageBase):
-    # def __init__(self, database: Database):
-    #     super().__init__(database, Student)        
+class StudentenStorage(CRUD):
     def find_student_by_name_or_email(self, student: Student)->Student:
         for column_name in ['full_name', 'email']:
             if result := self.find_value(column_name, getattr(student, column_name)):
@@ -19,5 +15,9 @@ class StudentenStorage(StorageBase):
         while self.find_value('stud_nr', result) is not None:
             n+=1
         return result
+    def find_value(self, column_name: str, attribute: str):
+        raise NotImplemented('find value')
 
-register_table(class_type=Student, table=StudentTableDefinition(), crud=StudentenStorage, autoID=True)
+register_crud(class_type=Student, 
+                table=StudentTableDefinition(), 
+                crud=StudentenStorage)

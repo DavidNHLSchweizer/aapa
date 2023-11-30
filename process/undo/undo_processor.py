@@ -1,5 +1,5 @@
 from data.classes.aanvragen import Aanvraag
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from data.classes.files import File
 from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from data.storage.aapa_storage import AAPAStorage

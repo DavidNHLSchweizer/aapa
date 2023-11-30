@@ -1,7 +1,7 @@
 from __future__ import annotations
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from general.singleton import Singleton
 
 class UndoRecipe:

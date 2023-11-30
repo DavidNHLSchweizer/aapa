@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from general.log import log_info
 from general.preview import Preview, pva
 from general.singular_or_plural import sop

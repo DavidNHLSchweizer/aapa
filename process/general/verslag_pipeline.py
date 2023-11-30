@@ -1,4 +1,4 @@
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
 from process.general.pipeline import FilePipeline

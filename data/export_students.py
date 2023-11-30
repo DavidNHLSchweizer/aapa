@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from enum import Enum
 from multiprocessing.process import BaseProcess
 import pandas as pd
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from general.deep_attr import deep_attr_main_part, get_deep_attr
 from general.log import log_error, log_print
 from process.general.aanvraag_processor import AanvraagProcessor

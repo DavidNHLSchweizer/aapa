@@ -2,7 +2,7 @@ from pathlib import Path
 from copy import deepcopy
 import re
 import tkinter.simpledialog as tksimp
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from data.storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File

@@ -1,4 +1,4 @@
-from data.classes.action_log import ActionLog
+from data.classes.action_logs import ActionLog
 from general.fileutil import created_directory, from_main_path, test_directory_exists
 from general.log import log_error, log_info, log_print
 from general.preview import Preview, pva
