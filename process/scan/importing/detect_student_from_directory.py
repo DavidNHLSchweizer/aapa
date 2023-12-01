@@ -6,6 +6,8 @@ from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
+from data.storage.student_extension import StudentStorageExtension
+from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string, test_directory_exists
 from general.config import ListValueConvertor, config
 from general.log import log_error, log_info, log_print, log_warning
@@ -28,19 +30,24 @@ class StudentMilestonesDetector(FileProcessor):
         self.parser = DirectoryNameParser()
         self.base_dir: BaseDir = None
         self.current_student_milestones: StudentMilestones = None
+    
     def _get_student(self, student_directory: str, storage: AAPAStorage):
         if not (parsed := self.parser.parsed(student_directory)):
             raise DetectorException(f'directory {student_directory} kan niet worden herkend.')
         student = Student(full_name=parsed.student)
-        if storage and (stored := storage.call_helper('studenten', 'find_student_by_name_or_email', student=student)):
+        if storage and (stored := StudentStorageExtension(storage).find_student_by_name_or_email(student)):
             return stored
         return student
     def _get_aanvraag(self, student: Student, storage: AAPAStorage)->Aanvraag:
-        return storage.call_helper('aanvragen', 'find_student_last', student=student)
+        if student.id == EMPTY_ID:
+            return None
+        if max_id := storage.find_max_value('aanvragen', attribute='id', where_attributes='stud_id', where_values=student.id):
+            return storage.read('aanvragen', max_id)
     def _get_basedir(self, dirname: str, storage: AAPAStorage)->BaseDir:
-        if stored:=storage.call_helper('basedirs', 'find_base_dir', 
-                                        dirname=str(Path(dirname).parent)):
-            self.base_dir = stored
+        if stored:=storage.find_values('basedirs', attributes='dirname', values=str(Path(dirname).parent)):
+            if len(stored) > 1:
+                raise DetectorException(f'More than one basedir with same name in database:\n{[str(basedir) for basedir in stored]}')
+            self.base_dir = stored[0]
             return True
         self.base_dir = None
         return False   

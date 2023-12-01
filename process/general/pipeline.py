@@ -34,7 +34,7 @@ class Pipeline:
         self.action_log.start()
         log_debug(f'STARTING pipeline {self.action_log}')
     def log_aanvraag(self, aanvraag: Aanvraag):
-        if aanvraag and aanvraag.status != Aanvraag.Status.DELETED:
+        if aanvraag and aanvraag.status in Aanvraag.Status.VALID_STATES:
             self.action_log.add(aanvraag)
     def stop_logging(self):
         self.action_log.stop()
@@ -44,7 +44,7 @@ class Pipeline:
         self.storage.commit()
     def is_known_file(self, filename: str)->bool: 
         return filename in {file.filename for file in self.known_files} or \
-        self.storage.call_helper('files', 'is_known_invalid', filename=str(filename))
+            self.storage.find_values('files', attributes=['filename', 'filetype'], values=[filename, File.Type.INVALID_FILETYPES]) is not []
 
 class FilePipeline(Pipeline):
     def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 

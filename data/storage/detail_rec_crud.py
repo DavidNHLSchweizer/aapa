@@ -31,7 +31,7 @@ class DetailRecsCRUD(CRUD):
         self.details_data = self._data.details_data
         self.database = database
     def __db_log(self, function: str, params: str=''):
-        log_debug(f'DRC: {function}{(" - " + params) if params else ""}')        
+        log_debug(f'DRC({classname(self)}): {function}{(" - " + params) if params else ""}')        
     def create(self, aapa_obj: StoredClass):
         self.__db_log('CREATE', f'({classname(aapa_obj)}: {str(aapa_obj)})')
         for details in self.details_data:
@@ -49,8 +49,8 @@ class DetailRecsCRUD(CRUD):
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
         details_crud = self.get_crud(detail_class_type)
         for item in aggregator.as_list(detail_class_type):            
-            CRUDhelper(details_crud)._create_key_if_needed(item)
-            if not CRUDhelper(details_crud)._check_already_there(item):
+            CRUDhelper(details_crud).create_key_if_needed(item)
+            if not CRUDhelper(details_crud).check_already_there(item):
                 details_crud.create(item)
             detail_items.append(detail_rec_type(main_key=main_id, detail_key=item.id))
         detail_rec_crud = self.get_crud(detail_rec_type)

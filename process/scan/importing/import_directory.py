@@ -135,7 +135,11 @@ class DirectoryImporter(AanvraagCreatorPipeline):
                 return True 
         return False
     def _check_skip_file(self, filename: Path)->bool:
-        record:FileStorageRecord = self.storage.call_helper('files', 'get_storage_record', filename=str(filename))
+        stored: list[File] = self.storage.find_values('files', attributes='filename', values=filename)
+        if len(stored) > 1:
+            raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
+        record = FileStorageRecord(filename).analyse(filenames=stored, 
+                                                     digests=self.storage.find_values('files', attributes='digest', values=stored[0].digest))        
         log_debug(f'record: {filename}: {record.status}')
         skip_msg = ''
         warning = False
@@ -176,10 +180,11 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
         skip_directories = set()
     skip_files = config.get('import', 'skip_files')
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
-    first_id = storage.call_helper('aanvragen', 'find_max_value', attribute='id') + 1
+    first_id = storage.find_max_value('aanvragen', attribute='id') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
-    report_imports(importer.storage.call_helper('aanvragen','read_all', filter_func=(lambda a: a.id >= first_id)), preview=preview)
+    all_aanvragen = importer.storage.find_all('aanvragen', where_attributes='status', where_values=Aanvraag.Status.VALID_STATES)
+    report_imports(list(filter(lambda a: a.id >= first_id, all_aanvragen)), preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
     log_info(f'...Import afgerond ({sop(n_processed, "nieuwe aanvraag", "nieuwe aanvragen")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
     return n_processed, n_files      

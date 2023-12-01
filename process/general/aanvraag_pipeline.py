@@ -22,7 +22,7 @@ class AanvragenPipeline(Pipeline):
         log_info(f'Start reading aanvragen from database. Entry_states: {entry_states}')
         result = self.storage.find_all('aanvragen', 
                                        where_attributes='status', 
-                                       where_values={status for status in Aanvraag.Status if status in entry_states and status != Aanvraag.Status.DELETED })
+                                       where_values=Aanvraag.Status.VALID_STATES)
         log_info(f'End reading aanvragen from database. {len} aanvragen read.')
         return result
     def __sort_aanvragen(self):

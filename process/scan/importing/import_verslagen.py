@@ -5,6 +5,7 @@ from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
+from data.storage.student_extension import StudentStorageExtension
 from general.fileutil import summary_string
 from general.log import log_debug, log_info, log_print, log_warning
 from general.singular_or_plural import sop
@@ -39,11 +40,12 @@ class VerslagFromZipImporter(VerslagCreator):
                 case _: return 0
 
         def get_student(storage: AAPAStorage, student_name: str, email: str)->Student:
+            storage_extension = StudentStorageExtension(storage)
             student = Student(full_name=student_name, email=email)
-            stored:Student = storage.call_helper('studenten','find_student_by_name_or_email', student=student)
+            stored:Student = storage_extension.find_student_by_name_or_email(student=student)
             if stored:                 
                 return stored
-            student.stud_nr = storage.call_helper('studenten', 'create_unique_student_nr', student=student)
+            student.stud_nr = storage_extension.create_unique_student_nr(student=student)
             log_warning(f'Student {student_name} niet gevonden in database. Gebruik fake studentnummer {student.stud_nr}')
             return student            
         return Verslag(verslag_type=get_verslag_type(parsed.product_type), student=get_student(storage, parsed.student_name, email=parsed.email), 
@@ -65,8 +67,8 @@ class VerslagenImporter(VerslagCreatingPipeline): pass
 def import_zipfile(zip_filename: str, output_directory: str, storage: AAPAStorage, preview=False)->int:
     log_info(f'Start import uit zipfile {zip_filename}...', to_console=True)
     importer = VerslagenImporter(f'Importeren verslagen uit zip-file {zip_filename}', VerslagFromZipImporter(), storage)
-    
-    first_id = storage.call_helper('aanvragen','get_max_value', attribute='id') + 1
+    first_id = storage.find_max_value('aanvragen', attribute='id') + 1
+    log_debug(f'first_id: {first_id}')
     reader = ZipFileReader()
     reader.read_info(zip_filename=zip_filename)
     (n_processed, n_files) = importer.process(reader.filenames, preview=preview)

@@ -21,6 +21,8 @@ class Aanvraag(Milestone):
         MAIL_READY      = 5
         READY           = 6
         READY_IMPORTED  = 7
+        VALID_STATES = {NEW, IMPORTED_PDF, NEEDS_GRADING, GRADED, ARCHIVED, MAIL_READY, READY, READY_IMPORTED}
+
         def __str__(self):
             STRS = {Aanvraag.Status.DELETED: 'verwijderd', Aanvraag.Status.NEW: 'nog niet bekend', Aanvraag.Status.IMPORTED_PDF: 'gelezen (PDF)',  
                     Aanvraag.Status.NEEDS_GRADING: 'te beoordelen', Aanvraag.Status.GRADED: 'beoordeeld', 

@@ -17,10 +17,10 @@ class ExtendedCRUD(CRUD):
     def create(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.create")
         self.create_references(aapa_obj)        
-        if CRUDhelper(self)._check_already_there(aapa_obj):
+        if CRUDhelper(self).check_already_there(aapa_obj):
             return
         #TODO adapt for multiple keys
-        CRUDhelper(self)._create_key_if_needed(aapa_obj)
+        CRUDhelper(self).create_key_if_needed(aapa_obj)
         super().create(aapa_obj)
         if self.details:
             self.details.create(aapa_obj)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import abstractmethod
 import keyword
 from typing import Any
 
@@ -35,12 +36,7 @@ class AAPAStorage:
         if crud := self.crud(attribute):
             return crud.helper
         raise StorageException(f'no helper for {attribute}.')
-    def call_helper(self, module: str, helper_function: str, **kwdargs)->Any:
-        if (helper := self.helper(module)):
-            if not hasattr(helper, helper_function):
-                raise StorageException(f'no helper function {helper_function} in {module}.')
-            return getattr(helper,helper_function)(**kwdargs)
-        raise StorageException(f'Can not call helper {module} {helper_function}  ({kwdargs})')
+
     #----------- helper stuff --------------
     def ensure_key(self, module: str, aapa_obj: StoredClass):
         self.helper(module).ensure_key(aapa_obj)
@@ -78,3 +74,12 @@ class AAPAStorage:
             self.commit()
     def commit(self):
         self.database.commit()
+
+
+class StorageExtension:
+    # to define more complicated queries
+    def __init__(self, storage: AAPAStorage, module: str):            
+        self.storage = storage
+        self.module = module
+        self.helper = storage.helper(module)
+        

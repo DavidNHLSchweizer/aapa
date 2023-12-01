@@ -26,6 +26,7 @@ class File(AAPAclass):
         # GRADE_FORM_EX1_DOCX = 6
         # GRADE_FORM_EX2_DOCX = 7
         # GRADE_FORM_EX3_DOCX = 8
+        INVALID_FILETYPES = {INVALID_DOCX, INVALID_PDF}
         def __str__(self):
             STR_DICT = {File.Type.UNKNOWN: '?', 
                         File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
