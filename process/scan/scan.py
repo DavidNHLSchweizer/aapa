@@ -1,6 +1,7 @@
 from data.classes.action_logs import ActionLog
+from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.fileutil import created_directory, from_main_path, test_directory_exists
-from general.log import log_error, log_info, log_print
+from general.log import log_debug, log_error, log_info, log_print
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
 from process.general.aanvraag_pipeline import AanvragenPipeline
@@ -43,10 +44,14 @@ def create_beoordelingen_files(storage: AAPAStorage, template_doc, output_direct
 
 def process_directory(input_directory, storage: AAPAStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):
+        log_debug(MAJOR_DEBUG_DIVIDER)
         n_imported,_ = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
         log_info(f'### {sop(n_imported, "bestand", "bestanden")} {pva(preview, "importeren", "geimporteerd")} van {input_directory}.', to_console=True)
+        log_debug(MAJOR_DEBUG_DIVIDER)
 
 def process_forms(storage: AAPAStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):
+        log_debug(MAJOR_DEBUG_DIVIDER)
         n_forms = create_beoordelingen_files(storage, get_template_doc(), output_directory, preview=preview)
         log_info(f'### {sop(n_forms, "aanvraag", "aanvragen")} {pva(preview, "klaarzetten", "klaargezet")} voor beoordeling in {output_directory}', to_console=True)
+        log_debug(MAJOR_DEBUG_DIVIDER)

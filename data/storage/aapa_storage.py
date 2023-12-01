@@ -6,7 +6,7 @@ from typing import Any
 from data.aapa_database import create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.aapa_class import AAPAclass
-from data.storage.CRUDs import CRUD, CRUDhelper, create_crud, get_registered_type
+from data.storage.CRUDs import CRUD, CRUDhelper, EnsureKeyAction, create_crud, get_registered_type
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
 from data.roots import add_root, encode_path
@@ -38,21 +38,30 @@ class AAPAStorage:
         raise StorageException(f'no helper for {attribute}.')
 
     #----------- helper stuff --------------
-    def ensure_key(self, module: str, aapa_obj: StoredClass):
-        self.helper(module).ensure_key(aapa_obj)
+    def ensure_key(self, module: str, aapa_obj: StoredClass)->EnsureKeyAction:
+        return self.helper(module).ensure_key(aapa_obj)
+    def find_max_id(self, module: str)->int:
+        return self.helper(module).find_max_id()
     def find_max_value(self, module: str, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->Any:
         return self.helper(module).find_max_value(attribute=attribute, where_attributes=where_attributes, where_values=where_values)
     def find_count(self, module: str, attributes: str|list[str], values: Any|list[Any])->int:
         return self.helper(module).find_count(attributes, values)
-    def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any])->list[AAPAclass]:
-        return self.helper(module).find_values(attributes=attributes, values=values)
+    def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any], map_values = True)->list[AAPAclass]:
+        return self.helper(module).find_values(attributes=attributes, values=values, map_values = map_values)
     def find_all(self, module: str, where_attributes: str|list[str], where_values: Any|list[Any])->list[Any]:
-        return self.helper(module).find_values_where(attribute='id', where_attributes=where_attributes, where_values=where_values)
+        if rows := self.helper(module).find_values_where(attribute='id', where_attributes=where_attributes, where_values=where_values):
+            return [self.read(module, row['id']) for row in rows]
     
     #------------- crud stuff --------------
     def create(self, aapa_obj: StoredClass):
         if crud := self.__find_crud(aapa_obj):
-            crud.create(aapa_obj)
+            match crud.helper.ensure_key(aapa_obj):
+                case EnsureKeyAction.ALREADY_THERE:
+                    #note: this could still have set the key for the object
+                    return
+                case EnsureKeyAction.KEY_CREATED: 
+                    crud.create(aapa_obj)
+                case _: pass
     def read(self, attribute: str, key: KeyClass|list[KeyClass])->StoredClass:
         if crud := self.crud(attribute):
             return crud.read(key)

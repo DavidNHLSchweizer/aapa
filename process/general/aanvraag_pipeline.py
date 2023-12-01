@@ -6,6 +6,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.action_logs import ActionLog
 from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
+from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_info
 from general.preview import Preview
 from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor
@@ -22,7 +23,7 @@ class AanvragenPipeline(Pipeline):
         log_info(f'Start reading aanvragen from database. Entry_states: {entry_states}')
         result = self.storage.find_all('aanvragen', 
                                        where_attributes='status', 
-                                       where_values=Aanvraag.Status.VALID_STATES)
+                                       where_values=Aanvraag.Status.valid_states())
         log_info(f'End reading aanvragen from database. {len} aanvragen read.')
         return result
     def __sort_aanvragen(self):
@@ -53,6 +54,7 @@ class AanvragenPipeline(Pipeline):
     def _process_aanvraag(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         processed = False               
         for processor in self.processors:
+            log_debug(ITEM_DEBUG_DIVIDER)
             log_debug(f'processor: {processor.description} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
             if not processor.in_entry_states(aanvraag.status):
                 break
@@ -65,17 +67,20 @@ class AanvragenPipeline(Pipeline):
                 self.storage.commit()
             else:
                 log_debug(f'Not processed: {processor.description} {self.action_log}')
+            log_debug(ITEM_DEBUG_DIVIDER)
         return processed
     def process(self, preview=False, filter_func = None, **kwargs)->int:
         n_processed = 0
         self.start_logging()
         with Preview(preview, self.storage, 'process (pipeline)'):
+            log_debug(MINOR_DEBUG_DIVIDER)
             if (aanvragen := self.filtered_aanvragen(filter_func)):
                 for aanvraag in aanvragen:
                     if self._process_aanvraag(aanvraag, preview, **kwargs):
                         n_processed += 1            
                         self.log_aanvraag(aanvraag) 
             self.stop_logging()
+            log_debug(MINOR_DEBUG_DIVIDER)
         return n_processed
 
 class AanvraagCreatorPipeline(FilePipeline):

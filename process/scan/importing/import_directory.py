@@ -8,6 +8,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.storage.classes.files import FileStorageRecord
 from data.storage.general.storage_const import StorageException
+from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
@@ -76,8 +77,10 @@ class AanvraagValidator:
 class AanvraagPDFImporter(FileProcessor):
     def __init__(self):
         super().__init__(description='PDF Importer')
-    def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
-        stored: list[File] = storage.find_values('files', attributes='filename', values=filename)
+    def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:        
+        stored: list[File] = storage.find_values('files', attributes='filename', values=str(filename))
+        if not stored:
+            return True
         if len(stored) > 1:
             raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
         record = FileStorageRecord(filename).analyse(filenames=stored, 
@@ -135,14 +138,16 @@ class DirectoryImporter(AanvraagCreatorPipeline):
                 return True 
         return False
     def _check_skip_file(self, filename: Path)->bool:
-        stored: list[File] = self.storage.find_values('files', attributes='filename', values=filename)
+        skip_msg = ''
+        warning = False
+        stored: list[File] = self.storage.find_values('files', attributes='filename', values=str(filename))
+        if not stored:
+            return False
         if len(stored) > 1:
             raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
         record = FileStorageRecord(filename).analyse(filenames=stored, 
                                                      digests=self.storage.find_values('files', attributes='digest', values=stored[0].digest))        
         log_debug(f'record: {filename}: {record.status}')
-        skip_msg = ''
-        warning = False
         match record.status:
             case FileStorageRecord.Status.STORED_INVALID_COPY:
                 skip_msg = f'Overslaan: bestand {summary_string(filename, maxlen=100, initial=16)}\n\t is kopie van {summary_string(record.stored.filename, maxlen=100, initial=16)}'
@@ -180,11 +185,12 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
         skip_directories = set()
     skip_files = config.get('import', 'skip_files')
     importer = DirectoryImporter(f'Importeren aanvragen uit directory {directory}', AanvraagPDFImporter(), storage, skip_directories=skip_directories, skip_files=skip_files)
-    first_id = storage.find_max_value('aanvragen', attribute='id') + 1
+    first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
-    all_aanvragen = importer.storage.find_all('aanvragen', where_attributes='status', where_values=Aanvraag.Status.VALID_STATES)
+    all_aanvragen = importer.storage.find_all('aanvragen', where_attributes='status', where_values=Aanvraag.Status.valid_states())
     report_imports(list(filter(lambda a: a.id >= first_id, all_aanvragen)), preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
     log_info(f'...Import afgerond ({sop(n_processed, "nieuwe aanvraag", "nieuwe aanvragen")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
+    log_debug(MAJOR_DEBUG_DIVIDER)
     return n_processed, n_files      

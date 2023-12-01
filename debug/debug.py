@@ -4,6 +4,9 @@ from general.classutil import find_calling_module
 from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
 
+MAJOR_DEBUG_DIVIDER = "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*"
+MINOR_DEBUG_DIVIDER = "--------------------------------------------------------"
+ITEM_DEBUG_DIVIDER =  "........................................................"
 class _ModuleData:
     def __init__(self, module_name: str, enabled: bool = True):
         if (root_loc := module_name.find('*')) != -1:

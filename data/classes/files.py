@@ -26,7 +26,6 @@ class File(AAPAclass):
         # GRADE_FORM_EX1_DOCX = 6
         # GRADE_FORM_EX2_DOCX = 7
         # GRADE_FORM_EX3_DOCX = 8
-        INVALID_FILETYPES = {INVALID_DOCX, INVALID_PDF}
         def __str__(self):
             STR_DICT = {File.Type.UNKNOWN: '?', 
                         File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
@@ -37,7 +36,10 @@ class File(AAPAclass):
             return STR_DICT.get(self, '!unknown')
         @staticmethod
         def is_invalid(filetype: File.Type)->bool:
-            return filetype in {File.Type.INVALID_PDF, File.Type.INVALID_DOCX}
+            return filetype in File.Type.invalid_file_types()
+        @staticmethod
+        def invalid_file_types()->set[File.Type]:
+            return {File.Type.INVALID_PDF, File.Type.INVALID_DOCX}
 
     @staticmethod
     def get_timestamp(filename: str)-> datetime.datetime:

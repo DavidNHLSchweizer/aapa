@@ -21,7 +21,6 @@ class Aanvraag(Milestone):
         MAIL_READY      = 5
         READY           = 6
         READY_IMPORTED  = 7
-        VALID_STATES = {NEW, IMPORTED_PDF, NEEDS_GRADING, GRADED, ARCHIVED, MAIL_READY, READY, READY_IMPORTED}
 
         def __str__(self):
             STRS = {Aanvraag.Status.DELETED: 'verwijderd', Aanvraag.Status.NEW: 'nog niet bekend', Aanvraag.Status.IMPORTED_PDF: 'gelezen (PDF)',  
@@ -29,6 +28,10 @@ class Aanvraag(Milestone):
                     Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'geheel verwerkt', 
                     Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
             return STRS[self.value]
+        @staticmethod
+        def valid_states()->set[Aanvraag.Status]:
+            return {status for status in Aanvraag.Status} - {Aanvraag.Status.DELETED}
+        
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
                  source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=0, versie=1):

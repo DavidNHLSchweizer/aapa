@@ -67,7 +67,7 @@ class VerslagenImporter(VerslagCreatingPipeline): pass
 def import_zipfile(zip_filename: str, output_directory: str, storage: AAPAStorage, preview=False)->int:
     log_info(f'Start import uit zipfile {zip_filename}...', to_console=True)
     importer = VerslagenImporter(f'Importeren verslagen uit zip-file {zip_filename}', VerslagFromZipImporter(), storage)
-    first_id = storage.find_max_value('aanvragen', attribute='id') + 1
+    first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     reader = ZipFileReader()
     reader.read_info(zip_filename=zip_filename)

@@ -6,6 +6,7 @@ from data.classes.files import File
 from data.classes.action_logs import ActionLog
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.general.storage_const import StoredClass
+from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview
@@ -34,7 +35,7 @@ class Pipeline:
         self.action_log.start()
         log_debug(f'STARTING pipeline {self.action_log}')
     def log_aanvraag(self, aanvraag: Aanvraag):
-        if aanvraag and aanvraag.status in Aanvraag.Status.VALID_STATES:
+        if aanvraag and aanvraag.status in Aanvraag.Status.valid_states():
             self.action_log.add(aanvraag)
     def stop_logging(self):
         self.action_log.stop()
@@ -44,7 +45,8 @@ class Pipeline:
         self.storage.commit()
     def is_known_file(self, filename: str)->bool: 
         return filename in {file.filename for file in self.known_files} or \
-            self.storage.find_values('files', attributes=['filename', 'filetype'], values=[filename, File.Type.INVALID_FILETYPES]) is not []
+            self.storage.find_values('files', attributes=['filename', 'filetype'], 
+                                     values=[str(filename), File.Type.invalid_file_types()]) is not []
 
 class FilePipeline(Pipeline):
     def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 
@@ -85,7 +87,7 @@ class FilePipeline(Pipeline):
     def _sorted(self, files: Iterable[Path])->Iterable[Path]:
         return files
     def _store_invalid(self, filename: str, filetype: File.Type)->File:
-        if (stored:=self.storage.find_values('files', attributes='filename', values=filename)):
+        if (stored:=self.storage.find_values('files', attributes='filename', values=str(filename))):
             result:File = stored[0]
             result.filetype = filetype
             self.storage.update(result)
@@ -100,13 +102,16 @@ class FilePipeline(Pipeline):
         n_files = 0
         self._invalid_files = []
         with Preview(preview, self.storage, f'process (filepipeline) {self.description}'):
+            log_debug(MINOR_DEBUG_DIVIDER)
             self.start_logging()
             for filename in self._sorted(files):
+                log_debug(ITEM_DEBUG_DIVIDER)
                 n_files += 1
                 if self._skip(filename):
                     continue                    
                 if self._process_file(filename, preview, **kwargs):
                     n_processed += 1
+                log_debug(ITEM_DEBUG_DIVIDER)
             log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
             for entry in self._invalid_files:
                 log_debug(f'invalid file: {entry}')                
@@ -114,5 +119,6 @@ class FilePipeline(Pipeline):
             self.storage.commit()
             self.stop_logging()     
             log_debug(f'end process (f"{self.description}") {n_processed=} {n_files=}')       
+            log_debug(MINOR_DEBUG_DIVIDER)
         return (n_processed, n_files)
 
