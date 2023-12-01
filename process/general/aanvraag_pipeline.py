@@ -63,7 +63,7 @@ class AanvragenPipeline(Pipeline):
                 log_debug(f'processed. Exit state: {processor.exit_state}')
                 if processor.exit_state:
                     aanvraag.status = processor.exit_state                       
-                self.storage.update(aanvraag)
+                self.storage.update('aanvragen', aanvraag)
                 self.storage.commit()
             else:
                 log_debug(f'Not processed: {processor.description} {self.action_log}')
@@ -89,7 +89,7 @@ class AanvraagCreatorPipeline(FilePipeline):
     def _skip(self, filename: str)->bool:
         return False
     def _store_new(self, aanvraag: Aanvraag):
-        self.storage.create(aanvraag)
+        self.storage.create('aanvragen', aanvraag)
         self.log_aanvraag(aanvraag)   
     def _sorted(self, files: Iterable[Path]) -> Iterable[Path]:
         return sorted(files, key=os.path.getmtime)

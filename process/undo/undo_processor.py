@@ -3,6 +3,7 @@ from data.classes.action_logs import ActionLog
 from data.classes.files import File
 from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from data.storage.aapa_storage import AAPAStorage
+from data.storage.extensions.action_log_extension import ActionLogStorageExtension
 from general.fileutil import delete_if_exists, file_exists, summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.aanvraag_pipeline import AanvragenPipeline
@@ -88,15 +89,13 @@ def _process_forget_files(files_to_forget: list[File], storage: AAPAStorage):
     for file in files_to_forget:
         __delete_file(file, storage)
     storage.commit()
-    log_info(f'\tEind verwijderen vergeten bestanden uit database.', to_console=True)
+    log_info(f'\tEinde verwijderen te vergeten bestanden uit database.', to_console=True)
 
 def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
-    if not (action_log:=storage.find_max_value('action_logs', attribute='id', 
-                                     where_attributes='can_undo',
-                                     where_values = True)):
+    if not (action_log:=ActionLogStorageExtension(storage).last_action_log()):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
-        return 0
+        return None
     nr_aanvragen = action_log.nr_aanvragen 
     processor = UndoRecipeProcessor(action_log)
        
@@ -111,7 +110,7 @@ def undo_last(storage: AAPAStorage, preview=False)->int:
     result = pipeline.process(preview=preview) 
     if result == nr_aanvragen:
         action_log.can_undo = False
-    storage.update(action_log)
+    storage.update('action_logs', action_log)
     storage.commit()
     log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
     if aanvragen_to_delete:

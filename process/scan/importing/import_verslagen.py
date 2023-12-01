@@ -5,7 +5,7 @@ from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
-from data.storage.student_extension import StudentStorageExtension
+from data.storage.extensions.student_extension import StudentStorageExtension
 from general.fileutil import summary_string
 from general.log import log_debug, log_info, log_print, log_warning
 from general.singular_or_plural import sop

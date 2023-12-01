@@ -10,6 +10,7 @@ from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButto
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.action_logs import ActionLog
+from data.storage.extensions.action_log_extension import ActionLogStorageExtension
 from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
 from general.log import pop_console, push_console
 from general.versie import BannerPart, banner
@@ -232,12 +233,9 @@ class AAPAApp(App):
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            logs: list[ActionLog] = configuration.storage.find_max_value('action_logs', attribute='id', 
-                                     where_attributes='can_undo',
-                                     where_values = True)
-            if logs:
-                self.last_action = logs[0] 
-                return self.last_action
+            if (action_log:=ActionLogStorageExtension(configuration.storage).last_action_log()):
+                self.last_action = action_log
+            return action_log
         return None
     async def enable_buttons(self):
         self.refresh_last_action()

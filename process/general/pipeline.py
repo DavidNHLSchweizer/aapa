@@ -41,7 +41,7 @@ class Pipeline:
         self.action_log.stop()
         log_debug(f'STOPPING aanvragenprocessor {self.action_log}')
         if not self.action_log.is_empty():
-            self.storage.create(self.action_log)
+            self.storage.create('action_logs', self.action_log)
         self.storage.commit()
     def is_known_file(self, filename: str)->bool: 
         return filename in {file.filename for file in self.known_files} or \
@@ -90,11 +90,11 @@ class FilePipeline(Pipeline):
         if (stored:=self.storage.find_values('files', attributes='filename', values=str(filename))):
             result:File = stored[0]
             result.filetype = filetype
-            self.storage.update(result)
+            self.storage.update('files', result)
         else:
             new_file = File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, 
                             filetype=filetype)
-            self.storage.create(new_file)
+            self.storage.create('files', new_file)
             result = new_file
         return result
     def process(self, files: Iterable[Path], preview=False, **kwargs)->tuple[int, int]:

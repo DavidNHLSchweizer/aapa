@@ -30,12 +30,12 @@ class AAPAStorage:
                 crud = create_crud(self.database, class_type)
                 self._crud_dict[module_name] = crud
                 self._class_index[class_type] = crud
-    def crud(self, attribute: str)->CRUD:
-        return self._crud_dict.get(attribute, None)
-    def helper(self, attribute: str)->CRUDhelper:
-        if crud := self.crud(attribute):
+    def crud(self, module: str)->CRUD:
+        return self._crud_dict.get(module, None)
+    def helper(self, module: str)->CRUDhelper:
+        if crud := self.crud(module):
             return crud.helper
-        raise StorageException(f'no helper for {attribute}.')
+        raise StorageException(f'no helper for {module}.')
 
     #----------- helper stuff --------------
     def ensure_key(self, module: str, aapa_obj: StoredClass)->EnsureKeyAction:
@@ -53,8 +53,8 @@ class AAPAStorage:
             return [self.read(module, row['id']) for row in rows]
     
     #------------- crud stuff --------------
-    def create(self, aapa_obj: StoredClass):
-        if crud := self.__find_crud(aapa_obj):
+    def create(self, module: str, aapa_obj: StoredClass):
+        if crud := self.crud(module):
             match crud.helper.ensure_key(aapa_obj):
                 case EnsureKeyAction.ALREADY_THERE:
                     #note: this could still have set the key for the object
@@ -62,18 +62,17 @@ class AAPAStorage:
                 case EnsureKeyAction.KEY_CREATED: 
                     crud.create(aapa_obj)
                 case _: pass
-    def read(self, attribute: str, key: KeyClass|list[KeyClass])->StoredClass:
-        if crud := self.crud(attribute):
+    def read(self, module: str, key: KeyClass|list[KeyClass])->StoredClass:
+        if crud := self.crud(module):
             return crud.read(key)
         return None
-    def update(self, aapa_obj: StoredClass):
-        if crud := self.__find_crud(aapa_obj):
+    def update(self, module: str, aapa_obj: StoredClass):
+        if crud := self.crud(module):
             crud.update(aapa_obj)
-    def delete(self, aapa_obj: StoredClass):
-        if crud := self.__find_crud(aapa_obj):
+    def delete(self, module: str, aapa_obj: StoredClass):
+        if crud := self.crud(module):
             crud.delete(aapa_obj)
-    def __find_crud(self, aapa_obj: StoredClass)->CRUD:
-        return self._class_index.get(type(aapa_obj), None)
+
     def add_file_root(self, root: str, code = None)->str:
         encoded_root = encode_path(root)
         code = add_root(encoded_root, code)

@@ -6,7 +6,7 @@ from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
-from data.storage.student_extension import StudentStorageExtension
+from data.storage.extensions.student_extension import StudentStorageExtension
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string, test_directory_exists
 from general.config import ListValueConvertor, config
