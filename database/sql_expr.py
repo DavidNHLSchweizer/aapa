@@ -133,6 +133,8 @@ class SQLexpression:
     @property
     def parameters(self)->list[str]:
         return self._parameters
+    def db_str(self)->str:
+        return f'{self.parametrized} {self._parameters}'
 SQE=SQLexpression    
 
 class SQEjoin(SQE):

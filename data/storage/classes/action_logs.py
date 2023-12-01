@@ -31,18 +31,18 @@ class ActionLogTableMapper(TableMapper):
             case 'action': return ColumnMapper(column_name=column_name, db_to_obj=ActionLog.Action)
             case _: return super()._init_column_mapper(column_name, database)
 
-class ActionLogCRUDhelper(CRUDhelper):
-    def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
-        if id == EMPTY_ID:
-            id = self.find_max_value(attribute='id', 
-                                     where_attributes='can_undo',
-                                     where_values = True)
-        if id is None or id == EMPTY_ID:
-            log_warning(NoUNDOwarning)
-            return None
-        return self.crud.read(id)
-    def last_action(self)->ActionLog:
-        return self._find_action_log()
+class ActionLogCRUDhelper(CRUDhelper):pass
+    # def _find_action_log(self, id: int = EMPTY_ID)->ActionLog:
+    #     if id == EMPTY_ID:
+    #         id = self.find_max_value(attribute='id', 
+    #                                  where_attributes='can_undo',
+    #                                  where_values = True)
+    #     if id is None or id == EMPTY_ID:
+    #         log_warning(NoUNDOwarning)
+    #         return None
+    #     return self.crud.read(id)
+    # def last_action(self)->ActionLog:
+    #     return self._find_action_log()
 
 action_log_table = ActionLogTableDefinition()
 register_crud(class_type=ActionLog, 

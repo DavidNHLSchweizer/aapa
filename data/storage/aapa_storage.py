@@ -3,11 +3,13 @@ import keyword
 from typing import Any
 
 from data.aapa_database import create_root
+from data.classes.aanvragen import Aanvraag
 from data.classes.aapa_class import AAPAclass
 from data.storage.CRUDs import CRUD, CRUDhelper, create_crud, get_registered_type
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
 from data.roots import add_root, encode_path
+from database.sql_expr import SQE
 from general.classutil import find_all_modules
 from general.log import log_exception
    
@@ -32,11 +34,26 @@ class AAPAStorage:
     def helper(self, attribute: str)->CRUDhelper:
         if crud := self.crud(attribute):
             return crud.helper
-        return None
-    def call_helper(self, _module: str, helper_function: str, **kwdargs)->Any:
-        if (helper := self.helper(_module)):
+        raise StorageException(f'no helper for {attribute}.')
+    def call_helper(self, module: str, helper_function: str, **kwdargs)->Any:
+        if (helper := self.helper(module)):
+            if not hasattr(helper, helper_function):
+                raise StorageException(f'no helper function {helper_function} in {module}.')
             return getattr(helper,helper_function)(**kwdargs)
-        raise StorageException(f'Can not call helper {_module} {helper_function}  ({kwdargs})')
+        raise StorageException(f'Can not call helper {module} {helper_function}  ({kwdargs})')
+    #----------- helper stuff --------------
+    def ensure_key(self, module: str, aapa_obj: StoredClass):
+        self.helper(module).ensure_key(aapa_obj)
+    def find_max_value(self, module: str, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->Any:
+        return self.helper(module).find_max_value(attribute=attribute, where_attributes=where_attributes, where_values=where_values)
+    def find_count(self, module: str, attributes: str|list[str], values: Any|list[Any])->int:
+        return self.helper(module).find_count(attributes, values)
+    def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any])->list[AAPAclass]:
+        return self.helper(module).find_values(attributes=attributes, values=values)
+    def find_all(self, module: str, where_attributes: str|list[str], where_values: Any|list[Any])->list[Any]:
+        return self.helper(module).find_values_where(attribute='id', where_attributes=where_attributes, where_values=where_values)
+    
+    #------------- crud stuff --------------
     def create(self, aapa_obj: StoredClass):
         if crud := self.__find_crud(aapa_obj):
             crud.create(aapa_obj)

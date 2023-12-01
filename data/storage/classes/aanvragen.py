@@ -20,33 +20,7 @@ class AanvragenTableMapper(MilestonesTableMapper):
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
   
-class AanvragenCRUDhelper(CRUDhelper):
-    def find_kans(self, student: Student):
-        CRUDhelper(self.get_crud(Student)).ensure_key(student)     
-        log_debug(f'FIND KANS {student.id}')   
-        result = self.find_count('student', student.id)
-        log_debug(f'FOUND  KANS {result}')   
-        return result
-    def find_versie(self, student: Student, bedrijf: Bedrijf):
-        log_debug('FIND VERSIE')
-        CRUDhelper(self.get_crud(Bedrijf)).ensure_key(bedrijf)        
-        CRUDhelper(self.get_crud(Student)).ensure_key(student) 
-        result = self.find_max_value(attribute='versie',                                                
-                                        where_attributes=['student', 'bedrijf'],
-                                        where_values=[student.id, bedrijf.id])
-        log_debug(f'FIND VERSIE EINDE {result}')
-        return result
-    def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
-        if aanvraag.versie == 1:
-            return None
-        CRUDhelper(self.get_crud(Student)).ensure_key(aanvraag.student) 
-        log_debug('FIND PREVIOUS')
-        if ids := self.find_values(['versie', 'student'], 
-                                   [aanvraag.versie-1, aanvraag.student.id]):
-            result = self.crud.read(ids[0])
-            log_debug(f'ding dong previous: {result}')
-            return result    
-        return None
+class AanvragenCRUDhelper(CRUDhelper):pass
 
 class AanvragenFilesDetailRec(DetailRec): pass
 class AanvragenFilesTableMapper(DetailRecsTableMapper):

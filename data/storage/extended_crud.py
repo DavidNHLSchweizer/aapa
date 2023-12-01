@@ -46,7 +46,4 @@ class ExtendedCRUD(CRUD):
         for mapper in self.mapper.mappers():
             if isinstance(mapper, CRUDColumnMapper):
                 CRUDhelper(self).ensure_exists(aapa_obj, mapper.attribute_name, mapper.attribute_key)
-    # def find_value(self, attribute_name: str, value: Any|set[Any])->StoredClass:
-    #     if ids := self.query_builder.find_value(attribute_name, value):
-    #         return [self.read(id) for id in ids]
-    #     return None
+  

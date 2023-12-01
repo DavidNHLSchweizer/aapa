@@ -6,6 +6,7 @@ from data.storage.general.storage_const import StoredClass
 from database.database import Database
 from database.sql_expr import SQE, Ops
 from database.sql_table import SQLselect
+from general.classutil import classname
 from general.log import log_debug
 
 class QueryInfo:
@@ -64,46 +65,50 @@ class QueryBuilder:
         self.database = database
         self.mapper = mapper
         self.query_info = QueryInfo(mapper)
-    def find_id_from_object(self, aapa_obj: StoredClass, attributes: list[str] = None, flags={QIF.ATTRIBUTES})->list[int]:
-        log_debug(f'QB: FIND_ID_FROM_OBJECT')
+    def __db_log(self, function: str, params: str):
+        log_debug(f'QB{classname(self.mapper.class_type)}: {function} {params}')
+    def find_all(self, columns: list[str], where: SQE)->list[Any]:
+        self.__db_log('FIND_ALL', f'columns:{columns} where:{where.db_str() if where else None}')
+        sql = SQLselect(self.mapper.table, columns=columns, where=where)
+        return self.database.execute_select(sql) 
+    def find_count(self, where:SQE=None)->int:
+        self.__db_log('FIND_COUNT', f'where:{where.db_str() if where else None}')
+        sql = SQLselect(self.mapper.table, columns=['count(id)'], where=where)
+        if (row := self.database.execute_select(sql)) and row[0][0]:
+            return row[0][0]
+        return 0
+    def find_ids(self):
+        self.__db_log('FIND_IDS')
+        return self.__find_ids()
+    def find_ids_from_object(self, aapa_obj: StoredClass, attributes: list[str] = None, flags={QIF.ATTRIBUTES})->list[int]:
+        self.__db_log('FIND_IDS_FROM_OBJECT', f'object:{aapa_obj}\n\tattributes:{attributes} {flags=}')
         attributes = attributes if attributes else self.mapper.attributes(include_key = False)
         for attribute in attributes.copy():
             if not attribute in aapa_obj.relevant_attributes():
                 attributes.remove(attribute)
-        return self.__find_id(*self.query_info.get_data(aapa_obj, columns=attributes, flags=flags))
+        return self.__find_ids(*self.query_info.get_data(aapa_obj, columns=attributes, flags=flags))
     def find_ids_from_values(self, attributes: list[str], values: list[Any|set[Any]], flags={QIF.ATTRIBUTES})->list[int]:
-        log_debug(f'QB: FIND_ID_FROM_VALUES')
-        return self.__find_id(*self.query_info.get_data(columns=attributes, values=values, flags=flags))
-    def find_value(self, attribute: str, value: Any)->StoredClass:
-        log_debug(f'QB: FIND_VALUE')
-        return self.find_ids_from_values([attribute], [value])
+        self.__db_log('FIND_IDS_FROM_VALUES', f'attributes:{attributes} values:{values} {flags=}')
+        return self.__find_ids(*self.query_info.get_data(columns=attributes, values=values, flags=flags))
+    def find_max_id(self)->int:
+        self.__db_log('FIND_MAX_ID')
+        sql = SQLselect(self.mapper.table, columns=['max(id)'])
+        if (row := self.database.execute_select(sql)) and row[0][0]:
+            return row[0][0]
+        return 0
     def find_max_value(self, attribute: str, where:SQE = None)->Any:        
-        log_debug(f'QB: FIND_MAX_VALUE')
+        self.__db_log('FIND_MAX_VALUE', f'attribute:{attribute}  where:{where.db_str() if where else None}')
         col_mapper = self.mapper._find_mapper(attribute)
         sql = SQLselect(self.mapper.table, columns=[f'max({col_mapper.column_name})'], where=where)
         if row:= self.database.execute_select(sql):
             return row[0][0]
         return None 
-    def find_id(self):
-        log_debug(f'QB: FIND_ID')
-        return self.__find_id()
-    def find_all(self, columns: list[str], where: SQE)->list[Any]:
-        log_debug(f'QB: FIND_ALL')
-        sql = SQLselect(self.mapper.table, columns=columns, where=where)
-        return self.database.execute_select(sql) 
-    def find_max_id(self)->int:
-        log_debug(f'QB: FIND_MAX_ID')
-        sql = SQLselect(self.mapper.table, columns=['max(id)'])
-        if (row := self.database.execute_select(sql)) and row[0][0]:
-            return row[0][0]
-        return 0
-    def find_count(self, where:SQE=None)->int:
-        log_debug(f'QB: FIND_COUNT')
-        sql = SQLselect(self.mapper.table, columns=['count(id)'], where=where)
-        if (row := self.database.execute_select(sql)) and row[0][0]:
-            return row[0][0]
-        return 0
-    def __find_id(self, where_columns: list[str]=None, where_values: list[Any|set[Any]]=None)->list[int]:
+    # def find_value(self, attributes: str | list[str], values: Any | list[Any])->list[int]:
+    #     self.__db_log('FIND_VALUES', f'attributes:{attributes} value: {values}')
+    #     where_attributes = attributes if isinstance(attributes, list) else [attributes]
+    #     where_values = values if isinstance(values, list) else [values]
+    #     return self.find_ids_from_values(where_attributes, where_values)
+    def __find_ids(self, where_columns: list[str]=None, where_values: list[Any|set[Any]]=None)->list[int]:
         if where_columns: 
             sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), 
                         where=self.__build_where(*(where_columns,where_values)))
@@ -126,54 +131,3 @@ class QueryBuilder:
         return self.__build_where(*self.query_info.get_data(aapa_obj, columns=column_names, flags=flags))
     def build_where_from_values(self, column_names: list[str], values: list[Any], flags={QIF.ATTRIBUTES})->SQE:  
         return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags))
-    
-        # return self.__build_where(*self.mapper.object_to_db(aapa_obj, include_key=include_key, 
-        #                          attribute_names=attribute_names, column_names=column_names))
-
-    # def find_object(self, aapa_obj: AAPAClass)->list[int]:      
-    #     columns,values = self.__get_columns_and_values(aapa_obj, include_key=False, map_values=True, 
-    #                                                    attribute_names=self.mapper.attributes())
-    #     sql = SQLselect(self.mapper.table, columns=columns, where=self.__generate_where_clause(columns, values))
-    #     log_debug(f'FINDOBJECT: {sql.query}, {sql.parameters}')
-    #     if rows := self.database.execute_select(sql):
-    #         return self.mapper.db_to_object(rows[0]) 
-    #     return None   
-    # def __get_columns_and_values(self, aapa_obj: AAPAClass, include_key = False, map_values=True, 
-    #                              column_names: list[str]=None, attribute_names: list[str] = None)->Tuple[list[str], list[str]]:
-    #     columns = column_names if column_names else self.mapper._get_columns_from_attributes(attribute_names) if attribute_names else self.mapper.columns(include_key)        
-    #     values = self.mapper.get_values(aapa_obj, columns, include_key=include_key, map_values=map_values)
-    #     return (columns, values)
-
-
-
-
-
-
-    # def find_object(self, aapa_obj: AAPAClass)->AAPAClass:
-    #     if rows := self.database.execute_select(self._generate_find_SQL_from_object(aapa_obj)):
-    #         return self.mapper.db_to_object(rows[0])
-    #     return None
-    # def find_from_values(self, attribute_names: list[str], attribute_values: list[Any])->AAPAClass:
-    #     if rows := self.database.execute_select(self._generate_find_SQL_from_values(attribute_names=attribute_names, attribute_values=attribute_values)):
-    #         return self.mapper.db_to_object(rows[0])
-    #     return None
-
-
-
-    #     log_debug('start GWfo')
-    #     result = self._generate_where_clause(*self.mapper.object_to_db(aapa_obj, include_key=include_key, attribute_names=attribute_names, column_names=column_names), no_column_ref_for_key=no_column_ref_for_key)
-    #     log_debug(f'GW{result.parametrized}, {result.parameters}')
-    #     return result
-    # def generate_find_SQL(self, aapa_obj: AAPAClass=None, attribute_values: list[Any]=None, map_values = True, where_attribute_names: list[str]=None, where_column_names: list[str]=None, 
-    #                     columns: list[str] = None, no_column_ref_for_key=False)->SQLselect:
-    #     columns=columns if columns else self.mapper.table_keys()
-    #     if aapa_obj:
-    #         log_debug('start GFSQL')
-    #         result=SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_object(aapa_obj, include_key=False, attribute_names=where_attribute_names, 
-    #                                                                                                 column_names=where_column_names), no_column_ref_for_key=no_column_ref_for_key) 
-    #         log_debug(f'GFSQL{result.query}, {result.parameters}')
-    #         return result
-    #     else:
-    #         return SQLselect(self.mapper.table, columns=columns, where=self.generate_where_clause_from_values(attribute_values=attribute_values, map_values=map_values, 
-    #                                                                                                 attribute_names=where_attribute_names, column_names=where_column_names), 
-    #                                                                                                 no_column_ref_for_key=no_column_ref_for_key)

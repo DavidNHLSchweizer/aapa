@@ -18,10 +18,12 @@ class AanvragenPipeline(Pipeline):
         self.aanvragen = aanvragen if aanvragen else self.__read_aanvragen_from_storage()
         self.__sort_aanvragen()     
     def __read_aanvragen_from_storage(self)->list[Aanvraag]:
-        log_info('Start reading aanvragen from database')
         entry_states = self.processors[0].entry_states
-        result = self.storage.call_helper('aanvragen', 'read_all', states=entry_states)
-        log_info('End reading aanvragen from database')
+        log_info(f'Start reading aanvragen from database. Entry_states: {entry_states}')
+        result = self.storage.find_all('aanvragen', 
+                                       where_attributes='status', 
+                                       where_values={status for status in Aanvraag.Status if status in entry_states and status != Aanvraag.Status.DELETED })
+        log_info(f'End reading aanvragen from database. {len} aanvragen read.')
         return result
     def __sort_aanvragen(self):
         def comparekey(a: Aanvraag):

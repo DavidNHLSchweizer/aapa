@@ -123,7 +123,7 @@ class CRUDhelper:
     def table(self)->TableDefinition:
         return self.crud.table
     def _check_already_there(self, aapa_obj: StoredClass)->bool:
-        if stored_ids := self.query_builder.find_id_from_object(aapa_obj): 
+        if stored_ids := self.query_builder.find_ids_from_object(aapa_obj): 
             log_debug(f'--- already in database ----')                
             #TODO adapt for multiple keys
             setattr(aapa_obj, self.table.key, stored_ids[0])
@@ -142,14 +142,14 @@ class CRUDhelper:
             return
         crud = self.get_crud(type(attr_obj))
         if getattr(attr_obj, attribute_key) == EMPTY_ID:
-            if stored_ids := crud.query_builder.find_id_from_object(attr_obj):
+            if stored_ids := crud.query_builder.find_ids_from_object(attr_obj):
                 setattr(attr_obj, attribute_key, stored_ids[0])
             else:
                 self._create_key_if_needed(attr_obj, crud.table, crud.autoID)
                 crud.create(attr_obj)
         else:
             # key already set elsewhere, check whether already in database
-            if not (stored_ids := crud.query_builder.find_id_from_object(attr_obj)):
+            if not (stored_ids := crud.query_builder.find_ids_from_object(attr_obj)):
                 crud.create(attr_obj)
     def __get_wanted_values(self, attributes: str|list[str], values: Any|list[Any])->Tuple[list[str],list[str]]:
         wanted_attributes = attributes if isinstance(attributes, list) else [attributes]
@@ -161,7 +161,7 @@ class CRUDhelper:
         if (ids := qb.find_ids_from_values(attributes=wanted_attributes, values=wanted_values, 
                         flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES})):
             return [self.crud.read(id) for id in ids]
-        return None
+        return []
     def find_count(self, attributes: str|list[str]=None, values: Any|list[Any]=None)->int:
         qb = self.query_builder
         wanted_attributes, wanted_values = self.__get_wanted_values(attributes, values) 
@@ -170,6 +170,13 @@ class CRUDhelper:
                         column_names=wanted_attributes, values=wanted_values,
                             flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))        
     def find_max_value(self, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->Any:
+        qb = self.query_builder
+        wanted_attributes, wanted_values = self.__get_wanted_values(where_attributes, where_values) 
+        return qb.find_max_value(attribute,
+                    where=qb.build_where_from_values(
+                        column_names=wanted_attributes, values=wanted_values,
+                            flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))        
+    def find_values_where(self, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->Any:
         qb = self.query_builder
         wanted_attributes, wanted_values = self.__get_wanted_values(where_attributes, where_values) 
         return qb.find_max_value(attribute,
@@ -197,7 +204,7 @@ class ClassRegistryData:
                         mapper_type = TableMapper, 
                         crud=CRUD,  
                         helper_type = CRUDhelper,
-                        details_data=None,
+                        details_data:list[DetailRecData]=None,
                         autoID=True,
                         module_name=''):
         self.table = table
@@ -225,7 +232,7 @@ class CRUDRegistry(Singleton):
                         mapper_type=TableMapper, 
                         crud=CRUD,  
                         helper_type = CRUDhelper,
-                        details_data: DetailRecData = None, 
+                        details_data: list[DetailRecData] = None, 
                         autoID=True, 
                         main=True):
         self.__check_valid(class_type, False)
@@ -261,7 +268,7 @@ def register_crud(class_type: Type[StoredClass],
                   mapper_type: Type[TableMapper] = TableMapper, 
                   crud = CRUD, 
                   helper_type = CRUDhelper,
-                  details_data: DetailRecData = None, 
+                  details_data: list[DetailRecData] = None, 
                   autoID=True, 
                   main=True):
     _crud_registry.register(class_type, 

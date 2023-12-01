@@ -4,6 +4,7 @@ from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, Tab
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File
 from data.storage.CRUDs import CRUDhelper, register_crud
+from data.storage.general.storage_const import StorageException
 from database.database import Database
 from general.log import log_debug
 from general.timeutil import TSC
@@ -21,20 +22,21 @@ class FileStorageRecord:
         self.digest = File.get_digest(filename)
         self.stored = None
         self.status = FileStorageRecord.Status.UNKNOWN
-    def __analyse_stored_name(self, stored: File)->FileStorageRecord.Status:
-        if stored is None:
+    def __analyse_stored_name(self, stored: list[File])->FileStorageRecord.Status:
+        if stored is []:
             result = FileStorageRecord.Status.UNKNOWN
         else:
-            self.stored = stored
-            if stored.filetype == File.Type.INVALID_PDF:
+            assert len(stored) == 1
+            self.stored = stored[0]
+            if self.stored.filetype == File.Type.INVALID_PDF:
                 result = FileStorageRecord.Status.STORED_INVALID
-            elif stored.digest != self.digest:
+            elif self.stored.digest != self.digest:
                 result = FileStorageRecord.Status.MODIFIED
             else:
                 result = FileStorageRecord.Status.STORED
         return result
     def __analyse_stored_digest(self, stored: list[File])->FileStorageRecord.Status:
-        if stored is None:
+        if stored is []:
             result = FileStorageRecord.Status.UNKNOWN
         else:
             for stored_file in stored:
@@ -45,10 +47,10 @@ class FileStorageRecord:
                     result = FileStorageRecord.Status.DUPLICATE
                     self.stored = stored_file
         return result
-    def analyse(self, storage: FilesCRUDhelper)->FileStorageRecord:
-        self.status = self.__analyse_stored_name(storage.find_filename(self.filename))
+    def analyse(self, filenames:list[str], digests:list[str])->FileStorageRecord:
+        self.status = self.__analyse_stored_name(filenames)
         if self.status == FileStorageRecord.Status.UNKNOWN:
-            self.status = self.__analyse_stored_digest(storage.find_digest(self.digest))
+            self.status = self.__analyse_stored_digest(digests)
         return self
 
 class FilesTableMapper(TableMapper):
@@ -59,35 +61,7 @@ class FilesTableMapper(TableMapper):
             case 'filetype': return ColumnMapper(column_name=column_name, db_to_obj=File.Type)
             case _: return super()._init_column_mapper(column_name, database)
 
-class FilesCRUDhelper(CRUDhelper):
-    def find_all_for_filetype(self, filetypes: File.Type | set[File.Type])->list[File]:
-        log_debug(f'find_all_for_filetype {filetypes}')
-        if result:= self.find_values('filetype', filetypes):
-            return result
-        return []
-    def get_storage_record(self, filename: str)->FileStorageRecord:
-        return FileStorageRecord(filename).analyse(self)
-    def find_digest(self, digest: str)->list[File]:
-        return self.find_values('digest', digest)
-    def find_filename(self, filename: str)->File:
-        return self.find_values('filename', filename)
-    def store_invalid(self, filename: str, filetype = File.Type.INVALID_PDF)->File:
-        log_debug('store_invalid')
-        if (stored:=self.find_filename(filename)):
-            stored.filetype = filetype
-            self.crud.update(stored)
-            result = stored
-        else:
-            new_file = File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, 
-                            filetype=filetype)
-            self.crud.create(new_file)
-            result = new_file
-        return result
-    def is_known_invalid(self, filename: str)->bool:
-        if (stored:=self.find_filename(filename)):
-            return File.Type.is_invalid(stored.filetype)
-        else:
-            return False     
+class FilesCRUDhelper(CRUDhelper):pass
 
 register_crud(class_type=File, 
                 table=FilesTableDefinition(), 

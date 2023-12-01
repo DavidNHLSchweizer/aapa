@@ -27,7 +27,7 @@ class MilestonesCRUD(ExtendedCRUD):
         else:
             return list(filter(filter_func, milestones))
     def __read_all_all(self, filter_func = None)->Iterable[Milestone]:
-        if ids := self.query_builder.find_id():
+        if ids := self.query_builder.find_ids():
             return self.__read_all_filtered([self.read(id) for id in ids], filter_func=filter_func)
         return []
     def __read_all_states(self, states:set[int], filter_func = None)->Iterable[Milestone]:

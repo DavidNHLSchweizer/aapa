@@ -7,6 +7,7 @@ from data.storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.storage.classes.files import FileStorageRecord
+from data.storage.general.storage_const import StorageException
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
@@ -62,15 +63,25 @@ class AanvraagValidator:
     def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
     def __insert_versie_en_kans(self):
-        versie = self.storage.call_helper('aanvragen', 'find_versie', student=self.validated_aanvraag.student, bedrijf=self.validated_aanvraag.bedrijf) 
+        bedrijf = self.validated_aanvraag.bedrijf
+        student = self.validated_aanvraag.student
+        self.storage.ensure_key('bedrijven', bedrijf)
+        self.storage.ensure_key('studenten', student)
+        versie = self.storage.find_max_value('aanvragen', attribute='versie',                                                
+                                        where_attributes=['student', 'bedrijf'],
+                                        where_values=[student.id, bedrijf.id])
         self.validated_aanvraag.versie = (versie + 1) if versie else 1 
-        kans = self.storage.call_helper('aanvragen', 'find_kans', student=self.validated_aanvraag.student)
+        kans = self.storage.find_count('aanvragen', 'student', 'student.id')
         self.validated_aanvraag.kans = (kans + 1) if kans else 1
 class AanvraagPDFImporter(FileProcessor):
     def __init__(self):
         super().__init__(description='PDF Importer')
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
-        record = storage.call_helper('files', 'get_storage_record', filename=filename)
+        stored: list[File] = storage.find_values('files', attributes='filename', values=filename)
+        if len(stored) > 1:
+            raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
+        record = FileStorageRecord(filename).analyse(filenames=stored, 
+                                                     digests=storage.find_values('files', attributes='digest', values=stored[0].digest))        
         log_debug(f'MUST_PROCESS_FILE {filename}\n\tstorage_record: {record.status}  {record.stored}')
         match record.status:
             case FileStorageRecord.Status.STORED | FileStorageRecord.Status.STORED_INVALID:

@@ -9,6 +9,7 @@ from data.storage.general.storage_const import StoredClass
 from general.fileutil import summary_string
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview
+from general.timeutil import TSC
 from process.general.base_processor import BaseProcessor, FileProcessor
 
 class PipelineException(Exception): pass
@@ -23,8 +24,8 @@ class Pipeline:
         else:
             self._processors.append(processors)
         self.storage = storage
-        self.known_files = self.storage.call_helper('files', 'find_all_for_filetype',
-                                                    filetypes={filetype for filetype in File.Type}-{File.Type.INVALID_PDF, File.Type.UNKNOWN})
+        self.known_files:list[File] = self.storage.find_values('files', attributes='filetype', 
+                                                    values={filetype for filetype in File.Type}-{File.Type.INVALID_PDF, File.Type.UNKNOWN})
         self.action_log = ActionLog(activity, description, can_undo=can_undo)
     @property
     def description(self)->str:
@@ -83,6 +84,17 @@ class FilePipeline(Pipeline):
         return True
     def _sorted(self, files: Iterable[Path])->Iterable[Path]:
         return files
+    def _store_invalid(self, filename: str, filetype: File.Type)->File:
+        if (stored:=self.storage.find_values('files', attributes='filename', values=filename)):
+            result:File = stored[0]
+            result.filetype = filetype
+            self.storage.update(result)
+        else:
+            new_file = File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, 
+                            filetype=filetype)
+            self.storage.create(new_file)
+            result = new_file
+        return result
     def process(self, files: Iterable[Path], preview=False, **kwargs)->tuple[int, int]:
         n_processed = 0
         n_files = 0
@@ -97,9 +109,8 @@ class FilePipeline(Pipeline):
                     n_processed += 1
             log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
             for entry in self._invalid_files:
-                log_debug(f'invalid file: {entry}')
-                self.action_log.add(self.storage.call_helper('files', 'store_invalid' , 
-                                                             filename=entry['filename'], filetype=entry['filetype']))
+                log_debug(f'invalid file: {entry}')                
+                self.action_log.add(self._store_invalid(filename=entry['filename'], filetype=entry['filetype']))
             self.storage.commit()
             self.stop_logging()     
             log_debug(f'end process (f"{self.description}") {n_processed=} {n_files=}')       

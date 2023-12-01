@@ -231,12 +231,14 @@ class AAPAApp(App):
     def refresh_last_action(self)->ActionLog:
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
-        if not configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            result = None
-        else:
-            result: ActionLog = configuration.storage.call_helper('action_logs', 'last_action')
-        self.last_action = result 
-        return result
+        if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
+            logs: list[ActionLog] = configuration.storage.find_max_value('action_logs', attribute='id', 
+                                     where_attributes='can_undo',
+                                     where_values = True)
+            if logs:
+                self.last_action = logs[0] 
+                return self.last_action
+        return None
     async def enable_buttons(self):
         self.refresh_last_action()
         self.query_one(AapaButtons).enable_action_buttons(self.last_action)

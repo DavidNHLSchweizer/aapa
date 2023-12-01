@@ -15,7 +15,12 @@ class DifferenceProcessor(AanvraagProcessor):
         super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING},
                          description='Aanmaken verschilbestand')
     def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
-        return self.storage.call_helper('aanvragen', 'find_previous_aanvraag', aanvraag=aanvraag)
+        if aanvraag.versie == 1:
+            return None
+        self.storage.ensure_key('studenten', aanvraag.student)
+        if result := self.storage.find_values('aanvragen', attributes=['versie', 'student'], values=[aanvraag.versie-1, aanvraag.student.id]):
+            return result[0]
+        return None
     def get_difference_filename(self, output_directory:str, student_name: str)->str:
         return Path(output_directory).joinpath(f'Veranderingen in aanvraag {safe_file_name(student_name)}).html')
     def create_difference(self, previous_aanvraag: Aanvraag, aanvraag: Aanvraag, output_directory='', preview=False)->str:

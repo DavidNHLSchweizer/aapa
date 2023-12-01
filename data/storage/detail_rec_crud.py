@@ -30,19 +30,21 @@ class DetailRecsCRUD(CRUD):
         self.main_class_type = main_class_type
         self.details_data = self._data.details_data
         self.database = database
+    def __db_log(self, function: str, params: str=''):
+        log_debug(f'DRC: {function}{(" - " + params) if params else ""}')        
     def create(self, aapa_obj: StoredClass):
-        log_debug(f'DRC: CREATE ({classname(aapa_obj)}: {str(aapa_obj)})')
+        self.__db_log('CREATE', f'({classname(aapa_obj)}: {str(aapa_obj)})')
         for details in self.details_data:
             self.__create_details(getattr(aapa_obj, 'id'), 
                                   getattr(aapa_obj, details.aggregator_name),
                                   details.detail_aggregator_key,
                                   details.detail_rec_type)                                       
-        log_debug('DRC: END CREATE')
+        self.__db_log('END CREATE')
     def __create_details(self, main_id: int, aggregator: Aggregator, 
                          detail_aggregator_key: str, 
                          detail_rec_type: DetailRec
                          ):
-        log_debug(f'DRC: CREATE DETAILS [{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
+        self.__db_log('CREATE DETAILS', f'[{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
         detail_items = []
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
         details_crud = self.get_crud(detail_class_type)
@@ -54,51 +56,51 @@ class DetailRecsCRUD(CRUD):
         detail_rec_crud = self.get_crud(detail_rec_type)
         for detail in detail_items:
             detail_rec_crud.create(detail)
-        log_debug('DRC: END CREATE DETAILS')
+        self.__db_log('END CREATE DETAILS')
     def read(self, aapa_obj: StoredClass):
-        log_debug(f'DRC: START READ ({classname(aapa_obj)}: {str(aapa_obj)})')
+        self.__db_log('START READ', f'({classname(aapa_obj)}: {str(aapa_obj)})')
         for details in self.details_data:
             self.__read_details( getattr(aapa_obj, 'id'), 
                                  getattr(aapa_obj, details.aggregator_name),
                                  details.detail_aggregator_key,
                                  details.detail_rec_type)                                       
-        log_debug('DRC: END READ')
+        self.__db_log('END READ')
     def __read_details(self, main_id: int, aggregator: Aggregator, 
                           detail_aggregator_key: str, detail_rec_type: Type[DetailRec]): 
-        log_debug(f'DRC: READ DETAILS [{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
+        self.__db_log('READ DETAILS', f'[{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
         details_crud = self.get_crud(detail_class_type)
         crud = self.get_crud(detail_rec_type)
         column_names = crud.mapper._get_columns_from_attributes(['main_key', 'detail_key'])
-        where = crud.query_builder.build_where_from_values([column_names[0]], [main_id], 
+        qb = crud.query_builder
+        where = qb.build_where_from_values([column_names[0]], [main_id], 
                                                flags={QIF.NO_MAP_VALUES})
-        for row in crud.query_builder.find_all([column_names[1]], where=where):
+        for row in qb.find_all([column_names[1]], where=where):
             aggregator.add(details_crud.read(row[0]))
-        log_debug('DRC: END READ DETAILS')
+        self.__db_log('END READ DETAILS')
     def update(self, aapa_obj: StoredClass):
-        log_debug(f'DRC: UPDATE ({classname(aapa_obj)}: {str(aapa_obj)})')
+        self.__db_log('UPDATE', f'({classname(aapa_obj)}: {str(aapa_obj)})')
         self.delete(deepcopy(aapa_obj))
         self.create(aapa_obj) #the simplest!
-        log_debug('DRC: END UPDATE')
+        self.__db_log('END UPDATE')
     def delete(self, aapa_obj: StoredClass):
-        log_debug(f'DRC: DELETE ({classname(aapa_obj)}: {str(aapa_obj)})')
+        self.__db_log('DELETE', f'({classname(aapa_obj)}: {str(aapa_obj)})')
         for details in self.details_data:
             self.__delete_details( getattr(aapa_obj, 'id'), 
                                  getattr(aapa_obj, details.aggregator_name),
                                  details.detail_aggregator_key,
                                  details.detail_rec_type)                                       
-        log_debug('DRC: END DELETE')
+        self.__db_log('END DELETE')
     def __delete_details(self, main_id: int, aggregator: Aggregator, 
                             detail_aggregator_key: str, detail_rec_type: Type[DetailRec]):                          
-        log_debug(f'DRC: DELETE DETAILS [{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
+        self.__db_log('DELETE DETAILS', f'[{classname(detail_rec_type)}] ({main_id=} {detail_aggregator_key=})')
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
         details_crud = self.get_crud(detail_class_type)
         crud = self.get_crud(detail_rec_type)
         column_names = crud.mapper._get_columns_from_attributes(['main_key', 'detail_key'])
         # column_names = ['main_key', 'detail_key']
-        where = crud.query_builder.build_where_from_values([column_names[0]], [main_id], flags={QIF.NO_MAP_VALUES})
-        for row in crud.query_builder.find_all([column_names[1]], where=where):
+        qb = crud.query_builder
+        where = qb.build_where_from_values([column_names[0]], [main_id], flags={QIF.NO_MAP_VALUES})
+        for row in qb.find_all([column_names[1]], where=where):
             crud.delete(crud.read(detail_rec_type(main_id,row[0]).as_list()))
-            # file = details_crud.read(row[0])
-            # aggregator.remove(file)
-        log_debug('DRC: END DELETE DETAILS')
+        self.__db_log('END DELETE DETAILS')
