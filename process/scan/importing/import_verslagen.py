@@ -1,11 +1,10 @@
 from pathlib import Path
 import re
 from data.classes.files import File
-from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
-from data.storage.extensions.student_extension import StudentStorageExtension
+from data.storage.queries.studenten import StudentenQueries
 from general.fileutil import summary_string
 from general.log import log_debug, log_info, log_print, log_warning
 from general.singular_or_plural import sop
@@ -40,12 +39,12 @@ class VerslagFromZipImporter(VerslagCreator):
                 case _: return 0
 
         def get_student(storage: AAPAStorage, student_name: str, email: str)->Student:
-            storage_extension = StudentStorageExtension(storage)
+            storage_queries = StudentenQueries(storage.queries)
             student = Student(full_name=student_name, email=email)
-            stored:Student = storage_extension.find_student_by_name_or_email(student=student)
+            stored:Student = storage_queries.find_student_by_name_or_email(student=student)
             if stored:                 
                 return stored
-            student.stud_nr = storage_extension.create_unique_student_nr(student=student)
+            student.stud_nr = storage_queries.create_unique_student_nr(student=student)
             log_warning(f'Student {student_name} niet gevonden in database. Gebruik fake studentnummer {student.stud_nr}')
             return student            
         return Verslag(verslag_type=get_verslag_type(parsed.product_type), student=get_student(storage, parsed.student_name, email=parsed.email), 

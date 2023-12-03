@@ -6,7 +6,7 @@ from typing import Any
 from data.aapa_database import create_root
 from data.classes.aanvragen import Aanvraag
 from data.classes.aapa_class import AAPAclass
-from data.storage.CRUDs import CRUD, CRUDhelper, EnsureKeyAction, create_crud, get_registered_type
+from data.storage.CRUDs import CRUD, CRUDQueries, EnsureKeyAction, create_crud, get_registered_type
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
 from data.roots import add_root, encode_path
@@ -32,30 +32,30 @@ class AAPAStorage:
                 self._class_index[class_type] = crud
     def crud(self, module: str)->CRUD:
         return self._crud_dict.get(module, None)
-    def helper(self, module: str)->CRUDhelper:
+    def queries(self, module: str)->CRUDQueries:
         if crud := self.crud(module):
-            return crud.helper
-        raise StorageException(f'no helper for {module}.')
+            return crud.queries
+        raise StorageException(f'no Queries for {module}.')
 
     #----------- helper stuff --------------
     def ensure_key(self, module: str, aapa_obj: StoredClass)->EnsureKeyAction:
-        return self.helper(module).ensure_key(aapa_obj)
+        return self.queries(module).ensure_key(aapa_obj)
     def find_max_id(self, module: str)->int:
-        return self.helper(module).find_max_id()
+        return self.queries(module).find_max_id()
     def find_max_value(self, module: str, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->Any:
-        return self.helper(module).find_max_value(attribute=attribute, where_attributes=where_attributes, where_values=where_values)
+        return self.queries(module).find_max_value(attribute=attribute, where_attributes=where_attributes, where_values=where_values)
     def find_count(self, module: str, attributes: str|list[str], values: Any|list[Any])->int:
-        return self.helper(module).find_count(attributes, values)
+        return self.queries(module).find_count(attributes, values)
     def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any], map_values = True)->list[AAPAclass]:
-        return self.helper(module).find_values(attributes=attributes, values=values, map_values = map_values)
+        return self.queries(module).find_values(attributes=attributes, values=values, map_values = map_values)
     def find_all(self, module: str, where_attributes: str|list[str], where_values: Any|list[Any])->list[Any]:
-        if rows := self.helper(module).find_values_where(attribute='id', where_attributes=where_attributes, where_values=where_values):
+        if rows := self.queries(module).find_values_where(attribute='id', where_attributes=where_attributes, where_values=where_values):
             return [self.read(module, row['id']) for row in rows]
     
     #------------- crud stuff --------------
     def create(self, module: str, aapa_obj: StoredClass):
         if crud := self.crud(module):
-            match crud.helper.ensure_key(aapa_obj):
+            match crud.queries.ensure_key(aapa_obj):
                 case EnsureKeyAction.ALREADY_THERE:
                     #note: this could still have set the key for the object
                     return
@@ -89,5 +89,5 @@ class StorageExtension:
     def __init__(self, storage: AAPAStorage, module: str):            
         self.storage = storage
         self.module = module
-        self.helper = storage.helper(module)
+        self.helper = storage.queries(module)
         

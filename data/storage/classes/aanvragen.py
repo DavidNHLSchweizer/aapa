@@ -7,7 +7,7 @@ from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.extended_crud import ExtendedCRUD
 from data.storage.general.mappers import ColumnMapper
 from data.storage.general.query_builder import QIF
-from data.storage.CRUDs import CRUDhelper, register_crud
+from data.storage.CRUDs import CRUDQueries, register_crud
 from data.storage.classes.milestones import MilestonesCRUD, MilestonesTableMapper
 from database.database import Database
 from database.table_def import TableDefinition
@@ -20,7 +20,7 @@ class AanvragenTableMapper(MilestonesTableMapper):
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
   
-class AanvragenCRUDhelper(CRUDhelper):pass
+class AanvragenCRUDhelper(CRUDQueries):pass
 
 class AanvragenFilesDetailRec(DetailRec): pass
 class AanvragenFilesTableMapper(DetailRecsTableMapper):
@@ -30,7 +30,7 @@ class AanvragenFilesTableMapper(DetailRecsTableMapper):
 register_crud(class_type=Aanvraag, 
                 table=AanvraagTableDefinition(), 
                 crud=ExtendedCRUD,     
-                helper_type=AanvragenCRUDhelper,        
+                queries_type=AanvragenCRUDhelper,        
                 mapper_type=AanvragenTableMapper, 
                 details_data=
                     [DetailRecData(aggregator_name='files', detail_aggregator_key='files', 

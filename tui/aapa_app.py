@@ -10,7 +10,7 @@ from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButto
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.action_logs import ActionLog
-from data.storage.extensions.action_log_extension import ActionLogStorageExtension
+from data.storage.queries.action_logs import ActionLogQueries
 from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
 from general.log import pop_console, push_console
 from general.versie import BannerPart, banner
@@ -233,7 +233,7 @@ class AAPAApp(App):
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            if (action_log:=ActionLogStorageExtension(configuration.storage).last_action_log()):
+            if (action_log:=ActionLogQueries(configuration.storage.queries('action_logs')).last_action_log()):
                 self.last_action = action_log
             return action_log
         return None

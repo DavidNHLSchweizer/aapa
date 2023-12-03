@@ -3,7 +3,7 @@ from enum import Enum, auto
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File
-from data.storage.CRUDs import CRUDhelper, register_crud
+from data.storage.CRUDs import CRUDQueries, register_crud
 from data.storage.general.storage_const import StorageException
 from database.database import Database
 from general.log import log_debug
@@ -61,11 +61,11 @@ class FilesTableMapper(TableMapper):
             case 'filetype': return ColumnMapper(column_name=column_name, db_to_obj=File.Type)
             case _: return super()._init_column_mapper(column_name, database)
 
-class FilesCRUDhelper(CRUDhelper):pass
+class FilesCRUDhelper(CRUDQueries):pass
 
 register_crud(class_type=File, 
                 table=FilesTableDefinition(), 
                 mapper_type=FilesTableMapper,
-                helper_type=FilesCRUDhelper
+                queries_type=FilesCRUDhelper
                 )
                 

@@ -65,7 +65,7 @@ class CRUD:
         self._data = _class_data(class_type)
         self.database = database        
         self.autoID = self._data.autoID
-        self.helper = self._data.helper_type(self)
+        self.queries = self._data.queries_type(self)
         self.mapper = self._data.mapper_type(database, self._data.table, class_type) if self._data.mapper_type \
                                                             else TableMapper(database, self._data.table, class_type)
         self.query_builder = QueryBuilder(self.database, self.mapper)
@@ -117,8 +117,8 @@ class EnsureKeyAction(Enum):
     NOTHING = auto()
 EnsureKeyResults = set[EnsureKeyAction]
 
-class CRUDhelper:        
-    # to keep this apart from actual CRUD operations
+class CRUDQueries:        
+    # special class with common queries
     def __init__(self, crud: CRUD):
         self.crud = crud
     def get_crud(self, class_type: StoredClass)->CRUD:
@@ -235,6 +235,7 @@ class CRUDColumnMapper(ColumnMapper):
         return getattr(value, self.attribute_key, None)
     def map_db_to_value(self, db_value: DBtype)->Any:
         return self.crud.read(db_value)
+    
 #----------------------- REGISTRY stuff ----------------
 # enabling initialization of crud from given ClassType
 #-------------------------------------------------------
@@ -243,14 +244,14 @@ class ClassRegistryData:
     def __init__(self, table: TableDefinition,
                         mapper_type = TableMapper, 
                         crud=CRUD,  
-                        helper_type = CRUDhelper,
+                        queries_type = CRUDQueries,
                         details_data:list[DetailRecData]=None,
                         autoID=True,
                         module_name=''):
         self.table = table
         self.mapper_type = mapper_type
         self.crud = crud
-        self.helper_type = helper_type
+        self.queries_type = queries_type
         self.details_data = details_data
         self.autoID = autoID
         self.module_name = module_name
@@ -271,7 +272,7 @@ class CRUDRegistry(Singleton):
                         table: TableDefinition, 
                         mapper_type=TableMapper, 
                         crud=CRUD,  
-                        helper_type = CRUDhelper,
+                        queries_type = CRUDQueries,
                         details_data: list[DetailRecData] = None, 
                         autoID=True, 
                         main=True):
@@ -280,7 +281,7 @@ class CRUDRegistry(Singleton):
         self._registered_data[class_type] = ClassRegistryData(table=table,                                                                
                                                               mapper_type = mapper_type, 
                                                               crud=crud,  
-                                                              helper_type = helper_type,
+                                                              queries_type = queries_type,
                                                               details_data=details_data,
                                                               autoID=autoID,
                                                               module_name=module_name)
@@ -307,7 +308,7 @@ def register_crud(class_type: Type[StoredClass],
                   table: TableDefinition, 
                   mapper_type: Type[TableMapper] = TableMapper, 
                   crud = CRUD, 
-                  helper_type = CRUDhelper,
+                  queries_type = CRUDQueries,
                   details_data: list[DetailRecData] = None, 
                   autoID=True, 
                   main=True):
@@ -315,7 +316,7 @@ def register_crud(class_type: Type[StoredClass],
                             table=table, 
                             mapper_type=mapper_type, 
                             crud=crud, 
-                            helper_type=helper_type,
+                            queries_type=queries_type,
                             details_data=details_data,  
                             autoID=autoID,
                             main=main)

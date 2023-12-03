@@ -3,7 +3,7 @@ from typing import Type
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.detail_rec import DetailRec
-from data.storage.CRUDs import CRUD, CRUDhelper
+from data.storage.CRUDs import CRUD, CRUDQueries
 from data.storage.general.mappers import ColumnMapper, TableMapper
 from data.storage.general.query_builder import QIF
 from data.storage.general.storage_const import StoredClass
@@ -49,8 +49,8 @@ class DetailRecsCRUD(CRUD):
         detail_class_type = aggregator.get_class_type(detail_aggregator_key)
         details_crud = self.get_crud(detail_class_type)
         for item in aggregator.as_list(detail_class_type):            
-            CRUDhelper(details_crud).create_key_if_needed(item)
-            if not CRUDhelper(details_crud).check_already_there(item):
+            CRUDQueries(details_crud).create_key_if_needed(item)
+            if not CRUDQueries(details_crud).check_already_there(item):
                 details_crud.create(item)
             detail_items.append(detail_rec_type(main_key=main_id, detail_key=item.id))
         detail_rec_crud = self.get_crud(detail_rec_type)

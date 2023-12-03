@@ -1,5 +1,5 @@
 from typing import Any
-from data.storage.CRUDs import CRUDColumnMapper, CRUD, CRUDhelper
+from data.storage.CRUDs import CRUDColumnMapper, CRUD, CRUDQueries
 from data.storage.detail_rec_crud import DetailRecsCRUD
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
@@ -17,10 +17,10 @@ class ExtendedCRUD(CRUD):
     def create(self, aapa_obj: StoredClass):
         self.__check_valid(aapa_obj, f"{classname(self)}.create")
         self.create_references(aapa_obj)        
-        if CRUDhelper(self).check_already_there(aapa_obj):
+        if CRUDQueries(self).check_already_there(aapa_obj):
             return
         #TODO adapt for multiple keys
-        CRUDhelper(self).create_key_if_needed(aapa_obj)
+        CRUDQueries(self).create_key_if_needed(aapa_obj)
         super().create(aapa_obj)
         if self.details:
             self.details.create(aapa_obj)
@@ -45,5 +45,5 @@ class ExtendedCRUD(CRUD):
     def create_references(self, aapa_obj: StoredClass):
         for mapper in self.mapper.mappers():
             if isinstance(mapper, CRUDColumnMapper):
-                CRUDhelper(self).ensure_exists(aapa_obj, mapper.attribute_name, mapper.attribute_key)
+                CRUDQueries(self).ensure_exists(aapa_obj, mapper.attribute_name, mapper.attribute_key)
   
