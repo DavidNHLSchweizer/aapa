@@ -93,7 +93,8 @@ def _process_forget_files(files_to_forget: list[File], storage: AAPAStorage):
 
 def undo_last(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
-    if not (action_log:=ActionLogQueries(storage.queries('action_logs')).last_action_log()):
+    queries : ActionLogQueries = storage.queries('action_logs')
+    if not (action_log:=queries.last_action_log()):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return None
     nr_aanvragen = action_log.nr_aanvragen 

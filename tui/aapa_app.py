@@ -12,7 +12,7 @@ from aapa import AAPARunner
 from data.classes.action_logs import ActionLog
 from data.storage.queries.action_logs import ActionLogQueries
 from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
-from general.log import pop_console, push_console
+from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from tui.common.button_bar import ButtonBar, ButtonDef
@@ -230,12 +230,13 @@ class AAPAApp(App):
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
     def refresh_last_action(self)->ActionLog:
+        log_debug('RFA')
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            if (action_log:=ActionLogQueries(configuration.storage.queries('action_logs')).last_action_log()):
-                self.last_action = action_log
-            return action_log
+            queries : ActionLogQueries = configuration.storage.queries('action_logs')
+            self.last_action = queries.last_action_log()
+            return self.last_action
         return None
     async def enable_buttons(self):
         self.refresh_last_action()

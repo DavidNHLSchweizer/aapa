@@ -39,7 +39,7 @@ class VerslagFromZipImporter(VerslagCreator):
                 case _: return 0
 
         def get_student(storage: AAPAStorage, student_name: str, email: str)->Student:
-            storage_queries = StudentenQueries(storage.queries)
+            storage_queries: StudentenQueries = storage.queries('studenten')
             student = Student(full_name=student_name, email=email)
             stored:Student = storage_queries.find_student_by_name_or_email(student=student)
             if stored:                 

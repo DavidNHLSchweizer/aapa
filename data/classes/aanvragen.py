@@ -7,7 +7,6 @@ from data.classes.files import File
 from data.classes.milestones import Milestone
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
-from general.timeutil import TSC
 
 class Aanvraag(Milestone):
     Beoordeling = Milestone.Beoordeling

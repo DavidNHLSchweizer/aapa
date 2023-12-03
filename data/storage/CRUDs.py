@@ -65,7 +65,6 @@ class CRUD:
         self._data = _class_data(class_type)
         self.database = database        
         self.autoID = self._data.autoID
-        self.queries = self._data.queries_type(self)
         self.mapper = self._data.mapper_type(database, self._data.table, class_type) if self._data.mapper_type \
                                                             else TableMapper(database, self._data.table, class_type)
         self.query_builder = QueryBuilder(self.database, self.mapper)
@@ -120,9 +119,12 @@ EnsureKeyResults = set[EnsureKeyAction]
 class CRUDQueries:        
     # special class with common queries
     def __init__(self, crud: CRUD):
-        self.crud = crud
+        self._crud = crud
     def get_crud(self, class_type: StoredClass)->CRUD:
         return self.crud.get_crud(class_type=class_type)
+    @property
+    def crud(self)->CRUD:
+        return self._crud
     @property
     def query_builder(self)->QueryBuilder:
         return self.crud.query_builder

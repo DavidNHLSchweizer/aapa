@@ -1,18 +1,13 @@
 from __future__ import annotations
-from abc import abstractmethod
-import keyword
 from typing import Any
 
 from data.aapa_database import create_root
-from data.classes.aanvragen import Aanvraag
 from data.classes.aapa_class import AAPAclass
 from data.storage.CRUDs import CRUD, CRUDQueries, EnsureKeyAction, create_crud, get_registered_type
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
 from data.roots import add_root, encode_path
-from database.sql_expr import SQE
 from general.classutil import find_all_modules
-from general.log import log_exception
    
 class AAPAStorage: 
     #main interface with the database
