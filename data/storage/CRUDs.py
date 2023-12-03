@@ -68,6 +68,7 @@ class CRUD:
         self.mapper = self._data.mapper_type(database, self._data.table, class_type) if self._data.mapper_type \
                                                             else TableMapper(database, self._data.table, class_type)
         self.query_builder = QueryBuilder(self.database, self.mapper)
+        self.queries = self._data.queries_type(self)
         self._cruds = CRUDs(database)
     @property
     def table(self)->TableDefinition:

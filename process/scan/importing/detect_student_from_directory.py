@@ -6,7 +6,7 @@ from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.studenten import StudentenQueries
+from data.storage.queries.studenten import StudentQueries
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string, test_directory_exists
 from general.config import ListValueConvertor, config
@@ -35,7 +35,7 @@ class StudentMilestonesDetector(FileProcessor):
         if not (parsed := self.parser.parsed(student_directory)):
             raise DetectorException(f'directory {student_directory} kan niet worden herkend.')
         student = Student(full_name=parsed.student)
-        queries: StudentenQueries = storage.queries('studenten')
+        queries: StudentQueries = storage.queries('studenten')
         if storage and (stored := queries.find_student_by_name_or_email(student)):
             return stored
         return student

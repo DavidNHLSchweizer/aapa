@@ -32,7 +32,7 @@ class AAPAStorage:
             return crud.queries
         raise StorageException(f'no Queries for {module}.')
 
-    #----------- helper stuff --------------
+    #----------- queries stuff --------------
     def ensure_key(self, module: str, aapa_obj: StoredClass)->EnsureKeyAction:
         return self.queries(module).ensure_key(aapa_obj)
     def find_max_id(self, module: str)->int:
@@ -78,11 +78,4 @@ class AAPAStorage:
     def commit(self):
         self.database.commit()
 
-
-class StorageExtension:
-    # to define more complicated queries
-    def __init__(self, storage: AAPAStorage, module: str):            
-        self.storage = storage
-        self.module = module
-        self.helper = storage.queries(module)
         

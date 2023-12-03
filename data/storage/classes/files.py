@@ -61,11 +61,9 @@ class FilesTableMapper(TableMapper):
             case 'filetype': return ColumnMapper(column_name=column_name, db_to_obj=File.Type)
             case _: return super()._init_column_mapper(column_name, database)
 
-class FilesCRUDhelper(CRUDQueries):pass
-
 register_crud(class_type=File, 
                 table=FilesTableDefinition(), 
                 mapper_type=FilesTableMapper,
-                queries_type=FilesCRUDhelper
+                # queries_type=FilesQueries
                 )
                 

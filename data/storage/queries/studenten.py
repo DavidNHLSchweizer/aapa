@@ -2,7 +2,7 @@ from data.classes.studenten import Student
 from data.storage.CRUDs import CRUD, CRUDQueries
 from data.storage.general.storage_const import StorageException
 
-class StudentenQueries(CRUDQueries):
+class StudentQueries(CRUDQueries):
     def __find_student_by_attribute(self, student: Student, attribute: str)->Student:
         if students:=self.find_values(attributes=attribute, values=getattr(student, attribute)):
             if len(students) > 1:
