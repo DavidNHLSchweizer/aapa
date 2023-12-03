@@ -2,6 +2,7 @@ from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
+from data.storage.queries.aanvragen import AanvraagQueries
 from general.fileutil import file_exists, safe_file_name, summary_string
 from general.log import log_debug, log_print
 from general.preview import pva
@@ -15,12 +16,8 @@ class DifferenceProcessor(AanvraagProcessor):
         super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING},
                          description='Aanmaken verschilbestand')
     def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
-        if aanvraag.versie == 1:
-            return None
-        self.storage.ensure_key('studenten', aanvraag.student)
-        if result := self.storage.find_values('aanvragen', attributes=['versie', 'student'], values=[aanvraag.versie-1, aanvraag.student.id]):
-            return result[0]
-        return None
+        queries: AanvraagQueries = self.storage.queries('aanvragen')
+        return queries.find_previous_aanvraag(aanvraag)
     def get_difference_filename(self, output_directory:str, student_name: str)->str:
         return Path(output_directory).joinpath(f'Veranderingen in aanvraag {safe_file_name(student_name)}).html')
     def create_difference(self, previous_aanvraag: Aanvraag, aanvraag: Aanvraag, output_directory='', preview=False)->str:
