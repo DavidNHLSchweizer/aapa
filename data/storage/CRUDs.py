@@ -5,7 +5,7 @@ from data.classes.aapa_class import AAPAclass
 from data.classes.detail_rec import DetailRecData
 from data.storage.general.mappers import ColumnMapper, TableMapper
 from data.storage.general.query_builder import QIF, QueryBuilder
-from data.storage.general.storage_const import DBtype, KeyClass, StoredClass
+from data.storage.general.storage_const import DBtype, KeyClass, StorageException, StoredClass
 from database.database import Database
 from database.dbConst import EMPTY_ID
 from database.sql_expr import SQE, Ops
@@ -97,6 +97,19 @@ class CRUD:
         if rows := self.database.read_record(self.table, where=where):
             result = self.mapper.db_to_object(rows[0])
         log_debug(f'END CRUD READ: {str(result)}')
+        return result
+    def read_many(self, keys:set[KeyClass])->list[StoredClass]: 
+        log_debug(f'CRUD READ_MANY ({classname(self)}|{self.table.name}) {classname(self.class_type)}')
+        result = None
+        #TODO: this could probably somehow be better integrated with queries.find_values_where
+        if not isinstance(keys,set):
+            raise StorageException(f'invalid call to read_many (must be set)')
+        where = self.query_builder.build_where_for_many(column_name=self.table.key, 
+                                                               values=keys,flags={QIF.NO_MAP_VALUES})
+        result = []
+        for row in self.database.read_record(self.table, where=where):
+            result.append(self.mapper.db_to_object(row))
+        log_debug(f'END CRUD READ_MANY: {str(result)}')
         return result
     
     def update(self, aapa_obj: StoredClass): 
@@ -212,14 +225,17 @@ class CRUDQueries:
         else:
             where = None   
         return qb.find_max_value(attribute, where= where)
-    def find_values(self, attributes: str|list[str], values: Any|list[Any], map_values = True)->list[AAPAclass]:
+    def find_values(self, attributes: str|list[str], values: Any|list[Any], map_values = True, read_many=False)->list[AAPAclass]:
         self.__db_log('FIND_VALUES', f'attributes: {attributes} values: {values}')
         qb = self.query_builder
         wanted_attributes, wanted_values = self.__get_wanted_values(attributes, values) 
         log_debug(f'\tFV: {wanted_attributes=} {wanted_values=}')
         if (ids := qb.find_ids_from_values(attributes=wanted_attributes, values=wanted_values, 
                         flags={QIF.ATTRIBUTES} if map_values else {QIF.ATTRIBUTES, QIF.NO_MAP_VALUES})):
-            return [self.crud.read(id) for id in ids]
+            if read_many:
+                return self.crud.read_many(set(ids))
+            else:
+                return [self.crud.read(id) for id in ids]
         log_debug(f'\tFV: no values found')
         return []
     def find_values_where(self, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->list[Any]:

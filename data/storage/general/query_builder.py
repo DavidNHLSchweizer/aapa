@@ -120,6 +120,7 @@ class QueryBuilder:
         return []   
     def __build_where(self, columns: list[str], values: list[Any|set[Any]])->SQE:
         result = None
+        log_debug(f'BW: {columns}|{values}')
         for (key,value) in zip(columns, values):
             if isinstance(value, set):
                 new_where_part = SQE(key, Ops.IN, list(value), no_column_ref=True)
@@ -131,3 +132,5 @@ class QueryBuilder:
         return self.__build_where(*self.query_info.get_data(aapa_obj, columns=column_names, flags=flags))
     def build_where_from_values(self, column_names: list[str], values: list[Any], flags={QIF.ATTRIBUTES})->SQE:  
         return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags))
+    def build_where_for_many(self, column_name: str, values: set[Any], flags={QIF.ATTRIBUTES})->SQE:  
+        return self.__build_where([column_name], [values])

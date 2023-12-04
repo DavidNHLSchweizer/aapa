@@ -44,11 +44,11 @@ class AAPAStorage:
         return self.queries(module).find_max_value(attribute=attribute, where_attributes=where_attributes, where_values=where_values)
     def find_count(self, module: str, attributes: str|list[str], values: Any|list[Any])->int:
         return self.queries(module).find_count(attributes, values)
-    def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any], map_values = True)->list[AAPAclass]:
-        return self.queries(module).find_values(attributes=attributes, values=values, map_values = map_values)
+    def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any], map_values = True, read_many=False)->list[AAPAclass]:
+        return self.queries(module).find_values(attributes=attributes, values=values, map_values = map_values, read_many=read_many)
     def find_all(self, module: str, where_attributes: str|list[str], where_values: Any|list[Any])->list[Any]:
         if rows := self.queries(module).find_values_where(attribute='id', where_attributes=where_attributes, where_values=where_values):
-            return [self.read(module, row['id']) for row in rows]
+            return self.read_many(module, {row['id'] for row in rows})
     
     #------------- crud stuff --------------
     def create(self, module: str, aapa_obj: StoredClass):
@@ -63,6 +63,10 @@ class AAPAStorage:
     def read(self, module: str, key: KeyClass|list[KeyClass])->StoredClass:
         if crud := self.crud(module):
             return crud.read(key)
+        return None
+    def read_many(self, module: str, keys: set[KeyClass])->StoredClass:
+        if crud := self.crud(module):
+            return crud.read_many(keys)
         return None
     def update(self, module: str, aapa_obj: StoredClass):
         if crud := self.crud(module):

@@ -23,4 +23,4 @@ class AanvraagCreator(FileProcessor):
     def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Aanvraag:
         return None
     def is_known_invalid_file(self, filename: str, storage: AAPAStorage, filetype=File.Type.invalid_file_types()):
-        return storage.find_values('files', attributes=['filename', 'filetype'], values=[str(filename), filetype]) != [] 
+        return storage.find_values('files', attributes=['filename', 'filetype'], values=[str(filename), filetype], read_many=True) != [] 

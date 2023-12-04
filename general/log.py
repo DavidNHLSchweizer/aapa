@@ -56,7 +56,7 @@ class ConsolePrinter(Singleton):
         self.__check_func('debug', msg)
 
 class AAPAlogger(Singleton):
-    def __init__(self, filename, debug=False):        
+    def __init__(self, filename, debug=False):
         log_path = from_main_path('logs')
         if not (test_directory_exists(log_path) or created_directory(log_path)):
             print(f'ERROR: can not create logfile {filename} in {log_path}')            

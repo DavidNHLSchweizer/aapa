@@ -75,8 +75,8 @@ class DetailRecsCRUD(CRUD):
         qb = crud.query_builder
         where = qb.build_where_from_values([column_names[0]], [main_id], 
                                                flags={QIF.NO_MAP_VALUES})
-        for row in qb.find_all([column_names[1]], where=where):
-            aggregator.add(details_crud.read(row[0]))
+        rows = qb.find_all([column_names[1]], where=where)
+        aggregator.add(details_crud.read_many({row[0] for row in rows}))
         self.__db_log('END READ DETAILS')
     def update(self, aapa_obj: StoredClass):
         self.__db_log('UPDATE', f'({classname(aapa_obj)}: {str(aapa_obj)})')

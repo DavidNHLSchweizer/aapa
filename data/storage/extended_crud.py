@@ -3,6 +3,7 @@ from data.storage.detail_rec_crud import DetailRecsCRUD
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
 from general.classutil import classname
+from general.log import log_debug
 
 class ExtendedCRUD(CRUD):
     def __init__(self, database: Database, class_type: StoredClass):
@@ -13,7 +14,10 @@ class ExtendedCRUD(CRUD):
         if not isinstance(aapa_obj, StoredClass):
             raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')    
     # --------------- CRUD functions ----------------
+    def __db_log(self, function: str, params: str=''):
+        log_debug(f'EXT-CRUD({classname(self)}): {function}{(" - " + params) if params else ""}')        
     def create(self, aapa_obj: StoredClass):
+        self.__db_log('CREATE', f'[{classname(aapa_obj)}]')
         self.__check_valid(aapa_obj, f"{classname(self)}.create")
         self.create_references(aapa_obj)        
         if CRUDQueries(self).check_already_there(aapa_obj):
@@ -23,23 +27,36 @@ class ExtendedCRUD(CRUD):
         super().create(aapa_obj)
         if self.details:
             self.details.create(aapa_obj)
+        self.__db_log('END CREATE')
     def read(self, key: KeyClass)->StoredClass|list:
+        self.__db_log('READ', f'[{key}]')
         result = super().read(key)        
         if result and self.details:
             self.details.read(result)
+        self.__db_log('END READ', f'{result}')
         return result
+    def read_many(self, keys: set[KeyClass])->StoredClass|list:
+        self.__db_log('READ MANY', f'[{keys}]')
+        for result in (results := super().read_many(keys)):
+            if result and self.details:
+                self.details.read(result)
+        self.__db_log('END READ MANY', f'{results}')
+        return results
     def update(self, aapa_obj: StoredClass):
+        self.__db_log('UPDATE', f'[{classname(aapa_obj)}]')
         self.__check_valid(aapa_obj, f"{classname(self)}.update")
         self.create_references(aapa_obj)
         super().update(aapa_obj)
         if self.details:
             self.details.update(aapa_obj)
+        self.__db_log('END UPDATE')
     def delete(self, aapa_obj: StoredClass):
+        self.__db_log('DELETE', f'[{classname(aapa_obj)}]')
         self.__check_valid(aapa_obj, f"{classname(self)}.delete")
         if self.details:
             self.details.delete(aapa_obj)
         super().delete(aapa_obj)
-
+        self.__db_log('END DELETE')
     # utility functions
     def create_references(self, aapa_obj: StoredClass):
         for mapper in self.mapper.mappers():

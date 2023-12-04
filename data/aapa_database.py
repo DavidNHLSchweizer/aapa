@@ -220,14 +220,12 @@ class AAPaSchema(Schema):
         UndoLogTableDefinition,
         UndoLogAanvragenTableDefinition,
         UndoLogFilesTableDefinition,
-    
-    # voor database versie 1.20
-        # VerslagTableDefinition,
-        # VerslagFilesTableDefinition,
-        # BaseDirsTableDefinition,
-        # StudentMilestonesTableDefinition,      
-        # StudentAanvragenTableDefinition,
-        # StudentVerslagenTableDefinition,
+        VerslagTableDefinition,
+        VerslagFilesTableDefinition,
+        BaseDirsTableDefinition,
+        StudentMilestonesTableDefinition,      
+        StudentAanvragenTableDefinition,
+        StudentVerslagenTableDefinition,
     ]
     ALL_VIEWS:list[ViewDefinition]= [ 
                 AanvragenOverzichtDefinition,

@@ -37,7 +37,8 @@ class File(AAPAclass):
             return filetype in File.Type.invalid_file_types()
         @staticmethod
         def valid_file_types()->set[File.Type]:
-            return {filetype for filetype in File.Type if not filetype in File.Type.invalid_file_types()}
+            result =  {filetype for filetype in File.Type if not filetype in File.Type.invalid_file_types()}
+            return result
         @staticmethod
         def invalid_file_types()->set[File.Type]:
             return {File.Type.INVALID_PDF, File.Type.INVALID_DOCX}
@@ -91,10 +92,14 @@ class Files(Aggregator):
         super().__init__(owner=owner)
         self.allow_multiple = allow_multiple
         self.add_class(File, 'files')
-    def add(self, file:File):
+    def add(self, files:File|list[File]):
         if not self.allow_multiple:
-            self.remove_filetype(file.filetype)
-        super().add(file)
+            if isinstance(files, list):
+                for filetype in {file.filetype for file in files}:
+                    self.remove_filetype(filetype)
+            else:
+                self.remove_filetype(files.filetype)
+        super().add(files)
     @property
     def files(self)->list[File]:
         return self.as_list('files', sort_key=lambda file: file.filetype)

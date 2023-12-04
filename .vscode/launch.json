@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "Python: Current File",
             "type": "python",
@@ -64,6 +65,19 @@
             ]
         },
         {
+            "name": "Python: aapa mail",
+            "type": "python",
+            "request": "launch",
+            "program": "aapa.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "mail",
+                "-preview",
+                "-debug",
+            ]
+        },
+        {
             "name": "Python: aapa undo",
             "type": "python",
             "request": "launch",
@@ -85,8 +99,8 @@
             "justMyCode": true,
             "args": [
                 "testing123.db",
-                "1.18",
-                "1.19"
+                "1.19",
+                "1.20"
             ]
         }
     ]

@@ -7,7 +7,7 @@ from process.aapa_processor.initialize import initialize_database
 
 class MigrationException(Exception): pass
 
-def migrate_version(database_name, old_version, new_version):    
+def migrate_version(database_name, old_version, new_version, debug=False):    
     def remove_dot(s: str)->str:
         return s.replace('.', '')    
     migration_module_name = f'data.migrate.migrate_{remove_dot(old_version)}_{remove_dot(new_version)}'
@@ -20,7 +20,7 @@ def migrate_version(database_name, old_version, new_version):
         if not (migrate_database:= getattr(module, 'migrate_database', None)):
             print(f'Migration function "migrate_database" not found in {migration_module_name}.')
             return False
-        if not (database := start_migratie(database_name, old_version, new_version)):
+        if not (database := start_migratie(database_name, old_version, new_version, debug=debug)):
             return False
         migrate_database(database)
         finish_migratie(database, new_version)    
@@ -45,8 +45,8 @@ def update_versie(database, new_version):
     dbv.db_versie = new_version
     create_version_info(database, dbv)
 
-def start_migratie(database_name: str, old_version: str, new_version: str)->Database:
-    init_logging(f'migrate{old_version.replace(".","_")}-{new_version.replace(".","_")}.log')
+def start_migratie(database_name: str, old_version: str, new_version: str, debug=False)->Database:
+    init_logging(f'migrate{old_version.replace(".","_")}-{new_version.replace(".","_")}.log', debug=debug)    
     if not (database := init_database(database_name, old_version)):
         return None
     print(f'Migrating database {database_name} from version {old_version} to {new_version}.')

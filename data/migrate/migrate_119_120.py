@@ -12,10 +12,6 @@ def create_verslagen_tables(database: Database):
     print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
     database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
     database.execute_sql_command(SQLcreateTable(VerslagFilesTableDefinition()))
-    print('toevoegen nieuwe tabel BASEDIRS')
-    database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
-    print('initialiseren waardes voor BASEDIRS')
-    init_base_directories(database)
     print('toevoegen nieuwe STUDENT_MILESTONES, STUDENT_AANVRAGEN en STUDENT_VERSLAGEN tabellen')
     database.execute_sql_command(SQLcreateTable(StudentMilestonesTableDefinition()))             
     database.execute_sql_command(SQLcreateTable(StudentAanvragenTableDefinition())) 
@@ -37,6 +33,9 @@ def init_base_directories(database: Database):
                BaseDir(2022, '4', 'v4.0.0b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 4'),
                BaseDir(2023, '1', 'v4.0.0b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024') 
     ]
+    print('adding new table BASEDIRS')
+    database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
+    print('initialisation values BASEDIRS')  
     storage = AAPAStorage(database)
     load_roots(database)
     for entry in known_bases:
@@ -44,6 +43,8 @@ def init_base_directories(database: Database):
         database._execute_sql_command(
             "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", 
             [entry.year, entry.period, entry.forms_version, encode_path(entry.directory)])        
+    print('--- ready adding new table BASEDIRS')
+    database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
 
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
