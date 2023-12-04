@@ -6,9 +6,9 @@ from data.classes.undo_logs import UndoLog
 from data.storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.storage.classes.files import FileStorageRecord
 from data.storage.general.storage_const import StorageException
 from data.storage.queries.aanvragen import AanvraagQueries
+from data.storage.queries.files import FileStorageAnalyzer, FilesQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
@@ -76,16 +76,18 @@ class AanvraagPDFImporter(FileProcessor):
     def __init__(self):
         super().__init__(description='PDF Importer')
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:        
-        stored: list[File] = storage.find_values('files', attributes='filename', values=str(filename))
-        if not stored:
-            return True
-        if len(stored) > 1:
-            raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
-        record = FileStorageRecord(filename).analyse(filenames=stored, 
-                                                     digests=storage.find_values('files', attributes='digest', values=stored[0].digest))        
-        log_debug(f'MUST_PROCESS_FILE {filename}\n\tstorage_record: {record.status}  {record.stored}')
-        match record.status:
-            case FileStorageRecord.Status.STORED | FileStorageRecord.Status.STORED_INVALID:
+        queries: FilesQueries = storage.queries('files')
+        # stored: list[File] = storage.find_values('files', attributes='filename', values=str(filename))
+        # if not stored:
+        #     return True
+        # if len(stored) > 1:
+        #     raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
+        status,stored_file = queries.analyze(filename)
+        # record = FileStorageAnalyzer(filename).analyse(filenames=stored, 
+        #                                              digests=storage.find_values('files', attributes='digest', values=stored[0].digest))        
+        log_debug(f'MUST_PROCESS_FILE {filename}\n\treason: {status}  {stored_file}')
+        match status:
+            case FileStorageAnalyzer.Status.STORED | FileStorageAnalyzer.Status.STORED_INVALID:
                 return False
             case _: return True
     def process_file(self, filename: str, storage: AAPAStorage = None, preview=False)->Aanvraag:
@@ -138,22 +140,21 @@ class DirectoryImporter(AanvraagCreatorPipeline):
     def _check_skip_file(self, filename: Path)->bool:
         skip_msg = ''
         warning = False
-        stored: list[File] = self.storage.find_values('files', attributes='filename', values=str(filename))
-        if not stored:
-            return False
-        if len(stored) > 1:
-            raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
-        record = FileStorageRecord(filename).analyse(filenames=stored, 
-                                                     digests=self.storage.find_values('files', attributes='digest', values=stored[0].digest))        
-        log_debug(f'record: {filename}: {record.status}')
-        match record.status:
-            case FileStorageRecord.Status.STORED_INVALID_COPY:
-                skip_msg = f'Overslaan: bestand {summary_string(filename, maxlen=100, initial=16)}\n\t is kopie van {summary_string(record.stored.filename, maxlen=100, initial=16)}'
+        queries: FilesQueries = self.storage.queries('files')
+        # stored: list[File] = self.storage.find_values('files', attributes='filename', values=str(filename))
+        # # if stored:
+        # #     return False
+        # if len(stored) > 1:
+        #     raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
+        status,stored_file = queries.analyze(filename)
+        match status:
+            case FileStorageAnalyzer.Status.STORED_INVALID_COPY:
+                skip_msg = f'Overslaan: bestand {summary_string(filename, maxlen=100, initial=16)}\n\t is kopie van {summary_string(stored_file.filename, maxlen=100, initial=16)}'
                 warning = True
-            case FileStorageRecord.Status.STORED_INVALID: 
+            case FileStorageAnalyzer.Status.STORED_INVALID: 
                 pass
-            case FileStorageRecord.Status.DUPLICATE:
-                skip_msg = f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(record.stored.filename, maxlen=100, initial=16)}'          
+            case FileStorageAnalyzer.Status.DUPLICATE:
+                skip_msg = f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(stored_file.filename, maxlen=100, initial=16)}'          
                 warning = True
             case _: 
                 if self._skip_file(filename):

@@ -1,5 +1,5 @@
 from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
-        StudentTableDefinition
+        StudentTableDefinition, UndoLogTableDefinition
 from data.classes.files import File
 from database.sql_table import SQLcreateTable
 from database.database import Database
@@ -57,9 +57,10 @@ class OldFilesTableDefinition(TableDefinition):
         self.add_column('filetype', dbc.INTEGER)
         self.add_column('aanvraag_id', dbc.INTEGER)
 
+def transform_time_str(value: str)->str:
+    return TSC.timestamp_to_sortable_str(TSC.str_to_timestamp(value))
+
 def modify_files_table(database: Database):
-    def transform_time_str(value: str)->str:
-        return TSC.timestamp_to_sortable_str(TSC.str_to_timestamp(value))
     print('modifying FILES table.')
     database._execute_sql_command('alter table FILES RENAME TO OLD_FILES')
     # print('copying the timestamps to AANVRAGEN table.')
@@ -109,11 +110,18 @@ def correct_first_names(database: Database):
 
 #rename actionlogs tables to undologs
 def rename_action_logs(database: Database):
-    print('renaming ACTIONLOG tables.')
-    database._execute_sql_command('alter table ACTIONLOG RENAME TO UNDOLOGS')
+    print('adapting ACTIONLOG tables.')
+    print('creating the new table')
+    database.execute_sql_command(SQLcreateTable(UndoLogTableDefinition()))    
+    print('copy data and transform timestrings to sortable format in UNDOLOGS table.')
+    for row in database._execute_sql_command('select id,description,action,user,date,can_undo from ACTIONLOG', [], True):
+        database._execute_sql_command('insert into UNDOLOGS VALUES (?,?,?,?,?,?)',
+                                      [row['id'], row['description'], row['action'], 
+                                       row['user'], transform_time_str(row['date']), row['can_undo']])    
+    database._execute_sql_command('drop table ACTIONLOG')
     database._execute_sql_command('alter table ACTIONLOG_AANVRAGEN RENAME TO UNDOLOGS_AANVRAGEN')
     database._execute_sql_command('alter table ACTIONLOG_FILES RENAME TO UNDOLOGS_FILES')
-    print('--- ready renaming ACTIONLOG tables')
+    print('--- ready adapting ACTIONLOG tables')
 
 def migrate_database(database: Database):
     with database.pause_foreign_keys():

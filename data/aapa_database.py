@@ -145,7 +145,7 @@ class AanvraagFilesTableDefinition(DetailTableDefinition):
 
 class UndoLogTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('UNDOLOG')
+        super().__init__('UNDOLOGS')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('description', dbc.TEXT)
         self.add_column('action', dbc.INTEGER)    
@@ -155,14 +155,14 @@ class UndoLogTableDefinition(TableDefinition):
 
 class UndoLogAanvragenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('UNDOLOG_AANVRAGEN', 
-                         main_table_name='UNDOLOG', main_alias_id='log_id', 
+        super().__init__('UNDOLOGS_AANVRAGEN', 
+                         main_table_name='UNDOLOGS', main_alias_id='log_id', 
                          detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
        
 class UndoLogFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('UNDOLOG_FILES', 
-                         main_table_name='UNDOLOG', main_alias_id='log_id', 
+        super().__init__('UNDOLOGS_FILES', 
+                         main_table_name='UNDOLOGS', main_alias_id='log_id', 
                          detail_table_name='FILES', detail_alias_id='file_id')
     
 class BaseDirsTableDefinition(TableDefinition):

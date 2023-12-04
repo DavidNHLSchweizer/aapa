@@ -18,7 +18,10 @@ class AAPAStorage:
         self.__init_modules()
     def __init_modules(self):
         #initialize the crud variables from the actual modules in the data.storage.classes directory
-        #uses some neat tricks with python types
+        #uses some neat tricks with python types, if load_as_well is not set to True the module loading order is 
+        #f'ed up and we get unwanted errors. 
+        # NOTE: its looks like force-importing the modules takes a relatively long time, 
+        # but this can't be helped easily and anyway, they must be loaded at some point
         for full_module_name in find_all_modules("data.storage.classes", True):
             module_name = full_module_name.split(".")[-1]
             if (class_type := get_registered_type(full_module_name)):
