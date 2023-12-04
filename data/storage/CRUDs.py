@@ -110,8 +110,7 @@ class CRUD:
         for row in self.database.read_record(self.table, where=where):
             result.append(self.mapper.db_to_object(row))
         log_debug(f'END CRUD READ_MANY: {str(result)}')
-        return result
-    
+        return result    
     def update(self, aapa_obj: StoredClass): 
         log_debug(f'CRUD UPDATE ({classname(self)}|{self.table.name}) {classname(aapa_obj)}: {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
