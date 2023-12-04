@@ -19,6 +19,6 @@ class StudentQueries(CRUDQueries):
         n = 42
         if not (result := student.stud_nr):
             result = f'{student.initials()}{n*42}'
-        while self.find_values('stud_nr', result) is not []:
+        while self.find_values('stud_nr', result) != []:
             n+=1
         return result

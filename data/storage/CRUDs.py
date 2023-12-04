@@ -42,7 +42,7 @@ class CRUD:
                 (most classes do this, mostly because it guarantees that higher ID means later 
                 creation, SQLite does not guarantee this)
             mapper: the TableMapper mapping object values to the table
-            query_builder: the QueryBuilder to query the table
+            queries: the CRUDQueries object: functions to query the table
             table: the TableDefinition
 
         public methods:
@@ -67,7 +67,6 @@ class CRUD:
         self.autoID = self._data.autoID
         self.mapper = self._data.mapper_type(database, self._data.table, class_type) if self._data.mapper_type \
                                                             else TableMapper(database, self._data.table, class_type)
-        self.query_builder = QueryBuilder(self.database, self.mapper)
         self.queries = self._data.queries_type(self)
         self._cruds = CRUDs(database)
     @property
@@ -76,6 +75,9 @@ class CRUD:
     @property
     def class_type(self)->StoredClass:
         return self.mapper.class_type   
+    @property
+    def query_builder(self)->QueryBuilder:
+        return self.queries.query_builder
     def get_crud(self, class_type = None)->CRUD:
         return self if not class_type or class_type == self.class_type else self._cruds.get_crud(class_type)
     def create(self, aapa_obj: StoredClass): 
@@ -87,6 +89,7 @@ class CRUD:
     def read(self, key: KeyClass|list[KeyClass])->StoredClass: 
         log_debug(f'CRUD READ ({classname(self)}|{self.table.name}) {classname(self.class_type)}:{key=}')
         result = None
+        #TODO: this could probably somehow be better integrated with queries.find_values_where
         if isinstance(key,list):
             where = self.query_builder.build_where_from_values(column_names=self.table.keys, 
                                                                values=key,flags={QIF.NO_MAP_VALUES})
@@ -100,12 +103,14 @@ class CRUD:
     def update(self, aapa_obj: StoredClass): 
         log_debug(f'CRUD UPDATE ({classname(self)}|{self.table.name}) {classname(aapa_obj)}: {str(aapa_obj)}')
         columns,values= self.mapper.object_to_db(aapa_obj,include_key=False)
+        #TODO: this could probably somehow be better integrated with queries.find_values_where
         self.database.update_record(self.table, columns=columns, values=values, 
                                             where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))
         log_debug(f'END CRUD UPDATE')
         
     def delete(self, aapa_obj: StoredClass):
         log_debug(f'CRUD DELETE ({classname(self)}|{self.table.name}) {classname(aapa_obj)}: {str(aapa_obj)}')
+        #TODO: this could probably somehow be better integrated with queries.find_values_where
         self.database.delete_record(self.table, 
                                     where=self.query_builder.build_where_from_object(aapa_obj, column_names=self.mapper.table_keys()))        
         log_debug(f'END CRUD DELETE')
@@ -121,6 +126,7 @@ class CRUDQueries:
     # special class with common queries
     def __init__(self, crud: CRUD):
         self._crud = crud
+        self._query_builder = QueryBuilder(self._crud.database, self._crud.mapper)
     def get_crud(self, class_type: StoredClass)->CRUD:
         return self.crud.get_crud(class_type=class_type)
     @property
@@ -128,7 +134,7 @@ class CRUDQueries:
         return self._crud
     @property
     def query_builder(self)->QueryBuilder:
-        return self.crud.query_builder
+        return self._query_builder
     @property
     def table(self)->TableDefinition:
         return self.crud.table

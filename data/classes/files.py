@@ -38,6 +38,9 @@ class File(AAPAclass):
         def is_invalid(filetype: File.Type)->bool:
             return filetype in File.Type.invalid_file_types()
         @staticmethod
+        def valid_file_types()->set[File.Type]:
+            return {filetype for filetype in File.Type if not filetype in File.Type.invalid_file_types()}
+        @staticmethod
         def invalid_file_types()->set[File.Type]:
             return {File.Type.INVALID_PDF, File.Type.INVALID_DOCX}
 

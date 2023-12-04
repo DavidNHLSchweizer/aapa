@@ -12,6 +12,7 @@ from general.timeutil import TSC
 
 # Wijzigingen in 1.19 voor migratie:
 #
+# aanpassen tijden in database (sorteerbaar gemaakt)
 # studenten krijgt ook zijn eigen ID. Aanpassingen aan AANVRAGEN hiervoor
 # link files met aanvragen wordt met nieuwe koppeltabel AANVRAGEN_FILES. Aanpassingen aan FILES en AANVRAGEN hiervoor
 # voorbereiding: aanvraag_nr -> kans

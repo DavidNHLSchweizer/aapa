@@ -2,7 +2,7 @@ from __future__ import annotations
 from ast import Tuple
 from enum import Enum, auto
 from data.classes.files import File
-from data.storage.CRUDs import CRUDQueries
+from data.storage.CRUDs import CRUD, CRUDQueries
 from data.storage.general.storage_const import StorageException
 from general.log import log_debug
 
@@ -52,5 +52,13 @@ class FileStorageAnalyzer:
         return (status,stored)
 
 class FilesQueries(CRUDQueries):
+    def __init__(self, crud: CRUD):
+        super().__init__(self, crud)
+        self.known_files:list[File] = self.find_values('files', attributes='filetype', 
+                                    values={File.Type.valid_file_types()})
     def analyze(self, filename: str)->Tuple[FileStorageAnalyzer.Status,File]:
         return FileStorageAnalyzer(self).analyze(str(filename))
+    def is_known_file(self, filename: str)->bool: 
+        return filename in {file.filename for file in self.known_files} or \
+            self.find_values('files', attributes=['filename', 'filetype'], 
+                                     values=[str(filename), File.Type.invalid_file_types()]) != []

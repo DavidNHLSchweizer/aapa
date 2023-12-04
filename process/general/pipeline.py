@@ -25,8 +25,6 @@ class Pipeline:
         else:
             self._processors.append(processors)
         self.storage = storage
-        self.known_files:list[File] = self.storage.find_values('files', attributes='filetype', 
-                                                    values={filetype for filetype in File.Type}-{File.Type.INVALID_PDF, File.Type.UNKNOWN})
         self.undo_log = UndoLog(activity, description, can_undo=can_undo)
     @property
     def description(self)->str:
@@ -43,10 +41,6 @@ class Pipeline:
         if not self.undo_log.is_empty():
             self.storage.create('undo_logs', self.undo_log)
         self.storage.commit()
-    def is_known_file(self, filename: str)->bool: 
-        return filename in {file.filename for file in self.known_files} or \
-            self.storage.find_values('files', attributes=['filename', 'filetype'], 
-                                     values=[str(filename), File.Type.invalid_file_types()]) is not []
 
 class FilePipeline(Pipeline):
     def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 
