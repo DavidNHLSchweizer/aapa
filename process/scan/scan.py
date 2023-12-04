@@ -1,4 +1,4 @@
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.fileutil import created_directory, from_main_path, test_directory_exists
 from general.log import log_debug, log_error, log_info, log_print
@@ -34,7 +34,7 @@ def create_beoordelingen_files(storage: AAPAStorage, template_doc, output_direct
         pipeline = AanvragenPipeline(f'Maken beoordelingsformulieren en kopiëren aanvragen ({output_directory})', 
                                        [FormCreator(template_doc, output_directory), 
                                         CopyAanvraagProcessor(output_directory), 
-                                        DifferenceProcessor(storage, output_directory)], storage, ActionLog.Action.FORM)
+                                        DifferenceProcessor(storage, output_directory)], storage, UndoLog.Action.FORM)
         result = pipeline.process(preview=preview, filter_func=filter_func, output_directory=output_directory) 
     else:
         log_error(f'Output directory "{output_directory}" bestaat niet. Kan geen formulieren aanmaken')

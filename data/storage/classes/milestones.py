@@ -77,7 +77,7 @@ class MilestonesCRUD(ExtendedCRUD):
 #     #     result = []
 #     #     if rows:=super().read(milestones_id, multiple=True):
 #     #         for row in rows:
-#     #             result.append(ActionLogRelationRec(log_id=action_log_id, rel_id=row[self._get_relation_column_name()]))
+#     #             result.append(UndoLogRelationRec(log_id=undo_log_id, rel_id=row[self._get_relation_column_name()]))
 #     #     return result
 
 

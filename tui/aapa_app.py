@@ -9,8 +9,8 @@ from textual.message import Message
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
-from data.classes.action_logs import ActionLog
-from data.storage.queries.action_logs import ActionLogQueries
+from data.classes.undo_logs import UndoLog
+from data.storage.queries.undo_logs import UndoLogQueries
 from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
 from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
@@ -140,17 +140,17 @@ class AapaButtons(Static):
             self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}'] 
     def button(self, id: str)->Button:
         return self.query_one(f'#{id}', Button)
-    def enable_action_buttons(self, action_log: ActionLog):
-        button_ids = {ActionLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
-                      ActionLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
-                      ActionLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
+    def enable_action_buttons(self, undo_log: UndoLog):
+        button_ids = {UndoLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
+                      UndoLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
+                      UndoLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
                      } 
-        next_button_id = button_ids[action_log.action]['next'] if action_log else 'scan'
+        next_button_id = button_ids[undo_log.action]['next'] if undo_log else 'scan'
         for button_id in {'scan', 'form', 'mail'} - {next_button_id}:
             self.button(button_id).classes = 'not_next'
         self.button(next_button_id).classes = 'next'
         self.button(next_button_id).focus()
-        self.button('undo').disabled = not action_log
+        self.button('undo').disabled = not undo_log
     def toggle(self):
         self.preview = not self.preview
     @property
@@ -181,7 +181,7 @@ class AAPAApp(App):
     CSS_PATH = ['aapa.tcss']
     def __init__(self, **kwdargs):
         self.terminal_active = False
-        self.last_action: ActionLog = None
+        self.last_action: UndoLog = None
         self.barbie = False
         self.barbie_oldcolors = {}
         super().__init__(**kwdargs)
@@ -229,13 +229,13 @@ class AAPAApp(App):
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
-    def refresh_last_action(self)->ActionLog:
+    def refresh_last_action(self)->UndoLog:
         log_debug('RFA')
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            queries : ActionLogQueries = configuration.storage.queries('action_logs')
-            self.last_action = queries.last_action_log()
+            queries : UndoLogQueries = configuration.storage.queries('undo_logs')
+            self.last_action = queries.last_undo_log()
             return self.last_action
         return None
     async def enable_buttons(self):

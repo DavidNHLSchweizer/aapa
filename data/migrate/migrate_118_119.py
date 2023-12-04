@@ -1,25 +1,23 @@
 from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
-        StudentTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, load_roots
-from data.classes.base_dirs import BaseDir
+        StudentTableDefinition
 from data.classes.files import File
-from data.roots import encode_path
-from data.storage.aapa_storage import AAPAStorage
 from database.sql_table import SQLcreateTable
 from database.database import Database
 from database.sql_view import SQLcreateView
-from database.table_def import ForeignKeyAction, TableDefinition
+from database.table_def import TableDefinition
 from general.log import log_debug
 from general.name_utils import Names
 import database.dbConst as dbc
 from general.timeutil import TSC
+
 # Wijzigingen in 1.19 voor migratie:
 #
 # studenten krijgt ook zijn eigen ID. Aanpassingen aan AANVRAGEN hiervoor
+# link files met aanvragen wordt met nieuwe koppeltabel AANVRAGEN_FILES. Aanpassingen aan FILES en AANVRAGEN hiervoor
 # voorbereiding: aanvraag_nr -> kans
-# toevoegen verslagen tabel
-# toevoegen basedirs tabel
-# toevoegen student_milestones en student_milestones_details tabel
-# creating VIEW_AANVRAGEN en VIEW_VERSLAGEN
+# creating AANVRAGEN_OVERZICHT en AANVRAGEN_FILES overzicht
+# correctie enige voornamen van studenten
+# naamswijziging ACTIONLOG->UNDOLOG
 #
 def modify_studenten_table(database: Database):
     print('adding primary key to STUDENTEN table.')
@@ -91,28 +89,6 @@ def modify_files_table(database: Database):
     print('end creating AANVRAGEN_FILES table.')
     print('end modifying FILES table.')
 
-# AanvragenFilesTableDefinition
-def _init_base_directories(database: Database):
-    known_bases = [
-               BaseDir(2020, '1', 'v2.2b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1'),
-               BaseDir(2020, '1B', 'v2.2b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1B'),
-               BaseDir(2020, '2', 'v2.2b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 2'),
-               BaseDir(2021, '1', 'v2.3b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 1'),
-               BaseDir(2021, '2', 'v2.3b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 2'),
-               BaseDir(2021, '3', 'v2.3b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 3'),
-               BaseDir(2021, '4', 'v2.3b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 4'),
-               BaseDir(2022, '1', 'v3.0.0b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 1'),
-               BaseDir(2022, '2', 'v4.0.0b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 2'),
-               BaseDir(2022, '3', 'v4.0.0b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 3'),
-               BaseDir(2022, '4', 'v4.0.0b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 4'),
-               BaseDir(2023, '1', 'v4.0.0b', r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024') 
-    ]
-    storage = AAPAStorage(database)
-    load_roots(database)
-    for entry in known_bases:
-        storage.add_file_root(entry.directory)
-        database._execute_sql_command(
-            "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", [entry.year, entry.period, entry.forms_version, encode_path(entry.directory)])        
 
 def create_views(database: Database):
     print('creating views')
@@ -131,6 +107,13 @@ def correct_first_names(database: Database):
             database._execute_sql_command('update STUDENTEN set first_name=? where id=?', [parsed.first_name, row['id']])
     print('--- ready incorrect first names in STUDENTEN')
 
+#rename actionlogs tables to undologs
+def rename_action_logs(database: Database):
+    print('renaming ACTIONLOG tables.')
+    database._execute_sql_command('alter table ACTIONLOG RENAME TO UNDOLOGS')
+    database._execute_sql_command('alter table ACTIONLOG_AANVRAGEN RENAME TO UNDOLOGS_AANVRAGEN')
+    database._execute_sql_command('alter table ACTIONLOG_FILES RENAME TO UNDOLOGS_FILES')
+    print('--- ready renaming ACTIONLOG tables')
 
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
@@ -139,3 +122,4 @@ def migrate_database(database: Database):
         modify_files_table(database)
         create_views(database)
         correct_first_names(database)
+        rename_action_logs(database)

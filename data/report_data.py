@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from enum import Enum
 import pandas as pd
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from general.deep_attr import deep_attr_main_part, get_deep_attr
 from general.log import log_error, log_print
 from process.general.aanvraag_pipeline import AanvragenPipeline
@@ -90,7 +90,7 @@ class AanvraagXLSReporter(AanvraagProcessor):
 def report_aanvragen_XLS(storage: AAPAStorage, xls_filename: str, filter_func = None):
     xls_filename = writable_filename(xls_filename)
     reporter = AanvraagXLSReporter()
-    pipeline = AanvragenPipeline('Maken XLS rapportage', reporter, storage, activity=ActionLog.Action.NOLOG, can_undo=False)
+    pipeline = AanvragenPipeline('Maken XLS rapportage', reporter, storage, activity=UndoLog.Action.NOLOG, can_undo=False)
     with reporter.open_xls(xls_filename):
         n_reported = pipeline.process()
     log_print(f'Rapport ({n_reported} aanvragen) geschreven naar {xls_filename}.')

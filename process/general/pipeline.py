@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.general.storage_const import StoredClass
 from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
@@ -16,7 +16,7 @@ from process.general.base_processor import BaseProcessor, FileProcessor
 class PipelineException(Exception): pass
 class Pipeline:
     def __init__(self, description: str, processors: BaseProcessor|list[BaseProcessor], 
-                 storage: AAPAStorage, activity: ActionLog.Action, can_undo = True):
+                 storage: AAPAStorage, activity: UndoLog.Action, can_undo = True):
         self._processors:list[BaseProcessor] = []
         if isinstance(processors, list):
             if not len(processors):
@@ -27,21 +27,21 @@ class Pipeline:
         self.storage = storage
         self.known_files:list[File] = self.storage.find_values('files', attributes='filetype', 
                                                     values={filetype for filetype in File.Type}-{File.Type.INVALID_PDF, File.Type.UNKNOWN})
-        self.action_log = ActionLog(activity, description, can_undo=can_undo)
+        self.undo_log = UndoLog(activity, description, can_undo=can_undo)
     @property
     def description(self)->str:
-        return self.action_log.description
+        return self.undo_log.description
     def start_logging(self):
-        self.action_log.start()
-        log_debug(f'STARTING pipeline {self.action_log}')
+        self.undo_log.start()
+        log_debug(f'STARTING pipeline {self.undo_log}')
     def log_aanvraag(self, aanvraag: Aanvraag):
         if aanvraag and aanvraag.status in Aanvraag.Status.valid_states():
-            self.action_log.add(aanvraag)
+            self.undo_log.add(aanvraag)
     def stop_logging(self):
-        self.action_log.stop()
-        log_debug(f'STOPPING aanvragenprocessor {self.action_log}')
-        if not self.action_log.is_empty():
-            self.storage.create('action_logs', self.action_log)
+        self.undo_log.stop()
+        log_debug(f'STOPPING aanvragenprocessor {self.undo_log}')
+        if not self.undo_log.is_empty():
+            self.storage.create('undo_logs', self.undo_log)
         self.storage.commit()
     def is_known_file(self, filename: str)->bool: 
         return filename in {file.filename for file in self.known_files} or \
@@ -50,7 +50,7 @@ class Pipeline:
 
 class FilePipeline(Pipeline):
     def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 
-                 activity: ActionLog.Action, invalid_filetype: File.Type=None):
+                 activity: UndoLog.Action, invalid_filetype: File.Type=None):
         super().__init__(description, processors, storage, activity=activity)
         self.invalid_file_type = invalid_filetype
         self._invalid_files = []
@@ -115,7 +115,7 @@ class FilePipeline(Pipeline):
             log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
             for entry in self._invalid_files:
                 log_debug(f'invalid file: {entry}')                
-                self.action_log.add(self._store_invalid(filename=entry['filename'], filetype=entry['filetype']))
+                self.undo_log.add(self._store_invalid(filename=entry['filename'], filetype=entry['filetype']))
             self.storage.commit()
             self.stop_logging()     
             log_debug(f'end process (f"{self.description}") {n_processed=} {n_files=}')       

@@ -1,4 +1,4 @@
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
 from process.general.pipeline import FilePipeline
@@ -6,7 +6,7 @@ from process.general.verslag_processor import VerslagCreator
 
 
 class VerslagCreatingPipeline(FilePipeline):
-    def __init__(self, description: str, processor: VerslagCreator, storage: AAPAStorage, activity: ActionLog.Action):
+    def __init__(self, description: str, processor: VerslagCreator, storage: AAPAStorage, activity: UndoLog.Action):
         super().__init__(description, processor, storage, activity=activity, invalid_filetype=None)  
     def _store_new(self, verslag: Verslag):
         self.storage.verslagen.create(verslag)
@@ -42,7 +42,7 @@ class VerslagCreatingPipeline(FilePipeline):
     #         # log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
     #         # for entry in self._invalid_files:
     #         #     log_debug(f'invalid file: {entry}')
-    #         #     self.action_log.add_invalid_file(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
+    #         #     self.undo_log.add_invalid_file(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
     #         self.storage.commit()
     #         self.stop_logging()     
     #         log_debug(f'end process (creator) {n_processed=} {n_files=}')       

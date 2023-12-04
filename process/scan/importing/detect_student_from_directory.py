@@ -1,6 +1,6 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
@@ -94,7 +94,7 @@ class StudentMilestonesDetector(FileProcessor):
     
 class MilestoneDetectorPipeline(FilePipeline):
     def __init__(self, description: str, storage: AAPAStorage, skip_directories:list[str]=[]):
-        super().__init__(description, StudentMilestonesDetector(), storage, activity=ActionLog.Action.DETECT)
+        super().__init__(description, StudentMilestonesDetector(), storage, activity=UndoLog.Action.DETECT)
         self.skip_directories=skip_directories
     def _store_new(self, milestones: StudentMilestones):
         # for aanvraag in milestones.get(Verslag.Type.AANVRAAG):

@@ -143,9 +143,9 @@ class AanvraagFilesTableDefinition(DetailTableDefinition):
                          main_table_name='AANVRAGEN', main_alias_id='aanvraag_id',
                          detail_table_name='FILES', detail_alias_id='file_id')
 
-class ActionLogTableDefinition(TableDefinition):
+class UndoLogTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('ACTIONLOG')
+        super().__init__('UNDOLOG')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('description', dbc.TEXT)
         self.add_column('action', dbc.INTEGER)    
@@ -153,16 +153,16 @@ class ActionLogTableDefinition(TableDefinition):
         self.add_column('date', dbc.DATE)   
         self.add_column('can_undo', dbc.INTEGER)
 
-class ActionLogAanvragenTableDefinition(DetailTableDefinition):
+class UndoLogAanvragenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('ACTIONLOG_AANVRAGEN', 
-                         main_table_name='ACTIONLOG', main_alias_id='log_id', 
+        super().__init__('UNDOLOG_AANVRAGEN', 
+                         main_table_name='UNDOLOG', main_alias_id='log_id', 
                          detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
        
-class ActionLogFilesTableDefinition(DetailTableDefinition):
+class UndoLogFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('ACTIONLOG_FILES', 
-                         main_table_name='ACTIONLOG', main_alias_id='log_id', 
+        super().__init__('UNDOLOG_FILES', 
+                         main_table_name='UNDOLOG', main_alias_id='log_id', 
                          detail_table_name='FILES', detail_alias_id='file_id')
     
 class BaseDirsTableDefinition(TableDefinition):
@@ -220,9 +220,9 @@ class AAPaSchema(Schema):
         AanvraagTableDefinition,
         AanvraagFilesTableDefinition,
         FilesTableDefinition,
-        ActionLogTableDefinition,
-        ActionLogAanvragenTableDefinition,
-        ActionLogFilesTableDefinition,
+        UndoLogTableDefinition,
+        UndoLogAanvragenTableDefinition,
+        UndoLogFilesTableDefinition,
     
     # voor database versie 1.20
         # VerslagTableDefinition,
@@ -255,7 +255,7 @@ class AAPaDatabase(Database):
     def reset_keys(self):
         def is_keyed_table(table: TableDefinition)->bool:
             return len(table.keys) == 1 and table.column(table.key).type==dbc.INTEGER and table.key == 'id' 
-        # keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), VerslagTableDefinition(), ActionLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
+        # keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), VerslagTableDefinition(), UndoLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
         for table in self.schema.tables():            
             if is_keyed_table(table):
                 reset_key(table.name, self.__find_max_key(table.name))

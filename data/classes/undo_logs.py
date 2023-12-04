@@ -13,14 +13,14 @@ from general.timeutil import TSC
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 
-ActionLogData=Type[Aanvraag|File]       
-class ActionLogAggregator(Aggregator):
-    def __init__(self, owner: ActionLog):
+UndoLogData=Type[Aanvraag|File]       
+class UndoLogAggregator(Aggregator):
+    def __init__(self, owner: UndoLog):
         super().__init__(owner=owner)
         self.add_class(Aanvraag, 'aanvragen')
         self.add_class(File, 'invalid_files')
 
-class ActionLog(AAPAclass):
+class UndoLog(AAPAclass):
     class Action(IntEnum):
         NOLOG   = 0
         SCAN    = 1
@@ -36,7 +36,7 @@ class ActionLog(AAPAclass):
         self.description = description
         self.date:datetime.datetime = date
         self.user = user
-        self._data = ActionLogAggregator(self)
+        self._data = UndoLogAggregator(self)
         self.can_undo = can_undo     
     @property
     def aanvragen(self)->list[Aanvraag]:
@@ -59,11 +59,11 @@ class ActionLog(AAPAclass):
         self.date = datetime.datetime.now()
     def stop(self):
         pass # voor latere toevoegingen
-    def add(self, object: ActionLogData, duplicate_warning=False):
+    def add(self, object: UndoLogData, duplicate_warning=False):
         if duplicate_warning and self._data.contains(object):
-            log_warning(f'Duplicate key in ActionLog: {str(object)} is already registered')
+            log_warning(f'Duplicate key in UndoLog: {str(object)} is already registered')
         self._data.add(object)
-    def remove(self, object: ActionLogData)->ActionLogData:
+    def remove(self, object: UndoLogData)->UndoLogData:
         self._data.remove(object)
     def clear_aanvragen(self):
         self.aanvragen = []

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from general.singleton import Singleton
 
 class UndoRecipe:
@@ -20,20 +20,20 @@ class UndoRecipe:
 # NOG 1 dingetje: de beoordelingsfile moet niet worden verwijderd door undo van de MAIL! rest lijkt nu wel aardig te werken,
 
 class UndoRecipeFactory(Singleton):
-    def create(self, activity: ActionLog.Action)->UndoRecipe:
+    def create(self, activity: UndoLog.Action)->UndoRecipe:
         match activity:
-            case ActionLog.Action.SCAN:
+            case UndoLog.Action.SCAN:
                 return UndoRecipe(final_state=Aanvraag.Status.DELETED, 
                                   final_beoordeling=None, 
                                   files_to_forget=[File.Type.AANVRAAG_PDF], #forget_aanvraag=True, 
                                   forget_invalid_files=True, delete_aanvragen=True) 
-            case ActionLog.Action.FORM:
+            case UndoLog.Action.FORM:
                 return UndoRecipe(final_state=Aanvraag.Status.IMPORTED_PDF, 
                                   final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
                                   files_to_delete=[File.Type.GRADE_FORM_DOCX, File.Type.COPIED_PDF,
                                                    File.Type.DIFFERENCE_HTML], 
                                                    optional_files = [File.Type.DIFFERENCE_HTML])                                      
-            case ActionLog.Action.MAIL:
+            case UndoLog.Action.MAIL:
                 return UndoRecipe(final_state=Aanvraag.Status.NEEDS_GRADING, 
                                   final_beoordeling=Aanvraag.Beoordeling.TE_BEOORDELEN, 
                                   files_to_delete=[File.Type.GRADE_FORM_PDF],

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 from data.classes.aanvragen import Aanvraag
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
 from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
@@ -13,7 +13,7 @@ from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcesso
 from process.general.pipeline import FilePipeline, Pipeline
 
 class AanvragenPipeline(Pipeline):
-    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ActionLog.Action, 
+    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: UndoLog.Action, 
                  can_undo=True, aanvragen: list[Aanvraag] = None):
         super().__init__(description, processors, storage, activity=activity, can_undo=can_undo)
         self.aanvragen = aanvragen if aanvragen else self.__read_aanvragen_from_storage()
@@ -66,7 +66,7 @@ class AanvragenPipeline(Pipeline):
                 self.storage.update('aanvragen', aanvraag)
                 self.storage.commit()
             else:
-                log_debug(f'Not processed: {processor.description} {self.action_log}')
+                log_debug(f'Not processed: {processor.description} {self.undo_log}')
             log_debug(ITEM_DEBUG_DIVIDER)
         return processed
     def process(self, preview=False, filter_func = None, **kwargs)->int:
@@ -84,7 +84,7 @@ class AanvragenPipeline(Pipeline):
         return n_processed
 
 class AanvraagCreatorPipeline(FilePipeline):
-    def __init__(self, description: str, processor: AanvraagCreator, storage: AAPAStorage, activity: ActionLog.Action, invalid_filetype: File.Type):
+    def __init__(self, description: str, processor: AanvraagCreator, storage: AAPAStorage, activity: UndoLog.Action, invalid_filetype: File.Type):
         super().__init__(description, processor, storage, activity=activity, invalid_filetype=invalid_filetype)
     def _skip(self, filename: str)->bool:
         return False

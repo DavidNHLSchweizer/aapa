@@ -2,7 +2,7 @@ from pathlib import Path
 from copy import deepcopy
 import re
 import tkinter.simpledialog as tksimp
-from data.classes.action_logs import ActionLog
+from data.classes.undo_logs import UndoLog
 from data.storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
@@ -122,7 +122,7 @@ def report_imports(new_aanvragen, preview=False, verbose=False):
 class DirectoryImporter(AanvraagCreatorPipeline): 
     def __init__(self, description: str, processor: AanvraagCreator, storage: AAPAStorage,                  
                  skip_directories: set[Path]={}, skip_files: list[str]=[]):
-        super().__init__(description, processor, storage, activity=ActionLog.Action.SCAN, invalid_filetype=File.Type.INVALID_PDF)
+        super().__init__(description, processor, storage, activity=UndoLog.Action.SCAN, invalid_filetype=File.Type.INVALID_PDF)
         self.skip_directories:list[Path] = skip_directories
         self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
     def _in_skip_directory(self, filename: Path)->bool:
