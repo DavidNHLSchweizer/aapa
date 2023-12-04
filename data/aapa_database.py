@@ -1,7 +1,5 @@
 from __future__ import annotations
-from typing import Type
 from database.sql_table import SQLselect
-from database.sql_expr import SQE, Ops, SQEjoin
 from database.table_def import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
@@ -11,11 +9,10 @@ from general.config import config
 from general.log import log_debug, log_error, log_info, log_warning
 from general.versie import Versie
 from data.roots import add_root, get_roots, get_roots_report, reset_roots
-from data.classes.files import File
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.19'
+DBVERSION = '1.20'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)

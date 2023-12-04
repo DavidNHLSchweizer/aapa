@@ -7,7 +7,6 @@ from general.log import log_error, log_info, log_print, log_warning
 from general.config import config
 from process.aapa_processor.initialize import initialize_database, initialize_storage
 from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
-import data.classes.base_dirs
 
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'

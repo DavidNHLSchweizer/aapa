@@ -9,7 +9,6 @@ from data.storage.extended_crud import ExtendedCRUD
 from data.storage.queries.undo_logs import UndoLogQueries
 from database.database import Database
 from database.table_def import TableDefinition
-from general.log import log_warning
 
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 

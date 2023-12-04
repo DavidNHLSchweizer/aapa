@@ -1,4 +1,3 @@
-from typing import Any
 from data.storage.CRUDs import CRUDColumnMapper, CRUD, CRUDQueries
 from data.storage.detail_rec_crud import DetailRecsCRUD
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass

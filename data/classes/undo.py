@@ -17,8 +17,6 @@ class UndoRecipe:
         self.forget_invalid_files = forget_invalid_files
         self.delete_aanvragen = delete_aanvragen
         
-# NOG 1 dingetje: de beoordelingsfile moet niet worden verwijderd door undo van de MAIL! rest lijkt nu wel aardig te werken,
-
 class UndoRecipeFactory(Singleton):
     def create(self, activity: UndoLog.Action)->UndoRecipe:
         match activity:

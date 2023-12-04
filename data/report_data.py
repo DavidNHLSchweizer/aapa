@@ -2,8 +2,8 @@ from contextlib import contextmanager
 from enum import Enum
 import pandas as pd
 from data.classes.undo_logs import UndoLog
-from general.deep_attr import deep_attr_main_part, get_deep_attr
-from general.log import log_error, log_print
+from general.deep_attr import get_deep_attr
+from general.log import log_print
 from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.general.aanvraag_processor import AanvraagProcessor
 from data.classes.aanvragen import Aanvraag

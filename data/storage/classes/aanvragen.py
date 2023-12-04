@@ -4,12 +4,11 @@ from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.extended_crud import ExtendedCRUD
 from data.storage.general.mappers import ColumnMapper
-from data.storage.CRUDs import CRUDQueries, register_crud
+from data.storage.CRUDs import register_crud
 from data.storage.classes.milestones import MilestonesTableMapper
 from data.storage.queries.aanvragen import AanvraagQueries
 from database.database import Database
 from database.table_def import TableDefinition
-from general.log import log_debug
 
 class AanvragenTableMapper(MilestonesTableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:

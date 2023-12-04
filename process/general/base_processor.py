@@ -1,5 +1,4 @@
 from __future__ import annotations
-from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.general.storage_const import StoredClass
 

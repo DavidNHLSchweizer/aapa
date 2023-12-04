@@ -6,7 +6,6 @@ import database.dbConst as dbc
 from database.table_def import TableDefinition
 from database.view_def import ViewDefinition
 from database.sql_view import SQLcreateView, SQLdropView, SQLselectView
-
 from database.sql_table import SQLTablebase, SQLdelete, SQLinsert, SQLselect, SQLupdate, SQLcreateTable, SQLdropTable
 from database.sql_expr import Ops, SQE
 from general.fileutil import file_exists

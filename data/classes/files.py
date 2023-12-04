@@ -1,9 +1,7 @@
 from __future__ import annotations 
-from copy import copy
 import datetime
 from enum import IntEnum
 from pathlib import Path
-from typing import Any, Iterable
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from database.dbConst import EMPTY_ID

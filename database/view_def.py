@@ -1,4 +1,3 @@
-from database.sql_base import SQLselectBase
 from database.dbargparser import dbArgParser
 from database.sql_expr import SQEjoin
 

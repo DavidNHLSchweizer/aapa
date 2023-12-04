@@ -1,11 +1,6 @@
 from datetime import datetime
-from pathlib import Path
-from data.classes.base_dirs import BaseDir
-from data.classes.milestones import StudentMilestones
-from data.classes.studenten import Student
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
-from general.name_utils import Names
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.scan.importing.detect_student_from_directory import detect_from_directory
 from process.scan.importing.import_verslagen import import_zipfile

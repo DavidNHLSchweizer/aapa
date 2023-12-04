@@ -1,5 +1,4 @@
 from __future__ import annotations
-from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Any, Tuple, Type
 from data.classes.aapa_class import AAPAclass

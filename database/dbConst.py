@@ -1,5 +1,3 @@
-from typing import Type
-
 ID = 'ID'
 EMPTY_ID = -1
 

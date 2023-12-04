@@ -77,14 +77,7 @@ class AanvraagPDFImporter(FileProcessor):
         super().__init__(description='PDF Importer')
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:        
         queries: FilesQueries = storage.queries('files')
-        # stored: list[File] = storage.find_values('files', attributes='filename', values=str(filename))
-        # if not stored:
-        #     return True
-        # if len(stored) > 1:
-        #     raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
         status,stored_file = queries.analyze(filename)
-        # record = FileStorageAnalyzer(filename).analyse(filenames=stored, 
-        #                                              digests=storage.find_values('files', attributes='digest', values=stored[0].digest))        
         log_debug(f'MUST_PROCESS_FILE {filename}\n\treason: {status}  {stored_file}')
         match status:
             case FileStorageAnalyzer.Status.STORED | FileStorageAnalyzer.Status.STORED_INVALID:
@@ -141,11 +134,6 @@ class DirectoryImporter(AanvraagCreatorPipeline):
         skip_msg = ''
         warning = False
         queries: FilesQueries = self.storage.queries('files')
-        # stored: list[File] = self.storage.find_values('files', attributes='filename', values=str(filename))
-        # # if stored:
-        # #     return False
-        # if len(stored) > 1:
-        #     raise StorageException(f'Filename {stored[0].filename} duplicated in database. Something went wrong...')
         status,stored_file = queries.analyze(filename)
         match status:
             case FileStorageAnalyzer.Status.STORED_INVALID_COPY:

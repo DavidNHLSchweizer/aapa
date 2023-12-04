@@ -11,7 +11,7 @@ from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
 from data.storage.queries.undo_logs import UndoLogQueries
-from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
+from general.args import AAPAaction, AAPAOptions
 from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
 from process.aapa_processor.aapa_config import AAPAConfiguration
@@ -269,11 +269,7 @@ class AAPAApp(App):
     @params.setter
     def params(self, value: AAPATuiParams):
         self.directories_form.params = value
-        self.query_one(AapaButtons).preview = value.preview
-    def __get_config_options(self)->AAPAConfigOptions:
-        return AAPAConfigOptions(root_directory=self.params.root_directory,
-                                 output_directory=self.params.output_directory, 
-                                 database_file=self.params.database)                                 
+        self.query_one(AapaButtons).preview = value.preview                       
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):

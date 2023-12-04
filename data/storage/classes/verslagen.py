@@ -1,7 +1,6 @@
 from data.classes.verslagen import Verslag
 from data.aapa_database import VerslagTableDefinition
-from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
-from data.storage.general.storage_const import DBtype
+from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper
 from data.storage.CRUDs import register_crud
 from data.storage.classes.milestones import MilestonesTableMapper
 from database.database import Database

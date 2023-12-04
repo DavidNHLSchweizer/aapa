@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Type
 
-from data.classes.aapa_class import AAPAclass
-
 @dataclass
 class DetailRec:
     main_key: int 
