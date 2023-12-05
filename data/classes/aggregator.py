@@ -8,7 +8,7 @@ class Aggregator(dict):
     def __init__(self, owner: AAPAclass=None):
         self._classes: list[dict] = []
         self.owner = owner
-        self.key = f'{classname(owner)}{get_next_key('Aggregator')}'
+        self.key = f'{classname(owner)}{get_next_key("Aggregator")}'
     @property
     def classes(self)->list[dict]:
         return self._classes

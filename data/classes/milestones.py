@@ -38,29 +38,3 @@ class Milestone(AAPAclass):
     def summary(self)->str:
         return str(self)
 
-class StudentMilestones(AAPAclass):
-    def __init__(self, student: Student, base_dir: BaseDir = None, id: int = EMPTY_ID):
-        super().__init__(id)        
-        self.student = student
-        self.base_dir = base_dir
-        self._milestones: list[Milestone] = []
-    @property
-    def milestones(self)->list[Milestone]: return self._milestones
-    # def get(self, milestone_type: set[Verslag.Type])->list[Milestone]:
-    #     return [milestone for milestone in self._milestones if milestone.milestone_type in milestone_type]  
-    def add(self, milestone: Milestone):
-        self.milestones.append(milestone)
-        self._standardize()
-    def _standardize(self):
-        pass
-        # self.milestones.sort(key=lambda ms: (ms.milestone_type, ms.datum))
-        # cur_type = Verslag.Type.UNKNOWN
-        # for milestone in self.milestones:
-        #     if milestone.milestone_type != cur_type:
-        #         kans = 1
-        #         cur_type = milestone.milestone_type
-        #     else:
-        #         kans += 1
-        #     milestone.kans = kans
-
-    
