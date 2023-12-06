@@ -18,14 +18,14 @@ class FileStorageAnalyzer:
         self.queries = queries
     def __analyze_stored_name(self, filename: str)->Tuple[Status,File]:
         result_status = FileStorageAnalyzer.Status.UNKNOWN
-        result_file = None
+        result_file:File = None
         if (stored := self.queries.find_values('filename', filename)):
             if len(stored) > 1:
                 raise StorageException(f'Duplicate file {filename} in storage.')
-            result_file = stored[0]
+            result_file: File = stored[0]
             if result_file.filetype == File.Type.INVALID_PDF:
                 result_status = FileStorageAnalyzer.Status.STORED_INVALID
-            elif result_file.digest != self.digest:
+            elif result_file.digest != File.get_digest(filename):
                 result_status = FileStorageAnalyzer.Status.MODIFIED
             else:
                 result_status = FileStorageAnalyzer.Status.STORED

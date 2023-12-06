@@ -17,6 +17,8 @@ class  AanvraagQueries(CRUDQueries):
         if aanvraag.versie == 1:
             return None
         self.get_crud(Student).queries.ensure_key(aanvraag.student)
-        if result := self.find_values(attributes=['versie', 'student'], values=[aanvraag.versie-1, aanvraag.student.id]):
+        if result := self.find_values(attributes=['versie', 'student'], 
+                                      values=[aanvraag.versie-1, aanvraag.student.id], 
+                                      map_values=False):
             return result[0]
         return None

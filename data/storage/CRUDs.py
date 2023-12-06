@@ -225,7 +225,7 @@ class CRUDQueries:
             where = None   
         return qb.find_max_value(attribute, where= where)
     def find_values(self, attributes: str|list[str], values: Any|list[Any], map_values = True, read_many=False)->list[AAPAclass]:
-        self.__db_log('FIND_VALUES', f'attributes: {attributes} values: {values}')
+        self.__db_log('FIND_VALUES', f'attributes: {attributes} values: {values} [{map_values=}, {read_many=}]')
         qb = self.query_builder
         wanted_attributes, wanted_values = self.__get_wanted_values(attributes, values) 
         log_debug(f'\tFV: {wanted_attributes=} {wanted_values=}')

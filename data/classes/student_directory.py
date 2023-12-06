@@ -9,20 +9,19 @@ from data.classes.verslagen import Verslag
 from database.dbConst import EMPTY_ID
 
 
-class StudentMilestonesAggregator(Aggregator):
-    def __init__(self, owner: StudentMilestones):
+class StudentDirectoryAggregator(Aggregator):
+    def __init__(self, owner: StudentDirectory):
         super().__init__(owner=owner)
         self.add_class(Aanvraag, 'aanvragen')
         self.add_class(Verslag, 'verslagen')
 
-
-class StudentMilestones(AAPAclass):
+class StudentDirectory(AAPAclass):
     def __init__(self, student: Student, directory: str, base_dir: BaseDir = None, id: int = EMPTY_ID):
         super().__init__(id)        
         self.student = student
         self.directory = directory
         self.base_dir = base_dir
-        self._data = StudentMilestonesAggregator()
+        self._data = StudentDirectoryAggregator()
     @property
     def aanvraag(self)->Aanvraag:
         if aanvragen := self._data.as_list('aanvragen'):

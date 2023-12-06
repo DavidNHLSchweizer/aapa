@@ -7,7 +7,8 @@ from data.storage.CRUDs import CRUD, CRUDQueries, EnsureKeyAction, create_crud, 
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
 from data.roots import add_root, encode_path
-from general.classutil import find_all_modules
+from general.classutil import classname, find_all_modules
+from general.log import log_debug
    
 class AAPAStorage: 
     #main interface with the database
@@ -26,6 +27,7 @@ class AAPAStorage:
             module_name = full_module_name.split(".")[-1]
             if (class_type := get_registered_type(full_module_name)):
                 crud = create_crud(self.database, class_type)
+                log_debug(f'STORAGE: loaded {module_name} ({classname(class_type)})')
                 self._crud_dict[module_name] = crud
                 self._class_index[class_type] = crud
     def crud(self, module: str)->CRUD:

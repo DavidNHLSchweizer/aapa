@@ -1,8 +1,9 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
+from data.classes.milestones import Milestone
+from data.classes.student_directory import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
-from data.classes.milestones import Milestone, StudentMilestones
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
@@ -23,13 +24,13 @@ init_config()
 
 class DetectorException(Exception): pass
 
-class StudentMilestonesDetector(FileProcessor):
+class StudentDirectoryDetector(FileProcessor):
     ERRCOMMENT= 'Directory kan niet worden herkend'
     def __init__(self):
-        super().__init__(description='StudentMilestone Detector')
+        super().__init__(description='StudentDirectory Detector')
         self.parser = DirectoryNameParser()
         self.base_dir: BaseDir = None
-        self.current_student_milestones: StudentMilestones = None
+        self.current_student_directory: StudentDirectory = None
     
     def _get_student(self, student_directory: str, storage: AAPAStorage):
         if not (parsed := self.parser.parsed(student_directory)):
@@ -65,11 +66,11 @@ class StudentMilestonesDetector(FileProcessor):
                 log_warning(f'Soort verslag "{parsed.type}" niet herkend.')
                 return None
         return Verslag(verslag_type=verslag_type, student=student, file=None, datum=parsed.datum)
-    def report_milestones(self, msg: str, student_milestones: StudentMilestones):
+    def report_directory(self, msg: str, student_directory: StudentDirectory):
         log_print(msg)
-        for student_milestone in student_milestones.milestones:
-            log_print(f'\t{student_milestone.summary()}')
-    def process_file(self, dirname: str, storage: AAPAStorage = None, preview=False, do_it=False)->StudentMilestones:
+        for verslag in student_directory.verslagen:
+            log_print(f'\t{verslag.summary()}')
+    def process_file(self, dirname: str, storage: AAPAStorage = None, preview=False)->StudentDirectory:
         if not test_directory_exists(dirname):
             log_error(f'Directory {dirname} niet gevonden.')
             return None
@@ -80,23 +81,23 @@ class StudentMilestonesDetector(FileProcessor):
         try:    
             student = self._get_student(dirname, storage)  
             log_print(f'Student: {student}')
-            student_milestones = StudentMilestones(student, self.base_dir)
-            if do_it and (aanvraag := self._get_aanvraag(student, storage)):
-                student_milestones.add(aanvraag)
+            student_directory = StudentDirectory(student, dirname, self.base_dir)
+            if (aanvraag := self._get_aanvraag(student, storage)):
+                student_directory.add(aanvraag)
             for subdirectory in Path(dirname).glob('*'):
-                if subdirectory.is_dir() and (new_milestone:= self._process_subdirectory(subdirectory, student)):                    
-                    student_milestones.add(new_milestone)
-            self.report_milestones('Gedetecteerd:', student_milestones)
-            return student_milestones
+                if subdirectory.is_dir() and (new_item := self._process_subdirectory(subdirectory, student)):                    
+                    student_directory.add(new_item)
+            self.report_directory('Gedetecteerd:', student_directory)
+            return student_directory
         except DetectorException as reader_exception:
-            log_warning(f'{reader_exception}\n\t{StudentMilestonesDetector.ERRCOMMENT}.')
+            log_warning(f'{reader_exception}\n\t{StudentDirectoryDetector.ERRCOMMENT}.')
         return None
     
 class MilestoneDetectorPipeline(FilePipeline):
     def __init__(self, description: str, storage: AAPAStorage, skip_directories:list[str]=[]):
-        super().__init__(description, StudentMilestonesDetector(), storage, activity=UndoLog.Action.DETECT)
+        super().__init__(description, StudentDirectoryDetector(), storage, activity=UndoLog.Action.DETECT)
         self.skip_directories=skip_directories
-    def _store_new(self, milestones: StudentMilestones):
+    def _store_new(self, student_directory: StudentDirectory):
         # for aanvraag in milestones.get(Verslag.Type.AANVRAAG):
         #     if not storage.aanvragen
         #  self.storage.aanvragen.create(aanvraag)
@@ -115,7 +116,7 @@ def detect_from_directory(directory: str, storage: AAPAStorage, preview=False, d
     log_info(f'Start import van map  {directory}...', to_console=True)
     importer = MilestoneDetectorPipeline(f'Detectie studentaanvragen uit directory {directory}', storage, skip_directories=config.get('detect_directory', 'skip'))
     # first_id = storage.aanvragen.max_id() + 1
-    (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview, do_it=do_it)
+    (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
     # report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     # log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
     log_info(f'...Import afgerond ({sop(n_processed, "nieuwe student-mijlpaal", "nieuwe student-mijlpalen")}. In directory: {sop(n_files, "directory", "directories")})', to_console=True)

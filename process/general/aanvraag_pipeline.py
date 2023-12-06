@@ -56,7 +56,7 @@ class AanvragenPipeline(Pipeline):
         processed = False               
         for processor in self.processors:
             log_debug(ITEM_DEBUG_DIVIDER)
-            log_debug(f'processor: {processor.description} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
+            log_debug(f'processor: {processor.description} [args: {kwargs}]  {processor.must_process(aanvraag, **kwargs)}')
             if not processor.in_entry_states(aanvraag.status):
                 break
             if self._process_aanvraag_processor(processor, aanvraag, preview, **kwargs):
