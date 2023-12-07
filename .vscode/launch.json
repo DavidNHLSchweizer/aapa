@@ -98,7 +98,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "testing123.db",
+                "newest.db",
                 "1.19",
                 "1.20"
             ]

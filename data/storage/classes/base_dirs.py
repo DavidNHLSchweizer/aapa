@@ -8,7 +8,7 @@ class BaseDirsTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database:Database=None)->ColumnMapper:
         match column_name:
             case 'directory': return FilenameColumnMapper(column_name)
-            case  _: super()._init_column_mapper(column_name, database)
+            case  _: return super()._init_column_mapper(column_name, database)
     
 register_crud(class_type=BaseDir, 
                 table=BaseDirsTableDefinition(), 

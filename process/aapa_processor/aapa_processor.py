@@ -62,7 +62,7 @@ class AAPAProcessor:
                 #     if parsed.first_name != student.first_name:
                 #         print(f'{student.full_name}: {student.first_name} - {parsed}')
                     
-                for basedir in configuration.storage.basedirs.read_all():
+                for basedir in configuration.storage.find_all('base_dirs'):
                     print('--- start ---')
                     print(basedir)
                     detect_from_directory(basedir.directory, configuration.storage, preview=preview)

@@ -5,7 +5,7 @@ from database.database import Database
 from general.log import init_logging
 
 def prepare(database_name: str)->Database:
-    init_logging(f'base_directories.log', debug=True)    
+    init_logging(f'{__name__}.log', debug=True)    
     if not (database := init_database(database_name, DBVERSION)):
         return None
     print(f'Adding basedirs to database {database_name}.')

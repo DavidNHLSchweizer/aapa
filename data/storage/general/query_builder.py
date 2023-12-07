@@ -67,9 +67,9 @@ class QueryBuilder:
         self.query_info = QueryInfo(mapper)
     def __db_log(self, function: str, params: str=''):
         log_debug(f'QB{classname(self.mapper.class_type)}: {function}{(" - " + params) if params else ""}')
-    def find_all(self, columns: list[str], where: SQE)->list[Any]:
+    def find_all(self, columns: list[str], where: SQE=None)->list[Any]:
         self.__db_log('FIND_ALL', f'columns:{columns} where:{where.db_str() if where else None}')
-        sql = SQLselect(self.mapper.table, columns=columns, where=where)
+        sql = SQLselect(self.mapper.table, columns=columns, where=where) if where else SQLselect(self.mapper.table, columns=columns)
         return self.database.execute_select(sql) 
     def find_count(self, where:SQE=None)->int:
         self.__db_log('FIND_COUNT', f'where:{where.db_str() if where else None}')

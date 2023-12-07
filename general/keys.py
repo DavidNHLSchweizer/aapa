@@ -36,13 +36,13 @@ class Keys(Singleton):
         return self.__add_root(root)       
     def new_key(self, root='key')->int:
         return self.__find_root(root).new_key()
-    def reset(self, root, value):
+    def reset(self, root, value=0):
         self.__find_root(root).reset(value)
 
 _keys = Keys()
 def get_next_key(root='key')->int:
     return _keys.new_key(root)
-def reset_key(root, value: int):
+def reset_key(root, value=0):
     _keys.reset(root, value)
 
 

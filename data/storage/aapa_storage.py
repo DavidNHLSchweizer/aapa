@@ -35,7 +35,7 @@ class AAPAStorage:
     def queries(self, module: str)->CRUDQueries:
         if crud := self.crud(module):
             return crud.queries
-        raise StorageException(f'no Queries for {module}.')
+        raise StorageException(f'{classname(self)}: no Queries for {module}.')
 
     #----------- queries stuff --------------
     def ensure_key(self, module: str, aapa_obj: StoredClass)->EnsureKeyAction:
@@ -46,12 +46,18 @@ class AAPAStorage:
         return self.queries(module).find_max_value(attribute=attribute, where_attributes=where_attributes, where_values=where_values)
     def find_count(self, module: str, attributes: str|list[str], values: Any|list[Any])->int:
         return self.queries(module).find_count(attributes, values)
-    def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any], map_values = True, read_many=False)->list[AAPAclass]:
-        return self.queries(module).find_values(attributes=attributes, values=values, map_values = map_values, read_many=read_many)
-    def find_all(self, module: str, where_attributes: str|list[str], where_values: Any|list[Any])->list[Any]:
-        if rows := self.queries(module).find_values_where(attribute='id', where_attributes=where_attributes, where_values=where_values):
-            return self.read_many(module, {row['id'] for row in rows})
-    
+    def find_values(self, module: str, attributes: str|list[str], values: Any|list[Any], 
+                    map_values = True, read_many=False)->list[AAPAclass]:
+        return self.queries(module).find_values(attributes=attributes, values=values, 
+                                                map_values = map_values, read_many=read_many)
+    def find_all(self, module: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None, map_values=True)->list[Any]:
+        if where_attributes:
+            if rows := self.queries(module).find_values_where(attribute='id', 
+                                                              where_attributes=where_attributes, where_values=where_values):
+                return self.read_many(module, {row['id'] for row in rows})
+        else:
+            return self.queries(module).find_all(map_values)
+   
     #------------- crud stuff --------------
     def create(self, module: str, aapa_obj: StoredClass):
         if crud := self.crud(module):
@@ -75,8 +81,7 @@ class AAPAStorage:
             crud.update(aapa_obj)
     def delete(self, module: str, aapa_obj: StoredClass):
         if crud := self.crud(module):
-            crud.delete(aapa_obj)
-
+            crud.delete(aapa_obj)    
     def add_file_root(self, root: str, code = None)->str:
         encoded_root = encode_path(root)
         code = add_root(encoded_root, code)
@@ -84,6 +89,7 @@ class AAPAStorage:
         #this means the root is already registered, re-encoding causes it to reduce to just the code
             create_root(self.database, code, encoded_root)
             self.commit()
+        return code
     def commit(self):
         self.database.commit()
 

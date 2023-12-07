@@ -133,7 +133,6 @@ class FilesTableDefinition(TableDefinition):
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])
 
-
 class AanvraagFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN_FILES', 

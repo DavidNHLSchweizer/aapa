@@ -224,6 +224,13 @@ class CRUDQueries:
         else:
             where = None   
         return qb.find_max_value(attribute, where= where)
+    def find_all(self, map_values = True)->list[AAPAclass]:
+        self.__db_log('FIND_ALL', f'keys: {self.table.keys} [{map_values=}]')
+        qb = self.query_builder
+        if ids := qb.find_ids():
+            return self.crud.read_many(set(ids))
+        log_debug(f'\tFALL: no values found')
+        return []
     def find_values(self, attributes: str|list[str], values: Any|list[Any], map_values = True, read_many=False)->list[AAPAclass]:
         self.__db_log('FIND_VALUES', f'attributes: {attributes} values: {values} [{map_values=}, {read_many=}]')
         qb = self.query_builder
@@ -237,11 +244,11 @@ class CRUDQueries:
                 return [self.crud.read(id) for id in ids]
         log_debug(f'\tFV: no values found')
         return []
-    def find_values_where(self, attribute: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None)->list[Any]:
+    def find_values_where(self, attribute: str, where_attributes: str|list[str], where_values: Any|list[Any])->list[Any]:
         self.__db_log('FIND_VALUES_WHERE', f'attribute: {attribute}  where_attributes: {where_attributes} where_values: {where_values}')
         qb = self.query_builder
-        wanted_attributes, wanted_values = self.__get_wanted_values(where_attributes, where_values) 
-        log_debug(f'\tFVW: {wanted_attributes=} {wanted_values=}')
+        wanted_attributes, wanted_values = self.__get_wanted_values(where_attributes, where_values)
+        log_debug(f'\tFVW: {wanted_attributes=} {wanted_values=}')        
         return qb.find_all([attribute],
                     where=qb.build_where_from_values(
                         column_names=wanted_attributes, values=wanted_values,

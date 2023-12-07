@@ -1,18 +1,33 @@
-import winreg
-
+from pathlib import Path
+import re
+from typing import Tuple
 from general.keys import get_next_key, reset_key
-from general.log import log_error, log_info
+from general.log import log_info
+from general.onedrive import find_onedrive_path
 from general.singleton import Singleton
 
 class RootException(Exception): pass
+ONEDRIVE = ':ONEDRIVE:'
+BASEPATH = 'NHL Stenden'
 
+class RootSorter:
+    PATTERN=r':ROOT(?P<N>\d*):'
+    def __init__(self):
+        self.pattern = re.compile(self.PATTERN)
+    def get_id(self, code: str)->int:
+        if m := self.pattern.match(code):
+            return int(m.group('N'))
+        return -1
+    def sorted_roots(self, roots: list[Tuple[str,str]])->list[Tuple[str,str]]:
+        return sorted(roots, key=lambda x: self.get_id(x[0]))  
+    
 class PathRootConvertor:
     ROOTCODE = 'ROOT'
     KEYCODE  = 'PATHROOT'
-    def __init__(self, root, expanded: str, code = None, known_codes = []):
+    def __init__(self, root, expanded: str, code = None, known_codes:set[str] = set()):
         self.root = root
         self.expanded = expanded
-        self.root_code = self.__get_next_key (known_codes) if not code else code
+        self.root_code = self.__get_next_key(known_codes) if not code else code
     @staticmethod
     def __contains(value: str, root: str)->bool:
         return len(value) >= len(root) and value[:len(root)].lower() == root.lower()
@@ -22,57 +37,36 @@ class PathRootConvertor:
             return substr2 + value[len(substr1):]
         else:
             return value
-    def __get_next_key(self, known_codes = []):
+    def __get_next_key(self, known_codes:set[str] = set()):
         while (key := f":{PathRootConvertor.ROOTCODE}{get_next_key(PathRootConvertor.ROOTCODE)}:") in known_codes:
             continue
         return key
     def contains_root(self, path: str)->bool:
         return PathRootConvertor.__contains(path, self.expanded)
-    def encode_root(self, path: str)->str:
-        return PathRootConvertor.__substitute(path, self.expanded, self.root_code)
     def contains_root_code(self, path: str)->bool:
         return PathRootConvertor.__contains(path, self.root_code)
-    def decode_root(self, path: str)->str:
+    def encode_path(self, path: str)->str:
+        return PathRootConvertor.__substitute(path, self.expanded, self.root_code)
+    def decode_path(self, path: str)->str:
         return PathRootConvertor.__substitute(path, self.root_code, self.expanded)
     def reset(self):
         reset_key(PathRootConvertor.KEYCODE, 0)
 
-def find_onedrive_path(resource_value: str)->str:
-    def _find_value_class(namespace: str, namespace_size, resource_value: str):
-        for i in range(namespace_size):
-            subkey = winreg.EnumKey(namespace,i)
-            with winreg.OpenKey(namespace, subkey) as sub2:
-                _,nvalues,_ = winreg.QueryInfoKey(sub2)
-                for j in range(nvalues): 
-                    _,value,_=winreg.EnumValue(sub2,j)
-                    if value == resource_value:
-                        return subkey
-        return None        
-    def __exception_str(E, type_str):
-        return f'Failure finding targetpath in Registry ({type_str}): {E}'
-    try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace") as namespace:   
-            size,_,_ = winreg.QueryInfoKey(namespace)                      
-            if (subkey := _find_value_class(namespace, size, resource_value)):
-                propertybag = rf'CLSID\{subkey}\Instance\InitPropertyBag'
-                with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, propertybag) as baggy:
-                    result,_=winreg.QueryValueEx(baggy, 'TargetFolderPath')
-                    return result
-        return None                    
-    except WindowsError as WE:
-        log_error(__exception_str(WE, 'WindowsError'))
-        return None
-    except KeyError as KE:
-        log_error(__exception_str(KE, 'KeyError'))
-        return None
-    except ValueError as VE:
-        log_error(__exception_str(VE, 'ValueError'))
-        return None
-
-class RootFiles(Singleton):
-    def __init__(self):
-        self._rootconv: list[PathRootConvertor] = []
-    def add(self, root_path: str, code = None, nolog=False):
+class Roots(Singleton):
+    def __init__(self, base_path: str):
+        self.sorter = RootSorter()
+        self.reset(base_path)
+    def reset(self, base_path: str):
+        self._one_drive_root = Path(find_onedrive_path(base_path)).parent
+        self._code_index:list[PathRootConvertor] = []
+        self.add(base_path, initial=True)
+    def add(self, root_path: str|Path, code = None, nolog=False, initial=False):
+        if isinstance(root_path, Path):
+            root_path = str(root_path)
+        result = self._add(root_path=root_path, code=code, nolog=nolog, initial=initial)
+        self._code_index.sort(key=lambda root_conv: self.sorter.get_id(root_conv.root_code), reverse=True)
+        return result
+    def _add(self, root_path: str|Path, code = None, nolog=False, initial=False):
         if already_there := self.__find_root(root_path):
             log_info(f'root already there: {root_path}')
             return already_there.root_code
@@ -81,74 +75,83 @@ class RootFiles(Singleton):
             return already_there.root_code
         if self.__find_code(code):
             raise RootException(f'Duplicate code: {code}')
-        odp = find_onedrive_path(root_path)
-        self._rootconv.append(new_root := PathRootConvertor(self.encode_root(root_path), odp if odp else self.encode_root(root_path), code=code, known_codes=self.get_known_codes()))
-        self._rootconv.sort(key=lambda r:len(r.expanded), reverse=True)
+        odp = self._find_onedrive_path(root_path, initial)
+        new_root = PathRootConvertor(self.encode_path(root_path), 
+                                     odp if odp else self.encode_path(root_path), 
+                                     code=code, 
+                                     known_codes=self.get_known_codes())
+        self._code_index.append(new_root)
         if not nolog:
             log_info(f'root added: {new_root.root_code}: "{new_root.root}"  ({new_root.expanded})')
         return new_root.root_code
-    def encode_root(self, path)->str:
-        if not path:
+    def _find_onedrive_path(self, path: str, initial=False)->str:
+        if initial:
+            return find_onedrive_path(path)
+        if path.find(str(self._one_drive_root))==0:
             return path
-        for root in self._rootconv:
-            if root.contains_root(path):
-                return self.encode_root(root.encode_root(path))
-        return path
-    def decode_root(self, path)-> str:
+        return None
+    def decode_path(self, path: str|Path)->str:
+        if isinstance(path, Path):
+            path = str(path)
         if not path:
             return ''
-        for root in self._rootconv:
-            if root.contains_root_code(path):
-                return self.decode_root(root.decode_root(path))
+        if path.find(ONEDRIVE) == 0:
+            path = path.replace(ONEDRIVE, str(self._one_drive_root))
+        for root_conv in self._code_index:
+            if root_conv.contains_root_code(path):
+                return self.decode_path(root_conv.decode_path(path))
         return path
+    def encode_path(self, path: str|Path)->str:
+        if isinstance(path, Path):
+            path = str(path)
+        if not path:
+            return path
+        for root_conv in self._code_index:
+            if root_conv.contains_root(path):
+                return self.encode_path(root_conv.encode_path(path))
+        if path.lower().find(str(self._one_drive_root).lower()) == 0:
+            return rf'{ONEDRIVE}{path[len(str(self._one_drive_root)):]}'
+        return path
+    def get_known_codes(self)->list[str]:
+        return {root_conv.root_code for root_conv in self._code_index}
+    def get_code(self, code: str)->str:
+        if root_conv := self.__find_code(code):
+            return root_conv.root
+        return None
+    def get_roots(self, sorted=True)->list[tuple[str,str]]:
+        result = [(root_conv.root_code,root_conv.root) for root_conv in self._code_index]
+        if sorted:
+            result.sort(key=lambda root_tuple: self.sorter.get_id(root_tuple[0]))
+        return result
     def __find_code(self, code)->PathRootConvertor:
-        if not code:
-            return None
-        else:
-            for r in self._rootconv:
-                if r.root_code == code:
-                    return r
+        for root_conv in self._code_index:
+            if root_conv.root_code == code:
+                return root_conv
         return None
     def __find_root(self, root_path)->PathRootConvertor:
         if not root_path:
             return None
         else:
-            for r in self._rootconv:
-                if r.root == root_path:
-                    return r
+            for root_conv in self._code_index:
+                if root_conv.root == root_path:
+                    return root_conv
         return None
-    def reset(self):
-        for r in self._rootconv:
-            r.reset() 
-        self._rootconv = []
-    def get_known_codes(self)->list[str]:
-        result = []
-        for root in self._rootconv:
-            result.append(root.root_code)
-        return result
-    def get_roots(self)->list[tuple[str,str]]:
-        result = []
-        for root in self._rootconv:
-            result.append((root.root_code, root.root))
-        return result
-        
-_rootfiles = RootFiles()
-def encode_path(path: str)-> str:
-    return _rootfiles.encode_root(path)
-def decode_path(path: str)-> str:
-    return _rootfiles.decode_root(path)
-def add_root(root_path: str, code: str = None, nolog=False)->str:    
-    return _rootfiles.add(root_path, code=code, nolog=nolog)
-def reset_roots():
-    _rootfiles.reset()
-def get_roots()->list[tuple[str,str]]:
-    return _rootfiles.get_roots()
-def get_roots_report()->str:
-    return '\n'.join([f'{code} = "{root}"' for (code,root) in get_roots()])
 
-STANDARD_ROOTS = ['OneDrive - NHL Stenden', 'NHL Stenden']
-def init_standard_roots():
-    reset_roots()
-    for sr in STANDARD_ROOTS:
-        add_root(sr, nolog=True) #is called before logging is properly initialized
-init_standard_roots()
+_roots = Roots(BASEPATH)
+
+def get_onedrive_root()->Path:
+    return _roots._one_drive_root
+def get_code(code: str)->str:
+    return _roots.get_code(code)
+def get_roots(sorted=True)->list[tuple[str,str]]:
+    return _roots.get_roots(sorted)
+
+def add_root(root_path: str|Path, code: str = None, nolog=False)->str:    
+    return _roots.add(root_path, code=code, nolog=nolog)
+def decode_path(path: str|Path)->str:
+    return _roots.decode_path(path)
+def encode_path(path: str|Path)->str:
+    return _roots.encode_path(path)
+def reset_roots():
+    reset_key('ROOT')
+    _roots.reset(BASEPATH)
