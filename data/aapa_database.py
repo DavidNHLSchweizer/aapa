@@ -8,7 +8,7 @@ from general.keys import reset_key
 from general.config import config
 from general.log import log_debug, log_error, log_info, log_warning
 from general.versie import Versie
-from data.roots import add_root, get_roots, get_roots_report, reset_roots
+from data.roots import add_root, get_roots, reset_roots
 
 class AAPaException(Exception): pass
 
@@ -305,7 +305,8 @@ class AAPaDatabase(Database):
             create_roots(self)
         else:
             load_roots(self)
-        log_info(f'Bekende paden:\n{get_roots_report()}')
+        report = '\n'.join([f'{code} = "{root}"' for (code,root) in get_roots()])
+        log_info(f'Bekende paden:\n{report}')
         log_info('--- Einde laden paden File Encoding')
 
 
