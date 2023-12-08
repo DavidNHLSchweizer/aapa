@@ -144,7 +144,7 @@ def report_options(config_options: AAPAConfigOptions, processing_options: AAPAPr
         result += f'preview: {processing_options.preview}\n'
     if parts == 0 or parts == 1:
         result += _report_str('root directory', config_options.root_directory, config.get('configuration', 'root'))
-        result +=  _report_str('forms directory', config_options.output_directory, config.get('configuration', 'forms'))
+        result +=  _report_str('forms directory', config_options.output_directory, config.get('configuration', 'output'))
         result +=  _report_str('database', config_options.database_file, config.get('configuration', 'database'))
     if parts == 1: 
         return result

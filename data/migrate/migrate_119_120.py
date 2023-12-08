@@ -4,7 +4,7 @@ from data.aapa_database import BaseDirsTableDefinition, \
         VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
 from data.classes.base_dirs import BaseDir
 from data.migrate.old_119.roots import old_add_root, old_decode_path, old_reset_roots
-from data.roots import ONEDRIVE, add_root, encode_path, get_onedrive_root, reset_roots
+from data.roots import OneDriveCoder, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
 from database.database import Database
 from database.sql_table import SQLcreateTable
@@ -50,7 +50,7 @@ def init_base_directories(database: Database):
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     print('initialisation values BASEDIRS')  
     for entry in known_bases:
-        code=add_root(fr'{ONEDRIVE}\{entry.directory}')
+        code=add_root(fr'{OneDriveCoder.ONEDRIVE}\{entry.directory}')
         database._execute_sql_command(
             "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", 
             [entry.year, entry.period, entry.forms_version, code])        

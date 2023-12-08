@@ -1,5 +1,5 @@
 from pathlib import Path
-from data.roots import BASEPATH, ONEDRIVE, add_root, decode_path, encode_path, get_code, get_onedrive_root, get_roots, reset_roots
+from data.roots import BASEPATH, OneDriveCoder, add_root, decode_path, encode_path, get_code, get_onedrive_root, get_roots, reset_roots
 
 onedrive_root = get_onedrive_root()
 onedrive_base = Path(onedrive_root).joinpath(BASEPATH)
@@ -8,7 +8,7 @@ def test_root1():
     assert encode_path(onedrive_base) == ':ROOT1:'
 
 def test_root1_code():
-    expected = Path(ONEDRIVE).joinpath(BASEPATH)
+    expected = Path(OneDriveCoder.ONEDRIVE).joinpath(BASEPATH)
     assert get_code(':ROOT1:') == str(expected)
 
 def test_decode_root1():
@@ -39,17 +39,17 @@ def test_reset():
 
 def test_onedrive_encode():
     onedrive  = onedrive_root.joinpath('OneDrive')
-    assert encode_path(onedrive) == rf'{ONEDRIVE}\OneDrive'
+    assert encode_path(onedrive) == rf'{OneDriveCoder.ONEDRIVE}\OneDrive'
 
 def test_onedrive_decode():
-    dearprudence = fr'{ONEDRIVE}\OneDrive\dear_prudence'
+    dearprudence = fr'{OneDriveCoder.ONEDRIVE}\OneDrive\dear_prudence'
     assert decode_path(dearprudence) == str(onedrive_root.joinpath('OneDrive').joinpath('dear_prudence'))
 
 def test_onedrive_add():
     onedrive  = onedrive_root.joinpath('OneDrive')
     new_code = add_root(onedrive)
     assert new_code == ':ROOT2:'
-    assert get_code(new_code) == rf'{ONEDRIVE}\OneDrive'
+    assert get_code(new_code) == rf'{OneDriveCoder.ONEDRIVE}\OneDrive'
 
 def test_onedrive_add2():
     onedrive = onedrive_root.joinpath('OneDrive')
@@ -67,7 +67,7 @@ def test_duplicate_root():
 def test_getroots_initial():
     reset_roots()
     roots = get_roots()
-    assert roots == [(':ROOT1:', rf'{ONEDRIVE}\{BASEPATH}')]
+    assert roots == [(':ROOT1:', rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}')]
 
 def test_getroots_additional():
     NODUP = 'no duplicates please'
@@ -77,8 +77,8 @@ def test_getroots_additional():
     onedrive  = onedrive_root.joinpath('OneDrive')
     add_root(onedrive)
     roots = get_roots()
-    assert roots == [(':ROOT1:', rf'{ONEDRIVE}\{BASEPATH}'), 
+    assert roots == [(':ROOT1:', rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}'), 
                      (':ROOT2:', NODUP), 
                      (':ROOT3:', rf':ROOT1:\hallo'),
-                     (':ROOT4:', rf'{ONEDRIVE}\OneDrive'),
+                     (':ROOT4:', rf'{OneDriveCoder.ONEDRIVE}\OneDrive'),
                      ]

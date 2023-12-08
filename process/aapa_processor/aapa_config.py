@@ -2,16 +2,28 @@ from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
+from data.roots import decode_onedrive, encode_onedrive
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
 from general.log import log_error, log_info, log_print, log_warning
-from general.config import config
+from general.config import ValueConvertor, config
 from process.aapa_processor.initialize import initialize_database, initialize_storage
 from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
+
+class OnedrivePathValueConvertor(ValueConvertor):
+    def get(self, section_key: str, key_value: str, **kwargs)->str:
+        if (section := self._parser[section_key]) is not None:
+            return decode_onedrive(section.get(key_value, **kwargs))
+        return None
+    def set(self, section_key: str, key_value: str, value: object):
+        if (section := self._parser[section_key]) is not None:
+            section[key_value] = encode_onedrive(str(value))
 
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
 def init_config():
     config.init('configuration', 'database', DEFAULTDATABASE)
+    config.register('configuration', 'root', OnedrivePathValueConvertor)
+    config.register('configuration', 'output', OnedrivePathValueConvertor)
     config.init('configuration', 'root', '')
     config.init('configuration', 'output', '')  
 init_config()
@@ -88,9 +100,14 @@ class AAPAConfiguration:
             self.validation_error = f'Directories voor aanvragen en/of nieuwe beoordelingsformulieren niet ingesteld.'
             return False
     def __get_directory(self, option_value, config_name, title, mustexist=False):
+        def windows_style(path: str)->str:
+            #because askdirectory returns a Posix-style path which causes trouble
+            if path:
+                return path.replace('/', '\\')
+            return ''
         config_value = config.get('configuration', config_name)
-        if (option_value is not None and not option_value) or (not config_value):
-            result = tkifd.askdirectory(mustexist=mustexist, title=title)
+        if (option_value is not None and not option_value) or (config_value == ""):
+            result = windows_style(tkifd.askdirectory(mustexist=mustexist, title=title))
         else:
             result = option_value
         if result and result != config.get('configuration', config_name):
