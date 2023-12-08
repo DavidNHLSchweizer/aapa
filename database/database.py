@@ -1,7 +1,7 @@
 from __future__ import annotations
 from contextlib import contextmanager
 import sqlite3 as sql3
-from typing import Any
+from typing import Any, Iterable
 import database.dbConst as dbc
 from database.table_def import TableDefinition
 from database.view_def import ViewDefinition
@@ -103,7 +103,7 @@ class Database:
             if self.raise_error:
                 raise e
             return None
-    def _execute_sql_command(self, string, parameters=None, return_values=False):
+    def _execute_sql_command(self, string, parameters:Iterable[Any]=None, return_values=False):
         try:
             c = self.connection.cursor()
             if parameters:

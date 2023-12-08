@@ -3,14 +3,13 @@ from data.aapa_database import BaseDirsTableDefinition, StudentAanvragenTableDef
 from data.classes.base_dirs import BaseDir
 from data.classes.files import File
 from data.migrate.old_119.roots import old_add_root, old_decode_path, old_reset_roots
-from data.roots import ONEDRIVE, add_root, encode_path, get_code, get_onedrive_root, reset_roots
+from data.roots import ONEDRIVE, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
 from database.database import Database
 from database.sql_table import SQLcreateTable
 from database.table_def import TableDefinition
 import database.dbConst as dbc
 from general.keys import reset_key
-from general.timeutil import TSC
 
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
@@ -32,27 +31,27 @@ def create_verslagen_tables(database: Database):
 
 def init_base_directories(database: Database):
     known_bases = [
-               BaseDir(2020, '1', 'v2.2b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1'),
-               BaseDir(2020, '1B', 'v2.2b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1B'),
-               BaseDir(2020, '2', 'v2.2b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 2'),
-               BaseDir(2021, '1', 'v2.3b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 1'),
-               BaseDir(2021, '2', 'v2.3b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 2'),
-               BaseDir(2021, '3', 'v2.3b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 3'),
-               BaseDir(2021, '4', 'v2.3b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 4'),
-               BaseDir(2022, '1', 'v3.0.0b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 1'),
-               BaseDir(2022, '2', 'v4.0.0b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 2'),
-               BaseDir(2022, '3', 'v4.0.0b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 3'),
-               BaseDir(2022, '4', 'v4.0.0b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 4'),
-               BaseDir(2023, '1', 'v4.0.0b', fr'{ONEDRIVE}\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024') 
+               BaseDir(2020, '1', 'v2.2b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1'),
+               BaseDir(2020, '1B', 'v2.2b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1B'),
+               BaseDir(2020, '2', 'v2.2b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 2'),
+               BaseDir(2021, '1', 'v2.3b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 1'),
+               BaseDir(2021, '2', 'v2.3b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 2'),
+               BaseDir(2021, '3', 'v2.3b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 3'),
+               BaseDir(2021, '4', 'v2.3b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022\Periode 4'),
+               BaseDir(2022, '1', 'v3.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 1'),
+               BaseDir(2022, '2', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 2'),
+               BaseDir(2022, '3', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 3'),
+               BaseDir(2022, '4', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 4'),
+               BaseDir(2023, '1', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024') 
     ]
     print('adding new table BASEDIRS')
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     print('initialisation values BASEDIRS')  
     for entry in known_bases:
-        code=add_root(entry.directory)
+        code=add_root(fr'{ONEDRIVE}\{entry.directory}')
         database._execute_sql_command(
             "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", 
-            [entry.year, entry.period, entry.forms_version, encode_path(entry.directory)])        
+            [entry.year, entry.period, entry.forms_version, code])        
     print('--- ready adding new table BASEDIRS')
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     _update_roots_table(database)
@@ -80,27 +79,17 @@ def _find_old_roots(database: Database)->list[Tuple[str,str]]:
         root = old_decode_path(row['root'])
         old_add_root(root)
         result.append((row['code'], root))  
-    with open('OLD_ROOTS.txt', 'w', encoding='utf-8') as file:
-        file.writelines([f'{code}={value}\n' for code,value in result])
     return result
 
 def _find_unused_roots(database: Database)->list[str]:
-    sql = 'select b1.code from backup_fileroot as b1 where (not exists (select filename from BACKUP_files where instr(filename,b1.code) > 0)) AND (not exists (select b2.root from backup_fileroot as b2 where instr(b2.root,b1.code) > 0))'
-    result = []
-    for row in database._execute_sql_command(sql, return_values=True):
-        result.append(row['code'])
-    return result
+    sql = 'SELECT b1.code FROM backup_fileroot AS b1 WHERE (NOT EXISTS (SELECT filename FROM backup_files WHERE instr(filename,b1.code) > 0)) AND (NOT EXISTS (SELECT b2.root FROM backup_fileroot AS b2 WHERE instr(b2.root,b1.code) > 0))'
+    return [row['code'] for row in database._execute_sql_command(sql, return_values=True)]
 
-def _find_old_files(database: Database)->list[File]:
-    result = []
-    debugs=[]
-    for row in database._execute_sql_command(f'select id,filename from BACKUP_FILES', return_values=True):
-        debugs.append((row['filename'], old_decode_path(row['filename'])))        
-        result.append((row['id'], old_decode_path(row['filename'])))
+def _find_old_files(database: Database)->list[Tuple[int,str]]:
+    result = [(row['id'], old_decode_path(row['filename'])) for 
+               row in database._execute_sql_command(f'select id,filename from BACKUP_FILES', return_values=True)]
     with open('OLD_FILES.txt', 'w', encoding='utf-8') as file:
         file.writelines(f'{str(f)}\n' for f in result)
-    with open('SHIT_FILES.txt', 'w', encoding='utf-8') as file:
-        file.writelines(f'{str(fn)}->\n\t{dfn}\n' for fn,dfn in debugs)
     return result
 
 def _find_all_files(database:Database):
@@ -135,7 +124,10 @@ def recode_roots_table(database: Database):
     print('define new roots and recode existing roots')
     _start_with_new_roots(database)
     unused_roots = _find_unused_roots(database)
-    for code,root in old_roots[2:]:
+    # first code can be dropped, never used. 
+    # second code is NHL Stenden onedrive root, already added 
+    # so start at 2
+    for code,root in old_roots[2:]: 
         if code in unused_roots:
             print(f'\tdropping unused code {code}')
             continue

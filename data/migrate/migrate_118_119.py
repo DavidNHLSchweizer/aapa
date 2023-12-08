@@ -1,11 +1,10 @@
-from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, BaseDirsTableDefinition, FilesTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, \
-        StudentTableDefinition, UndoLogTableDefinition
+from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, FilesTableDefinition, \
+                            StudentTableDefinition, UndoLogTableDefinition
 from data.classes.files import File
 from database.sql_table import SQLcreateTable
 from database.database import Database
 from database.sql_view import SQLcreateView
 from database.table_def import TableDefinition
-from general.log import log_debug
 from general.name_utils import Names
 import database.dbConst as dbc
 from general.timeutil import TSC
@@ -90,7 +89,6 @@ def modify_files_table(database: Database):
     database._execute_sql_command('drop table OLD_FILES')
     print('end creating AANVRAGEN_FILES table.')
     print('end modifying FILES table.')
-
 
 def create_views(database: Database):
     print('creating views')
