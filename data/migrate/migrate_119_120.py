@@ -1,7 +1,8 @@
 from typing import Tuple
-from data.aapa_database import BaseDirsTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
+from data.aapa_database import BaseDirsTableDefinition, \
+    StudentDirectoryTableDefinition, StudentDirectoryAanvragenTableDefinition, StudentDirectoryVerslagenTableDefinition, \
+        VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
 from data.classes.base_dirs import BaseDir
-from data.classes.files import File
 from data.migrate.old_119.roots import old_add_root, old_decode_path, old_reset_roots
 from data.roots import ONEDRIVE, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
@@ -13,7 +14,8 @@ from general.keys import reset_key
 
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
-# toevoegen STUDENT_MILESTONES en STUDENT_MILESTONES_DETAILS tabel
+# toevoegen STUDENT_DIRECTORY 
+#   en gerelateerde details STUDENT_DIRECTORY_AANVRAGEN,STUDENT_DIRECTORY_VERSLAGEN tabellen
 
 def _update_roots_table(database:Database):        
     database._execute_sql_command('DELETE from FILEROOT')
@@ -23,10 +25,10 @@ def create_verslagen_tables(database: Database):
     print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
     database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
     database.execute_sql_command(SQLcreateTable(VerslagFilesTableDefinition()))
-    print('toevoegen nieuwe STUDENT_MILESTONES, STUDENT_AANVRAGEN en STUDENT_VERSLAGEN tabellen')
-    database.execute_sql_command(SQLcreateTable(StudentMilestonesTableDefinition()))             
-    database.execute_sql_command(SQLcreateTable(StudentAanvragenTableDefinition())) 
-    database.execute_sql_command(SQLcreateTable(StudentVerslagenTableDefinition())) 
+    print('toevoegen nieuwe STUDENT_DIRECTORY, STUDENT_DIRECTORY_AANVRAGEN en STUDENT_DIRECTORY_VERSLAGEN tabellen')
+    database.execute_sql_command(SQLcreateTable(StudentDirectoryTableDefinition()))             
+    database.execute_sql_command(SQLcreateTable(StudentDirectoryAanvragenTableDefinition())) 
+    database.execute_sql_command(SQLcreateTable(StudentDirectoryVerslagenTableDefinition())) 
     print('--- klaar toevoegen nieuwe tabellen')
 
 def init_base_directories(database: Database):

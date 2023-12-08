@@ -52,9 +52,10 @@ def create_roots(database: Database):
             
 def load_roots(database: Database):
     reset_roots()
-    if row := database._execute_sql_command('select code, root from fileroot', [], True): 
-        for record in row:   
-            add_root(record['root'], record['code']) 
+    for row in database._execute_sql_command('select code, root from fileroot', [], True): 
+        if row['code'] == ':ROOT1:':
+            continue # first row is already loaded, this is the NHL Stenden BASEPATH
+        add_root(row['root'], row['code']) 
             
 class DetailTableDefinition(TableDefinition):
     def __init__(self, name: str, 
@@ -170,25 +171,26 @@ class BaseDirsTableDefinition(TableDefinition):
         self.add_column('forms_version', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
 
-class StudentMilestonesTableDefinition(TableDefinition):
+class StudentDirectoryTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_MILESTONES')
+        super().__init__('STUDENT_DIRECTORY')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('stud_id', dbc.INTEGER)
+        self.add_column('directory', dbc.TEXT)
         self.add_column('basedir_id', dbc.INTEGER)
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class StudentAanvragenTableDefinition(DetailTableDefinition):
+class StudentDirectoryAanvragenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_AANVRAGEN', 
-                         main_table_name='STUDENTEN', main_alias_id='stud_id',
+        super().__init__('STUDENT_DIRECTORY_AANVRAGEN', 
+                         main_table_name='STUDENT_DIRECTORY', main_alias_id='stud_dir_id',
                          detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
 
-class StudentVerslagenTableDefinition(DetailTableDefinition):
+class StudentDirectoryVerslagenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_VERSLAGEN', 
-                         main_table_name='STUDENTEN', main_alias_id='stud_id',
+        super().__init__('STUDENT_DIRECTORY_VERSLAGEN', 
+                         main_table_name='STUDENT_DIRECTORY', main_alias_id='stud_dir_id',
                          detail_table_name='VERSLAGEN', detail_alias_id='verslag_id')
 
 class AanvragenOverzichtDefinition(ViewDefinition):
@@ -222,9 +224,9 @@ class AAPaSchema(Schema):
         VerslagTableDefinition,
         VerslagFilesTableDefinition,
         BaseDirsTableDefinition,
-        StudentMilestonesTableDefinition,      
-        StudentAanvragenTableDefinition,
-        StudentVerslagenTableDefinition,
+        StudentDirectoryTableDefinition,      
+        StudentDirectoryAanvragenTableDefinition,
+        StudentDirectoryVerslagenTableDefinition,
     ]
     ALL_VIEWS:list[ViewDefinition]= [ 
                 AanvragenOverzichtDefinition,
@@ -244,7 +246,7 @@ class AAPaDatabase(Database):
         if not self._reset_flag: 
             version_correct = self.check_version(recreate=False,ignore_error=ignore_version)
             if version_correct:
-                self.load_roots(False)
+                self.load_file_roots(False)
                 self.reset_keys()
     def reset_keys(self):
         def is_keyed_table(table: TableDefinition)->bool:
@@ -268,7 +270,7 @@ class AAPaDatabase(Database):
         result = super().create_from_schema(schema, filename)
         if result:
             result.check_version(recreate=True)
-            result.load_roots(True)
+            result.load_file_roots(True)
             result.reset_keys()
         return result
     def __version_error(self, db_versie, errorStr):
@@ -299,7 +301,7 @@ class AAPaDatabase(Database):
             if not ignore_error:
                 log_error('Deze versie van het programma kan deze database niet openen.\nGebruik commando "new" of migreer de data naar de juiste databaseversie.')
                 raise E
-    def load_roots(self, recreate = False):
+    def load_file_roots(self, recreate = False):
         log_info('--- Laden paden voor File Encoding')
         if recreate:
             create_roots(self)
