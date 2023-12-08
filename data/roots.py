@@ -27,7 +27,7 @@ class PathRootConvertor:
     def __init__(self, root, expanded: str, code = None, known_codes:set[str] = set()):
         self.root = root
         self.expanded = expanded
-        self.root_code = self.__get_next_key(known_codes) if not code else code
+        self.code = code if code else self.__get_next_key(known_codes)
     @staticmethod
     def __contains(value: str, root: str)->bool:
         return len(value) >= len(root) and value[:len(root)].lower() == root.lower()
@@ -42,13 +42,13 @@ class PathRootConvertor:
             continue
         return key
     def contains_root(self, path: str)->bool:
-        return PathRootConvertor.__contains(path, self.expanded)
+        return PathRootConvertor.__contains(path, self.expanded) 
     def contains_root_code(self, path: str)->bool:
-        return PathRootConvertor.__contains(path, self.root_code)
-    def encode_path(self, path: str)->str:
-        return PathRootConvertor.__substitute(path, self.expanded, self.root_code)
+        return PathRootConvertor.__contains(path, self.code)
+    def encode_path(self, path: str, allow_single=True)->str:
+        return PathRootConvertor.__substitute(path, self.expanded, self.code) 
     def decode_path(self, path: str)->str:
-        return PathRootConvertor.__substitute(path, self.root_code, self.expanded)
+        return PathRootConvertor.__substitute(path, self.code, self.expanded)
     def reset(self):
         reset_key(PathRootConvertor.KEYCODE, 0)
 
@@ -62,36 +62,42 @@ class Roots(Singleton):
         self._update_known()
         self.add(base_path, initial=True)
     def _update_known(self):
-        self.known_codes = {converter.root_code for converter in self._converters}
+        self.known_codes = {converter.code for converter in self._converters}
         self.known_roots = {converter.root for converter in self._converters}       
     def add(self, root_path: str|Path, code = None, nolog=False, initial=False)->str:
         if isinstance(root_path, Path):
             root_path = str(root_path)
+        if root_path.find(ONEDRIVE)==0:
+            root_path = root_path.replace(ONEDRIVE,str(self._one_drive_root))
         result = self._add(root_path=root_path, code=code, nolog=nolog, initial=initial)
-        self._converters.sort(key=lambda root_conv: self.sorter.get_id(root_conv.root_code), reverse=True)
+        self._converters.sort(key=lambda converter: len(converter.expanded), reverse=True)
         return result
     def _add(self, root_path: str|Path, code = None, nolog=False, initial=False)->str:
+        odp = self._find_onedrive_path(root_path, initial)
+        if odp:
+            encoded_path = self.encode_path(odp, allow_single=False)  
+        else: 
+            encoded_path = self.encode_path(root_path, allow_single=False)
         if already_there := self.__find_root(root_path):
             log_info(f'root already there: {root_path}')
-            return already_there.root_code
+            return already_there.code
         if already_there := self.__find_code(root_path):
             log_info(f'root already there: {root_path}')
-            return already_there.root_code
+            return already_there.code
         if self.__find_code(code):
             raise RootException(f'Duplicate code: {code}')        
-        odp = self._find_onedrive_path(root_path, initial)
-        new_root = PathRootConvertor(self.encode_path(root_path), 
-                                     odp if odp else self.encode_path(root_path), 
+        new_root = PathRootConvertor(encoded_path,
+                                     odp if odp else encoded_path, 
                                      code=code, 
                                      known_codes=self.known_codes)
         if already_there := self.__find_code(new_root.root):
             log_info(f'root already there: {root_path}')
-            return already_there.root_code
+            return already_there.code
         self._converters.append(new_root)
         self._update_known()
         if not nolog:
-            log_info(f'root added: {new_root.root_code}: "{new_root.root}"  ({new_root.expanded})')
-        return new_root.root_code
+            log_info(f'root added: {new_root.code}: "{new_root.root}"  ({new_root.expanded})')
+        return new_root.code
     def _find_onedrive_path(self, path: str, initial=False)->str:
         if initial:
             return find_onedrive_path(path)
@@ -109,15 +115,17 @@ class Roots(Singleton):
             if converter.contains_root_code(path):
                 return self.decode_path(converter.decode_path(path))
         return path
-    def encode_path(self, path: str|Path)->str:
+    def encode_path(self, path: str|Path, allow_single=True)->str:
         if isinstance(path, Path):
             path = str(path)
         if not path:
             return path
+        if path.find(ONEDRIVE)==0:
+            path = path.replace(ONEDRIVE,str(self._one_drive_root))
         candidates = set()
         for converter in self._converters:
             if converter.contains_root(path):
-                candidate_encoding = self.encode_path(converter.encode_path(path))
+                candidate_encoding = converter.encode_path(path)
                 candidates.add(candidate_encoding)
         for candidate in candidates:
             if len(candidate) < len(path):
@@ -125,19 +133,19 @@ class Roots(Singleton):
         if path.lower().find(str(self._one_drive_root).lower()) == 0:
             return rf'{ONEDRIVE}{path[len(str(self._one_drive_root)):]}'
         return path
-    def get_code(self, code: str)->str:
+    def  get_code(self, code: str)->str:
         if root_conv := self.__find_code(code):
             return root_conv.root
         return None
     def get_roots(self, sorted=True)->list[tuple[str,str]]:
-        result = [(root_conv.root_code,root_conv.root) for root_conv in self._converters]
+        result = [(root_conv.code,root_conv.root) for root_conv in self._converters]
         if sorted:
             result.sort(key=lambda root_tuple: self.sorter.get_id(root_tuple[0]))
         return result
     def __find_code(self, code)->PathRootConvertor:        
         if code in self.known_codes:
             for converter in self._converters:
-                if converter.root_code == code:
+                if converter.code == code:
                     return converter
         return None
     def __find_root(self, root_path)->PathRootConvertor:
@@ -162,8 +170,8 @@ def add_root(root_path: str|Path, code: str = None, nolog=False)->str:
     return _roots.add(root_path, code=code, nolog=nolog)
 def decode_path(path: str|Path)->str:
     return _roots.decode_path(path)
-def encode_path(path: str|Path)->str:
-    return _roots.encode_path(path)
+def encode_path(path: str|Path, allow_single=True)->str:
+    return _roots.encode_path(path, allow_single=allow_single)
 def reset_roots():
     reset_key('ROOT')
     _roots.reset(BASEPATH)

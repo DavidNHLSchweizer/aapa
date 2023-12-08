@@ -7,6 +7,10 @@ onedrive_base = Path(onedrive_root).joinpath(BASEPATH)
 def test_root1():
     assert encode_path(onedrive_base) == ':ROOT1:'
 
+def test_root1_code():
+    expected = Path(ONEDRIVE).joinpath(BASEPATH)
+    assert get_code(':ROOT1:') == str(expected)
+
 def test_decode_root1():
     assert decode_path(':ROOT1:') == str(onedrive_base)
 
@@ -63,7 +67,7 @@ def test_duplicate_root():
 def test_getroots_initial():
     reset_roots()
     roots = get_roots()
-    assert roots == [(':ROOT1:', BASEPATH)]
+    assert roots == [(':ROOT1:', rf'{ONEDRIVE}\{BASEPATH}')]
 
 def test_getroots_additional():
     NODUP = 'no duplicates please'
@@ -73,7 +77,7 @@ def test_getroots_additional():
     onedrive  = onedrive_root.joinpath('OneDrive')
     add_root(onedrive)
     roots = get_roots()
-    assert roots == [(':ROOT1:', BASEPATH), 
+    assert roots == [(':ROOT1:', rf'{ONEDRIVE}\{BASEPATH}'), 
                      (':ROOT2:', NODUP), 
                      (':ROOT3:', rf':ROOT1:\hallo'),
                      (':ROOT4:', rf'{ONEDRIVE}\OneDrive'),

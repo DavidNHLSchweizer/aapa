@@ -1,9 +1,9 @@
 from typing import Tuple
-from data.aapa_database import AAPaDatabase, BaseDirsTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, create_roots, load_roots
+from data.aapa_database import BaseDirsTableDefinition, StudentAanvragenTableDefinition, StudentMilestonesTableDefinition, StudentVerslagenTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.files import File
 from data.migrate.old_119.roots import old_add_root, old_decode_path, old_reset_roots
-from data.roots import ONEDRIVE, add_root, decode_path, encode_path, get_onedrive_root, get_roots, reset_roots
+from data.roots import ONEDRIVE, add_root, encode_path, get_code, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
 from database.database import Database
 from database.sql_table import SQLcreateTable
@@ -15,6 +15,10 @@ from general.timeutil import TSC
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
 # toevoegen STUDENT_MILESTONES en STUDENT_MILESTONES_DETAILS tabel
+
+def _update_roots_table(database:Database):        
+    database._execute_sql_command('DELETE from FILEROOT')
+    create_roots(database)
 
 def create_verslagen_tables(database: Database):
     print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
@@ -44,16 +48,14 @@ def init_base_directories(database: Database):
     print('adding new table BASEDIRS')
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     print('initialisation values BASEDIRS')  
-    storage = AAPAStorage(database)
-    load_roots(database)
     for entry in known_bases:
-        storage.add_file_root(entry.directory.replace('ONEDRIVE:', get_onedrive_root()))
+        code=add_root(entry.directory)
         database._execute_sql_command(
             "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", 
             [entry.year, entry.period, entry.forms_version, encode_path(entry.directory)])        
     print('--- ready adding new table BASEDIRS')
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
-
+    _update_roots_table(database)
 
 def _start_with_new_roots(database: Database):
     known_roots = [rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering',
@@ -66,8 +68,9 @@ def _start_with_new_roots(database: Database):
                   ]
     database._execute_sql_command('DELETE from FILEROOT')
     reset_roots()  
+    onedrive_root = get_onedrive_root()
     for root in known_roots:
-        add_root(rf'{root}')
+        add_root(rf'{onedrive_root}\{root}')
 
 def _find_old_roots(database: Database)->list[Tuple[str,str]]:
     result = []
@@ -75,8 +78,7 @@ def _find_old_roots(database: Database)->list[Tuple[str,str]]:
     reset_key('ROOT')
     for row in database._execute_sql_command(f'select code,root from BACKUP_FILEROOT', return_values=True):
         root = old_decode_path(row['root'])
-        new=old_add_root(root)
-        # print(f'{new}: {root}')
+        old_add_root(root)
         result.append((row['code'], root))  
     with open('OLD_ROOTS.txt', 'w', encoding='utf-8') as file:
         file.writelines([f'{code}={value}\n' for code,value in result])
@@ -91,10 +93,14 @@ def _find_unused_roots(database: Database)->list[str]:
 
 def _find_old_files(database: Database)->list[File]:
     result = []
+    debugs=[]
     for row in database._execute_sql_command(f'select id,filename from BACKUP_FILES', return_values=True):
+        debugs.append((row['filename'], old_decode_path(row['filename'])))        
         result.append((row['id'], old_decode_path(row['filename'])))
     with open('OLD_FILES.txt', 'w', encoding='utf-8') as file:
         file.writelines(f'{str(f)}\n' for f in result)
+    with open('SHIT_FILES.txt', 'w', encoding='utf-8') as file:
+        file.writelines(f'{str(fn)}->\n\t{dfn}\n' for fn,dfn in debugs)
     return result
 
 def _find_all_files(database:Database):
@@ -128,29 +134,19 @@ def recode_roots_table(database: Database):
     old_files = _find_old_files(database)
     print('define new roots and recode existing roots')
     _start_with_new_roots(database)
-    onedrive_root = str(get_onedrive_root()) + "\\"
     unused_roots = _find_unused_roots(database)
     for code,root in old_roots[2:]:
         if code in unused_roots:
+            print(f'\tdropping unused code {code}')
             continue
-        # if root.find(onedrive_root) == 0:
-        #     root = root.replace(onedrive_root, ONEDRIVE)
         add_root(root)
-    database._execute_sql_command('DELETE from FILEROOT')
-    create_roots(database)
+    _update_roots_table(database)
     print('update FILES table')
     for id,filename in old_files:  
-        old = filename
-        # if filename.find(onedrive_root) == 0:
-        #     filename = filename[len(onedrive_root)+1:]
-        if id < 3:
-            encoded = encode_path(filename)
-            decoded = decode_path(encoded)
-            print(f'{old}\n\t{encoded}\n\t{decoded}')
         database._execute_sql_command("update FILES set filename=? where id = ?", 
                                       [encode_path(filename), id])
     database.commit()
-    # _check_results(old_files, _find_all_files(database))
+    _check_results(old_files, _find_all_files(database))
 
 class BackupFileRootTableDefinition(TableDefinition):
     def __init__(self):
@@ -172,10 +168,14 @@ def backup_tables(database: Database):
     database.execute_sql_command(SQLcreateTable(BackupFilesTableDefinition()))
     database._execute_sql_command('insert into BACKUP_FILES SELECT * from FILES')
 
+def cleanup_backup(database: Database):
+    database._execute_sql_command('drop table BACKUP_FILEROOT')
+    database._execute_sql_command('drop table BACKUP_FILES')
+
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
         backup_tables(database)
         recode_roots_table(database)
-        # create_verslagen_tables(database)
-        # recode_files_table(database)
-        # init_base_directories(database)
+        create_verslagen_tables(database)
+        init_base_directories(database)
+        cleanup_backup(database)
