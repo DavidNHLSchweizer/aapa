@@ -2,6 +2,7 @@ from data.aapa_database import BaseDirsTableDefinition
 from data.classes.base_dirs import BaseDir
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
 from data.storage.CRUDs import register_crud
+from data.storage.queries.base_dirs import BaseDirQueries
 from database.database import Database
 
 class BaseDirsTableMapper(TableMapper):
@@ -12,5 +13,7 @@ class BaseDirsTableMapper(TableMapper):
     
 register_crud(class_type=BaseDir, 
                 table=BaseDirsTableDefinition(), 
-                mapper_type = BaseDirsTableMapper
+                mapper_type = BaseDirsTableMapper,
+                queries_type=BaseDirQueries
+
                 )

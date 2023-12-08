@@ -34,7 +34,7 @@ class OneDriveCoder:
         return path.find(self.onedrive_root) == 0 
 
 class RootSorter:
-    PATTERN=r':ROOT(?P<N>\d*):'
+    PATTERN=r'^:ROOT(?P<N>\d*):$'
     def __init__(self):
         self.pattern = re.compile(self.PATTERN)
     def get_id(self, code: str)->int:
@@ -43,7 +43,9 @@ class RootSorter:
         return -1
     def sorted_roots(self, roots: list[Tuple[str,str]])->list[Tuple[str,str]]:
         return sorted(roots, key=lambda x: self.get_id(x[0]))  
-    
+    def is_single_root(self, path: str)->bool:
+        return self.pattern.match(path) is not None
+
 class PathRootConvertor:
     ROOTCODE = 'ROOT'
     KEYCODE  = 'PATHROOT'
@@ -68,7 +70,7 @@ class PathRootConvertor:
         return PathRootConvertor.__contains(path, self.expanded) 
     def contains_root_code(self, path: str)->bool:
         return PathRootConvertor.__contains(path, self.code)
-    def encode_path(self, path: str, allow_single=True)->str:
+    def encode_path(self, path: str)->str:
         return PathRootConvertor.__substitute(path, self.expanded, self.code) 
     def decode_path(self, path: str)->str:
         return PathRootConvertor.__substitute(path, self.code, self.expanded)
@@ -80,7 +82,6 @@ class Roots(Singleton):
         self.sorter = RootSorter()
         self.reset(base_path)
     def reset(self, base_path: str):
-        # self._one_drive_root = Path(find_onedrive_path(base_path)).parent
         self._onedrive_coder = OneDriveCoder(Path(find_onedrive_path(base_path)).parent)
         self._converters:list[PathRootConvertor] = []
         self._update_known()
@@ -92,7 +93,7 @@ class Roots(Singleton):
         return self._onedrive_coder.decode_onedrive(path)
     def encode_onedrive(self, path: str|Path)->str:
         return self._onedrive_coder.encode_onedrive(path)
-    def add(self, root_path: str|Path, code = None, nolog=False, initial=False)->str:
+    def add(self, root_path: str|Path, code = None, nolog=False, initial=False)->str:  
         if isinstance(root_path, Path):
             root_path = str(root_path)
         root_path = self.decode_onedrive(root_path)
@@ -149,7 +150,8 @@ class Roots(Singleton):
         for converter in self._converters:
             if converter.contains_root(path):
                 candidate_encoding = converter.encode_path(path)
-                candidates.add(candidate_encoding)
+                if allow_single or not self.sorter.is_single_root(candidate_encoding):
+                    candidates.add(candidate_encoding)
         for candidate in candidates:
             if len(candidate) < len(path):
                 path = candidate            

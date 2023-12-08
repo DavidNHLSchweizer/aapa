@@ -7,6 +7,7 @@ from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
+from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.studenten import StudentQueries
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string, test_directory_exists
@@ -46,13 +47,9 @@ class StudentDirectoryDetector(FileProcessor):
         if max_id := storage.find_max_value('aanvragen', attribute='id', where_attributes='stud_id', where_values=student.id):
             return storage.read('aanvragen', max_id)
     def _get_basedir(self, dirname: str, storage: AAPAStorage)->BaseDir:
-        if stored:=storage.find_values('basedirs', attributes='dirname', values=str(Path(dirname).parent)):
-            if len(stored) > 1:
-                raise DetectorException(f'More than one basedir with same name in database:\n{[str(basedir) for basedir in stored]}')
-            self.base_dir = stored[0]
-            return True
-        self.base_dir = None
-        return False   
+        queries : BaseDirQueries = storage.queries('base_dirs')
+        self.base_dir = queries.find_basedir(dirname)
+        return self.base_dir != None
     def _process_subdirectory(self, subdirectory: str, student: Student)->Milestone:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')

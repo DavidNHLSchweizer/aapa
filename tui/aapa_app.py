@@ -59,6 +59,12 @@ class AAPATuiParams:
         return AAPAOptions(actions=[action], root_directory=self.root_directory, 
                            output_directory=self.output_directory, database_file=self.database, preview=self.preview)
       
+def windows_style(path: str)->str:
+    #because askdirectory/askfile returns a Posix-style path which causes trouble
+    if path:
+        return path.replace('/', '\\')
+    return ''
+
 class AapaDirectoriesForm(Static):
     def compose(self)->ComposeResult:
         with Vertical():
@@ -83,15 +89,15 @@ class AapaDirectoriesForm(Static):
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
-        if (result := tkifd.askdirectory(mustexist=True, title=title, initialdir=input.value)):
+        if (result := windows_style(tkifd.askdirectory(mustexist=True, title=title, initialdir=input.value))):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
             self._store_config_id(input_id)
     def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
-        if (result := tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
-                                            filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension)):
+        if (result := windows_style(tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
+                                            filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension))):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
@@ -253,10 +259,10 @@ class AAPAApp(App):
                 if str(event.result_str) == 'Ja': 
                     await self.run_AAPA(AAPAaction.UNDO)
     async def action_report(self):
-        if (filename := tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
+        if (filename := windows_style(tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
                                            filetypes=[('*.xlsx', 'Excel bestanden'), ('*.*', 'Alle bestanden')],
                                            initialfile=config.get('report', 'filename'),
-                                           confirmoverwrite=True)):
+                                           confirmoverwrite=True))):
             await self.run_AAPA(AAPAaction.REPORT,filename=filename)
     @property 
     def directories_form(self)->AapaDirectoriesForm:
