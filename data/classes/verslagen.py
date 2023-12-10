@@ -30,16 +30,14 @@ class Verslag(Milestone):
                         Verslag.Type.EIND_VERSLAG: 'eindverslag'                       
             }
             return _MT_STRS[self]
-    def __init__(self, verslag_type: Verslag.Type, student:Student, file: File, datum: datetime.datetime, kans: int=1, id=EMPTY_ID, titel='', cijfer=''):
+    def __init__(self, verslag_type: Verslag.Type, student:Student, file: File, datum: datetime.datetime, 
+                 kans: int=1, id=EMPTY_ID, titel='', cijfer='', directory=''):
         super().__init__(student=student, datum=datum, status=Verslag.Status.NEW, titel=titel, id=id)   
         self.verslag_type = verslag_type     
         self.cijfer = ''
+        self.directory = directory
         if file:
-            self._files.set_file(file)
-            self.directory = str(Path(file.filename).parent)
-        else:
-            self._files.reset()
-            self.directory = ''
+            self._files.add(file)
         self.kans=kans
     def __str__(self):        
         s = f'{TSC.get_date_str(self.datum)}: {self.verslag_type} ({self.kans}) {str(self.student)} ' +\

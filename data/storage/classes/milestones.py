@@ -13,9 +13,9 @@ class MilestonesTableMapper(TableMapper):
         match column_name:
             case 'datum': return TimeColumnMapper(column_name)
             case 'stud_id': 
-                return CRUDColumnMapper('stud_id', attribute_name='student', crud=create_crud(database, Student))
+                return CRUDColumnMapper(column_name, attribute_name='student', crud=create_crud(database, Student))
             case 'bedrijf_id': 
-                return CRUDColumnMapper('bedrijf_id', attribute_name='bedrijf', crud=create_crud(database, Bedrijf))
+                return CRUDColumnMapper(column_name, attribute_name='bedrijf', crud=create_crud(database, Bedrijf))
             case _: return super()._init_column_mapper(column_name, database)
 
 class MilestonesCRUD(ExtendedCRUD):

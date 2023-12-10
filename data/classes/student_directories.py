@@ -21,7 +21,10 @@ class StudentDirectory(AAPAclass):
         self.student = student
         self.directory = directory
         self.base_dir = base_dir
-        self._data = StudentDirectoryAggregator()
+        self._data = StudentDirectoryAggregator(self)
+    @property
+    def data(self)->Aggregator:
+        return self._data
     @property
     def aanvraag(self)->Aanvraag:
         if aanvragen := self._data.as_list('aanvragen'):

@@ -1,7 +1,7 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.milestones import Milestone
-from data.classes.student_directory import StudentDirectory
+from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
@@ -44,7 +44,7 @@ class StudentDirectoryDetector(FileProcessor):
     def _get_aanvraag(self, student: Student, storage: AAPAStorage)->Aanvraag:
         if student.id == EMPTY_ID:
             return None
-        if max_id := storage.find_max_value('aanvragen', attribute='id', where_attributes='stud_id', where_values=student.id):
+        if max_id := storage.find_max_value('aanvragen', attribute='id', where_attributes='student', where_values=student.id):
             return storage.read('aanvragen', max_id)
     def _get_basedir(self, dirname: str, storage: AAPAStorage)->BaseDir:
         queries : BaseDirQueries = storage.queries('base_dirs')
@@ -62,7 +62,17 @@ class StudentDirectoryDetector(FileProcessor):
             case _: 
                 log_warning(f'Soort verslag "{parsed.type}" niet herkend.')
                 return None
-        return Verslag(verslag_type=verslag_type, student=student, file=None, datum=parsed.datum)
+        return Verslag(verslag_type=verslag_type, student=student, file=None, directory=subdirectory, datum=parsed.datum)
+    def __update_kansen(self, student_directory: StudentDirectory):
+        cur_type = Verslag.Type.UNKNOWN
+        cur_kans = 1
+        for verslag in sorted(student_directory.verslagen, key=lambda v: (v.verslag_type, v.datum)):
+            if verslag.verslag_type == cur_type:
+                cur_kans += 1
+            else:
+                cur_kans = 1
+                cur_type = verslag.verslag_type
+            verslag.kans = cur_kans
     def report_directory(self, msg: str, student_directory: StudentDirectory):
         log_print(msg)
         for verslag in student_directory.verslagen:
@@ -78,12 +88,15 @@ class StudentDirectoryDetector(FileProcessor):
         try:    
             student = self._get_student(dirname, storage)  
             log_print(f'Student: {student}')
+            if not student.valid():
+                log_warning(f'Gegevens student {student} zijn niet compleet.')
             student_directory = StudentDirectory(student, dirname, self.base_dir)
             if (aanvraag := self._get_aanvraag(student, storage)):
                 student_directory.add(aanvraag)
             for subdirectory in Path(dirname).glob('*'):
                 if subdirectory.is_dir() and (new_item := self._process_subdirectory(subdirectory, student)):                    
                     student_directory.add(new_item)
+            self.__update_kansen(student_directory)
             self.report_directory('Gedetecteerd:', student_directory)
             return student_directory
         except DetectorException as reader_exception:
@@ -95,12 +108,14 @@ class MilestoneDetectorPipeline(FilePipeline):
         super().__init__(description, StudentDirectoryDetector(), storage, activity=UndoLog.Action.DETECT)
         self.skip_directories=skip_directories
     def _store_new(self, student_directory: StudentDirectory):
+        self.storage.create('student_directories', student_directory)
+
         # for aanvraag in milestones.get(Verslag.Type.AANVRAAG):
         #     if not storage.aanvragen
         #  self.storage.aanvragen.create(aanvraag)
         # self.log_aanvraag(aanvraag)   
         # log_print(f'\tstoring new milestone: {milestone}')
-        pass
+
     def _skip(self, filename: str)->bool:        
         if Path(filename).stem in self.skip_directories:
             return True

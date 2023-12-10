@@ -10,10 +10,10 @@ class StudentQueries(CRUDQueries):
             return students[0]        
         return None
     def find_student_by_name_or_email(self, student: Student)->Student:
-        if (student := self.__find_student_by_attribute(student, 'full_name')):
-            return student
-        if (student := self.__find_student_by_attribute(student, 'email')):
-            return student
+        if student.full_name and (stored := self.__find_student_by_attribute(student, 'full_name')):
+            return stored
+        if student.email and (stored := self.__find_student_by_attribute(student, 'email')):
+            return stored
         return None
     def create_unique_student_nr(self, student: Student)->Student:
         n = 42

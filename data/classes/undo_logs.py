@@ -39,6 +39,9 @@ class UndoLog(AAPAclass):
         self._data = UndoLogAggregator(self)
         self.can_undo = can_undo     
     @property
+    def data(self)->Aggregator:
+        return self._data
+    @property
     def aanvragen(self)->list[Aanvraag]:
         return self._data.as_list('aanvragen', sort_key=lambda a: a.id)
     @aanvragen.setter
