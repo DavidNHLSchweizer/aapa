@@ -83,7 +83,7 @@ class StudentDirectoryDetector(FileProcessor):
             return None
         log_print(f'Verwerken {summary_string(dirname, maxlen=100)}')
         if not self._get_basedir(dirname, storage):
-            log_error(f'Onbekende of nieuwe basisdirectory {summary_string(dirname, maxlen=100)}')
+            log_error(f'Directory {summary_string(dirname, maxlen=100)} kan niet worden gelinkt met bekende basisdirectory.')
             return None
         try:    
             student = self._get_student(dirname, storage)  
@@ -125,11 +125,11 @@ def detect_from_directory(directory: str, storage: AAPAStorage, preview=False, d
     if not Path(directory).is_dir():
         log_error(f'Map {directory} bestaat niet. Afbreken.')
         return 0  
-    log_info(f'Start import van map  {directory}...', to_console=True)
-    importer = MilestoneDetectorPipeline(f'Detectie studentaanvragen uit directory {directory}', storage, skip_directories=config.get('detect_directory', 'skip'))
+    log_info(f'Start detectie van map  {directory}...', to_console=True)
+    importer = MilestoneDetectorPipeline(f'Detectie studentgegevens uit directory {directory}', storage, skip_directories=config.get('detect_directory', 'skip'))
     # first_id = storage.aanvragen.max_id() + 1
     (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
     # report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     # log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
-    log_info(f'...Import afgerond ({sop(n_processed, "nieuwe student-mijlpaal", "nieuwe student-mijlpalen")}. In directory: {sop(n_files, "directory", "directories")})', to_console=True)
+    log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix='nieuwe student-')}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
     return n_processed, n_files      

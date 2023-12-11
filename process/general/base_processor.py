@@ -15,6 +15,6 @@ class FileProcessor(BaseProcessor):
         super().__init__(description=description)
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:
         return True
-    def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs):
+    def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->StoredClass:
         return None
 

@@ -45,15 +45,15 @@ def init_special_cases():
 init_special_cases()
 
 class Names:
+    TUSSEN_PATTERN = r"(?P<tussen>\b(der|den|de|van|ter|te|in\'t|in\s't|in)\b)+?"
     @staticmethod
     def parsed(full_name: str)->ParsedName:
-        TUSSEN_PATTERN = r"(?P<tussen>\b(der|den|de|van|ter|te|in\'t|in\s't|in)\b)+?"
         if special_cases.contains(full_name):
             return special_cases.parsed_name(full_name)
         first_tussen_start = -1
         last_tussen_end = -1        
         tussens = []
-        for match in re.finditer(TUSSEN_PATTERN, full_name):
+        for match in re.finditer(Names.TUSSEN_PATTERN, full_name):
             tussen_start = match.start('tussen')
             if tussen_start > last_tussen_end and full_name[last_tussen_end:tussen_start].strip(): # catch extreme case like "van Voorst de Water"
                 break
@@ -89,3 +89,12 @@ class Names:
             for word in full_name.split(' '):
                 result += word[0]
         return result.lower()
+    @staticmethod
+    def full_name(first_name: str, last_name: str)->str:
+        if last_name.find(',') != -1:
+            parsed = Names.parsed(last_name.strip())
+            tussen = parsed.tussen
+            last = last_name.strip() if not tussen else last_name[:last_name.find(',')].strip()
+            return f'{first_name.strip()}{" " + tussen if tussen else ""}{" " + last}'
+        else:
+            return f'{first_name.strip()} {last_name.strip()}'

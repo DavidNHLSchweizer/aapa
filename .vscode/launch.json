@@ -26,6 +26,32 @@
             ]
         },
         {
+            "name": "Python: detect",
+            "type": "python",
+            "request": "launch",
+            "program": "aapa.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--detect=d:\\aapademo\\periode 2",
+                "-preview",
+                "-debug",
+            ]
+        },
+        {
+            "name": "Python: studimport",
+            "type": "python",
+            "request": "launch",
+            "program": "aapa.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--student=d:\\aapa\\map42.xlsx",
+                "-preview",
+                "-debug",
+            ]
+        },
+        {
             "name": "Python: zipimport",
             "type": "python",
             "request": "launch",

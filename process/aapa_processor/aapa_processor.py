@@ -2,13 +2,14 @@ from datetime import datetime
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
 from process.aapa_processor.aapa_config import AAPAConfiguration
+from process.general.import_studenten import import_studenten_XLS
 from process.scan.importing.detect_student_from_directory import detect_from_directory
 from process.scan.importing.import_verslagen import import_zipfile
 from process.undo.undo_processor import undo_last
 from process.scan.create_forms.create_diff_file import DifferenceProcessor
 # from process.read_grade.history import read_beoordelingen_from_files
 from general.config import config
-from data.report_data import report_aanvragen_XLS
+from data.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.scan.scan import process_directory, process_forms
 from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction, report_options
@@ -29,6 +30,10 @@ class AAPAProcessor:
     #         log_error(f'History file ({configuration.options.history_file}) not found.')
     #     else:
     #         read_beoordelingen_from_files(configuration.options.history_file, configuration.storage)
+    def __detect_from_directory(self, directory: str, configuration: AAPAConfiguration, preview = False):
+        detect_from_directory(directory, configuration.storage, preview=preview)
+    def __import_student_data(self, xls_filename: str, configuration: AAPAConfiguration, preview = False):
+        import_studenten_XLS(xls_filename, configuration.storage, preview=preview)   
     def process(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions):
         def must_process(processing_options: AAPAProcessingOptions)->bool:
             if any([a in processing_options.actions for a in {AAPAaction.FULL, AAPAaction.SCAN, AAPAaction.FORM, 
@@ -45,6 +50,10 @@ class AAPAProcessor:
                 self.__report_info(configuration.options, processing_options)
             if processing_options.diff_file:
                 self.__create_diff_file(configuration, processing_options)
+            if processing_options.detect_dir:
+                self.__detect_from_directory(processing_options.detect_dir, configuration, preview=preview)            
+            if processing_options.student_file:              
+                self.__import_student_data(processing_options.student_file, configuration, preview=preview)
             if not must_process(processing_options):
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
@@ -61,14 +70,8 @@ class AAPAProcessor:
                 #     parsed = Names.parsed(student.full_name)
                 #     if parsed.first_name != student.first_name:
                 #         print(f'{student.full_name}: {student.first_name} - {parsed}')
-                    
-                for basedir in configuration.storage.find_all('base_dirs'):
-                    print('--- start ---')
-                    print(basedir)
-                    detect_from_directory(basedir.directory, configuration.storage, preview=preview)
-                    print(basedir)
-                    print('--- einde ---')
-                # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022', configuration.storage, preview=preview)    
+                log_info('not yet implemented')
+                        # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022', configuration.storage, preview=preview)    
                 # log_print(f'*** DIRECTORY 2022-2023')
                 # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023', configuration.storage, preview=preview)    
                 # log_print(f'*** DIRECTORY 2023-2024')
@@ -94,7 +97,7 @@ class AAPARunnerContext:
         self.preview = self.needs_preview()
         self.valid = True
     def needs_preview(self)->bool:
-        return self.processing_options.preview and any([a in self.processing_options.actions for a in {AAPAaction.SCAN, AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL}])
+        return self.processing_options.preview and not self.processing_options.no_processing()
     def __enter__(self):
         log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.configuration.options, self.processing_options)}')
         log_print(banner())

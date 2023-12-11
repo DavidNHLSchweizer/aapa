@@ -7,9 +7,9 @@ from general.log import log_debug
 
 class BaseDirQueries(CRUDQueries):
     def find_basedir(self, directory: str|Path)->BaseDir:
-        if directory == '':
+        if directory == '' or directory==(parent:=str(Path(directory).parent)):
             return None        
-        candidate_basedir = str(Path(directory).parent)
+        candidate_basedir = parent
         encoded = encode_path(candidate_basedir)
         log_debug(f'encoded: {encoded}')
         if stored:=self.find_values(attributes='directory', values=candidate_basedir):

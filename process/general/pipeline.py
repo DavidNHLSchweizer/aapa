@@ -116,3 +116,33 @@ class FilePipeline(Pipeline):
             log_debug(MINOR_DEBUG_DIVIDER)
         return (n_processed, n_files)
 
+class SingleFilePipeline(Pipeline):
+    # the simplest pipelineprocessor, process a single file and do something useful with it
+    def __init__(self, description: str, processor: FileProcessor, 
+                 storage: AAPAStorage, activity: UndoLog.Action):
+        super().__init__(description, processor, storage, activity=activity)
+    @property
+    def processor(self)->FileProcessor:
+        return self._processors[0]
+    def _process_file_processor(self, filename: str, preview=False, **kwargs)->int:
+        if self.processor.must_process_file(filename, self.storage, **kwargs):
+            try:
+                return self.processor.process_file(filename, self.storage, preview, **kwargs)
+            except Exception as E:
+                log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
+        return 0
+    def _process_file(self, filename: Path, preview=False, **kwargs )->int:
+        log_debug(f'processor: {self.processor.__class__} {filename} {kwargs}  {self.processor.must_process_file(str(filename), self.storage, **kwargs)}')
+        return self._process_file_processor(str(filename), preview, **kwargs)
+    def process(self, filename: str, preview=False, **kwargs)->int:
+        with Preview(preview, self.storage, f'process (single_filepipeline) {self.description}'):
+            log_debug(MINOR_DEBUG_DIVIDER)
+            self.start_logging()
+            result = self._process_file(filename, preview, **kwargs)
+            log_debug(ITEM_DEBUG_DIVIDER)
+            self.storage.commit()
+            self.stop_logging()     
+            log_debug(f'end process (f"{self.description}") {result=}')       
+            log_debug(MINOR_DEBUG_DIVIDER)
+        return result
+
