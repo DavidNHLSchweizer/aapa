@@ -13,6 +13,7 @@ from general.timeutil import TSC
 #
 # aanpassen tijden in database (sorteerbaar gemaakt)
 # studenten krijgt ook zijn eigen ID. Aanpassingen aan AANVRAGEN hiervoor
+# toevoegen status kolom in STUDENTEN
 # link files met aanvragen wordt met nieuwe koppeltabel AANVRAGEN_FILES. Aanpassingen aan FILES en AANVRAGEN hiervoor
 # voorbereiding: aanvraag_nr -> kans
 # creating AANVRAGEN_OVERZICHT en AANVRAGEN_FILES overzicht

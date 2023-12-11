@@ -145,17 +145,22 @@ def recode_roots_table(database: Database):
     _check_results(old_files, _find_all_files(database))
 
 def modify_studenten_table(database: Database):
-    print('add status column to STUDENTEN')
-    database._execute_sql_command('alter table STUDENTEN add status INTEGER DEFAULT 0')
+    print('initializing status column in STUDENTEN')
     #initialise status where aanvraag is "voldoende"
     select2 = 'select s.id from studenten as s where exists (select a.id from aanvragen as a where a.stud_id = s.id and a.beoordeling=2)'
     database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in ({select2})', [Student.Status.BEZIG])
     database._execute_sql_command(f'update STUDENTEN set STATUS=? where status != ?', [Student.Status.AANVRAAG, Student.Status.BEZIG])
     _correct_student_errors(database)
-    print('--- klaar toevoegen status column')
+    print('--- klaar initializing status column in STUDENTEN')
 
 def _correct_student_errors(database: Database):
-    print('correcting some errors in STUDENTEN table')  
+    print('also correcting some errors in STUDENTEN table')  
+    
+    #jorunn Oosterwegel, jelke nelisse, Musaab Asawi
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in (?,?,?)', 
+                                  [Student.Status.AANVRAAG, 52,56,70])
+    print('--- klaar correcting some errors in STUDENTEN table')
+
     #Justin vd Leij
     database._execute_sql_command('update AANVRAGEN set stud_id = ? where stud_id = ?',
                                   [16,17]

@@ -76,6 +76,7 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('first_name', dbc.TEXT)
         self.add_column('email', dbc.TEXT, notnull=True)
         self.add_column('tel_nr', dbc.TEXT)
+        self.add_column('status', dbc.INTEGER)
 
 class BedrijfTableDefinition(TableDefinition):
     def __init__(self):
@@ -178,7 +179,6 @@ class StudentDirectoryTableDefinition(TableDefinition):
         self.add_column('stud_id', dbc.INTEGER)
         self.add_column('directory', dbc.TEXT)
         self.add_column('basedir_id', dbc.INTEGER)
-        self.add_column('status', dbc.INTEGER)
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 

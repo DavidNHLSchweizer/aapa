@@ -1,7 +1,7 @@
 from typing import Any, Iterable, Type
 import sqlite3 as sql3
 from data.roots import decode_path, encode_path
-from data.storage.general.storage_const import StoredClass, DBtype
+from data.storage.general.storage_const import StorageException, StoredClass, DBtype
 from database.database import Database
 from database.table_def import TableDefinition
 from general.timeutil import TSC
@@ -83,6 +83,9 @@ class TableMapper:
         self.db_record = DBrecord(table)
         self.class_type = class_type        
         self._mappers = {column.name: self._init_column_mapper(column.name, database) for column in table.columns}
+        for column in self.table.columns:
+            if not self._mappers[column.name]:
+                raise StorageException(f'Invalid mapper for column [{column.name}] in mapper for {self.table.name}')
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         return ColumnMapper(column_name) # customize for non-default columns
     def mappers(self, column_names: list[str] = None)->list[ColumnMapper]:
