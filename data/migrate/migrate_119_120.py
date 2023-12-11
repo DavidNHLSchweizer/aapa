@@ -4,14 +4,18 @@ from data.aapa_database import BaseDirsTableDefinition, \
         VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from data.migrate.old_119.roots import old_add_root, old_decode_path, old_reset_roots
+from data.migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
 from data.roots import OneDriveCoder, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
 from database.database import Database
 from database.sql_table import SQLcreateTable
 from database.table_def import TableDefinition
 import database.dbConst as dbc
+from general.args import AAPAOptions, AAPAaction
 from general.keys import reset_key
+from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.aapa_processor.initialize import initialize_database, initialize_storage
+from process.general.import_studenten import import_studenten_XLS
 
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
@@ -204,6 +208,18 @@ def cleanup_backup(database: Database):
     database._execute_sql_command('drop table BACKUP_FILEROOT')
     database._execute_sql_command('drop table BACKUP_FILES')
 
+def import_studenten(database: Database, xls_filename: str):
+    database.commit()
+    options = AAPAOptions(actions=[AAPAaction.NONE], 
+                          root_directory=config.get('root', root_directory, 
+                           output_directory=self.output_directory, database_file=self.database, preview=self.preview)
+    with AAPARunnerContext(AAPA)
+
+#     storage = initialize_storage(database)
+
+#     import_studenten_XLS(xls_filename, storage)
+
+
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
         backup_tables(database)
@@ -211,4 +227,5 @@ def migrate_database(database: Database):
         create_verslagen_tables(database)
         init_base_directories(database)
         modify_studenten_table(database)
+        import_studenten(database, r'.\data\migrate\m119\studenten.xlsx')
         cleanup_backup(database)
