@@ -2,6 +2,7 @@ from pathlib import Path
 from copy import deepcopy
 import re
 import tkinter.simpledialog as tksimp
+from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
 from data.storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
@@ -38,13 +39,14 @@ class AanvraagValidator:
         self.storage = storage
         self.source_file = source_file
         self.validated_aanvraag = deepcopy(aanvraag)
-        self.student_changed = False
     def validate(self)->bool:
         if not self.__check_email():
             return False
         if not self.__check_titel():
             return False
         self.__insert_versie_en_kans()
+        if self.validated_aanvraag.student.status == Student.Status.UNKNOWN:
+            self.validated_aanvraag.student.status = Student.Status.AANVRAAG
         return True
     def __check_email(self)->bool:
         if not is_valid_email(self.validated_aanvraag.student.email):
@@ -53,7 +55,6 @@ class AanvraagValidator:
                 new_email = new_email.lower()
                 log_warning(f'Aanvraag email is ongeldig:\n\t({self.validated_aanvraag.student.email}),\n\taangepast als {new_email}.')
                 self.validated_aanvraag.student.email = new_email
-                self.student_changed = True
             else:
                 log_error(f'Aanvraag email is ongeldig: {self.validated_aanvraag.student.email}')
                 return False

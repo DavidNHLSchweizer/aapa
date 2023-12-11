@@ -1,5 +1,6 @@
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
+from data.classes.studenten import Student
 from general.fileutil import file_exists, summary_string
 from general.log import log_error, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor
@@ -31,6 +32,8 @@ class ReadFormGradeProcessor(AanvraagProcessor):
             if (beoordeling:=aanvraag_beoordeling(grade_str)) in {Aanvraag.Beoordeling.VOLDOENDE, Aanvraag.Beoordeling.ONVOLDOENDE}:
                 aanvraag.beoordeling = beoordeling
                 log_print(f'Beoordeling {summary_string(aanvraag.summary(), maxlen=80)}: {beoordeling}')
+                if beoordeling == Aanvraag.Beoordeling.VOLDOENDE:
+                    aanvraag.student.status = Student.Status.BEZIG
                 return True
             else:
                 log_warning(f'Aanvraag {summary_string(aanvraag.summary(), maxlen=80)}:\n\tonverwachte beoordeling: "{grade_str}"')

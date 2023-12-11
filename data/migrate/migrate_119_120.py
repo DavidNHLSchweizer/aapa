@@ -3,6 +3,7 @@ from data.aapa_database import BaseDirsTableDefinition, \
     StudentDirectoryTableDefinition, StudentDirectoryAanvragenTableDefinition, StudentDirectoryVerslagenTableDefinition, \
         VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
 from data.classes.base_dirs import BaseDir
+from data.classes.studenten import Student
 from data.migrate.old_119.roots import old_add_root, old_decode_path, old_reset_roots
 from data.roots import OneDriveCoder, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
@@ -14,6 +15,7 @@ from general.keys import reset_key
 
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
+# add status column to STUDENTEN
 # toevoegen STUDENT_DIRECTORY 
 #   en gerelateerde details STUDENT_DIRECTORY_AANVRAGEN,STUDENT_DIRECTORY_VERSLAGEN tabellen
 
@@ -142,6 +144,37 @@ def recode_roots_table(database: Database):
     database.commit()
     _check_results(old_files, _find_all_files(database))
 
+def modify_studenten_table(database: Database):
+    print('add status column to STUDENTEN')
+    database._execute_sql_command('alter table STUDENTEN add status INTEGER DEFAULT 0')
+    #initialise status where aanvraag is "voldoende"
+    select2 = 'select s.id from studenten as s where exists (select a.id from aanvragen as a where a.stud_id = s.id and a.beoordeling=2)'
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in ({select2})', [Student.Status.BEZIG])
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where status != ?', [Student.Status.AANVRAAG, Student.Status.BEZIG])
+    _correct_student_errors(database)
+    print('--- klaar toevoegen status column')
+
+def _correct_student_errors(database: Database):
+    print('correcting some errors in STUDENTEN table')  
+    #Justin vd Leij
+    database._execute_sql_command('update AANVRAGEN set stud_id = ? where stud_id = ?',
+                                  [16,17]
+                                  )
+    database._execute_sql_command('delete from STUDENTEN where id = ?', [17])
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
+                                  [Student.Status.BEZIG, 16])
+    #Jimi/Cassandra van Oosten
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
+                                  [Student.Status.BEZIG, 32])
+    #Nando Reij
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
+                                  [Student.Status.BEZIG, 40])
+    #Robert Slomp
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
+                                  [Student.Status.GESTOPT, 35])
+    print('--- klaar correcting some errors in STUDENTEN table')
+
+
 class BackupFileRootTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('BACKUP_FILEROOT', autoid=True)
@@ -172,4 +205,5 @@ def migrate_database(database: Database):
         recode_roots_table(database)
         create_verslagen_tables(database)
         init_base_directories(database)
+        modify_studenten_table(database)
         cleanup_backup(database)
