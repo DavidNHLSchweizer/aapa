@@ -156,7 +156,7 @@ def modify_studenten_table(database: Database):
 
 def correct_student_errors(database: Database, phase_1=True):
     if phase_1:
-        print('correcting some errors in STUDENTEN table')  
+        print('correcting some existing errors in STUDENTEN table')  
     
         #jorunn Oosterwegel, jelke nelisse, Musaab Asawi
         database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in (?,?,?)', 
@@ -171,18 +171,19 @@ def correct_student_errors(database: Database, phase_1=True):
                                     [Student.Status.BEZIG, 16])
         print('--- klaar correcting some errors in STUDENTEN table')        
     else:    
+        print('correcting migration errors in STUDENTEN table')
+
         #Jimi/Cassandra van Oosten
-        print('correcting overige errors in STUDENTEN table')
         database._execute_sql_command(f'update AANVRAGEN set stud_id=? where stud_id = ?', 
                                     [151, 32])
         database._execute_sql_command(f'delete from STUDENTEN where id = ?', [32])
 
-        #Nando Reij
-        database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
-                                    [Student.Status.BEZIG, 40])
-        #Robert Slomp
-        database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
-                                    [Student.Status.GESTOPT, 35])
+        #Nando Reij, Ramon Booi, Michael Koopmans, Sander Beijaard, Jarno van der Poll, Micky Cheng, Nick Westerdijk, Daniel Roskam, Daan Eekhof
+        database._execute_sql_command(f'update STUDENTEN set STATUS=? where stud_nr in (?,?,?,?,?,?,?,?,?,?,?)', 
+                                    [Student.Status.BEZIG, '4700082', '4547055','4692012','4621646','3341517','3484695','4699475','4511484','3432962','3541141','3472190'])
+        #Robert Slomp, Nam Nguyen  
+        database._execute_sql_command(f'update STUDENTEN set STATUS=? where stud_nr in (?,?)', 
+                                    [Student.Status.GESTOPT, '3417904', '4621646'])
         print('--- klaar correcting overige errors in STUDENTEN table')
 
 
