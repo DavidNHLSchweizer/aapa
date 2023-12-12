@@ -2,6 +2,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.studenten import Student
 from data.storage.CRUDs import CRUDQueries
+from database.sql_expr import Ops
 
 class  AanvraagQueries(CRUDQueries):
     def find_kans(self, student: Student)->int:
@@ -22,3 +23,11 @@ class  AanvraagQueries(CRUDQueries):
                                       map_values=False):
             return result[0]
         return None
+    def find_new_aanvragen(self, first_id: int)->list[Aanvraag]:        
+        if rows := self.find_values_where('id', where_attributes=['id', 'status'], where_values=[first_id, Aanvraag.Status.valid_states()], 
+                                  where_operators =[Ops.GTE, Ops.IN]):
+            return self.crud.read_many({row['id'] for row in rows})
+        return None
+# find_all(where_attributes='status', where_values=Aanvraag.Status.valid_states())
+
+

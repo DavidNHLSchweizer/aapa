@@ -118,19 +118,21 @@ class QueryBuilder:
             result = [self.mapper.db_to_value(row['id'], 'id') for row in rows] 
             return result
         return []   
-    def __build_where(self, columns: list[str], values: list[Any|set[Any]])->SQE:
+    def __build_where(self, columns: list[str], values: list[Any|set[Any]], operators: list[Ops]=None)->SQE:
         result = None
         log_debug(f'BW: {columns}|{values}')
-        for (key,value) in zip(columns, values):
+        operators = operators if operators else [Ops.EQ]*len(columns)
+        log_debug(operators)
+        for (key,value,operator) in zip(columns, values, operators):
             if isinstance(value, set):
                 new_where_part = SQE(key, Ops.IN, list(value), no_column_ref=True)
             else:
-                new_where_part = SQE(key, Ops.EQ, value, no_column_ref=True)
+                new_where_part = SQE(key, operator, value, no_column_ref=True)
             result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
         return result
     def build_where_from_object(self, aapa_obj: StoredClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  
         return self.__build_where(*self.query_info.get_data(aapa_obj, columns=column_names, flags=flags))
-    def build_where_from_values(self, column_names: list[str], values: list[Any], flags={QIF.ATTRIBUTES})->SQE:  
-        return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags))
+    def build_where_from_values(self, column_names: list[str], values: list[Any], operators: list[Ops] = None, flags={QIF.ATTRIBUTES})->SQE:  
+        return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags), operators=operators)
     def build_where_for_many(self, column_name: str, values: set[Any], flags={QIF.ATTRIBUTES})->SQE:  
-        return self.__build_where([column_name], [values])
+        return self.__build_where(columns=[column_name], values=[values])

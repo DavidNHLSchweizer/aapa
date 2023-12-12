@@ -176,8 +176,9 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
-    all_aanvragen = importer.storage.find_all('aanvragen', where_attributes='status', where_values=Aanvraag.Status.valid_states())
-    report_imports(list(filter(lambda a: a.id >= first_id, all_aanvragen)), preview=preview)
+    queries:AanvraagQueries = importer.storage.queries('aanvragen')
+    new_aanvragen =queries.find_new_aanvragen(first_id=first_id)
+    report_imports(new_aanvragen, preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
     log_info(f'...Import afgerond ({sop(n_processed, "nieuwe aanvraag", "nieuwe aanvragen")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
     log_debug(MAJOR_DEBUG_DIVIDER)
