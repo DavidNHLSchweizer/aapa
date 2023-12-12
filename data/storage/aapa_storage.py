@@ -84,6 +84,7 @@ class AAPAStorage:
             crud.delete(aapa_obj)    
     def add_file_root(self, root: str, code = None)->str:
         encoded_root = encode_path(root)
+        # crud = self.get_crud()
         code = add_root(encoded_root, code)
         if encoded_root != code: 
         #this means the root is already registered, re-encoding causes it to reduce to just the code

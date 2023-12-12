@@ -33,7 +33,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--detect=d:\\aapademo\\periode 2",
+                "--detect=C:\\Users\\david\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2022-2023\\Periode 1",
                 "-preview",
                 "-debug",
             ]

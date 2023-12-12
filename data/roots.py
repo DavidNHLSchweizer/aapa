@@ -101,6 +101,9 @@ class Roots(Singleton):
         self._converters.sort(key=lambda converter: len(converter.expanded), reverse=True)
         return result
     def _add(self, root_path: str|Path, code = None, nolog=False, initial=False)->str:
+        if already_there := self.__find_expanded(root_path):
+            log_info(f'expanded path root already there: {root_path}')
+            return already_there.code
         odp = self._find_onedrive_path(root_path, initial)
         if odp:
             encoded_path = self.encode_path(odp, allow_single=False)  
@@ -181,6 +184,15 @@ class Roots(Singleton):
                 if converter.root == root_path:
                     return converter
         return None
+    def __find_expanded(self, root_path)->PathRootConvertor:
+        if not root_path:
+            return None
+        else:
+            for converter in self._converters:
+                if converter.expanded == root_path:
+                    return converter
+        return None
+
 
 _roots = Roots(BASEPATH)
 
