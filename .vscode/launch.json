@@ -65,6 +65,19 @@
             ]
         },
         {
+            "name": "Python: aapa new",
+            "type": "python",
+            "request": "launch",
+            "program": "aapa.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "new",
+                "-force",
+                "-debug",
+            ]
+        },
+        {
             "name": "Python: aapa scan",
             "type": "python",
             "request": "launch",
@@ -73,8 +86,7 @@
             "justMyCode": true,
             "args": [
                 "scan",
-                "-debug",
-                "-preview"
+                "-debug"                
             ]
         },
         {

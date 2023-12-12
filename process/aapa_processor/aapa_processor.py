@@ -102,7 +102,10 @@ class AAPARunnerContext:
                            processing_options=self.processing_options,
                            other_options=self.other_options)
     def needs_preview(self)->bool:
-        return self.processing_options.preview or not self.processing_options.no_processing() or self.other_options.no_processing()
+        if not self.processing_options.preview:
+            return False
+        else:
+            return not self.processing_options.no_processing() or not self.other_options.no_processing()
     def __enter__(self):
         log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.options)}')
         log_print(banner())

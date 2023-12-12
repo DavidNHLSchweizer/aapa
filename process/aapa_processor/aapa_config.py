@@ -126,7 +126,7 @@ class AAPAConfiguration:
             return tkifd.askopenfilename(initialfile=option_history,initialdir='.', defaultextension='.xlsx')
     def __must_recreate(self, processing_options: AAPAProcessingOptions)->bool:
         result= (AAPAaction.NEW in processing_options.actions) and\
-               (not file_exists(self.get_database_name()) or self.config_options.force or verifyRecreate())        
+               (not file_exists(self.get_database_name()) or processing_options.force or verifyRecreate())        
         return result
     def __initialize_database_part(self, processing_options: AAPAProcessingOptions)->bool:
         return self.__initialize_database(self.__must_recreate(processing_options))
