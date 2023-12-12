@@ -6,6 +6,7 @@ from typing import Any
 import pandas as pd
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
+from data.migrate.sql_coll import SQLcollector
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.studenten import StudentQueries
 from general.log import log_error, log_info, log_print, log_warning
@@ -39,9 +40,17 @@ class StudentenXLSImporter(FileProcessor):
         self.n_new = 0
         self.n_modified = 0
         self.n_already_there = 0
+        self.sql=SQLcollector(# to use in migration script
+            insert_str='insert into STUDENTEN (id,stud_nr,full_name,first_name,email,tel_nr,status) values(?,?,?,?,?,?,?)', 
+            update_str='update STUDENTEN set (stud_nr=?,full_name=?,first_name=?,email=?,tel_nr=?,status=?) where id = ?')        
         super().__init__(description='Importeren studenten')
     def __get(self, dataframe: pd.DataFrame, rownr: int, colnr: Colnr)->Any:
         return dataframe.at[rownr, self.expected_columns[colnr]]        
+    def __add_sql(self, student: Student, is_new=True):
+        if is_new:
+            self.sql.insert([student.id, student.stud_nr, student.full_name, student.first_name, student.email, student.tel_nr,int(student.status)])
+        else:
+            self.sql.update([student.stud_nr, student.full_name, student.first_name, student.email, student.tel_nr,int(student.status),student.id])
     def __check_format(self, df: pd.DataFrame):    
         self._error = ''
         if ncols(df) != self.NCOLS:
@@ -72,11 +81,13 @@ class StudentenXLSImporter(FileProcessor):
             if different:
                 self.n_modified += 1
                 storage.update('studenten', student)
+                self.__add_sql(student, False)
             else:
                 self.n_already_there += 1
         else:
             log_info(f'\tNieuwe student: {student}', to_console=True)
             storage.create('studenten', student)
+            self.__add_sql(student, True)
             self.n_new += 1
     def __read_student(self, df: pd.DataFrame, row: int)->Student:
         afgestudeerd = self.__get(df,row,self.Colnr.AFGESTUDEERD) == self.AFGESTUDEERD_CODE
@@ -99,7 +110,6 @@ class StudentenXLSImporter(FileProcessor):
         if not self.__check_format(dataframe):
             log_error(f'Kan studentgegevens niet importeren uit {filename}.\n\t\
                       {self._error}.')
-        result = 0
         self.n_new = 0
         self.n_modified = 0
         self.n_already_there = 0
@@ -108,6 +118,7 @@ class StudentenXLSImporter(FileProcessor):
                 log_error(f'Fout bij lezen rij {row}: {self._error}.')
             else:
                 self.__check_and_store_student(student, storage)
+        self.sql.dump_to_file('insert_students.json')
         return (self.n_new,self.n_modified,self.n_already_there)
         
 def import_studenten_XLS(xls_filename: str, storage: AAPAStorage, preview=False):

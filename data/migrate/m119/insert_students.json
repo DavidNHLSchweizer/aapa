@@ -1,0 +1,1002 @@
+{
+    "1": {
+        "sql": "insert into STUDENTEN (id,stud_nr,full_name,first_name,email,tel_nr,status) values(?,?,?,?,?,?,?)",
+        "values": [
+            [
+                71,
+                "4692012",
+                "Ramon Booi",
+                "Ramon",
+                "ramon.booi@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                72,
+                "4547055",
+                "Jasper de Jong",
+                "Jasper",
+                "jasper.de.jong@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                73,
+                "4621646",
+                "Nam Nguyen",
+                "Nam",
+                "nam.nguyen@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                74,
+                "3341517",
+                "Michael Koopmans",
+                "Michael",
+                "michael.koopmans@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                75,
+                "3484695",
+                "Sander Beijaard",
+                "Sander",
+                "sander.beijaard@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                76,
+                "4699475",
+                "Jarno van der Poll",
+                "Jarno",
+                "jarno.van.de.poll@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                77,
+                "4511484",
+                "Micky Cheng",
+                "Micky",
+                "micky.cheng@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                78,
+                "3432962",
+                "Nick Westerdijk",
+                "Nick",
+                "nick.westerdijk@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                79,
+                "3541141",
+                "Daniel Roskam",
+                "Daniel",
+                "daniel.roskam@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                80,
+                "3472190",
+                "Daan Eekhof",
+                "Daan",
+                "daan.eekhof@student.nhlstenden.com",
+                "",
+                0
+            ],
+            [
+                81,
+                "3519375",
+                "Rens Krauweel",
+                "Rens",
+                "rens.krauweel@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                82,
+                "3535397",
+                "Reinder Vis",
+                "Reinder",
+                "reinder.vis@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                83,
+                "3525316",
+                "Gerran Schouten",
+                "Gerran",
+                "gerran.schouten@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                84,
+                "3532215",
+                "Erwin Schaap",
+                "Erwin",
+                "erwin.schaap@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                85,
+                "3528684",
+                "Pieter van der Werk",
+                "Pieter",
+                "pieter.van.der.werk@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                86,
+                "3525111",
+                "Robin Hogerhuis",
+                "Robin",
+                "robin.hogerhuis@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                87,
+                "3557692",
+                "Stan van der Ploeg",
+                "Stan",
+                "stan.van.der.ploeg@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                88,
+                "3532479",
+                "Dennis van der Weide",
+                "Dennis",
+                "dennis.van.der.weide@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                89,
+                "3537381",
+                "Eric Schuitmaker",
+                "Eric",
+                "eric.schuitmaker@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                90,
+                "3534307",
+                "Jorden Bentum",
+                "Jorden",
+                "jorden.bentum@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                91,
+                "3520373",
+                "Pawel Protas",
+                "Pawel",
+                "pawel.protas@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                92,
+                "3529036",
+                "Niels Nieuwland",
+                "Niels",
+                "niels.nieuwland@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                93,
+                "3562211",
+                "Taeke Hofman",
+                "Taeke",
+                "taeke.hofman@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                94,
+                "3531227",
+                "Maarten van der Meulen",
+                "Maarten",
+                "maarten.van.der.meulen@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                95,
+                "3527076",
+                "Jan Kuipers",
+                "Jan",
+                "jan.kuipers@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                96,
+                "3539562",
+                "Christiaan Bakker",
+                "Christiaan",
+                "christiaan.bakker@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                97,
+                "3512958",
+                "Demi Stedehouder",
+                "Demi",
+                "demi.stedehouder@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                98,
+                "3281867",
+                "Casper Hooft",
+                "Casper",
+                "casper.hooft@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                99,
+                "3462918",
+                "Wiebe de Boer",
+                "Wiebe",
+                "wiebe.de.boer@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                100,
+                "3313661",
+                "Bauke Postma",
+                "Bauke",
+                "bauke.postma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                101,
+                "3339857",
+                "Harm van den Bogert",
+                "Harm",
+                "harm.van.den.bogert@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                102,
+                "3529796",
+                "Swen van der Wijngaard",
+                "Swen",
+                "swen.van.der.wijngaard@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                103,
+                "3540412",
+                "Rob Alma",
+                "Rob",
+                "rob.alma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                104,
+                "3536296",
+                "Sybrig de Haan",
+                "Sybrig",
+                "sybrig.de.haan@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                105,
+                "3424900",
+                "Kylian Goudswaard",
+                "Kylian",
+                "kylian.goudswaard@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                106,
+                "3541133",
+                "Kevin Haakma",
+                "Kevin",
+                "kevin.haakma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                107,
+                "3526134",
+                "Lammert Bakker",
+                "Lammert",
+                "lammert.bakker@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                108,
+                "4519620",
+                "Maurice Ponte",
+                "Maurice",
+                "maurice.ponte@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                109,
+                "4589025",
+                "Boele Boom",
+                "Boele",
+                "boele.boom@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                110,
+                "4562372",
+                "Robin Sinnema",
+                "Robin",
+                "robin.sinnema@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                111,
+                "3505463",
+                "Adriaan Beenen",
+                "Adriaan",
+                "adriaan.beenen@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                112,
+                "4533909",
+                "Robin Wagenaar",
+                "Robin",
+                "robin.wagenaar@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                113,
+                "3535370",
+                "Jan van der Tuin",
+                "Jan",
+                "jan.van.der.tuin1@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                114,
+                "4554752",
+                "Damiaen Toussaint",
+                "Damiaen",
+                "damiaen.toussaint@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                115,
+                "3526053",
+                "Levi Roelofsma",
+                "Levi",
+                "levi.roelofsma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                116,
+                "3524794",
+                "Ramses Dijkstra",
+                "Ramses",
+                "ramses.dijkstra@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                117,
+                "3544248",
+                "Richard de Jong",
+                "Richard",
+                "richard.de.jong@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                118,
+                "3524476",
+                "Jelle Jan van der Tempel",
+                "Jelle Jan",
+                "jelle.jan.van.der.tempel@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                119,
+                "4540387",
+                "Koen Elderhorst",
+                "Koen",
+                "koen.elderhorst@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                120,
+                "4626532",
+                "Jeroen Hulshof",
+                "Jeroen",
+                "jeroen.hulshof1@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                121,
+                "3331562",
+                "Jaron Timmerman",
+                "Jaron",
+                "jaron.timmerman@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                122,
+                "4560884",
+                "Gijs Rijkers",
+                "Gijs",
+                "gijs.rijkers@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                123,
+                "4528042",
+                "Danny Pas",
+                "Danny",
+                "danny.pas@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                124,
+                "4598660",
+                "Betty Visser",
+                "Betty",
+                "betty.visser@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                125,
+                "3530077",
+                "Elon Gielink",
+                "Elon",
+                "elon.gielink@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                126,
+                "3498386",
+                "Pieter Boersma",
+                "Pieter",
+                "pieter.boersma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                127,
+                "4704797",
+                "Janek van Wolfswinkel",
+                "Janek",
+                "janek.van.wolfswinkel@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                128,
+                "4570804",
+                "Leander Woudstra",
+                "Leander",
+                "leander.woudstra@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                129,
+                "4568540",
+                "Matthijs Grafhorst",
+                "Matthijs",
+                "matthijs.grafhorst@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                130,
+                "3525065",
+                "Sjimmie Bleeker",
+                "Sjimmie",
+                "sjimmie.bleeker@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                131,
+                "3527297",
+                "Michael Nguyen",
+                "Michael",
+                "michael.nguyen@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                132,
+                "4527623",
+                "Thimo de Zwart",
+                "Thimo",
+                "thimo.de.zwart@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                133,
+                "4617967",
+                "Rutger Rozendal",
+                "Rutger",
+                "rutger.rozendal@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                134,
+                "3528692",
+                "Klaas van der Werk",
+                "Klaas",
+                "klaas.van.der.werk@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                135,
+                "4607910",
+                "Dennie van Dijk",
+                "Dennie",
+                "dennie.van.dijk@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                136,
+                "4573935",
+                "Naomi Poort",
+                "Naomi",
+                "naomi.poort@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                137,
+                "3532401",
+                "Wytze Douma",
+                "Wytze",
+                "wytze.douma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                138,
+                "4604695",
+                "Jasper van der Lugt",
+                "Jasper",
+                "jasper.van.der.lugt@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                139,
+                "3326178",
+                "Kevin Visser",
+                "Kevin",
+                "kevin.visser@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                140,
+                "4554655",
+                "Rob Albert",
+                "Rob",
+                "rob.albert@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                141,
+                "4686780",
+                "Hieke Wiersma",
+                "Hieke",
+                "hieke.wiersma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                142,
+                "3380865",
+                "Timothy Heppener",
+                "Timothy",
+                "timothy.heppener@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                143,
+                "4575415",
+                "Nick de Boer",
+                "Nick",
+                "nick.de.boer@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                144,
+                "4662970",
+                "Abe Lont",
+                "Abe",
+                "abe.lont@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                145,
+                "4677935",
+                "Steven Engelman",
+                "Steven",
+                "steven.engelman@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                146,
+                "3424609",
+                "Klaas Skelte van der Werf",
+                "Klaas Skelte",
+                "klaas.skelte.van.der.werf@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                147,
+                "3548367",
+                "Pim Spithost",
+                "Pim",
+                "pim.spithost@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                148,
+                "3532428",
+                "Frank Stekelenburg",
+                "Frank",
+                "frank.stekelenburg@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                149,
+                "4739787",
+                "Greyson Beimers",
+                "Greyson",
+                "greyson.beimers@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                150,
+                "4695690",
+                "Koen Molenaar",
+                "Koen",
+                "koen.molenaar@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                151,
+                "3556785",
+                "Cassandra Elise van Oosten",
+                "Cassandra Elise",
+                "cassandra.van.oosten@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                152,
+                "4711688",
+                "Rienk Huizenga",
+                "Rienk",
+                "rienk.huizenga@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                153,
+                "3520209",
+                "Jelle Bleeker",
+                "Jelle",
+                "jelle.bleeker@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                154,
+                "3548065",
+                "Jesse Jongsma",
+                "Jesse",
+                "jesse.jongsma@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                155,
+                "3559180",
+                "Thom Smit",
+                "Thom",
+                "thom.smit@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                156,
+                "4616030",
+                "Jesse Span",
+                "Jesse",
+                "jesse.span@student.nhlstenden.com",
+                "",
+                3
+            ],
+            [
+                157,
+                "4597982",
+                "Jan-Sietze Hoekstra",
+                "Jan-Sietze",
+                "jan.sietze.hoekstra@student.nhlstenden.com",
+                "",
+                3
+            ]
+        ]
+    },
+    "2": {
+        "sql": "update STUDENTEN set stud_nr=?,full_name=?,first_name=?,email=?,tel_nr=?,status=? where id = ?",
+        "values": [
+            [
+                "3555371",
+                "Eugene Bouwer",
+                "Eugene",
+                "eugene.bouwer@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4693973",
+                "Erik Langendijk",
+                "Erik",
+                "erik.langendijk@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3428345",
+                "Jesse Piebenga",
+                "Jesse",
+                "jesse.piebenga@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3475025",
+                "Kleis Auke Wolthuizen",
+                "Kleis Auke ",
+                "kleis.auke.wolthuizen@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3385379",
+                "Jeffrey Drost",
+                "Jeffrey",
+                "jeffrey.drost@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4548000",
+                "Jan Vlasman",
+                "Jan",
+                "jan.vlasman@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4713109",
+                "Wytze Hulshoff",
+                "Wytze",
+                "wytze.hulshoff@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4537025",
+                "Kevin Celinski",
+                "Kevin",
+                "kevin.celinski@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3507512",
+                "Emiel de Wit",
+                "Emiel",
+                "emiel.de.wit@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4558286",
+                "Tycho van der Duim",
+                "Tycho",
+                "tycho.van.der.duim@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3558974",
+                "Fabian de Wilde",
+                "Fabian",
+                "fabian.de.wilde@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4716485",
+                "Tigo Beckers",
+                "Tigo",
+                "tigo.beckers@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3551821",
+                "Keanu Attema",
+                "Keanu",
+                "keanu.attema@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3477141",
+                "Niels van der Wal",
+                "Niels",
+                "niels.van.der.wal@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3519642",
+                "Peter van Schagen",
+                "Peter",
+                "peter.van.schagen@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4515420",
+                "Joshua Terra",
+                "Joshua",
+                "joshua.terra@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3500216",
+                "Remco van Akker",
+                "Remco",
+                "remco.van.akker@student.nhlstenden.com",
+                "",
+                0,
+                -1
+            ],
+            [
+                "3523038",
+                "Kevin Huisman",
+                "Kevin",
+                "kevin.huisman1@student.nhlstenden.com ",
+                "",
+                0,
+                -1
+            ],
+            [
+                "4672933",
+                "Jorn Postma",
+                "Jorn",
+                "jorn.postma@student.nhlstenden.com",
+                "",
+                3,
+                -1
+            ],
+            [
+                "3319902",
+                "Dennis Stiekema",
+                "Dennis",
+                "dennis.stiekema@student.nhlstenden.com",
+                "",
+                3,
+                -1
+            ],
+            [
+                "4693698",
+                "Keimpe Rauwerda",
+                "Keimpe",
+                "keimpe.rauwerda@student.nhlstenden.com",
+                "",
+                3,
+                -1
+            ],
+            [
+                "4725115",
+                "Kevin Boonstra",
+                "Kevin",
+                "kevin.boonstra@student.nhlstenden.com",
+                "",
+                3,
+                -1
+            ],
+            [
+                "3480487",
+                "Nick van Urk",
+                "Nick",
+                "nick.van.urk@student.nhlstenden.com",
+                "",
+                3,
+                -1
+            ]
+        ]
+    }
+}
