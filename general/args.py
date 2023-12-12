@@ -89,7 +89,7 @@ class AAPAProcessingOptions:
             return result
         return cls(actions=_get_actions(args.actions), preview=args.preview, force=args.force, debug=args.debug)
     def no_processing(self)->bool:
-        return not any([a in self.actions for a in {AAPAaction.SCAN, AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL}])
+        return not any([a in self.actions for a in {AAPAaction.SCAN, AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
 
 def _get_config_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('configuratie opties')

@@ -85,7 +85,8 @@ class AAPAProcessor:
             if AAPAaction.UNDO in actions:
                 undo_last(configuration.storage, preview=preview)
             if AAPAaction.REPORT in actions:
-                report_aanvragen_XLS(configuration.storage, path_with_suffix(processing_options.filename, '.xlsx'))
+                report_aanvragen_XLS(configuration.storage, 
+                                     path_with_suffix(configuration.config_options.report_filename, '.xlsx'))
         except Exception as E:
             log_error(f'Fout bij processing (main): {E}')
 

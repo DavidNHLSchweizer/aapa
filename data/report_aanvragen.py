@@ -61,7 +61,7 @@ class AanvraagXLSReporter(AanvraagProcessor):
         self.writer = None
         self.sheet = None
         self.mapper = ExcelMapper()
-        super().__init__(description='Maken XLS rapportage')
+        super().__init__(description='Maken XLS rapportage', entry_states=Aanvraag.Status.valid_states(), read_only=True)
     @contextmanager
     def open_xls(self, xls_filename: str)->pd.ExcelWriter:
         if self.writer:

@@ -5,9 +5,10 @@ from data.storage.aapa_storage import AAPAStorage
 from process.general.base_processor import BaseProcessor, FileProcessor
 
 class AanvraagProcessor(BaseProcessor):
-    def __init__(self, entry_states:set[Aanvraag.Status]=None, exit_state:Aanvraag.Status=None, description: str = ''):
+    def __init__(self, entry_states:set[Aanvraag.Status]=None, exit_state:Aanvraag.Status=None, description: str = '', read_only=False):
         self.entry_states = entry_states
         self.exit_state = exit_state
+        self.read_only = read_only
         super().__init__(description=description)
     def in_entry_states(self, status:int)->bool:
         if self.entry_states is not None:

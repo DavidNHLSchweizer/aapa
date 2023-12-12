@@ -64,8 +64,9 @@ class AanvragenPipeline(Pipeline):
                 log_debug(f'processed. Exit state: {processor.exit_state}')
                 if processor.exit_state:
                     aanvraag.status = processor.exit_state                       
-                self.storage.update('aanvragen', aanvraag)
-                self.storage.commit()
+                if not processor.read_only:
+                    self.storage.update('aanvragen', aanvraag)
+                    self.storage.commit()
             else:
                 log_debug(f'Not processed: {processor.description} {self.undo_log}')
             log_debug(ITEM_DEBUG_DIVIDER)

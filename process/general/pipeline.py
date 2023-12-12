@@ -38,7 +38,7 @@ class Pipeline:
     def stop_logging(self):
         self.undo_log.stop()
         log_debug(f'STOPPING aanvragenprocessor {self.undo_log}')
-        if not self.undo_log.is_empty():
+        if not self.undo_log.is_empty() and self.undo_log.can_undo:
             self.storage.create('undo_logs', self.undo_log)
         self.storage.commit()
 
