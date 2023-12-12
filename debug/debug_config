@@ -17,3 +17,5 @@ tui.*
 [DISABLED]
 data.migrate.*
 general.*
+[ENABLED]
+general.preview

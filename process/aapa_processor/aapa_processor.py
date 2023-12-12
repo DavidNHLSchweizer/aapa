@@ -2,26 +2,24 @@ from datetime import datetime
 from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
 from process.aapa_processor.aapa_config import AAPAConfiguration
-from process.general.import_studenten import import_studenten_XLS
+from process.migrate.import_studenten import import_studenten_XLS
 from process.scan.importing.detect_student_from_directory import detect_from_directory
 from process.scan.importing.import_verslagen import import_zipfile
 from process.undo.undo_processor import undo_last
 from process.scan.create_forms.create_diff_file import DifferenceProcessor
-# from process.read_grade.history import read_beoordelingen_from_files
-from general.config import config
 from data.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.scan.scan import process_directory, process_forms
-from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction, report_options
+from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, report_options
 from general.versie import banner
 
 class AAPAProcessor:
-    def __report_info(self, config_options: AAPAConfigOptions, processing_options: AAPAProcessingOptions):
+    def __report_info(self, options: AAPAOptions):
         def tabify(s):
             return '\t' + s.replace('\n', '\n\t')
-        log_print(f'CONFIGURATION:\n{tabify(report_options(config_options,processing_options, 1))}')
-        log_print(f'OPERATION:\n{tabify(report_options(config_options,processing_options,2))}\n')
-    def __create_diff_file(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions):
+        log_print(f'CONFIGURATION:\n{tabify(report_options(options, 1))}')
+        log_print(f'OPERATION:\n{tabify(report_options(options,2))}\n')
+    def __create_diff_file(self, configuration: AAPAConfiguration, other_options: AAPAOtherOptions):
         DP = DifferenceProcessor(configuration.storage)
         pass
         #TODO: dit bijwerken DP.process_student(configuration.options.diff_file, configuration.output_directory)
@@ -34,27 +32,28 @@ class AAPAProcessor:
         detect_from_directory(directory, configuration.storage, preview=preview)
     def __import_student_data(self, xls_filename: str, configuration: AAPAConfiguration, preview = False):
         import_studenten_XLS(xls_filename, configuration.storage, preview=preview)   
-    def process(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions):
-        def must_process(processing_options: AAPAProcessingOptions)->bool:
-            if any([a in processing_options.actions for a in {AAPAaction.FULL, AAPAaction.SCAN, AAPAaction.FORM, 
-                                                              AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.NEW, 
-                                                              AAPAaction.ZIPIMPORT, AAPAaction.REPORT}]) or\
-                processing_options.history_file:
-                return True
-            return False
-        try:
+
+    
+    def __process_other_options(self, configuration: AAPAConfiguration, other_options: AAPAOtherOptions, preview = False):        
+        if other_options.diff_file:
+                self.__create_diff_file(configuration, other_options)
+        if other_options.detect_dir:
+            self.__detect_from_directory(other_options.detect_dir, configuration, preview=preview)            
+        if other_options.student_file:              
+            self.__import_student_data(other_options.student_file, configuration, preview=preview)
+        if other_options.history_file:              
+            raise ValueError(f'#NOTIMPLEMENTED: HISTORY {other_options.history_file}')
+
+    def process(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions, other_options: AAPAOtherOptions):
+        try:            
             actions = processing_options.actions
             # print(actions)
             preview = processing_options.preview
             if AAPAaction.INFO in actions:
-                self.__report_info(configuration.options, processing_options)
-            if processing_options.diff_file:
-                self.__create_diff_file(configuration, processing_options)
-            if processing_options.detect_dir:
-                self.__detect_from_directory(processing_options.detect_dir, configuration, preview=preview)            
-            if processing_options.student_file:              
-                self.__import_student_data(processing_options.student_file, configuration, preview=preview)
-            if not must_process(processing_options):
+                self.__report_info(AAPAOptions(config_options=configuration.config_options, processing_options=processing_options, other_options=other_options))
+            if not other_options.no_processing():
+                self.__process_other_options(configuration, other_options, preview=preview)        
+            if processing_options.no_processing():
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
                 process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
@@ -91,15 +90,21 @@ class AAPAProcessor:
             log_error(f'Fout bij processing (main): {E}')
 
 class AAPARunnerContext:
-    def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions):
+    def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions, other_options: AAPAOtherOptions):
         self.configuration = configuration
         self.processing_options = processing_options
+        self.other_options = other_options
         self.preview = self.needs_preview()
         self.valid = True
+    @property
+    def options(self)->AAPAOptions:
+        return AAPAOptions(config_options=self.configuration.config_options, 
+                           processing_options=self.processing_options,
+                           other_options=self.other_options)
     def needs_preview(self)->bool:
-        return self.processing_options.preview and not self.processing_options.no_processing()
+        return self.processing_options.preview or not self.processing_options.no_processing() or self.other_options.no_processing()
     def __enter__(self):
-        log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.configuration.options, self.processing_options)}')
+        log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.options)}')
         log_print(banner())
         log_info(f'+++ AAPA started +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}', to_console=True)
         self.valid = True

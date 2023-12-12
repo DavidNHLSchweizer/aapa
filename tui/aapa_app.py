@@ -11,7 +11,7 @@ from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
 from data.storage.queries.undo_logs import UndoLogQueries
-from general.args import AAPAaction, AAPAOptions
+from general.args import AAPAConfigOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
 from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
 from process.aapa_processor.aapa_config import AAPAConfiguration
@@ -30,7 +30,7 @@ def AAPArun_script(options: AAPAOptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
         aapa_runner = AAPARunner(options.config_options)
-        aapa_runner.process(options.processing_options) 
+        aapa_runner.process(options.processing_options, options.other_options) 
     finally:
         pop_console()
     return True
@@ -55,9 +55,24 @@ class AAPATuiParams:
     output_directory: str = ''
     database: str = ''
     preview: bool = True
-    def get_options(self, action: AAPAaction)->AAPAOptions:
-        return AAPAOptions(actions=[action], root_directory=self.root_directory, 
-                           output_directory=self.output_directory, database_file=self.database, preview=self.preview)
+    def get_options(self, action: AAPAaction, report_filename = '')->AAPAOptions:
+        def _get_config_options(report_filename: str)->AAPAConfigOptions:
+            result = get_options_from_commandline(ArgumentOption.CONFIG)
+            result.root_directory=self.root_directory
+            result.output_directory=self.output_directory
+            result.database_file=self.database
+            result.report_filename=report_filename
+            return result
+        def _get_processing_options(action: AAPAaction)->AAPAProcessingOptions:
+            result = get_options_from_commandline(ArgumentOption.PROCES)
+            result.actions=[action]
+            result.preview=self.preview
+            return result
+        def _get_other_options()->AAPAOtherOptions:
+            return get_options_from_commandline(ArgumentOption.OTHER) 
+        return AAPAOptions(config_options=_get_config_options(report_filename),
+                           processing_options=_get_processing_options(action),
+                           other_options=_get_other_options())
       
 def windows_style(path: str)->str:
     #because askdirectory/askfile returns a Posix-style path which causes trouble
@@ -221,9 +236,7 @@ class AAPAApp(App):
             case 'report': await self.action_report()
         message.stop()
     def _create_options(self, **kwdargs)->AAPAOptions:
-        options = self.params.get_options(kwdargs.pop('action', None))
-        options.processing_options.filename = kwdargs.pop('filename', options.processing_options.filename)
-        return options
+        return self.params.get_options(kwdargs.pop('action', None),  kwdargs.pop('filename', config.get('report', 'filename')))
     async def run_AAPA(self, action: AAPAaction, **kwdargs):
         options = self._create_options(action=action, **kwdargs)
         # logging.info(f'{options}')

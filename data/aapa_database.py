@@ -26,7 +26,7 @@ class VersionTableDefinition(TableDefinition):
         self.add_column('datum', dbc.TEXT)
 
 def read_version_info(database: Database)->DBVersie:
-    if row := database._execute_sql_command('select * from VERSIE order by id desc', [], True):
+    if row := database._execute_sql_command('select db_versie,versie,datum from VERSIE order by id desc limit 1', [], True):
         record = row[0]
         return DBVersie(db_versie = record['db_versie'], versie=record['versie'], datum=record['datum'])
     else:

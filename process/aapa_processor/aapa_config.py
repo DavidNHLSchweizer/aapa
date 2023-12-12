@@ -36,20 +36,20 @@ class AAPAConfiguration:
         DATABASE = auto()
         DIRECTORIES = auto()     
         BOTH    = auto()   
-    def __init__(self, options: AAPAConfigOptions):
+    def __init__(self, config_options: AAPAConfigOptions):
         self.validation_error = None
         self.storage  = None
         self.database = None
-        if options.config_file:
-            config_file = path_with_suffix(options.config_file, '.ini')
+        if config_options.config_file:
+            config_file = path_with_suffix(config_options.config_file, '.ini')
             if not Path(config_file).is_file():
                 log_error(f'Alternatieve configuratiefile ({config_file}) niet gevonden.')
             config.read(config_file)
             log_info(f'Alternative configuratie file {config_file} geladen.')
-        self.options = options
+        self.config_options = config_options
     def get_database_name(self):
-        if self.options.database_file:
-            database = self.options.database_file
+        if self.config_options.database_file:
+            database = self.config_options.database_file
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
@@ -80,13 +80,13 @@ class AAPAConfiguration:
             log_print(f'Map {self.output_directory} aangemaakt.')
         self.storage.add_file_root(str(self.output_directory))
     def __initialize_directories(self, preview: bool)->bool:        
-        self.root = self.__get_directory(self.options.root_directory, 'root','Root directory voor aanvragen', True)
+        self.root = self.__get_directory(self.config_options.root_directory, 'root','Root directory voor aanvragen', True)
         valid = True
         if not self.root or not test_directory_exists(self.root):
             valid = False
             err_msg = f'Root directory "{self.root}" voor aanvragen niet ingesteld of bestaat niet.'
             log_error(err_msg)
-        self.output_directory = self.__get_directory(self.options.output_directory, 'output', 'Directory voor nieuwe beoordelingsformulieren')
+        self.output_directory = self.__get_directory(self.config_options.output_directory, 'output', 'Directory voor nieuwe beoordelingsformulieren')
         if not self.output_directory:
             valid = False
             err_msg = f'Output directory "{self.output_directory}" voor aanvragen niet ingesteld.'
@@ -126,7 +126,7 @@ class AAPAConfiguration:
             return tkifd.askopenfilename(initialfile=option_history,initialdir='.', defaultextension='.xlsx')
     def __must_recreate(self, processing_options: AAPAProcessingOptions)->bool:
         result= (AAPAaction.NEW in processing_options.actions) and\
-               (not file_exists(self.get_database_name()) or self.options.force or verifyRecreate())        
+               (not file_exists(self.get_database_name()) or self.config_options.force or verifyRecreate())        
         return result
     def __initialize_database_part(self, processing_options: AAPAProcessingOptions)->bool:
         return self.__initialize_database(self.__must_recreate(processing_options))

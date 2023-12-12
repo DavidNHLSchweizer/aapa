@@ -108,6 +108,7 @@ def console_info(msg: str):
         _console.info(msg)
     else:
         print(msg)
+    log_debug(msg)
 
 def log_info(msg: str, to_console=False):
     if _logger is not None:
