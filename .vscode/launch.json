@@ -46,7 +46,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--student=d:\\aapa\\map42.xlsx",
+                "--student=d:\\aapa\\studenten.xlsx",
                 "-preview",
                 "-debug",
             ]

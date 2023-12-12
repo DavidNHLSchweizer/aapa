@@ -41,7 +41,7 @@ class StudentenXLSImporter(FileProcessor):
         self.n_already_there = 0
         self.sql=SQLcollector(# to use in migration script
             insert_str='insert into STUDENTEN (id,stud_nr,full_name,first_name,email,tel_nr,status) values(?,?,?,?,?,?,?)', 
-            update_str='update STUDENTEN set (stud_nr=?,full_name=?,first_name=?,email=?,tel_nr=?,status=?) where id = ?')        
+            update_str='update STUDENTEN set stud_nr=?,full_name=?,first_name=?,email=?,tel_nr=?,status=? where id = ?')        
         super().__init__(description='Importeren studenten')
     def __get(self, dataframe: pd.DataFrame, rownr: int, colnr: Colnr)->Any:
         return dataframe.at[rownr, self.expected_columns[colnr]]        
@@ -76,7 +76,8 @@ class StudentenXLSImporter(FileProcessor):
             log_warning(f'\tStudent {student} al in database')
             different = check_diff(student, stored, 'email') or\
                     check_diff(student, stored, 'first_name') or\
-                    check_diff(student, stored, 'stud_nr')
+                    check_diff(student, stored, 'stud_nr') or\
+                    check_diff(student, stored, 'status')
             if different:
                 self.n_modified += 1
                 storage.update('studenten', student)

@@ -151,34 +151,39 @@ def modify_studenten_table(database: Database):
     select2 = 'select s.id from studenten as s where exists (select a.id from aanvragen as a where a.stud_id = s.id and a.beoordeling=2)'
     database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in ({select2})', [Student.Status.BEZIG])
     database._execute_sql_command(f'update STUDENTEN set STATUS=? where status != ?', [Student.Status.AANVRAAG, Student.Status.BEZIG])
+    database._execute_sql_command(f'update STUDENTEN set STATUS=? where status is null', [Student.Status.UNKNOWN])
     print('--- klaar initializing status column in STUDENTEN')
 
-def correct_student_errors(database: Database):
-    print('also correcting some errors in STUDENTEN table')  
+def correct_student_errors(database: Database, phase_1=True):
+    if phase_1:
+        print('correcting some errors in STUDENTEN table')  
     
-    #jorunn Oosterwegel, jelke nelisse, Musaab Asawi
-    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in (?,?,?)', 
-                                  [Student.Status.AANVRAAG, 52,56,70])
-    
-    #Justin vd Leij
-    database._execute_sql_command('update AANVRAGEN set stud_id = ? where stud_id = ?',
-                                  [16,17]
-                                  )
-    database._execute_sql_command('delete from STUDENTEN where id = ?', [17])
-    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
-                                  [Student.Status.BEZIG, 16])
-    #Jimi/Cassandra van Oosten
-    database._execute_sql_command(f'update AANVRAGEN set stud_id=? where stud_id = ?', 
-                                  [151, 32])
-    database._execute_sql_command(f'delete from STUDENTEN where id = ?', [32])
+        #jorunn Oosterwegel, jelke nelisse, Musaab Asawi
+        database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in (?,?,?)', 
+                                    [Student.Status.AANVRAAG, 52,56,70])
+        
+        #Justin vd Leij
+        database._execute_sql_command('update AANVRAGEN set stud_id = ? where stud_id = ?',
+                                    [16,17]
+                                    )
+        database._execute_sql_command('delete from STUDENTEN where id = ?', [17])
+        database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
+                                    [Student.Status.BEZIG, 16])
+        print('--- klaar correcting some errors in STUDENTEN table')        
+    else:    
+        #Jimi/Cassandra van Oosten
+        print('correcting overige errors in STUDENTEN table')
+        database._execute_sql_command(f'update AANVRAGEN set stud_id=? where stud_id = ?', 
+                                    [151, 32])
+        database._execute_sql_command(f'delete from STUDENTEN where id = ?', [32])
 
-    #Nando Reij
-    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
-                                  [Student.Status.BEZIG, 40])
-    #Robert Slomp
-    database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
-                                  [Student.Status.GESTOPT, 35])
-    print('--- klaar correcting some errors in STUDENTEN table')
+        #Nando Reij
+        database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
+                                    [Student.Status.BEZIG, 40])
+        #Robert Slomp
+        database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
+                                    [Student.Status.GESTOPT, 35])
+        print('--- klaar correcting overige errors in STUDENTEN table')
 
 
 class BackupFileRootTableDefinition(TableDefinition):
@@ -223,6 +228,7 @@ def migrate_database(database: Database):
         create_verslagen_tables(database)
         init_base_directories(database)
         modify_studenten_table(database)
-        import_studenten(database, r'.\data\migrate\m119\insert_students.json')
         correct_student_errors(database)
+        import_studenten(database, r'.\data\migrate\m119\insert_students.json')
+        correct_student_errors(database, False)
         cleanup_backup(database)
