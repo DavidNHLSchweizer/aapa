@@ -13,7 +13,7 @@ from general.timeutil import TSC
 #
 # aanpassen tijden in database (sorteerbaar gemaakt)
 # studenten krijgt ook zijn eigen ID. Aanpassingen aan AANVRAGEN hiervoor
-# toevoegen status kolom in STUDENTEN
+# toevoegen status kolom in STUDENTEN, remove tel_nr kolom
 # link files met aanvragen wordt met nieuwe koppeltabel AANVRAGEN_FILES. Aanpassingen aan FILES en AANVRAGEN hiervoor
 # voorbereiding: aanvraag_nr -> kans
 # creating AANVRAGEN_OVERZICHT en AANVRAGEN_FILES overzicht
@@ -21,13 +21,13 @@ from general.timeutil import TSC
 # naamswijziging ACTIONLOG->UNDOLOG
 #
 def modify_studenten_table(database: Database):
-    print('adding primary key to STUDENTEN table.')
+    print('adding primary key to STUDENTEN table, also adding status and remove telnr.')
     database._execute_sql_command('alter table STUDENTEN RENAME TO OLD_STUDENTEN')
     print('creating the new table')
     database.execute_sql_command(SQLcreateTable(StudentTableDefinition()))
-    database._execute_sql_command('insert into STUDENTEN(stud_nr,full_name,first_name,email,tel_nr) select stud_nr,full_name,first_name,email,tel_nr from OLD_STUDENTEN', [])
+    database._execute_sql_command('insert into STUDENTEN(stud_nr,full_name,first_name,email) select stud_nr,full_name,first_name,email from OLD_STUDENTEN', [])
     database._execute_sql_command('drop table OLD_STUDENTEN')
-    print('end adding primary key to STUDENTEN table.')
+    print('end adding primary key to STUDENTEN table, also adding status and remove telnr.')
 
 def modify_aanvragen_table(database: Database):
     print('modifying AANVRAGEN table.')

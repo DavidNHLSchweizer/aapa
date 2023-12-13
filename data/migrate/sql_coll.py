@@ -72,13 +72,13 @@ class SQLcollector:
                 self.collectors(SQLcollType.UPDATE) == value.collectors(SQLcollType.UPDATE)
 
 if __name__=='__main__':      
-    s = SQLcollector(insert_str='insert into STUDENTEN (id,stud_nr,full_name,first_name,email,tel_nr,status) values(?,?,?,?,?,?,?)', 
-                    update_str='update STUDENTEN set (stud_nr=?,full_name=?,first_name=?,email=?,tel_nr=?,status=?) where id = ?')
-    s.insert([71, '2012992', 'Ramön Boeie', 'Ramön', 'ramon.boeie@student.nhlstenden.com', '', 0])
-    s.update(['1678561', 'Emiel Ratelband', 'Emiel', 'emiel.ratelband@student.nhlstenden.com', '', 0, -1])
-    s.insert([72, '2043005', 'Jasperina de Jong', 'Jasperina', 'jasperina.de.jong@student.nhlstenden.com', '', 0])
-    s.update(['1332109', 'Wytze Waterstraal', 'Wytze', 'wytze.waterstraal@student.nhlstenden.com', '', 0, -1])
-    s.update(['1222025', 'Donald ₡elinskini', 'Donald', 'donald.celinskini@student.nhlstenden.com', '', 0, -1])
+    s = SQLcollector(insert_str='insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)', 
+                    update_str='update STUDENTEN set stud_nr=?,full_name=?,first_name=?,email=?,status=? where id = ?')
+    s.insert([71, '2012992', 'Ramön Boeie', 'Ramön', 'ramon.boeie@student.nhlstenden.com',0])
+    s.update(['1678561', 'Emiel Ratelband', 'Emiel', 'emiel.ratelband@student.nhlstenden.com', 0, -1])
+    s.insert([72, '2043005', 'Jasperina de Jong', 'Jasperina', 'jasperina.de.jong@student.nhlstenden.com', 0])
+    s.update(['1332109', 'Wytze Waterstraal', 'Wytze', 'wytze.waterstraal@student.nhlstenden.com', 0, -1])
+    s.update(['1222025', 'Donald ₡elinskini', 'Donald', 'donald.celinskini@student.nhlstenden.com', 0, -1])
 
     print (s.as_dict())
     s.dump_to_file('test2.json')

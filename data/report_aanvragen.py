@@ -29,7 +29,6 @@ class ExcelMapper:
                         'full_name': {'header': 'student', 'column': 3, 'attrib': 'student.full_name', 'flags': Flags.SUBATTRIB},
                         'student_stud_nr': {'header': 'studentnr', 'column': 4, 'attrib': 'student.stud_nr','flags': Flags.SUBATTRIB},
                         'student_first_name': {'header': 'voornaam', 'column': 5, 'attrib': 'student.first_name','flags': Flags.SUBATTRIB},
-                        'student_tel_nr': {'header': 'telefoonnr', 'column': 6, 'attrib': 'student.tel_nr','flags': Flags.SUBATTRIB},
                         'student_email': {'header': 'email', 'column': 7, 'attrib': 'student.email','flags': Flags.SUBATTRIB},
                         'student_datum_str': {'header': 'ingevulde datum', 'column': 8, 'attrib': 'datum_str','flags': Flags.NONE},
                         'kans': {'header': 'kans',  'column': 9, 'attrib': 'kans','flags': Flags.NONE},

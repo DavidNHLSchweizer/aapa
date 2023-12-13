@@ -18,13 +18,12 @@ class Student(AAPAclass):
                     Student.Status.GESTOPT: 'gestopt'}
             return STRS[self.value]
 
-    def __init__(self, full_name='', first_name = '', stud_nr='', tel_nr='', 
+    def __init__(self, full_name='', first_name = '', stud_nr='', 
                  email='', status = Status.UNKNOWN, id=EMPTY_ID):        
         super().__init__(id)
         self.full_name = full_name
         self.first_name = first_name if first_name else Names.first_name(full_name)
         self.stud_nr = stud_nr
-        self.tel_nr = tel_nr
         self.email = email.lower()
         self.status = status
     def __str__(self):
@@ -34,8 +33,6 @@ class Student(AAPAclass):
         if  self.full_name != value.full_name:
             return False
         if  self.stud_nr != value.stud_nr:
-            return False
-        if  self.tel_nr != value.tel_nr:
             return False
         if  self.email.lower() != value.email.lower():
             return False

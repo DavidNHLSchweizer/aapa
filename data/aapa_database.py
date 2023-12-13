@@ -75,7 +75,6 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('full_name', dbc.TEXT)
         self.add_column('first_name', dbc.TEXT)
         self.add_column('email', dbc.TEXT, notnull=True)
-        self.add_column('tel_nr', dbc.TEXT)
         self.add_column('status', dbc.INTEGER)
 
 class BedrijfTableDefinition(TableDefinition):

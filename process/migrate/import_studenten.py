@@ -25,13 +25,13 @@ class StudentenXLSImporter(FileProcessor):
         VOORNAAM     = 1
         STUDNR       = 2
         EMAIL        = 3
-        AFGESTUDEERD = 4
-    AFGESTUDEERD_CODE = 'Ja'
+        STATUS       = 4
+    STATUS_CODES = {'aanvraag': Student.Status.AANVRAAG, 'bezig': Student.Status.BEZIG, 'afgestudeerd': Student.Status.AFGESTUDEERD,'gestopt': Student.Status.GESTOPT,}
     expected_columns = {Colnr.ACHTERNAAM: 'achternaam', 
                         Colnr.VOORNAAM: 'voornaam', 
                         Colnr.STUDNR: 'studnr', 
                         Colnr.EMAIL: 'email', 
-                        Colnr.AFGESTUDEERD: 'afgestudeerd'}
+                        Colnr.STATUS: 'status'}
     def __init__(self):
         self.writer = None
         self.sheet = None
@@ -40,16 +40,16 @@ class StudentenXLSImporter(FileProcessor):
         self.n_modified = 0
         self.n_already_there = 0
         self.sql=SQLcollector(# to use in migration script
-            insert_str='insert into STUDENTEN (id,stud_nr,full_name,first_name,email,tel_nr,status) values(?,?,?,?,?,?,?)', 
-            update_str='update STUDENTEN set stud_nr=?,full_name=?,first_name=?,email=?,tel_nr=?,status=? where id = ?')        
+            insert_str='insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)', 
+            update_str='update STUDENTEN set full_name=?,first_name=?,email=?,status=? where stud_nr = ?')        
         super().__init__(description='Importeren studenten')
     def __get(self, dataframe: pd.DataFrame, rownr: int, colnr: Colnr)->Any:
         return dataframe.at[rownr, self.expected_columns[colnr]]        
     def __add_sql(self, student: Student, is_new=True):
         if is_new:
-            self.sql.insert([student.id, student.stud_nr, student.full_name, student.first_name, student.email, student.tel_nr,int(student.status)])
+            self.sql.insert([student.id, student.stud_nr, student.full_name, student.first_name, student.email, int(student.status)])
         else:
-            self.sql.update([student.stud_nr, student.full_name, student.first_name, student.email, student.tel_nr,int(student.status),student.id])
+            self.sql.update([student.full_name, student.first_name, student.email, int(student.status), student.stud_nr])
     def __check_format(self, df: pd.DataFrame):    
         self._error = ''
         if ncols(df) != self.NCOLS:
@@ -90,7 +90,6 @@ class StudentenXLSImporter(FileProcessor):
             self.__add_sql(student, True)
             self.n_new += 1
     def __read_student(self, df: pd.DataFrame, row: int)->Student:
-        afgestudeerd = self.__get(df,row,self.Colnr.AFGESTUDEERD) == self.AFGESTUDEERD_CODE
         full_name = Names.full_name(self.__get(df,row,self.Colnr.VOORNAAM), 
                                                  self.__get(df,row,self.Colnr.ACHTERNAAM))
         email = self.__get(df,row, self.Colnr.EMAIL)
@@ -100,7 +99,7 @@ class StudentenXLSImporter(FileProcessor):
                        first_name = self.__get(df,row,self.Colnr.VOORNAAM), 
                        stud_nr=str(self.__get(df,row, self.Colnr.STUDNR)), 
                        email=email,
-                       status = Student.Status.AFGESTUDEERD if afgestudeerd else Student.Status.UNKNOWN
+                       status = self.STATUS_CODES.get(self.__get(df, row, self.Colnr.STATUS), Student.Status.UNKNOWN)
                        )        
     def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Tuple[int,int,int]:
         dataframe = pd.read_excel(filename)

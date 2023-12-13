@@ -16,9 +16,11 @@ from general.keys import reset_key
 
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
-# add status column to STUDENTEN
+# filling BASEDIRS with initial values
 # toevoegen STUDENT_DIRECTORY 
 #   en gerelateerde details STUDENT_DIRECTORY_AANVRAGEN,STUDENT_DIRECTORY_VERSLAGEN tabellen
+# adding all known students with the correct status
+# correction of errors in STUDENTEN tabel
 
 def _update_roots_table(database:Database):        
     database._execute_sql_command('DELETE from FILEROOT')
@@ -169,22 +171,15 @@ def correct_student_errors(database: Database, phase_1=True):
         database._execute_sql_command('delete from STUDENTEN where id = ?', [17])
         database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
                                     [Student.Status.BEZIG, 16])
-        print('--- klaar correcting some errors in STUDENTEN table')        
     else:    
-        print('correcting migration errors in STUDENTEN table')
+        print('--- continuing correcting errors in STUDENTEN table')
 
         #Jimi/Cassandra van Oosten
-        database._execute_sql_command(f'update AANVRAGEN set stud_id=? where stud_id = ?', 
-                                    [151, 32])
+        database._execute_sql_command(f'update aanvragen set stud_id = (select id from studenten where full_name=?) where stud_id=?',
+                                      ["Cassandra van Oosten", 32])
         database._execute_sql_command(f'delete from STUDENTEN where id = ?', [32])
 
-        #Nando Reij, Ramon Booi, Michael Koopmans, Sander Beijaard, Jarno van der Poll, Micky Cheng, Nick Westerdijk, Daniel Roskam, Daan Eekhof
-        database._execute_sql_command(f'update STUDENTEN set STATUS=? where stud_nr in (?,?,?,?,?,?,?,?,?,?,?)', 
-                                    [Student.Status.BEZIG, '4700082', '4547055','4692012','4621646','3341517','3484695','4699475','4511484','3432962','3541141','3472190'])
-        #Robert Slomp, Nam Nguyen  
-        database._execute_sql_command(f'update STUDENTEN set STATUS=? where stud_nr in (?,?)', 
-                                    [Student.Status.GESTOPT, '3417904', '4621646'])
-        print('--- klaar correcting overige errors in STUDENTEN table')
+        print('--- klaar correcting errors in STUDENTEN table')
 
 
 class BackupFileRootTableDefinition(TableDefinition):
@@ -230,6 +225,7 @@ def migrate_database(database: Database):
         init_base_directories(database)
         modify_studenten_table(database)
         correct_student_errors(database)
+        #to recompute insert_students.json: comment out the next two lines
         import_studenten(database, r'.\data\migrate\m119\insert_students.json')
         correct_student_errors(database, False)
         cleanup_backup(database)
