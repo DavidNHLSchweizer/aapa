@@ -5,7 +5,7 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from data.classes.verslagen import Verslag
+from data.classes.mijlpalen import Mijlpaal
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.studenten import StudentQueries
@@ -50,32 +50,44 @@ class StudentDirectoryDetector(FileProcessor):
         queries : BaseDirQueries = storage.queries('base_dirs')
         self.base_dir = queries.find_basedir(dirname)
         return self.base_dir != None
-    def _process_subdirectory(self, subdirectory: str, student: Student)->Milestone:
+    def _parse_type(self, subdirectory:str, parsed_type: str)->Mijlpaal.Type:
+        match parsed_type.lower():
+            case 'pva' | 'plan van aanpak': return Mijlpaal.Type.PVA
+            case 'onderzoeksverslag': return Mijlpaal.Type.ONDERZOEKS_VERSLAG
+            case 'technisch verslag': return Mijlpaal.Type.TECHNISCH_VERSLAG
+            case 'eindverslag': return Mijlpaal.Type.EIND_VERSLAG
+            case 'product' | 'productbeoordeling': return Mijlpaal.Type.PRODUCT_BEOORDELING
+            case 'afstudeerzitting': return Mijlpaal.Type.AFSTUDEER_ZITTING
+            case _:                 
+                if parsed_type:
+                    if type_str := self.parser.parse_non_standard(subdirectory, parsed_type):
+                        return self._parse_type(subdirectory, type_str)
+                    else:
+                        log_warning(f'Soort directory "{parsed_type}" niet herkend.')
+                else:
+                    log_warning(f'Directory {Path(subdirectory).name} niet herkend.')
+        return None
+    def _process_subdirectory(self, subdirectory: str, student: Student)->Mijlpaal:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
             return None
-        match parsed.type.lower():
-            case 'pva' | 'plan van aanpak': verslag_type = Verslag.Type.PVA
-            case 'onderzoeksverslag': verslag_type = Verslag.Type.ONDERZOEKS_VERSLAG
-            case 'technisch verslag': verslag_type = Verslag.Type.TECHNISCH_VERSLAG
-            case 'eindverslag': verslag_type = Verslag.Type.EIND_VERSLAG
-            case _: 
-                log_warning(f'Soort verslag "{parsed.type}" niet herkend.')
-                return None
-        return Verslag(verslag_type=verslag_type, student=student, file=None, directory=subdirectory, datum=parsed.datum)
+        if not (mijlpaal_type := self._parse_type(subdirectory, parsed.type)):
+            log_error('\tDirectory wordt overgeslagen. Kan niet worden herkend.')
+            return None
+        return Mijlpaal(mijlpaal_type=mijlpaal_type, student=student, file=None, directory=subdirectory, datum=parsed.datum)
     def __update_kansen(self, student_directory: StudentDirectory):
-        cur_type = Verslag.Type.UNKNOWN
+        cur_type = Mijlpaal.Type.UNKNOWN
         cur_kans = 1
-        for verslag in sorted(student_directory.verslagen, key=lambda v: (v.verslag_type, v.datum)):
-            if verslag.verslag_type == cur_type:
+        for verslag in sorted(student_directory.mijlpalen, key=lambda v: (v.mijlpaal_type, v.datum)):
+            if verslag.mijlpaal_type == cur_type:
                 cur_kans += 1
             else:
                 cur_kans = 1
-                cur_type = verslag.verslag_type
+                cur_type = verslag.mijlpaal_type
             verslag.kans = cur_kans
     def report_directory(self, msg: str, student_directory: StudentDirectory):
         log_print(msg)
-        for verslag in student_directory.verslagen:
+        for verslag in student_directory.mijlpalen:
             log_print(f'\t{verslag.summary()}')
     def process_file(self, dirname: str, storage: AAPAStorage = None, preview=False)->StudentDirectory:
         if not test_directory_exists(dirname):

@@ -24,7 +24,7 @@ class Student(AAPAclass):
         self.full_name = full_name
         self.first_name = first_name if first_name else Names.first_name(full_name)
         self.stud_nr = stud_nr
-        self.email = email.lower()
+        self.email = email.lower().strip()
         self.status = status
     def __str__(self):
         studnr_part = f'({self.stud_nr})' if self.stud_nr else ''

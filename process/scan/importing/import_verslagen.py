@@ -2,33 +2,33 @@ from pathlib import Path
 import re
 from data.classes.files import File
 from data.classes.studenten import Student
-from data.classes.verslagen import Verslag
+from data.classes.mijlpalen import Mijlpaal
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.studenten import StudentQueries
 from general.fileutil import summary_string
 from general.log import log_debug, log_info, log_print, log_warning
 from general.singular_or_plural import sop
 from process.general.verslag_pipeline import VerslagCreatingPipeline
-from process.general.verslag_processor import VerslagCreator
+from process.general.verslag_processor import MijlpaalCreator
 from process.general.zipfile_reader import ZipFileReader
 from process.scan.importing.filename_in_zip_parser import FilenameInZipParser
 
-class VerslagParseException(Exception): pass
+class VerlagParseException(Exception): pass
 
-class VerslagFromZipImporter(VerslagCreator):
+class VerslagFromZipImporter(MijlpaalCreator):
     def __init__(self, description = ''):
         super().__init__(description=description)
         self.parser = FilenameInZipParser()
 
-    def create_from_parsed(self, storage: AAPAStorage, filename: str, parsed: FilenameInZipParser.Parsed)->Verslag:
-        VerslagTypes = {'plan van aanpak': Verslag.Type.PVA, 
-                        'onderzoeksverslag': Verslag.Type.ONDERZOEKS_VERSLAG, 
-                        'technisch verslag': Verslag.Type.TECHNISCH_VERSLAG, 
-                        'eindverslag': Verslag.Type.EIND_VERSLAG}
-        def get_verslag_type(product_type: str)->Verslag.Type:
+    def create_from_parsed(self, storage: AAPAStorage, filename: str, parsed: FilenameInZipParser.Parsed)->Mijlpaal:
+        VerslagTypes = {'plan van aanpak': Mijlpaal.Type.PVA, 
+                        'onderzoeksverslag': Mijlpaal.Type.ONDERZOEKS_VERSLAG, 
+                        'technisch verslag': Mijlpaal.Type.TECHNISCH_VERSLAG, 
+                        'eindverslag': Mijlpaal.Type.EIND_VERSLAG}
+        def get_verslag_type(product_type: str)->Mijlpaal.Type:
             if (result := VerslagTypes.get(product_type.lower(), None)):
                 return result
-            raise VerslagParseException(f'Onbekend verslagtype: {[product_type]}')
+            raise VerlagParseException(f'Onbekend verslagtype: {[product_type]}')
         def get_kans(kans_decription: str)->int:
             KANSPATTERN = r'(?<n>[\d]+).*kans'
             match kans_decription:
@@ -47,9 +47,9 @@ class VerslagFromZipImporter(VerslagCreator):
             student.stud_nr = storage_queries.create_unique_student_nr(student=student)
             log_warning(f'Student {student_name} niet gevonden in database. Gebruik fake studentnummer {student.stud_nr}')
             return student            
-        return Verslag(verslag_type=get_verslag_type(parsed.product_type), student=get_student(storage, parsed.student_name, email=parsed.email), 
+        return Mijlpaal(mijlpaal_type=get_verslag_type(parsed.product_type), student=get_student(storage, parsed.student_name, email=parsed.email), 
                        file=File(filename), datum=parsed.datum, kans=get_kans(parsed.kans), titel=Path(parsed.original_filename).stem)  
-    def process_file(self, filename: str, storage: AAPAStorage, preview=False, **kwargs)->Verslag:
+    def process_file(self, filename: str, storage: AAPAStorage, preview=False, **kwargs)->Mijlpaal:
         log_print(f'Laden uit zipfile: {summary_string(filename, maxlen=100)}')
         try:      
             if parsed:=self.parser.parsed(filename):
@@ -57,7 +57,7 @@ class VerslagFromZipImporter(VerslagCreator):
                 verslag = self.create_from_parsed(storage, new_filename, parsed)
                 log_print(f'\t{str(verslag)}:\n\t{summary_string(new_filename)}')
                 return verslag
-        except VerslagParseException as parser_exception:
+        except VerlagParseException as parser_exception:
             log_warning(f'{parser_exception}.') 
         return None
 

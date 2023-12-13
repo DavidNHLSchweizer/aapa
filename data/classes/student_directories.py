@@ -5,7 +5,7 @@ from data.classes.aggregator import Aggregator
 from data.classes.base_dirs import BaseDir
 from data.classes.milestones import Milestone
 from data.classes.studenten import Student
-from data.classes.verslagen import Verslag
+from data.classes.mijlpalen import Mijlpaal
 from database.dbConst import EMPTY_ID
 
 
@@ -13,7 +13,7 @@ class StudentDirectoryAggregator(Aggregator):
     def __init__(self, owner: StudentDirectory):
         super().__init__(owner=owner)
         self.add_class(Aanvraag, 'aanvragen')
-        self.add_class(Verslag, 'verslagen')
+        self.add_class(Mijlpaal, 'mijlpalen')
 
 class StudentDirectory(AAPAclass):
     def __init__(self, student: Student, directory: str, base_dir: BaseDir = None, id: int = EMPTY_ID):
@@ -31,8 +31,8 @@ class StudentDirectory(AAPAclass):
             return aanvragen[0]
         return None
     @property
-    def verslagen(self)->list[Verslag]:
-        return self._data.as_list('verslagen')    
+    def mijlpalen(self)->list[Mijlpaal]:
+        return self._data.as_list('mijlpalen')    
     def add(self, milestone: Milestone):
         if isinstance(milestone, Aanvraag) and self.aanvraag:
             self._data.remove(self.aanvraag)

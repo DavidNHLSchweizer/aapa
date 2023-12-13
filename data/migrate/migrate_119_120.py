@@ -1,7 +1,7 @@
 from typing import Tuple
-from data.aapa_database import BaseDirsTableDefinition, \
-    StudentDirectoryTableDefinition, StudentDirectoryAanvragenTableDefinition, StudentDirectoryVerslagenTableDefinition, \
-        VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
+from data.aapa_database import BaseDirsTableDefinition, MijlpaalFilesTableDefinition, \
+    StudentDirectoryTableDefinition, StudentDirectoryAanvragenTableDefinition, StudentDirectoryMijlpalenTableDefinition, \
+        MijlpaalFilesTableDefinition, MijlpaalTableDefinition, create_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from data.migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
@@ -26,14 +26,14 @@ def _update_roots_table(database:Database):
     database._execute_sql_command('DELETE from FILEROOT')
     create_roots(database)
 
-def create_verslagen_tables(database: Database):
-    print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
-    database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
-    database.execute_sql_command(SQLcreateTable(VerslagFilesTableDefinition()))
-    print('toevoegen nieuwe STUDENT_DIRECTORY, STUDENT_DIRECTORY_AANVRAGEN en STUDENT_DIRECTORY_VERSLAGEN tabellen')
+def create_mijlpalen_tables(database: Database):
+    print('toevoegen nieuwe tabel MIJLPALEN en MIJLPAAL_FILES')
+    database.execute_sql_command(SQLcreateTable(MijlpaalTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(MijlpaalFilesTableDefinition()))
+    print('toevoegen nieuwe STUDENT_DIRECTORY, STUDENT_DIRECTORY_AANVRAGEN en STUDENT_DIRECTORY_MIJLPALEN tabellen')
     database.execute_sql_command(SQLcreateTable(StudentDirectoryTableDefinition()))             
     database.execute_sql_command(SQLcreateTable(StudentDirectoryAanvragenTableDefinition())) 
-    database.execute_sql_command(SQLcreateTable(StudentDirectoryVerslagenTableDefinition())) 
+    database.execute_sql_command(SQLcreateTable(StudentDirectoryMijlpalenTableDefinition())) 
     print('--- klaar toevoegen nieuwe tabellen')
 
 def init_base_directories(database: Database):
@@ -221,11 +221,21 @@ def migrate_database(database: Database):
     with database.pause_foreign_keys():
         backup_tables(database)
         recode_roots_table(database)
-        create_verslagen_tables(database)
+        create_mijlpalen_tables(database)
         init_base_directories(database)
         modify_studenten_table(database)
         correct_student_errors(database)
-        #to recompute insert_students.json: comment out the next two lines
+        
+        #to recompute insert_students.json: 
+        # 1: comment out the next two lines
+        # 2: run migration: py aapa_migrate.py database_name 1.18 1.19
+        # 3: run the student-import script: py aapa.py -preview --student=studenten.xlsx
+        # 4: copy the results (insert_students.json) naar directory data\migrate\m119
+        # 5: uncomment the lines
+        # 6: run migration again. 
+        # 7: check results
+        #
         import_studenten(database, r'.\data\migrate\m119\insert_students.json')
         correct_student_errors(database, False)
+        
         cleanup_backup(database)

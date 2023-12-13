@@ -1,4 +1,4 @@
-from data.aapa_database import StudentDirectoryAanvragenTableDefinition, StudentDirectoryTableDefinition, StudentDirectoryVerslagenTableDefinition
+from data.aapa_database import StudentDirectoryAanvragenTableDefinition, StudentDirectoryTableDefinition, StudentDirectoryMijlpalenTableDefinition
 from data.classes.base_dirs import BaseDir
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.classes.student_directories import StudentDirectory
@@ -25,21 +25,20 @@ class StudentDirectoriesAanvragenTableMapper(DetailRecsTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
         super().__init__(database, table, class_type, 'stud_dir_id','aanvraag_id')
 
-class StudentDirectoriesVerslagenDetailRec(DetailRec): pass
-class StudentDirectoriesVerslagenTableMapper(DetailRecsTableMapper):
+class StudentDirectoriesMijlpalenDetailRec(DetailRec): pass
+class StudentDirectoriesMijlpalenTableMapper(DetailRecsTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
-        super().__init__(database, table, class_type, 'stud_dir_id','verslag_id')
+        super().__init__(database, table, class_type, 'stud_dir_id','mijlpaal_id')
 
 register_crud(class_type=StudentDirectory, 
                 table=StudentDirectoryTableDefinition(), 
                 crud=ExtendedCRUD,     
-                # queries_type=AanvraagQueries,        
                 mapper_type=StudentDirectoriesTableMapper, 
                 details_data=
                     [DetailRecData(aggregator_name='data', detail_aggregator_key='aanvragen', 
                                    detail_rec_type=StudentDirectoriesAanvragenDetailRec),
-                    DetailRecData(aggregator_name='data', detail_aggregator_key='verslagen', 
-                                   detail_rec_type=StudentDirectoriesVerslagenDetailRec),
+                    DetailRecData(aggregator_name='data', detail_aggregator_key='mijlpalen', 
+                                   detail_rec_type=StudentDirectoriesMijlpalenDetailRec),
                     ]
                 )
 register_crud(class_type=StudentDirectoriesAanvragenDetailRec, 
@@ -49,9 +48,9 @@ register_crud(class_type=StudentDirectoriesAanvragenDetailRec,
                 main=False
                 )
 
-register_crud(class_type=StudentDirectoriesVerslagenDetailRec, 
-                table=StudentDirectoryVerslagenTableDefinition(), 
-                mapper_type=StudentDirectoriesVerslagenTableMapper, 
+register_crud(class_type=StudentDirectoriesMijlpalenDetailRec, 
+                table=StudentDirectoryMijlpalenTableDefinition(), 
+                mapper_type=StudentDirectoriesMijlpalenTableMapper, 
                 autoID=False,
                 main=False
                 )

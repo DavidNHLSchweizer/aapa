@@ -104,17 +104,17 @@ class AanvraagTableDefinition(MilestoneTableDefinition):
         self.add_column('datum_str', dbc.TEXT)
         self.add_column('versie', dbc.INTEGER)
 
-class VerslagTableDefinition(MilestoneTableDefinition):
+class MijlpaalTableDefinition(MilestoneTableDefinition):
     def __init__(self):
-        super().__init__('VERSLAGEN')
-        self.add_column('verslag_type', dbc.INTEGER)
+        super().__init__('MIJLPALEN')
+        self.add_column('mijlpaal_type', dbc.INTEGER)
         self.add_column('cijfer', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
 
-class VerslagFilesTableDefinition(DetailTableDefinition):
+class MijlpaalFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('VERSLAGEN_FILES', 
-                         main_table_name='VERSLAGEN', main_alias_id='verslag_id',
+        super().__init__('MIJLPALEN_FILES', 
+                         main_table_name='MIJLPALEN', main_alias_id='mijlpaal_id',
                          detail_table_name='FILES', detail_alias_id='file_id')
 
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
@@ -187,11 +187,11 @@ class StudentDirectoryAanvragenTableDefinition(DetailTableDefinition):
                          main_table_name='STUDENT_DIRECTORY', main_alias_id='stud_dir_id',
                          detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
 
-class StudentDirectoryVerslagenTableDefinition(DetailTableDefinition):
+class StudentDirectoryMijlpalenTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_DIRECTORY_VERSLAGEN', 
+        super().__init__('STUDENT_DIRECTORY_MIJLPALEN', 
                          main_table_name='STUDENT_DIRECTORY', main_alias_id='stud_dir_id',
-                         detail_table_name='VERSLAGEN', detail_alias_id='verslag_id')
+                         detail_table_name='MIJLPALEN', detail_alias_id='mijlpaal_id')
 
 class AanvragenOverzichtDefinition(ViewDefinition):
     def __init__(self):
@@ -221,12 +221,12 @@ class AAPaSchema(Schema):
         UndoLogTableDefinition,
         UndoLogAanvragenTableDefinition,
         UndoLogFilesTableDefinition,
-        VerslagTableDefinition,
-        VerslagFilesTableDefinition,
+        MijlpaalTableDefinition,
+        MijlpaalFilesTableDefinition,
         BaseDirsTableDefinition,
         StudentDirectoryTableDefinition,      
         StudentDirectoryAanvragenTableDefinition,
-        StudentDirectoryVerslagenTableDefinition,
+        StudentDirectoryMijlpalenTableDefinition,
     ]
     ALL_VIEWS:list[ViewDefinition]= [ 
                 AanvragenOverzichtDefinition,
