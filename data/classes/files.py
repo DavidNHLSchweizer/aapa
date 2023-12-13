@@ -21,15 +21,27 @@ class File(AAPAclass):
         COPIED_PDF          = 2
         DIFFERENCE_HTML     = 3
         GRADE_FORM_PDF      = 5
-        # GRADE_FORM_EX1_DOCX = 6
-        # GRADE_FORM_EX2_DOCX = 7
-        # GRADE_FORM_EX3_DOCX = 8
+        GRADE_FORM_EX1_DOCX = 6
+        GRADE_FORM_EX2_DOCX = 7
+        GRADE_FORM_EX3_DOCX = 8
+        PVA                 = 9
+        ONDERZOEKS_VERSLAG  = 10        
+        TECHNISCH_VERSLAG   = 11       
+        EIND_VERSLAG         = 12
         def __str__(self):
             STR_DICT = {File.Type.UNKNOWN: '?', 
                         File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
                         File.Type.GRADE_FORM_DOCX: 'Beoordelingsformulier', 
-                        File.Type.GRADE_FORM_PDF: 'Ingevuld beoordelingsformulier (PDF format)', File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
-                        File.Type.DIFFERENCE_HTML: 'verschilbestand met vorige versie aanvraag'
+                        File.Type.GRADE_FORM_PDF: 'Ingevuld beoordelingsformulier (PDF format)', 
+                        File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
+                        File.Type.DIFFERENCE_HTML: 'Verschilbestand met vorige versie aanvraag',
+                        File.Type.GRADE_FORM_EX1_DOCX: 'Beoordelingsformulier (examinator 1)',
+                        File.Type.GRADE_FORM_EX2_DOCX: 'Beoordelingsformulier (examinator 2)',
+                        File.Type.GRADE_FORM_EX3_DOCX: 'Beoordelingsformulier (examinator 3 of hoger)',
+                        File.Type.PVA: 'Plan van Aanpak',
+                        File.Type.ONDERZOEKS_VERSLAG: 'Onderzoeksverslag',
+                        File.Type.TECHNISCH_VERSLAG: 'Technisch verslag',
+                        File.Type.EIND_VERSLAG: 'Eindverslag',
                         }
             return STR_DICT.get(self, '!unknown')
         @staticmethod

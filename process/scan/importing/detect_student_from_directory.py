@@ -1,5 +1,6 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
 from data.classes.milestones import Milestone
 from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
@@ -17,6 +18,7 @@ from general.singular_or_plural import sop
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
 from process.scan.importing.dirname_parser import DirectoryNameParser
+from process.scan.importing.filename_parser import FileTypeDetector
 
 def init_config():
     config.register('detect_directory', 'skip', ListValueConvertor)
@@ -30,6 +32,7 @@ class StudentDirectoryDetector(FileProcessor):
     def __init__(self):
         super().__init__(description='StudentDirectory Detector')
         self.parser = DirectoryNameParser()
+        self.filetype_detector = FileTypeDetector()
         self.base_dir: BaseDir = None
         self.current_student_directory: StudentDirectory = None
     
@@ -69,8 +72,13 @@ class StudentDirectoryDetector(FileProcessor):
         return None
     def _collect_files(self, mijlpaal: Mijlpaal):
         log_print('\tCollecting files...')
-        for file in Path(mijlpaal.directory).glob('*'):
-            print(f'\t\t{Path(file).name}')
+        for filename in Path(mijlpaal.directory).glob('*'):
+            filetype,mijlpaal_type = self.filetype_detector.detect(filename)
+            if filetype == File.Type.UNKNOWN:
+                filetype = mijlpaal.default_filetype()
+                mijlpaal_type = mijlpaal.mijlpaal_type
+            print(f'\t\t{Path(filename).name}: {filetype} [{mijlpaal_type}]')
+            mijlpaal.register_file(filename, filetype) # nog iets met mijlpaal_type doen
     def _process_subdirectory(self, subdirectory: str, student: Student)->Mijlpaal:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')

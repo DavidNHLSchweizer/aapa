@@ -28,7 +28,8 @@ class Mijlpaal(Milestone):
         def __str__(self):
             _MT_STRS = {Mijlpaal.Type.UNKNOWN: '', Mijlpaal.Type.PVA: 'plan van aanpak', 
                         Mijlpaal.Type.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', Mijlpaal.Type.TECHNISCH_VERSLAG: 'technisch verslag',
-                        Mijlpaal.Type.EIND_VERSLAG: 'eindverslag', Mijlpaal.Type.AFSTUDEER_ZITTING: 'afstudeerzitting'
+                        Mijlpaal.Type.EIND_VERSLAG: 'eindverslag', Mijlpaal.Type.PRODUCT_BEOORDELING: 'productbeoordeling',
+                        Mijlpaal.Type.AFSTUDEER_ZITTING: 'afstudeerzitting'
             }
             return _MT_STRS[self]
     def __init__(self, mijlpaal_type: Mijlpaal.Type, student:Student, file: File, datum: datetime.datetime, 
@@ -40,6 +41,14 @@ class Mijlpaal(Milestone):
         if file:
             self._files.add(file)
         self.kans=kans
+   
+    def default_filetype(self)->File.Type:
+        match self.mijlpaal_type:
+            case Mijlpaal.Type.PVA: return File.Type.PVA
+            case Mijlpaal.Type.ONDERZOEKS_VERSLAG: return File.Type.ONDERZOEKS_VERSLAG
+            case Mijlpaal.Type.TECHNISCH_VERSLAG: return File.Type.TECHNISCH_VERSLAG
+            case Mijlpaal.Type.EIND_VERSLAG: return File.Type.EIND_VERSLAG
+            case _: return File.Type.UNKNOWN
     def __str__(self):        
         s = f'{TSC.get_date_str(self.datum)}: {self.mijlpaal_type} ({self.kans}) {str(self.student)} ' +\
               f'"{self.titel}" [{str(self.status)}]'
