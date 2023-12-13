@@ -67,6 +67,10 @@ class StudentDirectoryDetector(FileProcessor):
                 else:
                     log_warning(f'Directory {Path(subdirectory).name} niet herkend.')
         return None
+    def _collect_files(self, mijlpaal: Mijlpaal):
+        log_print('\tCollecting files...')
+        for file in Path(mijlpaal.directory).glob('*'):
+            print(f'\t\t{Path(file).name}')
     def _process_subdirectory(self, subdirectory: str, student: Student)->Mijlpaal:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
@@ -74,7 +78,10 @@ class StudentDirectoryDetector(FileProcessor):
         if not (mijlpaal_type := self._parse_type(subdirectory, parsed.type)):
             log_error('\tDirectory wordt overgeslagen. Kan niet worden herkend.')
             return None
-        return Mijlpaal(mijlpaal_type=mijlpaal_type, student=student, file=None, directory=subdirectory, datum=parsed.datum)
+        new_mijlpaal = Mijlpaal(mijlpaal_type=mijlpaal_type, student=student, file=None, directory=subdirectory, datum=parsed.datum)
+        log_print(f'\tGedetecteerd: {new_mijlpaal}')
+        self._collect_files(new_mijlpaal)
+        return new_mijlpaal
     def __update_kansen(self, student_directory: StudentDirectory):
         cur_type = Mijlpaal.Type.UNKNOWN
         cur_kans = 1
@@ -109,7 +116,7 @@ class StudentDirectoryDetector(FileProcessor):
                 if subdirectory.is_dir() and (new_item := self._process_subdirectory(subdirectory, student)):                    
                     student_directory.add(new_item)
             self.__update_kansen(student_directory)
-            self.report_directory('Gedetecteerd:', student_directory)
+            self.report_directory('Student directory:', student_directory)
             return student_directory
         except DetectorException as reader_exception:
             log_warning(f'{reader_exception}\n\t{StudentDirectoryDetector.ERRCOMMENT}.')
