@@ -17,6 +17,6 @@ class dbArgParser:
         setattr(target, store, value)        
     def parse(self, flags, target, flag_map, **args):
         for map in flag_map:
-            if map["flag"] in flags:
+            if map.get("flag", None) in flags:
                 self.__parse_args(target, map["attribute"], map["default"], map["key"], **args)
     

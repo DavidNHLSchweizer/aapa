@@ -1,54 +1,84 @@
-import pytest
+from pathlib import Path
+from data.roots import BASEPATH, OneDriveCoder, add_root, decode_path, encode_path, get_code, get_onedrive_root, get_roots, reset_roots
 
-from data.roots import STANDARD_ROOTS, RootException, add_root, decode_path, encode_path, get_roots, reset_roots
+onedrive_root = get_onedrive_root()
+onedrive_base = Path(onedrive_root).joinpath(BASEPATH)
 
-def test_standard_roots():
-    for i,(_, r) in enumerate(get_roots()):
-        assert r == STANDARD_ROOTS[i]
+def test_root1():
+    assert encode_path(onedrive_base) == ':ROOT1:'
 
+def test_root1_code():
+    expected = Path(OneDriveCoder.ONEDRIVE).joinpath(BASEPATH)
+    assert get_code(':ROOT1:') == str(expected)
 
-def _test_path(path: str, expected: str):
-    p1 = encode_path(path)
-    assert p1 == expected
-    p2 = decode_path(p1)
-    assert p2 == path
+def test_decode_root1():
+    assert decode_path(':ROOT1:') == str(onedrive_base)
 
-TESTCASE =[ {'path':r'C:\test\testing', 'expected':r'C:\test\testing'}, ]
+def test_encode_file():
+    hallo = onedrive_base.joinpath('hallo')
+    assert encode_path(hallo) == rf':ROOT1:\hallo'
 
-def _test_with_root(path: str):
-    expected = add_root(path)
-    _test_path(path, expected)
+def test_decode_encode_file():
+    hallo = onedrive_base.joinpath('hallo')
+    assert decode_path(encode_path(hallo)) == str(hallo)
 
-def test_cases():
-    for case in TESTCASE:
-        _test_path(case['path'], case['expected'])
+def test_add():
+    hallo = onedrive_base.joinpath('hallo')
+    new_code = add_root(hallo)
+    assert new_code == ':ROOT2:'
+    assert get_code(new_code) == rf':ROOT1:\hallo'
+    assert encode_path(hallo) == new_code
+    assert encode_path(hallo.joinpath('goodbye')) == rf':ROOT2:\goodbye'
 
-def test_with_root():
-    for case in TESTCASE:
-        _test_with_root(case['path'])
+def test_reset():
+    test_root1()
+    assert get_code(':ROOT2:') is not None
+    reset_roots()
+    test_root1()
+    assert get_code(':ROOT2:') is None
+
+def test_onedrive_encode():
+    onedrive  = onedrive_root.joinpath('OneDrive')
+    assert encode_path(onedrive) == rf'{OneDriveCoder.ONEDRIVE}\OneDrive'
+
+def test_onedrive_decode():
+    dearprudence = fr'{OneDriveCoder.ONEDRIVE}\OneDrive\dear_prudence'
+    assert decode_path(dearprudence) == str(onedrive_root.joinpath('OneDrive').joinpath('dear_prudence'))
+
+def test_onedrive_add():
+    onedrive  = onedrive_root.joinpath('OneDrive')
+    new_code = add_root(onedrive)
+    assert new_code == ':ROOT2:'
+    assert get_code(new_code) == rf'{OneDriveCoder.ONEDRIVE}\OneDrive'
+
+def test_onedrive_add2():
+    onedrive = onedrive_root.joinpath('OneDrive')
+    dearprudence = onedrive.joinpath('dear_prudence')
+    assert encode_path(dearprudence) == fr':ROOT2:\dear_prudence'
+    assert decode_path(encode_path(dearprudence)) == str(dearprudence)
 
 def test_duplicate_root():
     NODUP = 'no duplicates please'
     root = add_root(NODUP)
+    root2 = add_root(NODUP)
+    assert root == root2
     assert root == add_root(NODUP)
 
-def test_with_code():
-    NOGIETS = 'nogiets'
-    CODE = 'CODE'
-    code = add_root(NOGIETS, CODE)
-    assert code == CODE
+def test_getroots_initial():
+    reset_roots()
+    roots = get_roots()
+    assert roots == [(':ROOT1:', rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}')]
 
-def test_with_duplicate_code():
-    NOGIETS = 'nogietsnogiets'
-    CODE = 'CODE2'
-    add_root(NOGIETS, CODE)
-    with pytest.raises(RootException):
-        add_root(NOGIETS+'fiets', CODE)
-
-def test_root_encoding():
-    p1 = r'C:\pad1\test'
-    code1 = add_root(p1)
-    p2 = r'C:\pad1\test\nogeens'
-    code2 = add_root(p2)
-    assert encode_path(p2) == code2
-    assert encode_path(r'C:\pad1\test\nogeens\dinges1')==rf'{code2}\dinges1'
+def test_getroots_additional():
+    NODUP = 'no duplicates please'
+    add_root(NODUP)
+    hallo = onedrive_base.joinpath('hallo')
+    add_root(hallo)       
+    onedrive  = onedrive_root.joinpath('OneDrive')
+    add_root(onedrive)
+    roots = get_roots()
+    assert roots == [(':ROOT1:', rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}'), 
+                     (':ROOT2:', NODUP), 
+                     (':ROOT3:', rf':ROOT1:\hallo'),
+                     (':ROOT4:', rf'{OneDriveCoder.ONEDRIVE}\OneDrive'),
+                     ]

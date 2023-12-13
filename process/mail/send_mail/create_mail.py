@@ -55,7 +55,7 @@ class FeedbackMailProcessor(AanvraagProcessor):
                          description='Zet feedbackmail klaar in Concepten')
     def get_draft_folder_name(self):
         return self.mailer.draft_folder_name
-    def must_process(self, aanvraag: Aanvraag, **kwargs)->bool:    
+    def must_process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:    
         return aanvraag.status  in {Aanvraag.Status.ARCHIVED}
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
         filename = aanvraag.files.get_filename(File.Type.GRADE_FORM_PDF)

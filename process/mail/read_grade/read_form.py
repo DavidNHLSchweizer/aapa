@@ -1,5 +1,6 @@
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
+from data.classes.studenten import Student
 from general.fileutil import file_exists, summary_string
 from general.log import log_error, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor
@@ -19,7 +20,7 @@ class ReadFormGradeProcessor(AanvraagProcessor):
         current_digest = File.get_digest(filename)        
         return current_timestamp != registered_timestamp or current_digest != registered_digest
         #TODO: Er lijkt wel eens wat mis te gaan bij het opslaan van de digest, maar misschien valt dat mee. Gevolgen lijken mee te vallen.
-    def must_process(self, aanvraag: Aanvraag): 
+    def must_process(self, aanvraag: Aanvraag, preview=False): 
         return self.file_is_modified(aanvraag, File.Type.GRADE_FORM_DOCX)
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
         doc_path = aanvraag.files.get_filename(File.Type.GRADE_FORM_DOCX)
@@ -31,6 +32,8 @@ class ReadFormGradeProcessor(AanvraagProcessor):
             if (beoordeling:=aanvraag_beoordeling(grade_str)) in {Aanvraag.Beoordeling.VOLDOENDE, Aanvraag.Beoordeling.ONVOLDOENDE}:
                 aanvraag.beoordeling = beoordeling
                 log_print(f'Beoordeling {summary_string(aanvraag.summary(), maxlen=80)}: {beoordeling}')
+                if beoordeling == Aanvraag.Beoordeling.VOLDOENDE:
+                    aanvraag.student.status = Student.Status.BEZIG
                 return True
             else:
                 log_warning(f'Aanvraag {summary_string(aanvraag.summary(), maxlen=80)}:\n\tonverwachte beoordeling: "{grade_str}"')

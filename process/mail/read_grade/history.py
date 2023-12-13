@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import pandas as pd
 from data.classes.aanvragen import  Aanvraag
 from data.classes.files import File
-from data.storage import AAPAStorage
+from data.storage.aapa_storage import AAPAStorage
 from general.log import log_print
 from data.report_data import COLMAP
 #TODO: HISTORY bijwerken

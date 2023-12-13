@@ -3,6 +3,7 @@ import re
 import pdfplumber
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
+from data.classes.files import File
 from data.classes.studenten import Student
 from general.config import  IntValueConvertor, ListValueConvertor, ValueConvertor, config
 from general.log import log_debug
@@ -14,8 +15,8 @@ class TitleRegexConvertor(ValueConvertor):
 # Vandaar deze "omweg" . De TitleRegexConvertor zorgt er voor dat dit in de configfile kan worden gezet 
 # en weer teruggelezen zonder verdere tussenstappen
 # Voor zover nu bekend zijn alle aanvragen tot nu toe hiermee gedekt.
-    PATTERN1 = '#_RE_START_#'
-    PATTERN2 = '#_RE_END_#'
+    PATTERN1 = r'#_RE_START_#'
+    PATTERN2 = r'#_RE_END_#'
     PATTERN = f'{PATTERN1}(?P<start>.+){PATTERN2}(?P<end>.+)'
     def get(self, section_key: str, key_value: str, **kwargs)->dict:
         try:
@@ -30,10 +31,10 @@ class TitleRegexConvertor(ValueConvertor):
             section[key_value] = f'{TitleRegexConvertor.PATTERN1}{value["start"]}{TitleRegexConvertor.PATTERN2}{value["end"]}'
 
 def init_config():
-    title_regex_versies = [ {'start':'\d.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'\d.*Wat is de aanleiding voor de opdracht\s*\?'},
-                            {'start':'.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':'.*Wat is de aanleiding voor de opdracht\s*\?'},
-                            {'start':'\d.*Titel van de afstudeeropdracht', 'end': '\d.*Korte omschrijving van de opdracht.*'},                        
-                            {'start':'.*Titel van de afstudeeropdracht', 'end': '.*Korte omschrijving van de opdracht.*'},                        
+    title_regex_versies = [ {'start':r'\d.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':r'\d.*Wat is de aanleiding voor de opdracht\s*\?'},
+                            {'start':r'.*\(\s*Voorlopige.*\) Titel van de afstudeeropdracht', 'end':r'.*Wat is de aanleiding voor de opdracht\s*\?'},
+                            {'start':r'\d.*Titel van de afstudeeropdracht', 'end': r'\d.*Korte omschrijving van de opdracht.*'},                        
+                            {'start':r'.*Titel van de afstudeeropdracht', 'end': r'.*Korte omschrijving van de opdracht.*'},                        
                           ]
     config.register('pdf_read', 'x_tolerance', IntValueConvertor)
     config.register('pdf_read', 'min_pages', IntValueConvertor)
@@ -88,7 +89,7 @@ class PDFtoTablesReader:
         return result
     
 class PDFaanvraagReader(PDFtoTablesReader):
-    student_dict_fields = {'Student': 'full_name', 'Studentnummer': 'stud_nr', 'Telefoonnummer': 'tel_nr', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
+    student_dict_fields = {'Student': 'full_name', 'Studentnummer': 'stud_nr', 'E-mailadres': 'email', 'Bedrijfsnaam': 'bedrijf', 'Datum/revisie': 'datum_str'}
     END_ROW = len(student_dict_fields) + 12 # een beetje langer ivm bedrijfsnaam en sommige aanvragen met "extra" regels
     def __init__(self,pdf_file: str):
         super().__init__(pdf_file, expected_tables=config.get('pdf_read', 'expected_tables'), 
@@ -132,12 +133,11 @@ class _AanvraagData:
     datum_str = ''
     full_name = ''
     stud_nr = ''
-    tel_nr = ''
     email = ''
     bedrijf = ''
     titel = ''
     def __str__(self):
-        return f'student: {self.full_name} ({self.stud_nr})  tel_nr: {self.tel_nr}  email: {self.email}\nbedrijf: {self.bedrijf}  titel: {self.titel}  datum_str: {self.datum_str}'
+        return f'student: {self.full_name} ({self.stud_nr})  email: {self.email}\nbedrijf: {self.bedrijf}  titel: {self.titel}  datum_str: {self.datum_str}'
     def valid(self)->bool:
         if not self.full_name or not self.bedrijf  or not self.email:
             return False
@@ -167,8 +167,8 @@ class AanvraagReaderFromPDF(PDFaanvraagReader):
         if not aanvraag_data.valid():
             return None
         bedrijf = Bedrijf(aanvraag_data.bedrijf)
-        student = Student(full_name=aanvraag_data.full_name, stud_nr=aanvraag_data.stud_nr, tel_nr=aanvraag_data.tel_nr, email=aanvraag_data.email)
-        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel, 
+        student = Student(full_name=aanvraag_data.full_name, stud_nr=aanvraag_data.stud_nr, email=aanvraag_data.email)
+        return Aanvraag(student, bedrijf, aanvraag_data.datum_str, aanvraag_data.titel, datum = File.get_timestamp(self.filename),
                         status = Aanvraag.Status.IMPORTED_PDF)
     def __parse_first_table(self, table: list[str], field_keys: list[str])->dict:
         def find_pattern(table_row: str)->tuple[str,str]:

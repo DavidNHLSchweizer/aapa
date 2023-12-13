@@ -1,5 +1,5 @@
 import pytest
-from database.sqlexpr import Ops, SQLexpression as SQE
+from database.sql_expr import Ops, SQE
 
 COLUMN1 = 'COLUMN1'
 COLUMN2 = 'COLUMN2'

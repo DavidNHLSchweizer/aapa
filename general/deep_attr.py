@@ -34,9 +34,11 @@ if __name__ == '__main__':
     class dubbel:
         def __init__(self):
             self.ppp = pest(33)        
-    p = pest(42)
-    print (get_deep_attr(p, 'value2'))
-    print (get_deep_attr(p, 't.value'))
+    def test_sub(p, subattr):
+        print(f'"{subattr}": {get_deep_attr(p, subattr)}')
 
+    p = pest(42)
+    test_sub(p, 'value2')
+    test_sub(p, 't.value')
     d = dubbel()
-    print(get_deep_attr(d, 'ppp.t.value'))
+    test_sub(d, 'ppp.t.value')

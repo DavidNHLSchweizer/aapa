@@ -2,16 +2,28 @@ from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
+from data.roots import decode_onedrive, encode_onedrive
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
-from general.log import log_error, log_info, log_print
-from general.config import config
+from general.log import log_error, log_info, log_print, log_warning
+from general.config import ValueConvertor, config
 from process.aapa_processor.initialize import initialize_database, initialize_storage
 from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
+
+class OnedrivePathValueConvertor(ValueConvertor):
+    def get(self, section_key: str, key_value: str, **kwargs)->str:
+        if (section := self._parser[section_key]) is not None:
+            return decode_onedrive(section.get(key_value, **kwargs))
+        return None
+    def set(self, section_key: str, key_value: str, value: object):
+        if (section := self._parser[section_key]) is not None:
+            section[key_value] = encode_onedrive(str(value))
 
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
 def init_config():
     config.init('configuration', 'database', DEFAULTDATABASE)
+    config.register('configuration', 'root', OnedrivePathValueConvertor)
+    config.register('configuration', 'output', OnedrivePathValueConvertor)
     config.init('configuration', 'root', '')
     config.init('configuration', 'output', '')  
 init_config()
@@ -24,24 +36,34 @@ class AAPAConfiguration:
         DATABASE = auto()
         DIRECTORIES = auto()     
         BOTH    = auto()   
-    def __init__(self, options: AAPAConfigOptions):
+    def __init__(self, config_options: AAPAConfigOptions):
         self.validation_error = None
-        if options.config_file:
-            config_file = path_with_suffix(options.config_file, '.ini')
+        self.storage  = None
+        self.database = None
+        if config_options.config_file:
+            config_file = path_with_suffix(config_options.config_file, '.ini')
             if not Path(config_file).is_file():
                 log_error(f'Alternatieve configuratiefile ({config_file}) niet gevonden.')
             config.read(config_file)
             log_info(f'Alternative configuratie file {config_file} geladen.')
-        self.options = options
+        self.config_options = config_options
     def get_database_name(self):
-        if self.options.database_file:
-            database = self.options.database_file
+        if self.config_options.database_file:
+            database = self.config_options.database_file
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
         return from_main_path(path_with_suffix(database, '.db'))
     def __initialize_database(self, recreate: bool)->bool:
         database = self.get_database_name()
+        if not file_exists(str(database)):
+            err_msg = f'Database {database} bestaat niet.'            
+            if recreate:
+                log_warning(err_msg)
+            else:    
+                self.validation_error = err_msg
+                log_error(err_msg)
+                return False
         self.database = initialize_database(database, recreate)
         self.storage  = initialize_storage(self.database)
         if not self.database or not self.database.connection:
@@ -58,20 +80,34 @@ class AAPAConfiguration:
             log_print(f'Map {self.output_directory} aangemaakt.')
         self.storage.add_file_root(str(self.output_directory))
     def __initialize_directories(self, preview: bool)->bool:        
-        self.root = self.__get_directory(self.options.root_directory, 'root','Root directory voor aanvragen', True)
+        self.root = self.__get_directory(self.config_options.root_directory, 'root','Root directory voor aanvragen', True)
+        valid = True
         if not self.root or not test_directory_exists(self.root):
-            self.validation_error = f'Root directory "{self.root}" voor aanvragen niet ingesteld of bestaat niet'
-            return False
-        self.output_directory = self.__get_directory(self.options.output_directory, 'output', 'Directory voor nieuwe beoordelingsformulieren')
+            valid = False
+            err_msg = f'Root directory "{self.root}" voor aanvragen niet ingesteld of bestaat niet.'
+            log_error(err_msg)
+        self.output_directory = self.__get_directory(self.config_options.output_directory, 'output', 'Directory voor nieuwe beoordelingsformulieren')
         if not self.output_directory:
-            self.validation_error = f'Output directory "{self.output_directory}" voor aanvragen niet ingesteld'
+            valid = False
+            err_msg = f'Output directory "{self.output_directory}" voor aanvragen niet ingesteld.'
+            log_error(err_msg)
+        elif not test_directory_exists(self.output_directory):
+            log_warning(f'Output directory "{self.output_directory}" voor aanvragen bestaat niet. Wordt aangemaakt.')
+        if valid:
+            self.__prepare_storage_roots(preview)
+            return True
+        else:
+            self.validation_error = f'Directories voor aanvragen en/of nieuwe beoordelingsformulieren niet ingesteld.'
             return False
-        self.__prepare_storage_roots(preview)
-        return True
     def __get_directory(self, option_value, config_name, title, mustexist=False):
+        def windows_style(path: str)->str:
+            #because askdirectory returns a Posix-style path which causes trouble
+            if path:
+                return path.replace('/', '\\')
+            return ''
         config_value = config.get('configuration', config_name)
-        if (option_value is not None and not option_value) or (not config_value):
-            result = tkifd.askdirectory(mustexist=mustexist, title=title)
+        if (option_value is not None and not option_value) or (config_value == ""):
+            result = windows_style(tkifd.askdirectory(mustexist=mustexist, title=title))
         else:
             result = option_value
         if result and result != config.get('configuration', config_name):
@@ -90,7 +126,7 @@ class AAPAConfiguration:
             return tkifd.askopenfilename(initialfile=option_history,initialdir='.', defaultextension='.xlsx')
     def __must_recreate(self, processing_options: AAPAProcessingOptions)->bool:
         result= (AAPAaction.NEW in processing_options.actions) and\
-               (not file_exists(self.get_database_name()) or self.options.force or verifyRecreate())        
+               (not file_exists(self.get_database_name()) or processing_options.force or verifyRecreate())        
         return result
     def __initialize_database_part(self, processing_options: AAPAProcessingOptions)->bool:
         return self.__initialize_database(self.__must_recreate(processing_options))
@@ -103,7 +139,8 @@ class AAPAConfiguration:
             case AAPAConfiguration.PART.DIRECTORIES:
                 return self.__initialize_directories_part(processing_options)
             case AAPAConfiguration.PART.BOTH:
-                return self.__initialize_database_part(processing_options) and\
-                        self.__initialize_directories_part(processing_options)
+                db_valid = self.__initialize_database_part(processing_options) 
+                dir_valid = self.__initialize_directories_part(processing_options)
+                return db_valid and dir_valid
         # if self.options.history_file is not None:
         #     self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')

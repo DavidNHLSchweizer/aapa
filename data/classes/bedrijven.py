@@ -1,11 +1,11 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from data.classes.aapa_class import AAPAclass
 from database.dbConst import EMPTY_ID
 
-@dataclass
-class Bedrijf:        
-    name: str = ''
-    id: int = EMPTY_ID #key
+class Bedrijf(AAPAclass):        
+    def __init__(self, name: str, id = EMPTY_ID):
+        super().__init__(id) 
+        self.name = name
     def __str__(self): 
         return f'{self.id}:{self.name}'
     def valid(self):
@@ -14,3 +14,5 @@ class Bedrijf:
         if  self.name != value.name:
             return False
         return True
+    def relevant_attributes(self)->list[str]:
+        return {'name'}

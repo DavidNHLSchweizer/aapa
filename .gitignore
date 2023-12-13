@@ -9,11 +9,14 @@
 *.sqbpro
 *.bak
 *.ini
+*.zip
+*.out
 *.db-journal    
 !aapa-config.ini
 !ini/*.ini
 !template*.docx
 !template*.htm
+!templates/forms/**
 ?.py
 ??.py
 t?.py
@@ -25,6 +28,7 @@ t?.py
 /temp2/**
 /DEMO/**
 /backup
+/zzz_backup/**
 /logs
 *.pyc
 aapa stroomschema.drawio

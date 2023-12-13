@@ -1,24 +1,23 @@
 from __future__ import annotations
-import datetime
-import os
 from pathlib import Path
-import re
 from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.action_log import ActionLog
-from data.storage import AAPAStorage, FileStorageRecord
+from data.classes.undo_logs import UndoLog
+from data.storage.aapa_storage import AAPAStorage
+from data.storage.general.storage_const import StoredClass
+from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
 from general.fileutil import summary_string
-from general.log import log_debug, log_error, log_info, log_print, log_warning
+from general.log import log_debug, log_error
 from general.preview import Preview
-from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor, AanvraagProcessorBase
+from general.timeutil import TSC
+from process.general.base_processor import BaseProcessor, FileProcessor
 
 class PipelineException(Exception): pass
-
-class PipelineBase:
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], 
-                 storage: AAPAStorage, activity: ActionLog.Action, can_undo = True):
-        self._processors:list[AanvraagProcessorBase] = []
+class Pipeline:
+    def __init__(self, description: str, processors: BaseProcessor|list[BaseProcessor], 
+                 storage: AAPAStorage, activity: UndoLog.Action, can_undo = True):
+        self._processors:list[BaseProcessor] = []
         if isinstance(processors, list):
             if not len(processors):
                 raise PipelineException('Empty pipeline (no processors)')
@@ -26,167 +25,124 @@ class PipelineBase:
         else:
             self._processors.append(processors)
         self.storage = storage
-        self.action_log = ActionLog(activity, description, can_undo=can_undo)
-        self.known_files = self.storage.files.find_all_for_filetype({filetype for filetype in File.Type}).get_files()
+        self.undo_log = UndoLog(activity, description, can_undo=can_undo)
     @property
     def description(self)->str:
-        return self.action_log.description
+        return self.undo_log.description
     def start_logging(self):
-        self.action_log.start()
-        log_debug(f'STARTING aanvragenprocessor {self.action_log}')
+        self.undo_log.start()
+        log_debug(f'STARTING pipeline {self.undo_log}')
     def log_aanvraag(self, aanvraag: Aanvraag):
-        if aanvraag and aanvraag.status != Aanvraag.Status.DELETED:
-            self.action_log.add_aanvraag(aanvraag)
+        if aanvraag and aanvraag.status in Aanvraag.Status.valid_states():
+            self.undo_log.add(aanvraag)
     def stop_logging(self):
-        self.action_log.stop()
-        log_debug(f'STOPPING aanvragenprocessor {self.action_log}')
-        if not self.action_log.is_empty():
-            self.storage.action_logs.create(self.action_log)
+        self.undo_log.stop()
+        log_debug(f'STOPPING aanvragenprocessor {self.undo_log}')
+        if not self.undo_log.is_empty() and self.undo_log.can_undo:
+            self.storage.create('undo_logs', self.undo_log)
         self.storage.commit()
-    def is_known_file(self, filename: str)->bool: 
-        return filename in {file.filename for file in self.known_files} or self.storage.files.is_known_invalid(str(filename))
 
-class ProcessingPipeline(PipelineBase):
-    def __init__(self, description: str, processors: AanvraagProcessor|list[AanvraagProcessor], storage: AAPAStorage, activity: ActionLog.Action, can_undo=True, aanvragen: list[Aanvraag] = None):
-        super().__init__(description, processors, storage, activity=activity, can_undo=can_undo)
-        self.aanvragen = aanvragen if aanvragen else self.__read_aanvragen_from_storage()
-        self.__sort_aanvragen()     
-    def __read_aanvragen_from_storage(self):
-        log_info('Start reading aanvragen from database')
-        entry_states = self._processors[0].entry_states
-        result = self.storage.aanvragen.read_all(states=entry_states)
-        log_info('End reading aanvragen from database')
-        return result
-    def __sort_aanvragen(self):
-        def comparekey(a: Aanvraag):
-            if isinstance(a.timestamp, datetime.datetime):
-                return a.timestamp
-            else:
-                return datetime.datetime.now()
-        if self.aanvragen:
-            self.aanvragen.sort(key=comparekey, reverse=True)
-    def filtered_aanvragen(self, filter_func=None)->list[Aanvraag]:
-        if self.aanvragen and filter_func:
-            return list(filter(filter_func, self.aanvragen))
-        else:
-            return self.aanvragen
+class FilePipeline(Pipeline):
+    def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 
+                 activity: UndoLog.Action, invalid_filetype: File.Type=None):
+        super().__init__(description, processors, storage, activity=activity)
+        self.invalid_file_type = invalid_filetype
+        self._invalid_files = []
+    def _add_invalid_file(self, filename: str):
+        if self.invalid_file_type:
+            self._invalid_files.append({'filename': filename, 'filetype': self.invalid_file_type})
+    def _skip(self, filename: str)->bool:
+        return False
+    def _store_new(self, object: StoredClass):
+        pass
     @property
-    def processors(self)->list[AanvraagProcessor]:
+    def processors(self)->list[FileProcessor]:
         return self._processors
-    def _process_aanvraag(self, processor: AanvraagProcessor, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
-        try:
-            result = processor.must_process(aanvraag, **kwargs) and processor.process(aanvraag, preview, **kwargs)                                                
-            log_debug(f'_process_aanvraag: {result}')
-            return result
-        except Exception as E:
-            log_error(f'Fout bij processing aanvraag ({self.description}) {aanvraag.summary()}:\n\t{E}')
-        log_debug(f'_process_aanvraag: FALSE')
-        return False
-    def process(self, preview=False, filter_func = None, **kwargs)->int:
-        n_processed = 0
-        self.start_logging()
-        with Preview(preview, self.storage, 'process (pipeline)'):
-            if (aanvragen := self.filtered_aanvragen(filter_func)):
-                for aanvraag in aanvragen:
-                    processed = 0                
-                    for processor in self.processors:
-                        log_debug(f'processor: {processor.description} {kwargs}  {processor.must_process(aanvraag, **kwargs)}')
-                        if not processor.in_entry_states(aanvraag.status):
-                            break
-                        if self._process_aanvraag(processor, aanvraag, preview, **kwargs):
-                            processed += 1
-                            log_debug(f'processed. Exit state: {processor.exit_state}')
-                            if processor.exit_state:
-                                aanvraag.status = processor.exit_state                       
-                            self.storage.aanvragen.update(aanvraag)
-                            self.storage.commit()
-                        else:
-                            log_debug(f'Not processed: {processor.description} {self.action_log}')
-                    if processed > 0:
-                        n_processed += 1            
-                        self.log_aanvraag(aanvraag) 
-            self.stop_logging()
-        return n_processed
-
-class CreatingPipeline(PipelineBase):
-    def __init__(self, description: str, processors: AanvraagProcessorBase|list[AanvraagProcessorBase], storage: AAPAStorage, skip_directories: set[Path]={}, skip_files: list[str]=[]):
-        super().__init__(description, processors, storage, activity=ActionLog.Action.SCAN)  
-        self.skip_directories:list[Path] = skip_directories
-        self.skip_files:list[re.Pattern] = [re.compile(rf'{pattern}\.pdf', re.IGNORECASE) for pattern in skip_files]        
-    def _in_skip_directory(self, filename: Path)->bool:
-        for skip in self.skip_directories:
-            if filename.is_relative_to(skip):
-                return True
-        return False
-    def _skip_file(self, filename: Path)->bool:
-        for pattern in self.skip_files:
-            if pattern.match(str(filename)):
-                return True 
-        return False
-    def _add_invalid_file(self, filename: str, filetype=File.Type.INVALID_PDF):
-        self._invalid_files.append({'filename': filename, 'filetype': filetype})
-    def _check_skip_file(self, filename: Path)->bool:
-        record = self.storage.files.get_storage_record(str(filename))
-        log_debug(f'record: {filename}: {record.status}')
-        skip_msg = ''
-        warning = False
-        match record.status:
-            case FileStorageRecord.Status.STORED_INVALID_COPY:
-                skip_msg = f'Overslaan: bestand {summary_string(filename, maxlen=100, initial=16)}\n\t is kopie van {summary_string(record.stored.filename, maxlen=100, initial=16)}'
-                warning = True
-            case FileStorageRecord.Status.STORED_INVALID: 
-                pass
-            case FileStorageRecord.Status.DUPLICATE:
-                skip_msg = f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(record.stored.filename, maxlen=100, initial=16)}'          
-                warning = True
-            case _: 
-                if self._skip_file(filename):
-                    skip_msg = f'Overslaan: {summary_string(filename, maxlen=100)}'               
-        if skip_msg:
-            if warning:
-                log_warning(skip_msg, to_console=True)
-            else:
-                log_print(skip_msg)
-            self._add_invalid_file(str(filename))
-            return True
-        return False
-    def _process_file(self, processor: AanvraagCreator, filename: str, preview=False, **kwargs)->bool:
+    def _process_file_processor(self, processor: FileProcessor, filename: str, preview=False, **kwargs)->bool:
         if processor.must_process_file(filename, self.storage, **kwargs):
             try:
-                aanvraag = processor.process_file(filename, self.storage, preview, **kwargs)
-                if aanvraag is None:
+                object = processor.process_file(filename, self.storage, preview, **kwargs)
+                if object is None:
                     self._add_invalid_file(str(filename))
                     return False
-                self.storage.aanvragen.create(aanvraag)
+                self._store_new(object)
                 self.storage.commit()
-                self.log_aanvraag(aanvraag)
                 return True
             except Exception as E:
                 log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
-        return False    
+        return False
+    def _process_file(self, filename: Path, preview=False, **kwargs ):
+        for processor in self.processors:
+            log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
+            if not self._process_file_processor(processor, str(filename), preview, **kwargs):
+                log_debug('returning false...')
+                return False
+        return True
+    def _sorted(self, files: Iterable[Path])->Iterable[Path]:
+        return files
+    def _store_invalid(self, filename: str, filetype: File.Type)->File:
+        if (stored:=self.storage.find_values('files', attributes='filename', values=str(filename))):
+            result:File = stored[0]
+            result.filetype = filetype
+            self.storage.update('files', result)
+        else:
+            new_file = File(filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, 
+                            filetype=filetype)
+            self.storage.create('files', new_file)
+            result = new_file
+        return result
     def process(self, files: Iterable[Path], preview=False, **kwargs)->tuple[int, int]:
         n_processed = 0
         n_files = 0
         self._invalid_files = []
-        with Preview(preview, self.storage, 'process (creator)'):
+        with Preview(preview, self.storage, f'process (filepipeline) {self.description}'):
+            log_debug(MINOR_DEBUG_DIVIDER)
             self.start_logging()
-            for filename in sorted(files, key=os.path.getmtime):
+            for filename in self._sorted(files):
+                log_debug(ITEM_DEBUG_DIVIDER)
                 n_files += 1
-                if self._in_skip_directory(filename) or self._check_skip_file(filename):
+                if self._skip(filename):
                     continue                    
-                file_processed = True
-                for processor in self._processors:
-                    log_debug(f'processor: {processor.__class__} {filename} {kwargs}  {processor.must_process_file(str(filename), self.storage, **kwargs)}')
-                    if not self._process_file(processor, str(filename), preview, **kwargs):
-                        file_processed = False
-                        break                
-                if file_processed:
+                if self._process_file(filename, preview, **kwargs):
                     n_processed += 1
+                log_debug(ITEM_DEBUG_DIVIDER)
             log_debug(f'INVALID_FILES: {len(self._invalid_files)}')
             for entry in self._invalid_files:
-                log_debug(f'invalid file: {entry}')
-                self.action_log.add_invalid_file(self.storage.files.store_invalid(entry['filename'], entry['filetype']))                
+                log_debug(f'invalid file: {entry}')                
+                self.undo_log.add(self._store_invalid(filename=entry['filename'], filetype=entry['filetype']))
             self.storage.commit()
             self.stop_logging()     
-            log_debug(f'end process (creator) {n_processed=} {n_files=}')       
+            log_debug(f'end process (f"{self.description}") {n_processed=} {n_files=}')       
+            log_debug(MINOR_DEBUG_DIVIDER)
         return (n_processed, n_files)
+
+class SingleFilePipeline(Pipeline):
+    # the simplest pipelineprocessor, process a single file and do something useful with it
+    def __init__(self, description: str, processor: FileProcessor, 
+                 storage: AAPAStorage, activity: UndoLog.Action):
+        super().__init__(description, processor, storage, activity=activity)
+    @property
+    def processor(self)->FileProcessor:
+        return self._processors[0]
+    def _process_file_processor(self, filename: str, preview=False, **kwargs)->int:
+        if self.processor.must_process_file(filename, self.storage, **kwargs):
+            try:
+                return self.processor.process_file(filename, self.storage, preview, **kwargs)
+            except Exception as E:
+                log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
+        return 0
+    def _process_file(self, filename: Path, preview=False, **kwargs )->int:
+        log_debug(f'processor: {self.processor.__class__} {filename} {kwargs}  {self.processor.must_process_file(str(filename), self.storage, **kwargs)}')
+        return self._process_file_processor(str(filename), preview, **kwargs)
+    def process(self, filename: str, preview=False, **kwargs)->int:
+        with Preview(preview, self.storage, f'process (single_filepipeline) {self.description}'):
+            log_debug(MINOR_DEBUG_DIVIDER)
+            self.start_logging()
+            result = self._process_file(filename, preview, **kwargs)
+            log_debug(ITEM_DEBUG_DIVIDER)
+            self.storage.commit()
+            self.stop_logging()     
+            log_debug(f'end process (f"{self.description}") {result=}')       
+            log_debug(MINOR_DEBUG_DIVIDER)
+        return result
+

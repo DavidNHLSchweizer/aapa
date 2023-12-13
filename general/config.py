@@ -132,7 +132,7 @@ class Config(Singleton):
             self._parser.add_section(section_key)
         self._convertors.set(section_key, key_value, value)
     def write(self, filename: str):
-        with open(filename, "w") as file:
+        with open(filename, "w", encoding='utf-8') as file:
             self._parser.write(file)
     def clear(self):
         self._parser.clear()

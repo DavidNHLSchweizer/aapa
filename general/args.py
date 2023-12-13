@@ -15,17 +15,20 @@ import argparse
 from general.config import config
 
 class AAPAaction(Enum):
-    SCAN     = 1
-    FORM     = 2
-    MAIL     = 3
-    FULL     = 4
-    NEW      = 5
-    INFO     = 6
-    REPORT   = 7
-    UNDO     = 8
+    NONE      = 0
+    SCAN      = 1
+    FORM      = 2
+    MAIL      = 3
+    FULL      = 4
+    NEW       = 5
+    INFO      = 6
+    REPORT    = 7
+    UNDO      = 8
+    ZIPIMPORT = 9
 
     def help_str(self):
         match self:
+            case AAPAaction.NONE: return 'Geen actie [DEFAULT]'
             case AAPAaction.SCAN: return 'Vind en importeer nieuwe aanvragen'
             case AAPAaction.FORM: return 'maak beoordelingsformulieren'
             case AAPAaction.MAIL: return 'Vind en verwerk beoordeelde aanvragen en zet feedbackmails klaar'
@@ -34,11 +37,12 @@ class AAPAaction(Enum):
             case AAPAaction.INFO: return 'Laat configuratie (directories en database) zien'
             case AAPAaction.REPORT: return 'Rapporteer alle aanvragen in een .XLSX-bestand'
             case AAPAaction.UNDO: return 'Ongedaan maken van de laatste procesgang'
+            case AAPAaction.ZIPIMPORT: return 'Importeren verslagen uit zipfile'
             case _: return ''
     @staticmethod
     def all_help_str():
         return '\n'.join([f'   {str(a)}: {a.help_str()}' for a in AAPAaction]) + \
-                f'\nDefault is {str(AAPAaction.FULL)} (in preview-mode).'
+                f'\nDefault is {str(AAPAaction.NONE)}.'
     def __str__(self):    
         return self.name.lower()
     @staticmethod
@@ -54,35 +58,57 @@ class AAPAaction(Enum):
                 return a
         return None
 
-def _get_arguments():
-    parser = argparse.ArgumentParser(description=banner(), prog='aapa', usage='%(prog)s [actie(s)] [opties]', formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('actions', metavar='actie(s)', nargs='*', type=str, choices=AAPAaction.get_choices(), default='full',
-                        help=f'Uit te voeren actie(s). Kan een of meer zijn van  {AAPAaction.get_choices()}.\nWanneer geen actie wordt opgegeven wordt als default "full" gebruikt (in preview-mode).\n{AAPAaction.all_help_str()}')
+def _get_processing_arguments(parser: argparse.ArgumentParser):
+    parser.add_argument('actions', metavar='actie(s)', nargs='*', type=str, choices=AAPAaction.get_choices(), default='none',
+                        help=f'Uit te voeren actie(s). Kan een of meer zijn van  {AAPAaction.get_choices()}.\nWanneer geen actie wordt opgegeven wordt als default "none" gebruikt (in preview-mode).\n{AAPAaction.all_help_str()}')    
+    parser.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
+    parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
+    parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
+
+class AAPAProcessingOptions:
+    def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False):
+        self.actions = actions
+        self.preview = preview
+        self.force   = force
+        self.debug   = debug
+        if not self.actions:
+            self.actions = [AAPAaction.NONE]
+            self.preview = True
+    def __str__(self):
+        result = f'ACTIONS: {AAPAaction.get_actions_str(self.actions)}\n'
+        result = result + f'PREVIEW MODE: {self.preview}\n'
+        result = result + f'DEBUG: {self.debug}  FORCE: {self.force}\n'
+        return result + '.'
+    @classmethod
+    def from_args(cls, args: argparse.Namespace)->AAPAProcessingOptions:
+        def _get_actions(actions: list[str])->list[AAPAaction]:
+            result = []
+            for action in actions: 
+                if a := AAPAaction.from_action_choice(action):
+                    result.append(a)
+            return result
+        return cls(actions=_get_actions(args.actions), preview=args.preview, force=args.force, debug=args.debug)
+    def no_processing(self)->bool:
+        return not any([a in self.actions for a in {AAPAaction.SCAN, AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
+
+def _get_config_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('configuratie opties')
     group.add_argument('-r', '--root', type=str, 
                         help='De rootdirectory voor het scannen naar aanvragen.\nAls geen directory wordt ingevoerd (-r=) wordt deze opgevraagd.')
-    group.add_argument('-f', '--forms', dest='forms',  type=str, 
-                        help='De directory voor het aanmaken en invullen van beoordelingsformulieren.\nAls geen directory wordt ingevoerd (-f=) wordt deze opgevraagd.')
+    group.add_argument('-o', '--output', dest='output',  type=str, 
+                        help='De directory voor het aanmaken en invullen van beoordelingsformulieren.\nAls geen directory wordt ingevoerd (-o=) wordt deze opgevraagd.')
     group.add_argument('-d', '--database', type=str, help='De naam van de databasefile om mee te werken.\nAls de naam niet wordt ingevoerd (-d=) wordt hij opgevraagd.\nIndien de databasefile niet bestaat wordt hij aangemaakt.')   
-    group = parser.add_argument_group('overige opties')
+    group.add_argument('-rf', '--report_file', type=str, help='Bestandsnaam [.xlsx] voor actie "report". default: uit CONFIG.INI')
     group.add_argument('-c', '--config', type=str, help='Laad een alternatieve configuratiefile. Aangenomen wordt dat dit een .INI bestand is.')
-    group.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
-    group.add_argument('-file', '--file', type=str, help='Bestandsnaam [.xlsx] voor actie "report".')
-    group.add_argument('--difference', dest='difference', type=str,help=argparse.SUPPRESS) #maak een verschilbestand voor een student (voer studentnummer in); "invisible" command; bv: --difference=diff.html
-    group.add_argument('--history', dest='history', type=str,help=argparse.SUPPRESS) #voer beoordelingsgegevens in via een aangepast report-bestand; "invisible" command; bv: --history=history.xlsx
-    group.add_argument('--reset', dest='reset', type=str,help=argparse.SUPPRESS) #voer code in voor het terugzetten van de status van een aanvraag. Zie documentatie voor mogelijkheden bv: --reset=mail:aanvraagnr
-    group.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
-    group.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
-    return parser.parse_args()
 
 class AAPAConfigOptions:
-    def __init__(self, root_directory: str, output_directory: str, database_file: str, config_file:str = None, force=False, debug=False):
+    def __init__(self, root_directory: str, output_directory: str, database_file: str, 
+                 config_file:str = None, report_filename: str = None):
         self.root_directory = root_directory
         self.output_directory: str= output_directory
         self.database_file: str = database_file if database_file else config.get('configuration', 'database')
         self.config_file: str = config_file
-        self.force: bool = force
-        self.debug: bool = debug
+        self.report_filename: str = report_filename if report_filename else config.get('report', 'filename')
     def __str__(self):
         result = f'CONFIGURATION:\n'
         if self.root_directory is not None:
@@ -93,37 +119,64 @@ class AAPAConfigOptions:
             result = result + f'DATABASE: {self.database_file}\n'
         if self.config_file: 
             result = result + f'laad alternatieve CONFIGURATIE {self.config_file}\n'
+        if self.report_filename: 
+            result = result + f'FILENAME (voor REPORT): {self.report_filename}\n'
         return result + '.'
+    @classmethod
+    def from_args(cls, args: argparse.Namespace)->AAPAConfigOptions:
+        return cls(root_directory = args.root, output_directory = args.output, database_file = args.database, 
+                   config_file = args.config, report_filename = args.report_file)
 
-class AAPAProcessingOptions:
-    def __init__(self, actions: list[AAPAaction], preview = False, filename:str = None, history_file:str = None, diff_file:str = None):
-        self.actions = actions
-        self.preview: bool = preview
-        if AAPAaction.REPORT in self.actions:
-            self.filename: str = filename if filename else config.get('report', 'filename')
-        else:
-            self.filename: str = None
-        self.history_file: str = history_file
+def _get_other_arguments(parser: argparse.ArgumentParser):
+    group = parser.add_argument_group('overige opties')
+    group.add_argument('--detect', dest='detect', type=str,help=r'Detecteer gegevens vanuit een directory bv: --detect=c:\users\david\NHL Stenden\...')
+    group.add_argument('--difference', dest='difference', type=str,help=argparse.SUPPRESS) #maak een verschilbestand voor een student (voer studentnummer in); "invisible" command; bv: --difference=diff.html
+    group.add_argument('--history', dest='history', type=str,help=argparse.SUPPRESS) #voer beoordelingsgegevens in via een aangepast report-bestand; "invisible" command; bv: --history=history.xlsx
+    group.add_argument('--student', dest='student', type=str,help='Importeer gegevens over studenten uit Excel-bestand') 
+
+class AAPAOtherOptions:
+    def __init__(self, detect_dir:str = None, diff_file:str = None, history_file:str = None,
+                  student_file = None):
+        self.detect_dir: str = detect_dir
         self.diff_file: str = diff_file
+        self.history_file: str = history_file
+        self.student_file: str = student_file
     def __str__(self):
-        result = f'ACTIONS: {AAPAaction.get_actions_str(self.actions)}\n'
-        result = result + f'PREVIEW MODE: {self.preview}\n'
-        if self.filename is not None:
-            result = result + f'FILENAME (voor REPORT): {self.filename}\n'
+        result = f'OTHER OPTIONS:\n'
+        if self.detect_dir is not None:
+            result = result + f'DIRECTORY voor DETECT: {self.detect_dir}\n'
+        if self.diff_file is not None:
+            result = result + f'Student of zo om verschil te maken [#DEPRECATED]: {self.student_file}\n'
+        if self.history_file is not None:
+            result = result + f'Bestand voor laden history [#DEPRECATED]: {self.history_file}\n'
+        if self.student_file is not None:
+            result = result + f'Bestand voor studentgegevens: {self.student_file}\n'
         return result + '.'
+    def no_processing(self)->bool:
+            return self.detect_dir is None and self.diff_file is None and self.history_file is None and self.student_file is None
+    @classmethod
+    def from_args(cls, args: argparse.Namespace)->AAPAOtherOptions:
+        return cls(detect_dir = args.detect, diff_file = args.difference, history_file = args.history, 
+                   student_file= args.student)
 
 class AAPAOptions:
-    def __init__(self, root_directory: str, output_directory: str, database_file: str, config_file:str = None,force=False, debug=False,
-                 actions: list[AAPAaction] = [AAPAaction.FULL], preview = False, filename:str = None, history_file:str = None, 
-                 diff_file:str = None):
-        self.config_options = AAPAConfigOptions(root_directory=root_directory, output_directory=output_directory, database_file=database_file, 
-                                                config_file=config_file, force=force, debug=debug)
-        self.processing_options = AAPAProcessingOptions(actions=actions, preview=preview, filename=filename, history_file=history_file, diff_file=diff_file)
-
+    def __init__(self, 
+                 config_options: AAPAConfigOptions = None, 
+                 processing_options: AAPAProcessingOptions = None, 
+                 other_options: AAPAOtherOptions = None):
+        self.config_options = config_options
+        self.processing_options = processing_options
+        self.other_options = other_options      
     def __str__(self):
-        return f'{str(self.config_options)}\n{str(self.processing_options)}'
+        return f'{str(self.config_options)}\n{str(self.processing_options)}\n{str(self.other_options)}'
+    @classmethod
+    def from_args(cls, args: argparse.Namespace)->AAPAOptions:
+        return cls(config_options = AAPAConfigOptions.from_args(args), 
+                   processing_options = AAPAProcessingOptions.from_args(args),
+                   other_options = AAPAOtherOptions.from_args(args)
+                   )
 
-def report_options(config_options: AAPAConfigOptions, processing_options: AAPAProcessingOptions, parts=0)->str:
+def report_options(options: AAPAOptions, parts=0)->str:
     DEFAULT = "<default>:"
     QUERY   = "<to be queried>"
     def __report_str(item: str, attr, default):
@@ -135,6 +188,9 @@ def report_options(config_options: AAPAConfigOptions, processing_options: AAPAPr
         else:
             return __report_str(item, attr, default)
     result = ''
+    config_options = options.config_options
+    processing_options = options.processing_options
+    other_options = options.other_options
     if not (config_options or processing_options):
         return result
     if parts == 0 or parts == 2:
@@ -142,16 +198,27 @@ def report_options(config_options: AAPAConfigOptions, processing_options: AAPAPr
         result += f'preview: {processing_options.preview}\n'
     if parts == 0 or parts == 1:
         result += _report_str('root directory', config_options.root_directory, config.get('configuration', 'root'))
-        result +=  _report_str('forms directory', config_options.output_directory, config.get('configuration', 'forms'))
+        result +=  _report_str('forms directory', config_options.output_directory, config.get('configuration', 'output'))
         result +=  _report_str('database', config_options.database_file, config.get('configuration', 'database'))
     if parts == 1: 
         return result
     if parts == 0 or parts == 2:
         if AAPAaction.REPORT in processing_options.actions:
-            result +=  _report_str('create report', str(processing_options.filename))
+            result +=  _report_str('create report', str(config_options.report_filename))
+        if other_options.detect_dir:
+            result += _report_str('detect from directory', other_options.detect_dir)
+        if other_options.student_file:
+            result += _report_str('load student data', other_options.student_file)
         if config_options.config_file:
             result += _report_str('load alternative configuration file', config_options.config_file)
     return result
+
+def _get_arguments():
+    parser = argparse.ArgumentParser(description=banner(), prog='aapa', usage='%(prog)s [actie(s)] [opties]', formatter_class=argparse.RawTextHelpFormatter)
+    _get_processing_arguments(parser)
+    _get_config_arguments(parser)    
+    _get_other_arguments(parser)
+    return parser.parse_args()
 
 def get_debug()->bool:
     return _get_arguments().debug
@@ -159,30 +226,23 @@ def get_debug()->bool:
 class ArgumentOption(Enum):
     CONFIG = auto()
     PROCES = auto()
-    BOTH   = auto()
+    OTHER  = auto()
+    ALL    = auto()
 
-def get_arguments(which: ArgumentOption)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions]]:
-    def _get_actions(actions: list[str])->list[AAPAaction]:
-        result = []
-        for action in actions: 
-            if a := AAPAaction.from_action_choice(action):
-                result.append(a)
-        return result
+def get_options_from_commandline(which: ArgumentOption=ArgumentOption.ALL)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
     try:
         args = _get_arguments()
-        actions = _get_actions(args.actions)
-        preview = args.preview
-        if not actions:
-            actions=[AAPAaction.FULL]
-            preview = True
         match which:
             case ArgumentOption.CONFIG:
-                return AAPAConfigOptions(root_directory=args.root, output_directory=args.forms, database_file=args.database, config_file=args.config, force=args.force, debug=args.debug)
+                return AAPAConfigOptions.from_args(args)
             case ArgumentOption.PROCES:
-                return AAPAProcessingOptions(actions=actions, preview=preview, filename=args.file, history_file=args.history, diff_file=args.difference)
-            case ArgumentOption.BOTH:
-                return (AAPAConfigOptions(root_directory=args.root, output_directory=args.forms, database_file=args.database, config_file=args.config, force=args.force, debug=args.debug),
-                        AAPAProcessingOptions(actions=actions, preview=preview, filename=args.file, history_file=args.history, diff_file=args.difference))
+                return AAPAProcessingOptions.from_args(args)
+            case ArgumentOption.OTHER:
+                return AAPAOtherOptions.from_args(args)
+            case ArgumentOption.ALL:
+                return (AAPAConfigOptions.from_args(args),
+                        AAPAProcessingOptions.from_args(args),
+                        AAPAOtherOptions.from_args(args))
                 
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
@@ -191,10 +251,12 @@ def get_arguments(which: ArgumentOption)->type[AAPAConfigOptions | AAPAProcessin
 if __name__=="__main__":
     args = _get_arguments()
     print(args)
-    (config_options,processing_options) = get_arguments(ArgumentOption.BOTH)
+    (config_options,processing_options,other_options) = get_options_from_commandline()
     if config_options: 
         print(str(config_options))
     if processing_options: 
         print(str(processing_options))
-    print(report_options(config_options, processing_options))
+    if other_options: 
+        print(str(other_options))
+    print(report_options(AAPAOptions.from_args(args)))
     

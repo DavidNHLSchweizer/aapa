@@ -9,9 +9,10 @@ from textual.message import Message
 from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
-from data.classes.action_log import ActionLog
-from general.args import AAPAConfigOptions, AAPAaction, AAPAOptions
-from general.log import pop_console, push_console
+from data.classes.undo_logs import UndoLog
+from data.storage.queries.undo_logs import UndoLogQueries
+from general.args import AAPAConfigOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
+from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from tui.common.button_bar import ButtonBar, ButtonDef
@@ -29,7 +30,7 @@ def AAPArun_script(options: AAPAOptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
         aapa_runner = AAPARunner(options.config_options)
-        aapa_runner.process(options.processing_options) 
+        aapa_runner.process(options.processing_options, options.other_options) 
     finally:
         pop_console()
     return True
@@ -43,7 +44,7 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories',
             'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
-            'undo': 'Maak de laatste actie (scan of mail) ongedaan',
+            'undo': 'Maak de laatste actie (scan,form of mail) ongedaan',
             'mode_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database',
             'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid',
             'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',
@@ -54,10 +55,31 @@ class AAPATuiParams:
     output_directory: str = ''
     database: str = ''
     preview: bool = True
-    def get_options(self, action: AAPAaction)->AAPAOptions:
-        return AAPAOptions(actions=[action], root_directory=self.root_directory, 
-                           output_directory=self.output_directory, database_file=self.database, preview=self.preview)
+    def get_options(self, action: AAPAaction, report_filename = '')->AAPAOptions:
+        def _get_config_options(report_filename: str)->AAPAConfigOptions:
+            result = get_options_from_commandline(ArgumentOption.CONFIG)
+            result.root_directory=self.root_directory
+            result.output_directory=self.output_directory
+            result.database_file=self.database
+            result.report_filename=report_filename
+            return result
+        def _get_processing_options(action: AAPAaction)->AAPAProcessingOptions:
+            result = get_options_from_commandline(ArgumentOption.PROCES)
+            result.actions=[action]
+            result.preview=self.preview
+            return result
+        def _get_other_options()->AAPAOtherOptions:
+            return get_options_from_commandline(ArgumentOption.OTHER) 
+        return AAPAOptions(config_options=_get_config_options(report_filename),
+                           processing_options=_get_processing_options(action),
+                           other_options=_get_other_options())
       
+def windows_style(path: str)->str:
+    #because askdirectory/askfile returns a Posix-style path which causes trouble
+    if path:
+        return path.replace('/', '\\')
+    return ''
+
 class AapaDirectoriesForm(Static):
     def compose(self)->ComposeResult:
         with Vertical():
@@ -82,15 +104,15 @@ class AapaDirectoriesForm(Static):
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
-        if (result := tkifd.askdirectory(mustexist=True, title=title, initialdir=input.value)):
+        if (result := windows_style(tkifd.askdirectory(mustexist=True, title=title, initialdir=input.value))):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
             self._store_config_id(input_id)
     def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
-        if (result := tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
-                                            filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension)):
+        if (result := windows_style(tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
+                                            filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension))):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
@@ -139,17 +161,17 @@ class AapaButtons(Static):
             self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}'] 
     def button(self, id: str)->Button:
         return self.query_one(f'#{id}', Button)
-    def enable_action_buttons(self, action_log: ActionLog):
-        button_ids = {ActionLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
-                      ActionLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
-                      ActionLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
+    def enable_action_buttons(self, undo_log: UndoLog):
+        button_ids = {UndoLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
+                      UndoLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
+                      UndoLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
                      } 
-        next_button_id = button_ids[action_log.action]['next'] if action_log else 'scan'
+        next_button_id = button_ids[undo_log.action]['next'] if undo_log else 'scan'
         for button_id in {'scan', 'form', 'mail'} - {next_button_id}:
             self.button(button_id).classes = 'not_next'
         self.button(next_button_id).classes = 'next'
         self.button(next_button_id).focus()
-        self.button('undo').disabled = not action_log
+        self.button('undo').disabled = not undo_log
     def toggle(self):
         self.preview = not self.preview
     @property
@@ -180,7 +202,7 @@ class AAPAApp(App):
     CSS_PATH = ['aapa.tcss']
     def __init__(self, **kwdargs):
         self.terminal_active = False
-        self.last_action: ActionLog = None
+        self.last_action: UndoLog = None
         self.barbie = False
         self.barbie_oldcolors = {}
         super().__init__(**kwdargs)
@@ -214,9 +236,7 @@ class AAPAApp(App):
             case 'report': await self.action_report()
         message.stop()
     def _create_options(self, **kwdargs)->AAPAOptions:
-        options = self.params.get_options(kwdargs.pop('action', None))
-        options.processing_options.filename = kwdargs.pop('filename', options.processing_options.filename)
-        return options
+        return self.params.get_options(kwdargs.pop('action', None),  kwdargs.pop('filename', config.get('report', 'filename')))
     async def run_AAPA(self, action: AAPAaction, **kwdargs):
         options = self._create_options(action=action, **kwdargs)
         # logging.info(f'{options}')
@@ -228,15 +248,15 @@ class AAPAApp(App):
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
-    def refresh_last_action(self)->ActionLog:
+    def refresh_last_action(self)->UndoLog:
+        log_debug('RFA')
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
-        if not configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            result = None
-        else:
-            result = configuration.storage.action_logs.last_action()
-        self.last_action = result 
-        return result
+        if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
+            queries : UndoLogQueries = configuration.storage.queries('undo_logs')
+            self.last_action = queries.last_undo_log()
+            return self.last_action
+        return None
     async def enable_buttons(self):
         self.refresh_last_action()
         self.query_one(AapaButtons).enable_action_buttons(self.last_action)
@@ -252,10 +272,10 @@ class AAPAApp(App):
                 if str(event.result_str) == 'Ja': 
                     await self.run_AAPA(AAPAaction.UNDO)
     async def action_report(self):
-        if (filename := tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
+        if (filename := windows_style(tkifd.asksaveasfilename(title='Bestandsnaam voor rapportage', defaultextension='.xslx', 
                                            filetypes=[('*.xlsx', 'Excel bestanden'), ('*.*', 'Alle bestanden')],
                                            initialfile=config.get('report', 'filename'),
-                                           confirmoverwrite=True)):
+                                           confirmoverwrite=True))):
             await self.run_AAPA(AAPAaction.REPORT,filename=filename)
     @property 
     def directories_form(self)->AapaDirectoriesForm:
@@ -268,11 +288,7 @@ class AAPAApp(App):
     @params.setter
     def params(self, value: AAPATuiParams):
         self.directories_form.params = value
-        self.query_one(AapaButtons).preview = value.preview
-    def __get_config_options(self)->AAPAConfigOptions:
-        return AAPAConfigOptions(root_directory=self.params.root_directory,
-                                 output_directory=self.params.output_directory, 
-                                 database_file=self.params.database)                                 
+        self.query_one(AapaButtons).preview = value.preview                       
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):
