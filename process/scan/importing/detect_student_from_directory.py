@@ -6,6 +6,7 @@ from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from data.classes.mijlpalen import Mijlpaal
+from data.roots import decode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.studenten import StudentQueries
@@ -147,6 +148,8 @@ class MilestoneDetectorPipeline(FilePipeline):
         return False
 
 def detect_from_directory(directory: str, storage: AAPAStorage, preview=False, do_it=True)->int:
+    directory = decode_path(directory)
+    print(directory)
     if not Path(directory).is_dir():
         log_error(f'Map {directory} bestaat niet. Afbreken.')
         return 0  
