@@ -1,4 +1,5 @@
 from __future__ import annotations
+from data.classes.const import MijlpaalType
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File
@@ -12,6 +13,7 @@ class FilesTableMapper(TableMapper):
             case 'filename': return FilenameColumnMapper(column_name)
             case 'timestamp': return TimeColumnMapper(column_name) 
             case 'filetype': return ColumnMapper(column_name=column_name, db_to_obj=File.Type)
+            case 'mijlpaal_type': return ColumnMapper(column_name=column_name, db_to_obj=MijlpaalType)
             case _: return super()._init_column_mapper(column_name, database)
 
 register_crud(class_type=File, 

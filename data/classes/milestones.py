@@ -1,22 +1,15 @@
 from __future__ import annotations
 import datetime
-from enum import IntEnum
 from data.classes.aapa_class import AAPAclass
-from data.classes.base_dirs import BaseDir
 from data.classes.bedrijven import Bedrijf
+from data.classes.const import MilestoneBeoordeling
 from data.classes.files import File, Files
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
 class Milestone(AAPAclass):            
-    class Beoordeling(IntEnum):
-        TE_BEOORDELEN = 0
-        ONVOLDOENDE   = 1
-        VOLDOENDE     = 2
-        def __str__(self):
-            _MB_STRS = {Milestone.Beoordeling.TE_BEOORDELEN: '', Milestone.Beoordeling.ONVOLDOENDE: 'onvoldoende', Milestone.Beoordeling.VOLDOENDE: 'voldoende'}
-            return _MB_STRS[self]
+    Beoordeling = MilestoneBeoordeling
     def __init__(self, student:Student, datum: datetime.datetime, bedrijf: Bedrijf = None, kans=0, status=0, beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
         super().__init__(id)
         self.datum = datum

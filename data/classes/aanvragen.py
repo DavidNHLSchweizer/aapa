@@ -1,8 +1,8 @@
 from __future__ import annotations
 import datetime
-from enum import IntEnum
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
+from data.classes.const import AanvraagStatus
 from data.classes.files import File
 from data.classes.milestones import Milestone
 from data.classes.studenten import Student
@@ -10,27 +10,7 @@ from database.dbConst import EMPTY_ID
 
 class Aanvraag(Milestone):
     Beoordeling = Milestone.Beoordeling
-    class Status(IntEnum):
-        DELETED         = -1
-        NEW             = 0
-        IMPORTED_PDF    = 1
-        NEEDS_GRADING   = 2
-        GRADED          = 3
-        ARCHIVED        = 4 
-        MAIL_READY      = 5
-        READY           = 6
-        READY_IMPORTED  = 7
-
-        def __str__(self):
-            STRS = {Aanvraag.Status.DELETED: 'verwijderd', Aanvraag.Status.NEW: 'nog niet bekend', Aanvraag.Status.IMPORTED_PDF: 'gelezen (PDF)',  
-                    Aanvraag.Status.NEEDS_GRADING: 'te beoordelen', Aanvraag.Status.GRADED: 'beoordeeld', 
-                    Aanvraag.Status.ARCHIVED: 'gearchiveerd', Aanvraag.Status.MAIL_READY: 'mail klaar voor verzending', Aanvraag.Status.READY: 'geheel verwerkt', 
-                    Aanvraag.Status.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
-            return STRS[self.value]
-        @staticmethod
-        def valid_states()->set[Aanvraag.Status]:
-            return {status for status in Aanvraag.Status} - {Aanvraag.Status.DELETED}
-        
+    Status = AanvraagStatus
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
                  source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=0, versie=1):

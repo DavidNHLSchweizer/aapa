@@ -22,6 +22,32 @@ from general.keys import reset_key
 # adding all known students with the correct status
 # correction of errors in STUDENTEN tabel
 
+class BackupFileRootTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('BACKUP_FILEROOT', autoid=True)
+        self.add_column('code', dbc.TEXT, unique=True)
+        self.add_column('root', dbc.TEXT)
+
+class BackupFilesTableDefinition(TableDefinition):
+    def __init__(self):
+        super().__init__('BACKUP_FILES')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('filename', dbc.TEXT)
+        self.add_column('timestamp', dbc.TEXT)
+        self.add_column('digest', dbc.TEXT)
+        self.add_column('filetype', dbc.INTEGER)
+        self.add_column('mijlpaal_type', dbc.INTEGER)
+
+def backup_tables(database: Database):
+    database.execute_sql_command(SQLcreateTable(BackupFileRootTableDefinition()))
+    database._execute_sql_command('insert into BACKUP_FILEROOT SELECT * from FILEROOT')
+    database.execute_sql_command(SQLcreateTable(BackupFilesTableDefinition()))
+    database._execute_sql_command('insert into BACKUP_FILES SELECT * from FILES')
+
+def cleanup_backup(database: Database):
+    database._execute_sql_command('drop table BACKUP_FILEROOT')
+    database._execute_sql_command('drop table BACKUP_FILES')
+
 def _update_roots_table(database:Database):        
     database._execute_sql_command('DELETE from FILEROOT')
     create_roots(database)
@@ -180,32 +206,6 @@ def correct_student_errors(database: Database, phase_1=True):
         database._execute_sql_command(f'delete from STUDENTEN where id = ?', [32])
 
         print('--- klaar correcting errors in STUDENTEN table')
-
-
-class BackupFileRootTableDefinition(TableDefinition):
-    def __init__(self):
-        super().__init__('BACKUP_FILEROOT', autoid=True)
-        self.add_column('code', dbc.TEXT, unique=True)
-        self.add_column('root', dbc.TEXT)
-
-class BackupFilesTableDefinition(TableDefinition):
-    def __init__(self):
-        super().__init__('BACKUP_FILES')
-        self.add_column('id', dbc.INTEGER, primary = True)
-        self.add_column('filename', dbc.TEXT)
-        self.add_column('timestamp', dbc.TEXT)
-        self.add_column('digest', dbc.TEXT)
-        self.add_column('filetype', dbc.INTEGER)
-
-def backup_tables(database: Database):
-    database.execute_sql_command(SQLcreateTable(BackupFileRootTableDefinition()))
-    database._execute_sql_command('insert into BACKUP_FILEROOT SELECT * from FILEROOT')
-    database.execute_sql_command(SQLcreateTable(BackupFilesTableDefinition()))
-    database._execute_sql_command('insert into BACKUP_FILES SELECT * from FILES')
-
-def cleanup_backup(database: Database):
-    database._execute_sql_command('drop table BACKUP_FILEROOT')
-    database._execute_sql_command('drop table BACKUP_FILES')
 
 def import_studenten(database: Database, json_name: str):
     print('Importeren nieuwe studenten vanuit lijst')

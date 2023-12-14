@@ -1,9 +1,9 @@
 from __future__ import annotations 
 import datetime
-from enum import IntEnum
 from pathlib import Path
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
+from data.classes.const import FileType, MijlpaalType
 from database.dbConst import EMPTY_ID
 from general.filehash import hash_file_digest
 from general.fileutil import summary_string
@@ -12,56 +12,15 @@ from general.timeutil import TSC
 class FilesException(Exception): pass
 class File(AAPAclass):
     AUTODIGEST = ''
-    class Type(IntEnum):
-        INVALID_DOCX        = -3
-        INVALID_PDF         = -2
-        UNKNOWN             = -1
-        AANVRAAG_PDF        = 0
-        GRADE_FORM_DOCX     = 1
-        COPIED_PDF          = 2
-        DIFFERENCE_HTML     = 3
-        GRADE_FORM_PDF      = 5
-        GRADE_FORM_EX1_DOCX = 6
-        GRADE_FORM_EX2_DOCX = 7
-        GRADE_FORM_EX3_DOCX = 8
-        PVA                 = 9
-        ONDERZOEKS_VERSLAG  = 10        
-        TECHNISCH_VERSLAG   = 11       
-        EIND_VERSLAG         = 12
-        def __str__(self):
-            STR_DICT = {File.Type.UNKNOWN: '?', 
-                        File.Type.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
-                        File.Type.GRADE_FORM_DOCX: 'Beoordelingsformulier', 
-                        File.Type.GRADE_FORM_PDF: 'Ingevuld beoordelingsformulier (PDF format)', 
-                        File.Type.COPIED_PDF: 'Kopie van PDF-file (aanvraag)',
-                        File.Type.DIFFERENCE_HTML: 'Verschilbestand met vorige versie aanvraag',
-                        File.Type.GRADE_FORM_EX1_DOCX: 'Beoordelingsformulier (examinator 1)',
-                        File.Type.GRADE_FORM_EX2_DOCX: 'Beoordelingsformulier (examinator 2)',
-                        File.Type.GRADE_FORM_EX3_DOCX: 'Beoordelingsformulier (examinator 3 of hoger)',
-                        File.Type.PVA: 'Plan van Aanpak',
-                        File.Type.ONDERZOEKS_VERSLAG: 'Onderzoeksverslag',
-                        File.Type.TECHNISCH_VERSLAG: 'Technisch verslag',
-                        File.Type.EIND_VERSLAG: 'Eindverslag',
-                        }
-            return STR_DICT.get(self, '!unknown')
-        @staticmethod
-        def is_invalid(filetype: File.Type)->bool:
-            return filetype in File.Type.invalid_file_types()
-        @staticmethod
-        def valid_file_types()->set[File.Type]:
-            result =  {filetype for filetype in File.Type if not filetype in File.Type.invalid_file_types()}
-            return result
-        @staticmethod
-        def invalid_file_types()->set[File.Type]:
-            return {File.Type.INVALID_PDF, File.Type.INVALID_DOCX}
-
+    Type = FileType
     @staticmethod
     def get_timestamp(filename: str)-> datetime.datetime:
         return TSC.rounded_timestamp(datetime.datetime.fromtimestamp(Path(filename).stat().st_mtime))
     @staticmethod
     def get_digest(filename: str)->str:
         return hash_file_digest(filename)
-    def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, filetype=Type.UNKNOWN, id=EMPTY_ID):
+    def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, 
+                 filetype=Type.UNKNOWN, mijlpaal_type = MijlpaalType.UNKNOWN, id=EMPTY_ID):
         super().__init__(id)
         self.filename = str(filename) # to remove the WindowsPath label if needed
         if Path(filename).is_file():
@@ -77,8 +36,9 @@ class File(AAPAclass):
             self.timestamp=timestamp
             self.digest=digest
         self.filetype = filetype
+        self.mijlpaal_type = mijlpaal_type
     def __str__(self): 
-        return f'{self.filename}: {str(self.filetype)} [{TSC.timestamp_to_str(self.timestamp)}]'   
+        return f'{self.filename}: {str(self.filetype)}-{str(self.mijlpaal_type)} [{TSC.timestamp_to_str(self.timestamp)}]'
     def summary(self, len_filename = 72)->str:
         return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)} [{TSC.timestamp_to_str(self.timestamp)}]'     
     @property    
@@ -96,6 +56,8 @@ class File(AAPAclass):
         if  self.digest != value.digest:            
             return False
         if  self.filetype != value.filetype:
+            return False
+        if  self.mijlpaal_type != value.mijlpaal_type:
             return False
         return True
     
@@ -135,30 +97,5 @@ class Files(Aggregator):
         if file := self.get_file(ft):
             return file.digest
         return ''
-    # def get_file(self, ft: File.Type)->File:
-    #     if ft != File.Type.UNKNOWN and (file := self._get(ft)):
-    #         return copy(file)
-    #     return None
-    
-    # def set_file(self, file: File):
-    #     if file.filetype == File.Type.UNKNOWN or not file.filetype in self.file_types:
-    #         return
-    #     if current := self._get(file.filetype):
-    #         self.remove(current)
-    #     self.add(copy(file))
-    # def reset_file(self, file_type: File.Type | set[File.Type]):
-    #     if isinstance(file_type, set):
-    #         all_file_types = [file.filetype for file in self.files if file.filetype in file_type]
-    #     else:
-    #         all_file_types = [file_type]                 
-    #     for ft in all_file_types:
-    #         self._remove_filetype(ft)
-    # def reset(self):
-    #     self.reset_file({ft for ft in File.Type if ft != File.Type.UNKNOWN})
-    # def get_filetypes(self)->Iterable[File.Type]:
-    #     return [file.type for file in self.files]
-    # def set_files(self, files: Iterable[File]):
-    #     for file in files:
-    #         self.set_file(file)
     def summary(self)->str:
         return "\n".join([f'{file.summary()}' for file in self.files])

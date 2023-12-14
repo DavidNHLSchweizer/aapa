@@ -130,6 +130,7 @@ class FilesTableDefinition(TableDefinition):
         self.add_column('timestamp', dbc.TEXT)
         self.add_column('digest', dbc.TEXT)
         self.add_column('filetype', dbc.INTEGER)
+        self.add_column('mijlpaal_type', dbc.INTEGER)
         # self.add_index('name_index', 'filename')
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])

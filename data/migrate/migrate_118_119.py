@@ -1,5 +1,6 @@
 from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, FilesTableDefinition, \
                             StudentTableDefinition, UndoLogTableDefinition
+from data.classes.const import MijlpaalType
 from data.classes.files import File
 from database.sql_table import SQLcreateTable
 from database.database import Database
@@ -15,6 +16,7 @@ from general.timeutil import TSC
 # studenten krijgt ook zijn eigen ID. Aanpassingen aan AANVRAGEN hiervoor
 # toevoegen status kolom in STUDENTEN, remove tel_nr kolom
 # link files met aanvragen wordt met nieuwe koppeltabel AANVRAGEN_FILES. Aanpassingen aan FILES en AANVRAGEN hiervoor
+# toevoegen mijlpaal_type aan FILES
 # voorbereiding: aanvraag_nr -> kans
 # creating AANVRAGEN_OVERZICHT en AANVRAGEN_FILES overzicht
 # correctie enige voornamen van studenten
@@ -71,11 +73,11 @@ def modify_files_table(database: Database):
     #copying the data except the timestamp
     database._execute_sql_command('insert into FILES(id,filename, digest,filetype)'+ \
                                   ' select id,filename, digest,filetype from OLD_FILES')
-    #copying and transforming the timestamps
+    #copying and transforming the timestamps and adding mijlpaal_type, so far just AANVRAAG
     for row in database._execute_sql_command('select id, timestamp, filetype, filename from OLD_FILES', [], True):
-        database._execute_sql_command('update FILES set timestamp=? where id=?', [transform_time_str(row['timestamp']), row['id']]) 
+        database._execute_sql_command('update FILES set timestamp=?,mijlpaal_type=? where id=?', 
+                                      [transform_time_str(row['timestamp']), MijlpaalType.AANVRAAG, row['id']]) 
     print('copying the timestamps to AANVRAGEN table.')
-
     database._execute_sql_command(f'update aanvragen set datum = (SELECT timestamp from OLD_FILES WHERE AANVRAAG_ID=AANVRAGEN.ID and filetype=?)',
                                   [File.Type.AANVRAAG_PDF])
     # transforming the timestamps

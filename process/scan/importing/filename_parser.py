@@ -66,11 +66,11 @@ class ProductBeoordelingDetector(FileTypeDetector):
 
 class PresentatieBeoordelingDetector(FileTypeDetector):
     def __init__(self):
-        super().__init__(r'7\. Beoordeling presentatie(?P<who>\s.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.AFSTUDEER_ZITTING)
+        super().__init__(r'7\. Beoordeling presentatie(?P<who>\s.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.EINDBEOORDELING)
 
 class EindBeoordelingDetector(FileTypeDetector):
     def __init__(self):
-        super().__init__(r'8\. Eindbeoordeling afstuderen\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.AFSTUDEER_ZITTING)
+        super().__init__(r'8\. Eindbeoordeling afstuderen\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.EINDBEOORDELING)
 
 class FileTypeDetector:
     def __init__(self):

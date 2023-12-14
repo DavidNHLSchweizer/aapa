@@ -60,7 +60,7 @@ class StudentDirectoryDetector(FileProcessor):
             case 'technisch verslag': return Mijlpaal.Type.TECHNISCH_VERSLAG
             case 'eindverslag': return Mijlpaal.Type.EIND_VERSLAG
             case 'product' | 'productbeoordeling': return Mijlpaal.Type.PRODUCT_BEOORDELING
-            case 'afstudeerzitting': return Mijlpaal.Type.AFSTUDEER_ZITTING
+            case 'afstudeerzitting': return Mijlpaal.Type.EINDBEOORDELING
             case _:                 
                 if parsed_type:
                     if type_str := self.parser.parse_non_standard(subdirectory, parsed_type):
