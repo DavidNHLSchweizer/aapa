@@ -1,7 +1,6 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.milestones import Milestone
 from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
@@ -13,7 +12,7 @@ from data.storage.queries.studenten import StudentQueries
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string, test_directory_exists
 from general.config import ListValueConvertor, config
-from general.log import log_error, log_info, log_print, log_warning
+from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
@@ -71,14 +70,13 @@ class StudentDirectoryDetector(FileProcessor):
                     log_warning(f'Directory {Path(subdirectory).name} niet herkend.')
         return None
     def _collect_files(self, mijlpaal: Mijlpaal):
-        log_print('\tCollecting files...')
         for filename in Path(mijlpaal.directory).glob('*'):
+            log_debug(f'collecting file: {filename}')
             filetype,mijlpaal_type = self.filetype_detector.detect(filename)
             if filetype == File.Type.UNKNOWN:
                 filetype = mijlpaal.default_filetype()
                 mijlpaal_type = mijlpaal.mijlpaal_type
-            print(f'\t\t{Path(filename).name}: {filetype} [{mijlpaal_type}]')
-            mijlpaal.register_file(filename, filetype) # nog iets met mijlpaal_type doen
+            mijlpaal.register_file(filename=filename, filetype=filetype, mijlpaal_type=mijlpaal_type)
     def _process_subdirectory(self, subdirectory: str, student: Student)->Mijlpaal:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
@@ -87,7 +85,7 @@ class StudentDirectoryDetector(FileProcessor):
             log_error('\tDirectory wordt overgeslagen. Kan niet worden herkend.')
             return None
         new_mijlpaal = Mijlpaal(mijlpaal_type=mijlpaal_type, student=student, file=None, directory=subdirectory, datum=parsed.datum)
-        log_print(f'\tGedetecteerd: {new_mijlpaal}')
+        # log_print(f'\tGedetecteerd: {new_mijlpaal}')
         self._collect_files(new_mijlpaal)
         return new_mijlpaal
     def __update_kansen(self, student_directory: StudentDirectory):

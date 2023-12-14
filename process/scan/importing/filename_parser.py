@@ -25,7 +25,7 @@ class FileTypeDetector:
     
 class PlanVanAanpakDetector(FileTypeDetector):
     def __init__(self):
-        super().__init__(r'3\. Beoordeling plan van aanpak.*\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.PVA)
+        super().__init__(r'3\. Beoordeling plan van aanpak(.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.PVA)
         
 class VerslagDetector(FileTypeDetector):
     def __init__(self, regex: str, mijlpaal_type: Mijlpaal.Type):
@@ -50,27 +50,27 @@ class VerslagDetector(FileTypeDetector):
 
 class OnderzoeksVerslagDetector(VerslagDetector):
     def __init__(self):
-        super().__init__(r'4\. Beoordeling onderzoeksverslag (?P<who>ex1|ex2|ex3|geza.*)\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.ONDERZOEKS_VERSLAG)
+        super().__init__(r'4\. Beoordeling onderzoeksverslag (?P<who>ex1|ex2|ex3|gezamenlijk)(.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.ONDERZOEKS_VERSLAG)
 
 class TechnischVerslagDetector(VerslagDetector):
     def __init__(self):
-        super().__init__(r'5\. Beoordeling technisch verslag (?P<who>ex1|ex2|ex3|geza.*)\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.TECHNISCH_VERSLAG)
+        super().__init__(r'5\. Beoordeling technisch verslag (?P<who>ex1|ex2|ex3|gezamenlijk)(.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.TECHNISCH_VERSLAG)
 
 class EindVerslagDetector(VerslagDetector):
     def __init__(self):
-        super().__init__(r'5\. Beoordeling eindverslag (?P<who>ex1|ex2|ex3|geza.*)\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.EIND_VERSLAG)
+        super().__init__(r'5\. Beoordeling eindverslag (?P<who>ex1|ex2|ex3|gezamenlijk)(.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.EIND_VERSLAG)
 
 class ProductBeoordelingDetector(FileTypeDetector):
     def __init__(self):
-        super().__init__(r'6\. Beoordeling product(?P<who>\s.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.PRODUCT_BEOORDELING)
+        super().__init__(r'6\. Beoordeling product(?P<who>[\s\-].*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.PRODUCT_BEOORDELING)
 
 class PresentatieBeoordelingDetector(FileTypeDetector):
     def __init__(self):
-        super().__init__(r'7\. Beoordeling presentatie(?P<who>\s.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.EINDBEOORDELING)
+        super().__init__(r'7\. Beoordeling presentatie(?P<who>[\s\-].*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.PRESENTATIE)
 
 class EindBeoordelingDetector(FileTypeDetector):
     def __init__(self):
-        super().__init__(r'8\. Eindbeoordeling afstuderen\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.EINDBEOORDELING)
+        super().__init__(r'8\. Eindbeoordeling afstuderen(.*)?\.(docx|pdf)', mijlpaal_type=Mijlpaal.Type.EINDBEOORDELING)
 
 class FileTypeDetector:
     def __init__(self):

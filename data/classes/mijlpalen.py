@@ -1,6 +1,7 @@
 from __future__ import annotations
 import datetime
 from enum import IntEnum
+from pathlib import Path
 from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.classes.milestones import Milestone
@@ -21,14 +22,13 @@ class Mijlpaal(Milestone):
     Type = MijlpaalType
     def __init__(self, mijlpaal_type: Mijlpaal.Type, student:Student, file: File, datum: datetime.datetime, 
                  kans: int=1, id=EMPTY_ID, titel='', cijfer='', directory=''):
-        super().__init__(student=student, datum=datum, status=Mijlpaal.Status.NEW, titel=titel, id=id)   
+        super().__init__(student=student, datum=datum, status=Mijlpaal.Status.NEW, titel=titel, allow_multiple=True, id=id)   
         self.mijlpaal_type = mijlpaal_type     
         self.cijfer = ''
         self.directory = directory
         if file:
             self._files.add(file)
-        self.kans=kans
-   
+        self.kans=kans   
     def default_filetype(self)->File.Type:
         match self.mijlpaal_type:
             case Mijlpaal.Type.PVA: return File.Type.PVA
@@ -39,7 +39,10 @@ class Mijlpaal(Milestone):
     def __str__(self):        
         s = f'{TSC.get_date_str(self.datum)}: {self.mijlpaal_type} ({self.kans}) {str(self.student)} ' +\
               f'"{self.titel}" [{str(self.status)}]'
-        if self.beoordeling != '':
+        if self.beoordeling != Mijlpaal.Beoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
+        file_str = "\n\t\t".join([file.summary(name_only=True) for file in self.files_list])
+        if file_str:
+            s = s + "\n\t\t"+ file_str
         return s
 

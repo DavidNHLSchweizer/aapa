@@ -39,8 +39,11 @@ class File(AAPAclass):
         self.mijlpaal_type = mijlpaal_type
     def __str__(self): 
         return f'{self.filename}: {str(self.filetype)}-{str(self.mijlpaal_type)} [{TSC.timestamp_to_str(self.timestamp)}]'
-    def summary(self, len_filename = 72)->str:
-        return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)} [{TSC.timestamp_to_str(self.timestamp)}]'     
+    def summary(self, len_filename = 72, name_only=False)->str:
+        if name_only:
+            return f'{Path(self.filename).name}: {str(self.filetype)}-{self.mijlpaal_type} [{TSC.timestamp_to_str(self.timestamp)}]'     
+        else:
+            return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)}-{self.mijlpaal_type} [{TSC.timestamp_to_str(self.timestamp)}]'
     @property    
     def timestamp(self): return self._timestamp
     @timestamp.setter

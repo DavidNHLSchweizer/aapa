@@ -2,6 +2,7 @@ from pathlib import Path
 from copy import deepcopy
 import re
 import tkinter.simpledialog as tksimp
+from data.classes.const import MijlpaalType
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
 from data.storage.aapa_storage import AAPAStorage
@@ -96,7 +97,7 @@ class AanvraagPDFImporter(FileProcessor):
                     return None
                 else:
                     log_print(f'\t{str(validator.validated_aanvraag)}')
-                    validator.validated_aanvraag.register_file(filename, File.Type.AANVRAAG_PDF)
+                    validator.validated_aanvraag.register_file(filename, File.Type.AANVRAAG_PDF, MijlpaalType.AANVRAAG)
                     return validator.validated_aanvraag
             else:
                 return None

@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 from data.classes.aanvragen import Aanvraag
+from data.classes.const import MijlpaalType
 from data.classes.files import File
 from general.fileutil import file_exists, safe_file_name, summary_string
 from general.log import log_debug, log_print
@@ -35,7 +36,7 @@ class CopyAanvraagProcessor(AanvraagProcessor):
         if not preview:
             shutil.copy2(aanvraag_filename, copy_filename)
         log_debug(f'registeringing file {copy_filename}')
-        aanvraag.register_file(copy_filename, File.Type.COPIED_PDF)
+        aanvraag.register_file(copy_filename, File.Type.COPIED_PDF, MijlpaalType.AANVRAAG)
         log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {summary_string(aanvraag_filename)} naar\n\t\t{summary_string(copy_filename)}.')      
         return True
 

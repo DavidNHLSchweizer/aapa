@@ -1,5 +1,6 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
+from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.aanvragen import AanvraagQueries
@@ -26,7 +27,7 @@ class DifferenceProcessor(AanvraagProcessor):
             difference_filename= self.get_difference_filename(output_directory, aanvraag.student.full_name)            
             if not preview:
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)                
-            aanvraag.register_file(difference_filename, File.Type.DIFFERENCE_HTML)
+            aanvraag.register_file(difference_filename, File.Type.DIFFERENCE_HTML, MijlpaalType.AANVRAAG)
             log_print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {pva(preview, "aan te maken", "aangemaakt")}.')
             log_print(f'\t\tNieuwste versie "{aanvraag.summary()} ({aanvraag.kans})" {pva(preview, "te vergelijken", "vergeleken")} met\n\t\tvorige versie "{previous_aanvraag.summary()} ({previous_aanvraag.kans})".')
     def process(self, aanvraag: Aanvraag, preview = False, output_directory='.')->bool:

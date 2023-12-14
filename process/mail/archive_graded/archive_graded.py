@@ -1,5 +1,6 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
+from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.storage.aapa_storage import AAPAStorage
 from general.fileutil import path_with_suffix, summary_string
@@ -28,7 +29,7 @@ class ArchiveGradedFileProcessor(AanvraagProcessor):
         except Exception as E:
             log_error(f'Fout bij archiveren {summary_string(pdf_file_name, 80)}:\n\t{E}')
             return False
-        aanvraag.register_file(pdf_file_name, File.Type.GRADE_FORM_PDF)
+        aanvraag.register_file(pdf_file_name, File.Type.GRADE_FORM_PDF, MijlpaalType.AANVRAAG)
         if not preview:
             log_print(f'\tFeedback file aangemaakt en gearchiveerd')
         return True

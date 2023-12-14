@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import IntEnum
 
-__UNKNOWN = '!unknown'
+_UNKNOWN = '!unknown'
 class FileType(IntEnum):
     INVALID_DOCX        = -3
     INVALID_PDF         = -2
@@ -33,7 +33,7 @@ class FileType(IntEnum):
                     FileType.TECHNISCH_VERSLAG: 'Technisch verslag',
                     FileType.EIND_VERSLAG: 'Eindverslag',
                     }
-        return _FT_STRS.get(self, __UNKNOWN)
+        return _FT_STRS.get(self, _UNKNOWN)
     @staticmethod
     def is_invalid(filetype: FileType)->bool:
         return filetype in FileType.invalid_file_types()
@@ -59,8 +59,8 @@ class MijlpaalType(IntEnum):
         _MT_STRS = {MijlpaalType.UNKNOWN: '', MijlpaalType.AANVRAAG: 'aanvraag', MijlpaalType.PVA: 'plan van aanpak', 
                     MijlpaalType.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', MijlpaalType.TECHNISCH_VERSLAG: 'technisch verslag',
                     MijlpaalType.EIND_VERSLAG: 'eindverslag', MijlpaalType.PRODUCT_BEOORDELING: 'productbeoordeling',
-                    MijlpaalType.EINDBEOORDELING: 'eindbeoordeling' }
-        return _MT_STRS.get(self, __UNKNOWN)
+                    MijlpaalType.PRESENTATIE: 'presentatie', MijlpaalType.EINDBEOORDELING: 'eindbeoordeling' }
+        return _MT_STRS.get(self, _UNKNOWN)
     
 class AanvraagStatus(IntEnum):
     DELETED         = -1
@@ -77,7 +77,7 @@ class AanvraagStatus(IntEnum):
                 AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', 
                 AanvraagStatus.ARCHIVED: 'gearchiveerd', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'geheel verwerkt', 
                 AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
-        return _AS_STRS.get(self,__UNKNOWN)
+        return _AS_STRS.get(self,_UNKNOWN)
     @staticmethod
     def valid_states()->set[AanvraagStatus]:
         return {status for status in AanvraagStatus} - {AanvraagStatus.DELETED}
@@ -90,7 +90,7 @@ class MijlpaalStatus(IntEnum):
     def __str__(self):
         _MS_STRS = {MijlpaalStatus.NEW: 'nieuw', MijlpaalStatus.NEEDS_GRADING: 'te beoordelen', MijlpaalStatus.GRADED: 'beoordeeld', 
                 MijlpaalStatus.READY: 'geheel verwerkt'}
-        return _MS_STRS.get(self, __UNKNOWN)
+        return _MS_STRS.get(self, _UNKNOWN)
 
 class MilestoneBeoordeling(IntEnum):
     TE_BEOORDELEN = 0
@@ -98,4 +98,4 @@ class MilestoneBeoordeling(IntEnum):
     VOLDOENDE     = 2
     def __str__(self):
         _MB_STRS = {MilestoneBeoordeling.TE_BEOORDELEN: '', MilestoneBeoordeling.ONVOLDOENDE: 'onvoldoende', MilestoneBeoordeling.VOLDOENDE: 'voldoende'}
-        return _MB_STRS.get(self,__UNKNOWN)
+        return _MB_STRS.get(self,_UNKNOWN)

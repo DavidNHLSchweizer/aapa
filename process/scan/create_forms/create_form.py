@@ -1,5 +1,6 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
+from data.classes.const import MijlpaalType
 from data.classes.files import File
 from general.log import log_error, log_exception, log_print
 from general.fileutil import file_exists, safe_file_name
@@ -53,5 +54,5 @@ class FormCreator(AanvraagProcessor):
     def process(self, aanvraag: Aanvraag, preview=False, **kwdargs)->bool:
         doc_path = self.__merge_document(aanvraag, preview=preview)
         log_print(f'{aanvraag}\n\tFormulier {pva(preview, "aanmaken", "aangemaakt")}: {Path(doc_path).name}.')
-        aanvraag.register_file(doc_path, File.Type.GRADE_FORM_DOCX)
+        aanvraag.register_file(doc_path, File.Type.GRADE_FORM_DOCX, MijlpaalType.AANVRAAG)
         return True
