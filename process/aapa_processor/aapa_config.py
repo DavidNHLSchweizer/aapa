@@ -55,19 +55,23 @@ class AAPAConfiguration:
             database = config.get('configuration','database') 
         return from_main_path(path_with_suffix(database, '.db'))
     def __initialize_database(self, recreate: bool)->bool:
-        database = self.get_database_name()
-        if not file_exists(str(database)):
-            err_msg = f'Database {database} bestaat niet.'            
-            if recreate:
-                log_warning(err_msg)
-            else:    
-                self.validation_error = err_msg
-                log_error(err_msg)
+        try:
+            database = self.get_database_name()
+            if not file_exists(str(database)):
+                err_msg = f'Database {database} bestaat niet.'            
+                if recreate:
+                    log_warning(err_msg)
+                else:    
+                    self.validation_error = err_msg
+                    log_error(err_msg)
+                    return False
+            self.database = initialize_database(database, recreate)
+            self.storage  = initialize_storage(self.database)
+            if not self.database or not self.database.connection:
+                self.validation_error = f'Database {database} gecorrumpeerd of ander probleem met database'
                 return False
-        self.database = initialize_database(database, recreate)
-        self.storage  = initialize_storage(self.database)
-        if not self.database or not self.database.connection:
-            self.validation_error = f'Database {database} gecorrumpeerd of ander probleem met database'
+        except Exception as Mystery:
+            print(f'Error initializing database: {Mystery}')
             return False
         return True
     def __prepare_storage_roots(self, preview: bool):

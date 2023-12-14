@@ -156,5 +156,5 @@ def detect_from_directory(directory: str, storage: AAPAStorage, preview=False, d
     (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
     # report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     # log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
-    log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix='nieuwe student-')}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
+    log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix="nieuwe student-")}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
     return n_processed, n_files      
