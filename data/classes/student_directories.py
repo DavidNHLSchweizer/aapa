@@ -26,10 +26,8 @@ class StudentDirectory(AAPAclass):
     def data(self)->Aggregator:
         return self._data
     @property
-    def aanvraag(self)->Aanvraag:
-        if aanvragen := self._data.as_list('aanvragen'):
-            return aanvragen[0]
-        return None
+    def aanvragen(self)->list[Aanvraag]:
+        return self._data.as_list('aanvragen', sort_key=lambda a: a.id, sort_reverse=True)
     @property
     def mijlpalen(self)->list[Mijlpaal]:
         return self._data.as_list('mijlpalen')    
