@@ -4,12 +4,12 @@ from pathlib import Path
 from data.classes.bedrijven import Bedrijf
 from data.classes.const import AanvraagStatus, MijlpaalType
 from data.classes.files import File
-from data.classes.mijlpaal_base import MijlpaalBase
+from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 
-class Aanvraag(MijlpaalBase):
-    Beoordeling = MijlpaalBase.Beoordeling
+class Aanvraag(MijlpaalGradeable):
+    Beoordeling = MijlpaalGradeable.Beoordeling
     Status = AanvraagStatus
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
                  source_info: File = None, datum: datetime.datetime = None, 

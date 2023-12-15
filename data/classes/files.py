@@ -80,6 +80,12 @@ class Files(Aggregator):
     @property
     def files(self)->list[File]:
         return self.as_list('files', sort_key=lambda file: file.filetype)
+    def nr_files(self, filetypes: set[File.Type] = {filetype for filetype in File.Type}):
+        result = 0
+        for file in self.files:
+            if file.filetype in filetypes:
+                result += 1
+        return result
     def remove_filetype(self, ft: File.Type):
         if file := self.get_file(ft):
             self.remove(file)

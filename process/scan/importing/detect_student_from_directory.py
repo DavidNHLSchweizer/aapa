@@ -2,6 +2,7 @@ from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.const import MijlpaalType
 from data.classes.files import File
+from data.classes.mijlpaal_directory import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
@@ -16,6 +17,7 @@ from general.fileutil import summary_string, test_directory_exists
 from general.config import ListValueConvertor, config
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
+from general.timeutil import TSC
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
 from process.scan.importing.dirname_parser import DirectoryNameParser
@@ -54,7 +56,7 @@ class StudentDirectoryDetector(FileProcessor):
         queries : BaseDirQueries = storage.queries('base_dirs')
         self.base_dir = queries.find_basedir(dirname)
         return self.base_dir != None
-    def _parse_type(self, subdirectory:str, parsed_type: str)->Mijlpaal.Type:
+    def _parse_type(self, subdirectory:str, parsed_type: str)->MijlpaalType:
         match parsed_type.lower():
             case 'pva' | 'plan van aanpak': return MijlpaalType.PVA
             case 'onderzoeksverslag': return MijlpaalType.ONDERZOEKS_VERSLAG
@@ -71,39 +73,41 @@ class StudentDirectoryDetector(FileProcessor):
                 else:
                     log_warning(f'Directory {Path(subdirectory).name} niet herkend.')
         return None
-    def _collect_files(self, student_directory: StudentDirectory):
-        for filename in Path(student_directory.directory).glob('*'):
+    def _collect_files(self, new_dir: MijlpaalDirectory):
+        for filename in Path(new_dir.directory).glob('*'):
+            if not filename.is_file():
+                continue
             log_debug(f'collecting {filename}')
             filetype,mijlpaal_type = self.filetype_detector.detect(filename)
             if filetype == File.Type.UNKNOWN:
-                filetype = student_directory.default_filetype()
-                mijlpaal_type = student_directory.mijlpaal_type
-            student_directory.register_file(filename=filename, filetype=filetype, mijlpaal_type=mijlpaal_type)
-    def _process_subdirectory(self, subdirectory: str, student: Student)->Mijlpaal:
+                mijlpaal_type = new_dir.mijlpaal_type
+                filetype = mijlpaal_type.default_filetype()
+            new_dir.register_file(filename=filename, filetype=filetype, mijlpaal_type=mijlpaal_type)
+    def _process_subdirectory(self, subdirectory: str, student: Student)->MijlpaalDirectory:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
             return None
         if not (mijlpaal_type := self._parse_type(subdirectory, parsed.type)):
             log_error('\tDirectory wordt overgeslagen. Kan niet worden herkend.')
             return None
-        new_mijlpaal = Mijlpaal(mijlpaal_type=mijlpaal_type, student=student, file=None, directory=subdirectory, datum=parsed.datum)
-        # log_print(f'\tGedetecteerd: {new_mijlpaal}')
-        self._collect_files(new_mijlpaal)
-        return new_mijlpaal
+        new_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=subdirectory, datum=parsed.datum)
+        # log_print(f'\tGedetecteerd: {new_dir}')
+        self._collect_files(new_dir)
+        return new_dir
     def __update_kansen(self, student_directory: StudentDirectory):
-        cur_type = Mijlpaal.Type.UNKNOWN
+        cur_type = MijlpaalType.UNKNOWN
         cur_kans = 1
-        for verslag in sorted(student_directory.mijlpalen, key=lambda v: (v.mijlpaal_type, v.datum)):
-            if verslag.mijlpaal_type == cur_type:
+        for mijlpaal_directory in sorted(student_directory.directories, key=lambda v: (v.mijlpaal_type, v.datum)):
+            if mijlpaal_directory.mijlpaal_type == cur_type:
                 cur_kans += 1
             else:
                 cur_kans = 1
-                cur_type = verslag.mijlpaal_type
-            verslag.kans = cur_kans
+                cur_type = mijlpaal_directory.mijlpaal_type
+            mijlpaal_directory.kans = cur_kans
     def report_directory(self, msg: str, student_directory: StudentDirectory):
         log_print(msg)
-        for verslag in student_directory.mijlpalen:
-            log_print(f'\t{verslag.summary()}')
+        for directory in student_directory.directories:
+            log_print(f'\t{directory.summary()}')
     def process_file(self, dirname: str, storage: AAPAStorage = None, preview=False)->StudentDirectory:
         if not test_directory_exists(dirname):
             log_error(f'Directory {dirname} niet gevonden.')
@@ -118,8 +122,12 @@ class StudentDirectoryDetector(FileProcessor):
             if not student.valid():
                 log_warning(f'Gegevens student {student} zijn niet compleet.')
             student_directory = StudentDirectory(student, dirname, self.base_dir)
-            if (aanvraag := self._get_aanvraag(student, storage)):
-                student_directory.add(aanvraag)
+            new_dir = MijlpaalDirectory(mijlpaal_type=MijlpaalType.AANVRAAG, directory=dirname, datum=TSC.AUTOTIMESTAMP)
+            self._collect_files(new_dir)
+            if new_dir.files.nr_files() > 0:
+                student_directory.add(new_dir)
+            # if (aanvraag := self._get_aanvraag(student, storage)):
+            #     student_directory.add(aanvraag)
             for subdirectory in Path(dirname).glob('*'):
                 if subdirectory.is_dir() and (new_item := self._process_subdirectory(subdirectory, student)):                    
                     student_directory.add(new_item)

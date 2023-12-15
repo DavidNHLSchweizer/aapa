@@ -14,5 +14,5 @@ class Bedrijf(AAPAclass):
         if  self.name != value.name:
             return False
         return True
-    def relevant_attributes(self)->list[str]:
+    def relevant_attributes(self)->set[str]:
         return {'name'}

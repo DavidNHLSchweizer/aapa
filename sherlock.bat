@@ -1,3 +1,4 @@
+
 py aapa.py -debug -preview --detect=":ONEDRIVE:\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1" > detect.out
 py aapa.py -debug -preview --detect=":ONEDRIVE:\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1B" >> detect.out
 py aapa.py -debug -preview --detect=":ONEDRIVE:\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 2" >> detect.out

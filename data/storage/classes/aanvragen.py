@@ -5,12 +5,12 @@ from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.extended_crud import ExtendedCRUD
 from data.storage.general.mappers import ColumnMapper
 from data.storage.CRUDs import register_crud
-from data.storage.classes.mijlpaal_base import MijlpaalBaseTableMapper
+from data.storage.classes.mijlpaal_base import MijlpaalGradeableTableMapper
 from data.storage.queries.aanvragen import AanvraagQueries
 from database.database import Database
 from database.table_def import TableDefinition
 
-class AanvragenTableMapper(MijlpaalBaseTableMapper):
+class AanvragenTableMapper(MijlpaalGradeableTableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'status': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Status)

@@ -4,12 +4,12 @@ from enum import IntEnum
 from pathlib import Path
 from data.classes.const import _UNKNOWN, MijlpaalType
 from data.classes.files import File
-from data.classes.mijlpaal_base import MijlpaalBase
+from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
-class Verslag(MijlpaalBase):
+class Verslag(MijlpaalGradeable):
     class Status(IntEnum):
         NEW             = 0
         NEEDS_GRADING   = 1

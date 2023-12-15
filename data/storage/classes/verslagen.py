@@ -3,10 +3,10 @@ from data.classes.verslagen import Verslag
 from data.aapa_database import VerslagTableDefinition
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper
 from data.storage.CRUDs import register_crud
-from data.storage.classes.mijlpaal_base import MijlpaalBaseTableMapper
+from data.storage.classes.mijlpaal_base import MijlpaalGradeableTableMapper
 from database.database import Database
 
-class VerslagenTableMapper(MijlpaalBaseTableMapper):
+class VerslagenTableMapper(MijlpaalGradeableTableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'directory': return FilenameColumnMapper(column_name)

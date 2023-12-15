@@ -8,7 +8,7 @@ from data.storage.general.storage_const import StoredClass
 from data.storage.CRUDs import create_crud, CRUDColumnMapper
 from database.database import Database
 
-class MijlpaalBaseTableMapper(TableMapper):
+class MijlpaalGradeableTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'datum': return TimeColumnMapper(column_name)

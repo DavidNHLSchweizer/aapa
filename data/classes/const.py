@@ -55,6 +55,13 @@ class MijlpaalType(IntEnum):
     PRODUCT_BEOORDELING = 6
     PRESENTATIE         = 7
     EINDBEOORDELING     = 8
+    def default_filetype(self)->FileType:
+        match self:
+            case MijlpaalType.PVA: return FileType.PVA
+            case MijlpaalType.ONDERZOEKS_VERSLAG: return FileType.ONDERZOEKS_VERSLAG
+            case MijlpaalType.TECHNISCH_VERSLAG: return FileType.TECHNISCH_VERSLAG
+            case MijlpaalType.EIND_VERSLAG: return FileType.EIND_VERSLAG
+            case _: return FileType.UNKNOWN
     def __str__(self):
         _MT_STRS = {MijlpaalType.UNKNOWN: '', MijlpaalType.AANVRAAG: 'aanvraag', MijlpaalType.PVA: 'plan van aanpak', 
                     MijlpaalType.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', MijlpaalType.TECHNISCH_VERSLAG: 'technisch verslag',
