@@ -1,11 +1,12 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
+from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from data.classes.verslagen import Mijlpaal
+from data.classes.verslagen import Verslag
 from data.roots import decode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
@@ -55,12 +56,12 @@ class StudentDirectoryDetector(FileProcessor):
         return self.base_dir != None
     def _parse_type(self, subdirectory:str, parsed_type: str)->Mijlpaal.Type:
         match parsed_type.lower():
-            case 'pva' | 'plan van aanpak': return Mijlpaal.Type.PVA
-            case 'onderzoeksverslag': return Mijlpaal.Type.ONDERZOEKS_VERSLAG
-            case 'technisch verslag': return Mijlpaal.Type.TECHNISCH_VERSLAG
-            case 'eindverslag': return Mijlpaal.Type.EIND_VERSLAG
-            case 'product' | 'productbeoordeling': return Mijlpaal.Type.PRODUCT_BEOORDELING
-            case 'afstudeerzitting': return Mijlpaal.Type.EINDBEOORDELING
+            case 'pva' | 'plan van aanpak': return MijlpaalType.PVA
+            case 'onderzoeksverslag': return MijlpaalType.ONDERZOEKS_VERSLAG
+            case 'technisch verslag': return MijlpaalType.TECHNISCH_VERSLAG
+            case 'eindverslag': return MijlpaalType.EIND_VERSLAG
+            case 'product' | 'productbeoordeling': return MijlpaalType.PRODUCT_BEOORDELING
+            case 'afstudeerzitting': return MijlpaalType.EINDBEOORDELING
             case _:                 
                 if parsed_type:
                     if type_str := self.parser.parse_non_standard(subdirectory, parsed_type):
@@ -70,14 +71,14 @@ class StudentDirectoryDetector(FileProcessor):
                 else:
                     log_warning(f'Directory {Path(subdirectory).name} niet herkend.')
         return None
-    def _collect_files(self, mijlpaal: Mijlpaal):
-        for filename in Path(mijlpaal.directory).glob('*'):
-            log_debug(f'collecting file: {filename}')
+    def _collect_files(self, student_directory: StudentDirectory):
+        for filename in Path(student_directory.directory).glob('*'):
+            log_debug(f'collecting {filename}')
             filetype,mijlpaal_type = self.filetype_detector.detect(filename)
             if filetype == File.Type.UNKNOWN:
-                filetype = mijlpaal.default_filetype()
-                mijlpaal_type = mijlpaal.mijlpaal_type
-            mijlpaal.register_file(filename=filename, filetype=filetype, mijlpaal_type=mijlpaal_type)
+                filetype = student_directory.default_filetype()
+                mijlpaal_type = student_directory.mijlpaal_type
+            student_directory.register_file(filename=filename, filetype=filetype, mijlpaal_type=mijlpaal_type)
     def _process_subdirectory(self, subdirectory: str, student: Student)->Mijlpaal:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')

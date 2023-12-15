@@ -1,4 +1,4 @@
-from data.aapa_database import StudentDirectoryAanvragenTableDefinition, StudentDirectoryTableDefinition, StudentDirectoryMijlpalenTableDefinition
+from data.aapa_database import StudentDirectory_DirectoriesTableDefinition, StudentDirectoryTableDefinition
 from data.classes.base_dirs import BaseDir
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.classes.student_directories import StudentDirectory
@@ -20,37 +20,24 @@ class StudentDirectoriesTableMapper(TableMapper):
                 return CRUDColumnMapper(column_name=column_name, attribute_name='base_dir', crud=create_crud(database, BaseDir))
             case _: return super()._init_column_mapper(column_name, database)
 
-class StudentDirectoriesAanvragenDetailRec(DetailRec): pass
-class StudentDirectoriesAanvragenTableMapper(DetailRecsTableMapper):
+class StudentDirectoriesDirectoriesDetailRec(DetailRec): pass
+class StudentDirectoriesDirectoriesTableMapper(DetailRecsTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
-        super().__init__(database, table, class_type, 'stud_dir_id','aanvraag_id')
-
-class StudentDirectoriesMijlpalenDetailRec(DetailRec): pass
-class StudentDirectoriesMijlpalenTableMapper(DetailRecsTableMapper):
-    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
-        super().__init__(database, table, class_type, 'stud_dir_id','mijlpaal_id')
+        super().__init__(database, table, class_type, 'stud_dir_id','mp_dir_id')
 
 register_crud(class_type=StudentDirectory, 
                 table=StudentDirectoryTableDefinition(), 
                 crud=ExtendedCRUD,     
                 mapper_type=StudentDirectoriesTableMapper, 
                 details_data=
-                    [DetailRecData(aggregator_name='data', detail_aggregator_key='aanvragen', 
-                                   detail_rec_type=StudentDirectoriesAanvragenDetailRec),
-                    DetailRecData(aggregator_name='data', detail_aggregator_key='mijlpalen', 
-                                   detail_rec_type=StudentDirectoriesMijlpalenDetailRec),
+                    [DetailRecData(aggregator_name='data', detail_aggregator_key='directories', 
+                                   detail_rec_type=StudentDirectoriesDirectoriesDetailRec),
                     ]
                 )
-register_crud(class_type=StudentDirectoriesAanvragenDetailRec, 
-                table=StudentDirectoryAanvragenTableDefinition(), 
-                mapper_type=StudentDirectoriesAanvragenTableMapper, 
-                autoID=False,
-                main=False
-                )
 
-register_crud(class_type=StudentDirectoriesMijlpalenDetailRec, 
-                table=StudentDirectoryMijlpalenTableDefinition(), 
-                mapper_type=StudentDirectoriesMijlpalenTableMapper, 
+register_crud(class_type=StudentDirectoriesDirectoriesDetailRec, 
+                table=StudentDirectory_DirectoriesTableDefinition(), 
+                mapper_type=StudentDirectoriesDirectoriesTableMapper, 
                 autoID=False,
                 main=False
                 )

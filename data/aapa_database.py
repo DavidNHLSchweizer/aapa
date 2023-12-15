@@ -182,18 +182,28 @@ class StudentDirectoryTableDefinition(TableDefinition):
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class StudentDirectoryAanvragenTableDefinition(DetailTableDefinition):
+class StudentDirectory_DirectoriesTableDefinition(DetailTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_DIRECTORY_AANVRAGEN', 
+        super().__init__('STUDENT_DIRECTORY_DIRECTORIES', 
                          main_table_name='STUDENT_DIRECTORY', main_alias_id='stud_dir_id',
-                         detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
+                         detail_table_name='MIJLPAAL_DIRECTORY', detail_alias_id='mp_dir_id')
 
-class StudentDirectoryMijlpalenTableDefinition(DetailTableDefinition):
+class MijlpaalDirectoryTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_DIRECTORY_MIJLPALEN', 
-                         main_table_name='STUDENT_DIRECTORY', main_alias_id='stud_dir_id',
-                         detail_table_name='MIJLPALEN', detail_alias_id='mijlpaal_id')
+        super().__init__('MIJLPAAL_DIRECTORY')
+        self.add_column('id', dbc.INTEGER, primary = True)
+        self.add_column('mijlpaal_type', dbc.INTEGER)
+        self.add_column('directory', dbc.TEXT)
+        self.add_column('datum', dbc.TEXT)
 
+class MijlpaalDirectory_FilesTableDefinition(DetailTableDefinition):
+    def __init__(self):
+        super().__init__('MIJLPAAL_DIRECTORY_FILES', 
+                         main_table_name='MIJLPAAL_DIRECTORY', main_alias_id='mp_dir_id',
+                         detail_table_name='FILES', detail_alias_id='file_id')
+
+
+#-------------------- views -------------------------------
 class AanvragenOverzichtDefinition(ViewDefinition):
     def __init__(self):
         stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
@@ -225,9 +235,10 @@ class AAPaSchema(Schema):
         VerslagTableDefinition,
         VerslagFilesTableDefinition,
         BaseDirsTableDefinition,
-        StudentDirectoryTableDefinition,      
-        StudentDirectoryAanvragenTableDefinition,
-        StudentDirectoryMijlpalenTableDefinition,
+        StudentDirectoryTableDefinition,    
+        StudentDirectory_DirectoriesTableDefinition, 
+        MijlpaalDirectoryTableDefinition, 
+        MijlpaalDirectory_FilesTableDefinition
     ]
     ALL_VIEWS:list[ViewDefinition]= [ 
                 AanvragenOverzichtDefinition,
