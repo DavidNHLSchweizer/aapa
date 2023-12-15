@@ -1,7 +1,7 @@
 from typing import Tuple
-from data.aapa_database import BaseDirsTableDefinition, MijlpaalFilesTableDefinition, \
-    StudentDirectoryTableDefinition, StudentDirectoryAanvragenTableDefinition, StudentDirectoryMijlpalenTableDefinition, \
-        MijlpaalFilesTableDefinition, MijlpaalTableDefinition, create_roots
+from data.aapa_database import BaseDirsTableDefinition, \
+    StudentDirectoryAanvragenTableDefinition, StudentDirectoryMijlpalenTableDefinition, StudentDirectoryTableDefinition, \
+        VerslagFilesTableDefinition, VerslagTableDefinition, create_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from data.migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
@@ -53,9 +53,9 @@ def _update_roots_table(database:Database):
     create_roots(database)
 
 def create_mijlpalen_tables(database: Database):
-    print('toevoegen nieuwe tabel MIJLPALEN en MIJLPAAL_FILES')
-    database.execute_sql_command(SQLcreateTable(MijlpaalTableDefinition()))
-    database.execute_sql_command(SQLcreateTable(MijlpaalFilesTableDefinition()))
+    print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
+    database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(VerslagFilesTableDefinition()))
     print('toevoegen nieuwe STUDENT_DIRECTORY, STUDENT_DIRECTORY_AANVRAGEN en STUDENT_DIRECTORY_MIJLPALEN tabellen')
     database.execute_sql_command(SQLcreateTable(StudentDirectoryTableDefinition()))             
     database.execute_sql_command(SQLcreateTable(StudentDirectoryAanvragenTableDefinition())) 

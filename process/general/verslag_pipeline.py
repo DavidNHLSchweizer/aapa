@@ -1,5 +1,5 @@
 from data.classes.undo_logs import UndoLog
-from data.classes.mijlpalen import Mijlpaal
+from data.classes.verslagen import Mijlpaal
 from data.storage.aapa_storage import AAPAStorage
 from process.general.pipeline import FilePipeline
 from process.general.verslag_processor import MijlpaalCreator

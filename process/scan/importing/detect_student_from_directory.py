@@ -5,7 +5,7 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from data.classes.mijlpalen import Mijlpaal
+from data.classes.verslagen import Mijlpaal
 from data.roots import decode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries

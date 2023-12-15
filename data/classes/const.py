@@ -92,10 +92,10 @@ class MijlpaalStatus(IntEnum):
                 MijlpaalStatus.READY: 'geheel verwerkt'}
         return _MS_STRS.get(self, _UNKNOWN)
 
-class MilestoneBeoordeling(IntEnum):
+class MijlpaalBeoordeling(IntEnum):
     TE_BEOORDELEN = 0
     ONVOLDOENDE   = 1
     VOLDOENDE     = 2
     def __str__(self):
-        _MB_STRS = {MilestoneBeoordeling.TE_BEOORDELEN: '', MilestoneBeoordeling.ONVOLDOENDE: 'onvoldoende', MilestoneBeoordeling.VOLDOENDE: 'voldoende'}
+        _MB_STRS = {MijlpaalBeoordeling.TE_BEOORDELEN: '', MijlpaalBeoordeling.ONVOLDOENDE: 'onvoldoende', MijlpaalBeoordeling.VOLDOENDE: 'voldoende'}
         return _MB_STRS.get(self,_UNKNOWN)

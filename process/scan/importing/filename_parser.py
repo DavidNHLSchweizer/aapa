@@ -4,7 +4,7 @@ from ast import Tuple
 from pathlib import Path
 import re
 from data.classes.files import File
-from data.classes.mijlpalen import Mijlpaal
+from data.classes.verslagen import Mijlpaal
 
 class FileTypeDetector:
     def __init__(self, regex: str, mijlpaal_type: Mijlpaal.Type):

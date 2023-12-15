@@ -65,7 +65,7 @@ class File(AAPAclass):
         return True
     
 class Files(Aggregator):
-    def __init__(self, owner: AAPAclass, allow_multiple = False):
+    def __init__(self, owner: AAPAclass, allow_multiple = True):
         super().__init__(owner=owner)
         self.allow_multiple = allow_multiple
         self.add_class(File, 'files')

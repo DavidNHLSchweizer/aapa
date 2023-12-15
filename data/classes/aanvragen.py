@@ -2,20 +2,22 @@ from __future__ import annotations
 import datetime
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import AanvraagStatus
+from data.classes.const import AanvraagStatus, MijlpaalType
 from data.classes.files import File
-from data.classes.milestones import Milestone
+from data.classes.mijlpaal_base import MijlpaalBase
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 
-class Aanvraag(Milestone):
-    Beoordeling = Milestone.Beoordeling
+class Aanvraag(MijlpaalBase):
+    Beoordeling = MijlpaalBase.Beoordeling
     Status = AanvraagStatus
     def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
                  source_info: File = None, datum: datetime.datetime = None, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=0, versie=1):
-        super().__init__(student=student, bedrijf=bedrijf, datum = datum, kans=kans, 
+        super().__init__(mijlpaal_type=MijlpaalType.AANVRAAG, 
+                         student=student, bedrijf=bedrijf, datum = datum, kans=kans, 
                          status=status, beoordeling=beoordeling, titel=titel, id=id)
+        self.files.allow_multiple = False 
         self._datum_str = datum_str
         self.versie=versie
         if source_info:

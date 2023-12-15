@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from data.classes.files import File
 from data.classes.studenten import Student
-from data.classes.mijlpalen import Mijlpaal
+from data.classes.verslagen import Mijlpaal
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.studenten import StudentQueries
 from general.fileutil import summary_string
