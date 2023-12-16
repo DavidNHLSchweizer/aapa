@@ -81,8 +81,16 @@ class StudentDirectoryDetector(FileProcessor):
             filetype,mijlpaal_type = self.filetype_detector.detect(filename)
             if filetype == File.Type.UNKNOWN:
                 mijlpaal_type = new_dir.mijlpaal_type
-                filetype = mijlpaal_type.default_filetype()
+                if mijlpaal_type == MijlpaalType.AANVRAAG:
+                    if Path(filename).suffix == '.pdf':
+                        filetype = File.Type.AANVRAAG_PDF
+                    else:
+                        filetype = File.Type.AANVRAAG_OTHER 
+                else:
+                    filetype = mijlpaal_type.default_filetype()
+            log_debug(f'collected: {filetype} {mijlpaal_type}')
             new_dir.register_file(filename=filename, filetype=filetype, mijlpaal_type=mijlpaal_type)
+            log_debug('registered')
     def _process_subdirectory(self, subdirectory: str, student: Student)->MijlpaalDirectory:
         if not (parsed := self.parser.parsed(subdirectory)):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
@@ -91,8 +99,9 @@ class StudentDirectoryDetector(FileProcessor):
             log_error('\tDirectory wordt overgeslagen. Kan niet worden herkend.')
             return None
         new_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=subdirectory, datum=parsed.datum)
-        # log_print(f'\tGedetecteerd: {new_dir}')
+        log_debug(f'\tGedetecteerd: {new_dir}')
         self._collect_files(new_dir)
+        log_debug('ready detecting')
         return new_dir
     def __update_kansen(self, student_directory: StudentDirectory):
         cur_type = MijlpaalType.UNKNOWN
@@ -144,13 +153,6 @@ class MilestoneDetectorPipeline(FilePipeline):
         self.skip_directories=skip_directories
     def _store_new(self, student_directory: StudentDirectory):
         self.storage.create('student_directories', student_directory)
-
-        # for aanvraag in milestones.get(Verslag.Type.AANVRAAG):
-        #     if not storage.aanvragen
-        #  self.storage.aanvragen.create(aanvraag)
-        # self.log_aanvraag(aanvraag)   
-        # log_print(f'\tstoring new milestone: {milestone}')
-
     def _skip(self, filename: str)->bool:        
         if Path(filename).stem in self.skip_directories:
             return True

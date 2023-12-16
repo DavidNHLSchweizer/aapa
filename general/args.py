@@ -73,7 +73,6 @@ class AAPAProcessingOptions:
         self.debug   = debug
         if not self.actions:
             self.actions = [AAPAaction.NONE]
-            self.preview = True
     def __str__(self):
         result = f'ACTIONS: {AAPAaction.get_actions_str(self.actions)}\n'
         result = result + f'PREVIEW MODE: {self.preview}\n'

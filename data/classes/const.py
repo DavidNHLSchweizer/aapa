@@ -3,6 +3,7 @@ from enum import IntEnum
 
 _UNKNOWN = '!unknown'
 class FileType(IntEnum):
+    INVALID_DIR         = -4
     INVALID_DOCX        = -3
     INVALID_PDF         = -2
     UNKNOWN             = -1
@@ -17,7 +18,8 @@ class FileType(IntEnum):
     PVA                 = 9
     ONDERZOEKS_VERSLAG  = 10        
     TECHNISCH_VERSLAG   = 11       
-    EIND_VERSLAG         = 12
+    EIND_VERSLAG        = 12
+    AANVRAAG_OTHER      = 13
     def __str__(self):
         _FT_STRS = {FileType.UNKNOWN: '?', 
                     FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
@@ -32,6 +34,7 @@ class FileType(IntEnum):
                     FileType.ONDERZOEKS_VERSLAG: 'Onderzoeksverslag',
                     FileType.TECHNISCH_VERSLAG: 'Technisch verslag',
                     FileType.EIND_VERSLAG: 'Eindverslag',
+                    FileType.AANVRAAG_OTHER: 'Aanvraag'
                     }
         return _FT_STRS.get(self, _UNKNOWN)
     @staticmethod
@@ -52,11 +55,12 @@ class MijlpaalType(IntEnum):
     ONDERZOEKS_VERSLAG  = 3
     TECHNISCH_VERSLAG   = 4
     EIND_VERSLAG        = 5
-    PRODUCT_BEOORDELING = 6
+    PRODUCT_BEOORDELING = 6.
     PRESENTATIE         = 7
     EINDBEOORDELING     = 8
     def default_filetype(self)->FileType:
         match self:
+            case MijlpaalType.AANVRAAG: return FileType.AANVRAAG_PDF
             case MijlpaalType.PVA: return FileType.PVA
             case MijlpaalType.ONDERZOEKS_VERSLAG: return FileType.ONDERZOEKS_VERSLAG
             case MijlpaalType.TECHNISCH_VERSLAG: return FileType.TECHNISCH_VERSLAG
