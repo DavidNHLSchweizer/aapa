@@ -30,5 +30,10 @@ class StudentDirectory(AAPAclass):
         return self._data.as_list('directories')    
     def add(self, mijlpaal: MijlpaalBase):
         self._data.add(mijlpaal)
-    
+    def __str__(self)->str:
+        result = f'Student directory voor {str(self.student)}\n\t{self.directory}'
+        dir_str = "\n\t".join(str(directory) for directory in self.directories)
+        if dir_str:
+            result = result + '\n\t' + dir_str 
+        return result
     

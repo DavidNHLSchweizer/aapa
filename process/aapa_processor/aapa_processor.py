@@ -3,6 +3,7 @@ from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.migrate.import_studenten import import_studenten_XLS
+from process.report.report_student_directory import StudentDirectoryReporter
 from process.scan.importing.detect_student_from_directory import detect_from_directory
 from process.scan.importing.import_verslagen import import_zipfile
 from process.undo.undo_processor import undo_last
@@ -39,6 +40,7 @@ class AAPAProcessor:
                 self.__create_diff_file(configuration, other_options)
         if other_options.detect_dir:
             self.__detect_from_directory(other_options.detect_dir, configuration, preview=preview)            
+            StudentDirectoryReporter().report(configuration.storage)
         if other_options.student_file:              
             self.__import_student_data(other_options.student_file, configuration, preview=preview)
         if other_options.history_file:              
@@ -52,7 +54,7 @@ class AAPAProcessor:
             if AAPAaction.INFO in actions:
                 self.__report_info(AAPAOptions(config_options=configuration.config_options, processing_options=processing_options, other_options=other_options))
             if not other_options.no_processing():
-                self.__process_other_options(configuration, other_options, preview=preview)        
+                    self.__process_other_options(configuration, other_options, preview=preview)        
             if processing_options.no_processing():
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
