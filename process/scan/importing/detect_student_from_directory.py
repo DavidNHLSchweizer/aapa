@@ -21,7 +21,7 @@ from general.timeutil import TSC
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
 from process.scan.importing.dirname_parser import DirectoryNameParser
-from process.scan.importing.filename_parser import FilenameDetector
+from process.scan.importing.filename_parser import FileTypeDetector
 
 def init_config():
     config.register('detect_directory', 'skip', ListValueConvertor)
@@ -35,7 +35,7 @@ class StudentDirectoryDetector(FileProcessor):
     def __init__(self):
         super().__init__(description='StudentDirectory Detector')
         self.parser = DirectoryNameParser()
-        self.filetype_detector = FilenameDetector()
+        self.filetype_detector = FileTypeDetector()
         self.base_dir: BaseDir = None
         self.current_student_directory: StudentDirectory = None
     
