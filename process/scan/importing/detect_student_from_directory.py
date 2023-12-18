@@ -8,7 +8,8 @@ from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
-from data.roots import decode_path
+from data.migrate.sql_coll import SQLcollType, SQLcollector, SQLcollectors
+from data.roots import decode_path, encode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.studenten import StudentQueries
@@ -47,11 +48,11 @@ class StudentDirectoryDetector(FileProcessor):
         if storage and (stored := queries.find_student_by_name_or_email(student)):
             return stored
         return student
-    def _get_aanvraag(self, student: Student, storage: AAPAStorage)->Aanvraag:
-        if student.id == EMPTY_ID:
-            return None
-        if max_id := storage.find_max_value('aanvragen', attribute='id', where_attributes='student', where_values=student.id):
-            return storage.read('aanvragen', max_id)
+    # def _get_aanvraag(self, student: Student, storage: AAPAStorage)->Aanvraag:
+    #     if student.id == EMPTY_ID:
+    #         return None
+    #     if max_id := storage.find_max_value('aanvragen', attribute='id', where_attributes='student', where_values=student.id):
+    #         return storage.read('aanvragen', max_id)
     def _get_basedir(self, dirname: str, storage: AAPAStorage)->BaseDir:
         queries : BaseDirQueries = storage.queries('base_dirs')
         self.base_dir = queries.find_basedir(dirname)
@@ -151,14 +152,57 @@ class MilestoneDetectorPipeline(FilePipeline):
     def __init__(self, description: str, storage: AAPAStorage, skip_directories:list[str]=[]):
         super().__init__(description, StudentDirectoryDetector(), storage, activity=UndoLog.Action.DETECT)
         self.skip_directories=skip_directories
+        self.sqls = self.__init_sql_collectors()
+    def __init_sql_collectors(self)->SQLcollectors:
+        sqls = SQLcollectors()
+        sqls.add('student_directories', 
+                 SQLcollector(
+                {'insert':{'sql':'insert into STUDENT_DIRECTORIES (id,stud_id,directory,basedir_id) values(?,?,?,?)'},
+                'update':{'sql':'update STUDENT_DIRECTORIES set stud_id=?,directory=?,basedir_id=? WHERE id = ?'}}))
+        sqls.add('mijlpaal_directories', 
+                 SQLcollector
+                 ({'insert':{'sql':'insert into MIJLPAAL_DIRECTORIES (id,mijlpaal_type,directory,datum) values(?,?,?,?)'},
+                   'update':{'sql':'update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,directory=?,datum=? WHERE id = ?'}}))
+        sqls.add('student_directory_directories', SQLcollector(
+            {'insert': {'sql':'insert into STUDENT_DIRECTORY_DIRECTORIES (stud_dir_id,mp_id) values(?,?)'},
+             'delete': {'sql':'delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id in (?)'}}))
+        sqls.add('files', SQLcollector(
+             {'insert': {'sql':'insert into FILES (id,filename,timestamp,digest,filetype,mijlpaal_type) values(?,?,?,?,?,?)'},
+              'update': {'sql':'update FILES set filename=?,timestamp=?,digest=?,filetype=?,mijlpaal_type=? WHERE id = ?'}}))
+        sqls.add('mijlpaal_directory_files', SQLcollector(
+            {'insert': {'sql':'insert into MIJLPAAL_DIRECTORY_FILES (mp_dir_id,file_id) values(?,?)',
+             'delete': {'sql':'delete from MIJLPAAL_DIRECTORY_FILES where mp_dir_id=?'}}}))
+        return sqls
+    def __get_sql_mijlpaal_directories(self, stud_dir_id: int, mijlpaal_directory_list: list[MijlpaalDirectory]):
+        self.sqls.delete('student_directory_directories', [stud_dir_id])
+        for mijlpaal_directory in mijlpaal_directory_list:
+            self.sqls.insert('mijlpaal_directories', [mijlpaal_directory.id, mijlpaal_directory.mijlpaal_type, 
+                                                    encode_path(mijlpaal_directory.directory), 
+                                                    TSC.timestamp_to_sortable_str(mijlpaal_directory.datum)])
+            self.sqls.insert('student_directory_directories', [stud_dir_id, mijlpaal_directory.id])
+            self.__get_sql_files(mijlpaal_directory.id, mijlpaal_directory.files_list) 
+    def __get_sql_files(self, mp_dir_id: int, files_list: list[File]):
+        self.sqls.delete('mijlpaal_directory_files', [mp_dir_id])
+        for file in files_list:
+            self.sqls.insert('files', [file.id,encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
+                                        file.digest,file.filetype,file.mijlpaal_type])
+            self.sqls.insert('mijlpaal_directory_files', [mp_dir_id, file.id])   
+    def __get_sql(self, student_directory: StudentDirectory):         
+        #make sure you get all the ID's from the database as done by storage.
+        self.sqls.insert('student_directories', [student_directory.id, student_directory.student.id,
+                                                 encode_path(student_directory.directory),student_directory.base_dir.id
+                                                 ])
+        self.__get_sql_mijlpaal_directories(student_directory.id, student_directory.directories)
     def _store_new(self, student_directory: StudentDirectory):
         self.storage.create('student_directories', student_directory)
+        self.__get_sql(self.storage.read('student_directories', student_directory.id)) 
+        #must get the right IDs from the database first
     def _skip(self, filename: str)->bool:        
         if Path(filename).stem in self.skip_directories:
             return True
         return False
 
-def detect_from_directory(directory: str, storage: AAPAStorage, preview=False, do_it=True)->int:
+def detect_from_directory(directory: str, storage: AAPAStorage, preview=False)->int:
     directory = decode_path(directory)
     print(directory)
     if not Path(directory).is_dir():
@@ -170,5 +214,6 @@ def detect_from_directory(directory: str, storage: AAPAStorage, preview=False, d
     (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
     # report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     # log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
+    importer.sqls.dump_to_file(f'{Path(directory).parent.name}_{Path(directory).stem}.json')
     log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix="nieuwe student-")}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
     return n_processed, n_files      

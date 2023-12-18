@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
-from data.migrate.sql_coll import SQLcollector
+from data.migrate.sql_coll import SQLcollector, SQLcollectors
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.studenten import StudentQueries
 from general.log import log_error, log_info, log_print, log_warning
@@ -16,7 +16,6 @@ from general.singular_or_plural import sop
 from general.valid_email import is_valid_email
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline, SingleFilePipeline
-
 
 class StudentenXLSImporter(FileProcessor):
     NCOLS = 5
@@ -39,17 +38,18 @@ class StudentenXLSImporter(FileProcessor):
         self.n_new = 0
         self.n_modified = 0
         self.n_already_there = 0
-        self.sql=SQLcollector(# to use in migration script
-            insert_str='insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)', 
-            update_str='update STUDENTEN set full_name=?,first_name=?,email=?,status=? where stud_nr = ?')        
+        self.sql=SQLcollectors()# to use in migration script
+        self.sql.add('studenten',
+            SQLcollector({'insert':{'sql':'insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)'}, 
+             'update':{'sql':'update STUDENTEN set full_name=?,first_name=?,email=?,status=? where stud_nr = ?'}}))
         super().__init__(description='Importeren studenten')
     def __get(self, dataframe: pd.DataFrame, rownr: int, colnr: Colnr)->Any:
         return dataframe.at[rownr, self.expected_columns[colnr]]        
     def __add_sql(self, student: Student, is_new=True):
         if is_new:
-            self.sql.insert([student.id, student.stud_nr, student.full_name, student.first_name, student.email, int(student.status)])
+            self.sql.insert('studenten', [student.id, student.stud_nr, student.full_name, student.first_name, student.email, int(student.status)])
         else:
-            self.sql.update([student.full_name, student.first_name, student.email, int(student.status), student.stud_nr])
+            self.sql.update('studenten', [student.full_name, student.first_name, student.email, int(student.status), student.stud_nr])
     def __check_format(self, df: pd.DataFrame):    
         self._error = ''
         if ncols(df) != self.NCOLS:

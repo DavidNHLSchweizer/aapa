@@ -22,6 +22,8 @@ class FileType(IntEnum):
     AANVRAAG_OTHER      = 13
     def __str__(self):
         _FT_STRS = {FileType.UNKNOWN: '?', 
+                    FileType.INVALID_DIR: 'directory (geen verdere gegevens)',
+                    FileType.INVALID_DOCX|FileType.INVALID_PDF: 'bestand (geen verdere gegevens)',
                     FileType.AANVRAAG_PDF: 'PDF-file (aanvraag)',  
                     FileType.GRADE_FORM_DOCX: 'Beoordelingsformulier', 
                     FileType.GRADE_FORM_PDF: 'Ingevuld beoordelingsformulier (PDF format)', 

@@ -51,6 +51,8 @@ class File(AAPAclass):
         self._timestamp = TSC.rounded_timestamp(value)
     def is_empty(self)->bool:
         return self.filename==''
+    def relevant_attributes(self)->set[str]:
+        return {'filename', 'timestamp', 'digest'}
     def __eq__(self, value: File):
         if  self.filename != value.filename:
             return False

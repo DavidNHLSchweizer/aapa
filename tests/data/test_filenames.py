@@ -9,6 +9,8 @@ testcases = { MijlpaalType.AANVRAAG:
                 {'filename': r'Beoordeling aanvraag Mimi Hoeksema.pdf', 'expected': (FileType.GRADE_FORM_PDF, MijlpaalType.AANVRAAG)},
                 {'filename': r'1. Aanvraag toelating afstuderen.docx', 'expected': (FileType.INVALID_DOCX, MijlpaalType.AANVRAAG)},
                 {'filename': r'1. Aanvraag toelating afstuderen.pdf', 'expected': (FileType.INVALID_PDF, MijlpaalType.AANVRAAG)},
+                {'filename': r'1. Aanvraag toelating afstuderen (2).docx', 'expected': (FileType.INVALID_DOCX, MijlpaalType.AANVRAAG)},
+                {'filename': r'1. Aanvraag toelating afstuderen.pdf Mimi Hoeksema', 'expected': (FileType.INVALID_PDF, MijlpaalType.AANVRAAG)},
                 {'filename': r'2. Beoordeling afstudeeropdracht - Erica Plantenga.docx', 'expected': (FileType.AANVRAAG_OTHER, MijlpaalType.AANVRAAG)},
                 {'filename': r'2. Beoordeling afstudeeropdracht - Erica Plantenga.pdf', 'expected': (FileType.AANVRAAG_PDF, MijlpaalType.AANVRAAG)},
                 {'filename': r'2. Beoordeling afstudeeropdracht - Erica Plantenga.docx', 'expected': (FileType.AANVRAAG_OTHER, MijlpaalType.AANVRAAG)},

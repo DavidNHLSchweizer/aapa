@@ -1,15 +1,16 @@
 from typing import Tuple
-from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectory_DirectoriesTableDefinition, \
+from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
         StudentDirectoryTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
         create_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from data.migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
-from data.migrate.sql_coll import SQLcollType, SQLcollector
+from data.migrate.sql_coll import SQLcollType, SQLcollector, SQLcollectors
 from data.roots import OneDriveCoder, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
 from database.database import Database
 from database.sql_table import SQLcreateTable
+from database.sql_view import SQLcreateView
 from database.table_def import TableDefinition
 import database.dbConst as dbc
 from general.keys import reset_key
@@ -212,13 +213,22 @@ def correct_student_errors(database: Database, phase_1=True):
 
 def import_studenten(database: Database, json_name: str):
     print('Importeren nieuwe studenten vanuit lijst')
-    sqlcoll = SQLcollector.read_from_dump(json_name)
-    for sql_type in SQLcollType:
-        collector = sqlcoll.collectors(sql_type)
-        sql_str = collector.sql_str
-        for params in collector.values:
-            database._execute_sql_command(sql_str,parameters=params)
+    sqlcolls = SQLcollectors.read_from_dump(json_name)
+    sqlcolls.execute_sql(database)
+    # for sql_type in SQLcollType:
+    #     collector = sqlcoll.collectors(sql_type)
+    #     sql_str = collector.sql_str
+    #     print(sql_str)
+    #     for params in collector.get_values:
+    #         print(params)
+    #         database._execute_sql_command(sql_str,parameters=params)
     print('--- klaar importeren nieuwe studenten')
+
+def create_views(database: Database):
+    print('creating views')
+    print('student directories overzicht')
+    database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))
+    print('--- ready creating views')
 
 def migrate_database(database: Database):
     with database.pause_foreign_keys():
@@ -240,5 +250,5 @@ def migrate_database(database: Database):
         #
         import_studenten(database, r'.\data\migrate\m119\insert_students.json')
         correct_student_errors(database, False)
-        
+        create_views(database)
         cleanup_backup(database)

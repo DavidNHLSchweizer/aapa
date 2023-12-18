@@ -20,7 +20,7 @@ class MijlpaalBase(AAPAclass):
     @property
     def files(self)->Files: return self._files
     @property
-    def files_list(self)->list[Files]: return self._files.as_list('files')
+    def files_list(self)->list[File]: return self._files.as_list('files')
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType):
         self.files.add(File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, mijlpaal_type=mijlpaal_type))
     def unregister_file(self, filetype: File.Type):
