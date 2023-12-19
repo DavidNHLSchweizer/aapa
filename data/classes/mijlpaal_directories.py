@@ -1,7 +1,7 @@
+from __future__ import annotations
 import datetime
-from data.classes.aapa_class import AAPAclass
+
 from data.classes.const import MijlpaalType
-from data.classes.files import Files
 from data.classes.mijlpaal_base import MijlpaalBase
 from database.dbConst import EMPTY_ID
 from general.fileutil import summary_string
@@ -21,4 +21,12 @@ class MijlpaalDirectory(MijlpaalBase):
         if file_str:
             s = s + "\n\t\t"+ file_str
         return s
+    def __eq__(self, value2: MijlpaalDirectory)->bool:
+        if not super().__eq__(value2):
+            return False
+        if self.directory != value2.directory:
+            return False
+        return True
+    def __gt__(self, value2: MijlpaalDirectory)->bool:
+        return value2 is not None and self.directory > value2.directory
 

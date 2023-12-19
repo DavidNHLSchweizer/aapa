@@ -28,7 +28,6 @@ class Verslag(MijlpaalGradeable):
         self.directory = directory
         if file:
             self._files.add(file)
-        self.kans=kans   
     def __str__(self):        
         s = f'{TSC.get_date_str(self.datum)}: {self.mijlpaal_type} ({self.kans}) {str(self.student)} ' +\
               f'"{self.titel}" [{str(self.status)}]'
@@ -38,4 +37,12 @@ class Verslag(MijlpaalGradeable):
         if file_str:
             s = s + "\n\t\t"+ file_str
         return s
+    def __eq__(self, value2: Verslag):      
+        if not super().__eq__(value2):
+            return False
+        if self.directory != value2.directory:
+            return False
+        if self.cijfer  != value2.cijfer:
+            return False
+        return True    
 

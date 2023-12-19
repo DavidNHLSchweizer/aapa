@@ -10,8 +10,10 @@ class Bedrijf(AAPAclass):
         return f'{self.id}:{self.name}'
     def valid(self):
         return self.name != ''
-    def __eq__(self, value: Bedrijf) -> bool:        
-        if  self.name != value.name:
+    def __eq__(self, value2: Bedrijf) -> bool:        
+        if not value2:
+            return False
+        if  self.name != value2.name:
             return False
         return True
     def relevant_attributes(self)->set[str]:

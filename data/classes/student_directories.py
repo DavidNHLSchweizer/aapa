@@ -1,12 +1,10 @@
 from __future__ import annotations
-from data.classes.aanvragen import Aanvraag
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.base_dirs import BaseDir
 from data.classes.mijlpaal_base import MijlpaalBase
-from data.classes.mijlpaal_directory import MijlpaalDirectory
+from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
-from data.classes.verslagen import Verslag
 from database.dbConst import EMPTY_ID
 
 
@@ -14,7 +12,7 @@ class StudentDirectoryAggregator(Aggregator):
     def __init__(self, owner: StudentDirectory):
         super().__init__(owner=owner)
         self.add_class(MijlpaalDirectory, 'directories')
-
+    
 class StudentDirectory(AAPAclass):
     def __init__(self, student: Student, directory: str, base_dir: BaseDir = None, id: int = EMPTY_ID):
         super().__init__(id)        
@@ -36,4 +34,15 @@ class StudentDirectory(AAPAclass):
         if dir_str:
             result = result + '\n\t' + dir_str 
         return result
-    
+    def __eq__(self, value2: StudentDirectory)->bool:
+        if not value2:
+            return False
+        if self.student != value2.student:
+            return False
+        if self.directory != value2.directory:
+            return False        
+        if self.base_dir != value2.base_dir:
+            return False
+        if not self._data.is_equal(value2._data):
+            return False
+        return True

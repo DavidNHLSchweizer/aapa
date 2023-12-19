@@ -65,6 +65,8 @@ class File(AAPAclass):
         if  self.mijlpaal_type != value.mijlpaal_type:
             return False
         return True
+    def __gt__(self, value2: File)->bool:
+        return value2 is not None and self.filename > value2.filename
     
 class Files(Aggregator):
     def __init__(self, owner: AAPAclass, allow_multiple = True):

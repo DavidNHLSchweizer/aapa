@@ -91,12 +91,12 @@ class DeleteValuesCollector(SQLValuesCollector):
 class UpdateValuesCollector(SQLValuesCollector): pass
 
 class SQLcollector:
+    TRANSLATE = {'delete': SQLcollType.DELETE, 'insert': SQLcollType.INSERT, 'update': SQLcollType.UPDATE}
+    CLASSTYPE = {'delete': DeleteValuesCollector, 'insert': InsertValuesCollector, 'update': UpdateValuesCollector}
     def __init__(self, sql_data: dict[str,str]):
-        TRANSLATE = {'delete': SQLcollType.DELETE, 'insert': SQLcollType.INSERT, 'update': SQLcollType.UPDATE}
-        CLASSTYPE = {'delete': DeleteValuesCollector, 'insert': InsertValuesCollector, 'update': UpdateValuesCollector}
         self._values = {}        
         for code_str,data in sql_data.items():
-            self._values[TRANSLATE[code_str]] = CLASSTYPE[code_str](data['sql'], data.get('concatenate', code_str!='update'))
+            self._values[self.TRANSLATE[code_str]] = self.CLASSTYPE[code_str](data['sql'], data.get('concatenate', code_str!='update'))
     def collectors(self, sql_type: SQLcollType)->SQLValuesCollector:
         return self._values.get(sql_type, None)
     def __try_add(self, sql_type: SQLcollType, values: list[Any]):
@@ -120,7 +120,7 @@ class SQLcollector:
         return result
     @classmethod
     def from_dict(cls, dump: dict):
-        collectors = {key: SQLValuesCollector.from_dict(dump[key]) for key in dump.keys()}
+        collectors = {key: SQLcollector.CLASSTYPE[key].from_dict(dump[key]) for key in dump.keys()}
         new_dict = {key:{'sql': collector.sql_str, 'concatenate': collector.concatenate} for key,collector in collectors.items()}
         # result = cls(dict{'delete': 'insert': collectors[0].sql_str, 'update': collectors[1].sql_str})
         result = cls(new_dict)
@@ -178,14 +178,22 @@ class SQLcollectors(dict):
             if key1 != key2 or collector1 != collector2:
                 return False
         return True
-    def execute_sql(self, database: Database):
+    def __execute_one(self, database:Database, sql_str: str, values:list[Any], preview=False):
+        if preview:
+            print(f'{sql_str}\n{values}')
+        else:
+            database._execute_sql_command(sql_str,parameters=values)    
+    def execute_sql(self, database: Database, preview = False):
         for sql_type in SQLcollType:
             for collector in self.collectors(sql_type):
                 if collector is None or collector.get_values() == []:
                     continue
                 sql_str = collector.get_sql()
-                for values in collector.get_values():
-                    database._execute_sql_command(sql_str,parameters=values)    
+                if collector.concatenate:
+                    self.__execute_one(database, sql_str, collector.get_values(), preview)
+                else:
+                    for values in collector.get_values():
+                        self.__execute_one(database, sql_str, values, preview)
 
 if __name__=='__main__':      
     print ('--- testing single collector...')

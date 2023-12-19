@@ -95,6 +95,18 @@ class UndoLog(AAPAclass):
             return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])            
     def __str__(self)->str:
         return self.__str_aanvragen()
+    def __eq__(self, value2: UndoLog)->bool:
+        if not self.value2:
+            return False
+        if self.action != value2.action or self.description != value2.description:
+            return False
+        if self.date != value2.date or self.user != value2.user or self.can_undo != value2.can_undo: 
+            return False
+        if not self._data.is_equal(value2._data):
+            return False
+        return True
+        
+
     def summary(self)->str:
         log_debug(f'full action: {str(self)}')
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())

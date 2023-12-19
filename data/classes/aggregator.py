@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Tuple, Type
 from data.classes.aapa_class import AAPAclass
 from general.classutil import classname
@@ -79,7 +81,28 @@ class Aggregator(dict):
         return self._get_ids(self.__get_class_attribute(class_type))
     def __type_error(self, object):
         raise TypeError(f'Not supported in Aggregator: {object.__class__}')
-    
+    def is_equal(self, value2: Aggregator)->bool:
+        # can not use == because the keys are prob different and standard dict == would fail
+        if not value2:
+            return False
+        if len(self.class_types()) != len(value2.class_types()):
+            return False
+        for type1,type2 in zip(sorted(self.class_types()), sorted(value2.class_types())):
+            if type1 != type2:
+                return False
+        for class_type in self.class_types():
+            list1 = sorted(self.as_list(class_type))
+            list2 = sorted(self.as_list(class_type))
+            if len(list1) != len(list2):
+                return False
+            for item1,item2 in zip(list1,list2):
+                if item1 != item2:
+                    return False
+        return True
+
+
+
+
 if __name__=='__main__':       
     class een:
         def __init__(self, id, dinges):

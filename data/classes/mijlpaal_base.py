@@ -25,6 +25,18 @@ class MijlpaalBase(AAPAclass):
         self.files.add(File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, mijlpaal_type=mijlpaal_type))
     def unregister_file(self, filetype: File.Type):
         self.files.remove_filetype(filetype)
+    def __eq__(self, value2: MijlpaalBase)->bool:
+        if not value2:
+            return False
+        if self.mijlpaal_type != value2.mijlpaal_type:
+            return False
+        if self.datum != value2.datum:
+            return False
+        if self.kans != value2.kans:
+            return False
+        if not self.files.is_equal(value2.files):
+            return False
+        return True
 
 class MijlpaalGradeable(MijlpaalBase):            
     Beoordeling = MijlpaalBeoordeling
@@ -47,3 +59,17 @@ class MijlpaalGradeable(MijlpaalBase):
         if self.beoordeling != MijlpaalBeoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
+    def __eq__(self, value2: MijlpaalGradeable)->bool:
+        if not super().__eq__(value2):
+            return False
+        if self.student != value2.student:
+            return False 
+        if self.bedrijf!=value2.bedrijf:
+            return False
+        if self.titel != value2.titel:
+            return False
+        if self.status != value2.status:
+            return False
+        if self.beoordeling != value2.beoordeling:
+            return False
+        return True

@@ -1,8 +1,9 @@
 from pathlib import Path
+from typing import Any
 from data.classes.aanvragen import Aanvraag
 from data.classes.const import MijlpaalType
 from data.classes.files import File
-from data.classes.mijlpaal_directory import MijlpaalDirectory
+from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
@@ -173,30 +174,91 @@ class MilestoneDetectorPipeline(FilePipeline):
             {'insert': {'sql':'insert into MIJLPAAL_DIRECTORY_FILES (mp_dir_id,file_id) values(?,?)',
              'delete': {'sql':'delete from MIJLPAAL_DIRECTORY_FILES where mp_dir_id=?'}}}))
         return sqls
-    def __get_sql_mijlpaal_directories(self, stud_dir_id: int, mijlpaal_directory_list: list[MijlpaalDirectory]):
+    @staticmethod
+    def __get_values(values: list[Any], id: int, id_first = True)->list[Any]:
+        if id_first:
+            values.insert(0,id)
+        else:
+            values.append(id)
+        return values
+    def __get_sql_mijlpaal_directories(self, stud_dir_id: int, mijlpaal_directory_list: list[MijlpaalDirectory], 
+                                       stored_mijlpaal_directories: list[MijlpaalDirectory], stored_files: list[File]):
+        def _get_stored(mijlpaal: MijlpaalDirectory, stored_mijlpaal_directories: list[MijlpaalDirectory])->MijlpaalDirectory:
+            for stored in stored_mijlpaal_directories:
+                if mijlpaal.directory == stored.directory:
+                    return stored
+            return None
+        def _get_values(mijlpaal_directory: MijlpaalDirectory, id_first = True)->list[Any]:
+            return self.__get_values([mijlpaal_directory.mijlpaal_type, 
+                     encode_path(mijlpaal_directory.directory), 
+                     TSC.timestamp_to_sortable_str(mijlpaal_directory.datum)], mijlpaal_directory.id, id_first)
         self.sqls.delete('student_directory_directories', [stud_dir_id])
         for mijlpaal_directory in mijlpaal_directory_list:
-            self.sqls.insert('mijlpaal_directories', [mijlpaal_directory.id, mijlpaal_directory.mijlpaal_type, 
-                                                    encode_path(mijlpaal_directory.directory), 
-                                                    TSC.timestamp_to_sortable_str(mijlpaal_directory.datum)])
+            if stored := _get_stored(mijlpaal_directory, stored_mijlpaal_directories):
+                if stored != mijlpaal_directory:
+                    self.sqls.update('mijlpaal_directories', _get_values(mijlpaal_directory, False))
+            else:
+                self.sqls.insert('mijlpaal_directories', _get_values(mijlpaal_directory, True))
             self.sqls.insert('student_directory_directories', [stud_dir_id, mijlpaal_directory.id])
-            self.__get_sql_files(mijlpaal_directory.id, mijlpaal_directory.files_list) 
-    def __get_sql_files(self, mp_dir_id: int, files_list: list[File]):
+            self.__get_sql_files(mijlpaal_directory.id, mijlpaal_directory.files_list, stored_files=stored_files) 
+    def __get_sql_files(self, mp_dir_id: int, files_list: list[File], stored_files: list[File]):
+        def _get_values(file: File, id_first = True)->list[Any]:
+            return self.__get_values([encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
+                                        file.digest,file.filetype,file.mijlpaal_type],
+                                      file.id, id_first)
+        def _get_stored(file: File, stored_files: list[File])->File:
+            for stored in stored_files:
+                if file.filename == stored.filename and file.digest == stored.digest:
+                    return stored
+            return None
         self.sqls.delete('mijlpaal_directory_files', [mp_dir_id])
-        for file in files_list:
-            self.sqls.insert('files', [file.id,encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
-                                        file.digest,file.filetype,file.mijlpaal_type])
+        for file in files_list:            
+            if (stored := _get_stored(file, stored_files)):
+                if file != stored: 
+                    self.sqls.update('files', _get_values(file, False))                  
+            else:
+                self.sqls.insert('files', _get_values(file, True))
             self.sqls.insert('mijlpaal_directory_files', [mp_dir_id, file.id])   
-    def __get_sql(self, student_directory: StudentDirectory):         
-        #make sure you get all the ID's from the database as done by storage.
-        self.sqls.insert('student_directories', [student_directory.id, student_directory.student.id,
-                                                 encode_path(student_directory.directory),student_directory.base_dir.id
-                                                 ])
-        self.__get_sql_mijlpaal_directories(student_directory.id, student_directory.directories)
+    def __get_sql(self, student_directory: StudentDirectory, 
+                  stored_directory: StudentDirectory,
+                  stored_mijlpaal_directories: list[MijlpaalDirectory], 
+                  stored_files: list[File]):         
+        def _get_values(student_directory: StudentDirectory, id_first=True):
+            return self.__get_values([student_directory.student.id, encode_path(student_directory.directory), student_directory.base_dir.id], student_directory.id, id_first)
+        if stored_directory:
+            if stored_directory != student_directory:
+                self.sqls.update('student_directories', _get_values(student_directory, False))
+        else:
+            self.sqls.insert('student_directories', _get_values(student_directory, True))
+        self.__get_sql_mijlpaal_directories(student_directory.id, student_directory.directories, 
+                                            stored_mijlpaal_directories=stored_mijlpaal_directories, stored_files=stored_files)
+    def __get_stored_files(self, student_directory: StudentDirectory)->list[File]:
+        stored_list = []
+        for mijlpaal_directory in student_directory.directories:
+            files_list = mijlpaal_directory.files_list
+            stored_list.extend(self.storage.find_values('files', ['filename', 'digest'], 
+                                                    [{file.filename for file in files_list},
+                                                     {file.digest for file in files_list}],
+                                                     read_many=True))
+        return stored_list
+    def __get_stored_mijlpaal_directories(self, student_directory: StudentDirectory)->list[MijlpaalDirectory]:       
+        result = []
+        for mijlpaal in student_directory.directories:
+            if stored := self.storage.find_values('mijlpaal_directories', 'directory', encode_path(mijlpaal.directory)):
+                result.append(stored[0])
+        return result
     def _store_new(self, student_directory: StudentDirectory):
+        if stored := self.storage.find_values('student_directories', 'directory', encode_path(student_directory.directory)):
+            stored_directory = stored[0]
+        else:
+            stored_directory = None
+        stored_files = self.__get_stored_files(student_directory)
+        stored_mijlpaal_directories = self.__get_stored_mijlpaal_directories(student_directory)
+
         self.storage.create('student_directories', student_directory)
-        self.__get_sql(self.storage.read('student_directories', student_directory.id)) 
-        #must get the right IDs from the database first
+
+        #must get the right IDs from the database first to get the correct SQL codes
+        self.__get_sql(self.storage.read('student_directories', student_directory.id), stored_directory, stored_mijlpaal_directories, stored_files)
     def _skip(self, filename: str)->bool:        
         if Path(filename).stem in self.skip_directories:
             return True

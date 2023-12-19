@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 import re
 from data.classes.aapa_class import AAPAclass
@@ -14,6 +15,14 @@ class BaseDir(AAPAclass):
         self.directory = directory
     def __str__(self)->str:
         return f'{self.year}-{self.period}: {self.directory}'
+    def __eq__(self, value2: BaseDir):
+        if not value2:
+            return False
+        if self.year != value2.year or self.period != self.period or self.forms_version != value2.forms_version:
+            return False
+        if self.directory != value2.directory:
+            return False
+        return True
     def get_directory_name(self, student_full_name: str)->str:
         parsed = Names.parsed(student_full_name)
         dir_name = f'{parsed.last_name}'

@@ -40,18 +40,14 @@ class Aanvraag(MijlpaalGradeable):
         if self.beoordeling != Aanvraag.Beoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
-    def __eq__(self, value: Aanvraag):
-        if  self.datum_str != value.datum_str:
+    def __eq__(self, value2: Aanvraag):      
+        if not super().__eq__(value2):
             return False
-        if  self.titel != value.titel:
+        if self.datum_str != value2.datum_str:
             return False
-        if  self.student != value.student:
+        if self.timestamp != value2.timestamp:
             return False
-        if  self.bedrijf != value.bedrijf:
-            return False
-        if  self.timestamp != value.timestamp:
-            return False
-        return True
+        return True    
     def valid(self):
         return self.student.valid() and self.bedrijf.valid() 
     @property 

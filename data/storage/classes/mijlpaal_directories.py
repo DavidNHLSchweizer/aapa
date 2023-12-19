@@ -2,7 +2,7 @@ from data.aapa_database import MijlpaalDirectory_FilesTableDefinition, MijlpaalD
     
 from data.classes.const import MijlpaalType
 from data.classes.detail_rec import DetailRec, DetailRecData
-from data.classes.mijlpaal_directory import MijlpaalDirectory
+from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
 from data.storage.extended_crud import ExtendedCRUD
