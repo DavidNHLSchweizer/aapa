@@ -17,7 +17,7 @@ class DirectoryNameParser:
         type: str = ''
     STANDARD_PATTERN = r'(?P<root>.*)\\(?P<student>[a-zA-Z\s]+?\,[a-zA-Z\,\s]+)\\(?P<datum>[\d\-]+)\s(?P<what>.+)'
     PATTERN_BEOORDELING = r'((beoordelen|beoordeling)\s)?(?P<type>.+)'
-    PATTERN_NON_STANDARD = r'(?P<rest1>.*)?(?P<part>(PVA|Plan van aanpak|Onderzoeksverslag|Technisch verslag))(?P<rest2>.*)?'
+    PATTERN_NON_STANDARD = r'(?P<rest1>.*)?(?P<part>(PVA|Plan van aanpak|Onderzoeksverslag|Technisch verslag|Eindverslag|Afstudeerzitting))(?P<rest2>.*)?'
     PATTERN_ROOT = r'(?P<root>.*)\\(?P<student>[a-zA-Z\s]+?\,[a-zA-Z\,\s]+)'
     def __init__(self):
         self.standard_pattern = re.compile(self.STANDARD_PATTERN, re.IGNORECASE)

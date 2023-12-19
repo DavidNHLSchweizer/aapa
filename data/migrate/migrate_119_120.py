@@ -18,8 +18,8 @@ from general.keys import reset_key
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
 # filling BASEDIRS with initial values
-# toevoegen STUDENT_DIRECTORY 
-#   en gerelateerde details STUDENT_DIRECTORY_AANVRAGEN,STUDENT_DIRECTORY_VERSLAGEN tabellen
+# toevoegen STUDENT_DIRECTORIES
+#   en gerelateerde tabellen
 # adding all known students with the correct status
 # correction of errors in STUDENTEN tabel
 
@@ -211,18 +211,32 @@ def correct_student_errors(database: Database, phase_1=True):
 
         print('--- klaar correcting errors in STUDENTEN table')
 
-def import_studenten(database: Database, json_name: str):
-    print('Importeren nieuwe studenten vanuit lijst')
+def _import_json(database: Database, json_name: str):
     sqlcolls = SQLcollectors.read_from_dump(json_name)
     sqlcolls.execute_sql(database)
-    # for sql_type in SQLcollType:
-    #     collector = sqlcoll.collectors(sql_type)
-    #     sql_str = collector.sql_str
-    #     print(sql_str)
-    #     for params in collector.get_values:
-    #         print(params)
-    #         database._execute_sql_command(sql_str,parameters=params)
+
+def import_studenten(database: Database, json_name: str):
+    print("importing new students from generated list SQL-commandos")
+    _import_json(database, json_name)
     print('--- klaar importeren nieuwe studenten')
+
+def import_student_directories(database: Database):
+    JSONS = ['2020-2021_Semester 1.json',
+            '2020-2021_Semester 1B.json',
+            '2020-2021_Semester 2.json',
+            '2021-2022_Periode 1.json',
+            '2021-2022_Periode 2.json',
+            '2021-2022_Periode 3.json',
+            '2021-2022_Periode 4.json',
+            '2022-2023_Periode 1.json',
+            '2022-2023_Periode 2.json',
+            '2022-2023_Periode 3.json',
+            '2022-2023_Periode 4.json',
+            'HBO-ICT Afstuderen - Software Engineering_2023-2024.json',]
+    print("importing student directories from generated list SQL-commandos")
+    for json_name in JSONS:
+        _import_json(database, rf'.\data\migrate\m119\{json_name}')
+    print("... ready importing student directories from generated list SQL-commandos")
 
 def create_views(database: Database):
     print('creating views')
@@ -250,5 +264,8 @@ def migrate_database(database: Database):
         #
         import_studenten(database, r'.\data\migrate\m119\insert_students.json')
         correct_student_errors(database, False)
+        #to recompute the .json files involved: 
+        #see above, but run detect script py aapa.py -preview --detect=base_dir directory (for each base directory)
+        import_student_directories(database)
         create_views(database)
         cleanup_backup(database)

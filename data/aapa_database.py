@@ -174,7 +174,7 @@ class BaseDirsTableDefinition(TableDefinition):
 
 class StudentDirectoryTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_DIRECTORY')
+        super().__init__('STUDENT_DIRECTORIES')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('stud_id', dbc.INTEGER)
         self.add_column('directory', dbc.TEXT)
@@ -185,12 +185,12 @@ class StudentDirectoryTableDefinition(TableDefinition):
 class StudentDirectory_DirectoriesTableDefinition(DetailTableDefinition):
     def __init__(self):
         super().__init__('STUDENT_DIRECTORY_DIRECTORIES', 
-                         main_table_name='STUDENT_DIRECTORY', main_alias_id='stud_dir_id',
+                         main_table_name='STUDENT_DIRECTORIES', main_alias_id='stud_dir_id',
                          detail_table_name='MIJLPAAL_DIRECTORY', detail_alias_id='mp_dir_id')
 
 class MijlpaalDirectoryTableDefinition(TableDefinition):
     def __init__(self):
-        super().__init__('MIJLPAAL_DIRECTORY')
+        super().__init__('MIJLPAAL_DIRECTORIES')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('mijlpaal_type', dbc.INTEGER)
         self.add_column('directory', dbc.TEXT)
@@ -199,7 +199,7 @@ class MijlpaalDirectoryTableDefinition(TableDefinition):
 class MijlpaalDirectory_FilesTableDefinition(DetailTableDefinition):
     def __init__(self):
         super().__init__('MIJLPAAL_DIRECTORY_FILES', 
-                         main_table_name='MIJLPAAL_DIRECTORY', main_alias_id='mp_dir_id',
+                         main_table_name='MIJLPAAL_DIRECTORIES', main_alias_id='mp_dir_id',
                          detail_table_name='FILES', detail_alias_id='file_id')
 
 
@@ -217,16 +217,16 @@ class AanvragenFileOverzichtDefinition(ViewDefinition):
         stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
         innerjoins = ' inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id inner join FILES as F on F.ID=AF.file_id'
         super().__init__('AANVRAGEN_FILE_OVERZICHT', 
-                         query=f'select A.id,{stud_name},titel, F.ID as file_id,F.filename as filename \
-                                from AANVRAGEN as A {innerjoins} where F.filetype=0 order by 2')
+                         query=f'select A.id as aanvraag_id,{stud_name},titel, F.ID as file_id,F.filename as filename, F.filetype \
+                                from AANVRAGEN as A {innerjoins} order by 2')
         
 class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
     def __init__(self):
         query = \
 'select SD.id,SD.directory,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,F.filetype,F.mijlpaal_type \
-from STUDENT_DIRECTORY as SD \
+from STUDENT_DIRECTORIES as SD \
 inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id \
-inner join MIJLPAAL_DIRECTORY as MD on MD.id=SDD.mp_dir_id \
+inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id \
 inner join MIJLPAAL_DIRECTORY_FILES as MDF on MD.ID=MDF.mp_dir_id \
 inner join FILES as F on F.ID=MDF.file_id'
         super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=query)

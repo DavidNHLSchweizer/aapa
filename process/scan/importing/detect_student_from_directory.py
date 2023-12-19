@@ -1,6 +1,5 @@
 from pathlib import Path
 from typing import Any
-from data.classes.aanvragen import Aanvraag
 from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
@@ -8,14 +7,12 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from data.classes.verslagen import Verslag
-from data.migrate.sql_coll import SQLcollType, SQLcollector, SQLcollectors
+from data.migrate.sql_coll import SQLcollector, SQLcollectors
 from data.roots import decode_path, encode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.studenten import StudentQueries
-from database.dbConst import EMPTY_ID
-from general.fileutil import summary_string, test_directory_exists
+from general.fileutil import last_parts_file, test_directory_exists
 from general.config import ListValueConvertor, config
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
@@ -43,7 +40,7 @@ class StudentDirectoryDetector(FileProcessor):
     
     def _get_student(self, student_directory: str, storage: AAPAStorage):
         if not (parsed := self.parser.parsed(student_directory)):
-            raise DetectorException(f'directory {student_directory} kan niet worden herkend.')
+            raise DetectorException(f'directory {last_parts_file(student_directory)} kan niet worden herkend.')
         student = Student(full_name=parsed.student)
         queries: StudentQueries = storage.queries('studenten')
         if storage and (stored := queries.find_student_by_name_or_email(student)):
@@ -98,7 +95,7 @@ class StudentDirectoryDetector(FileProcessor):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
             return None
         if not (mijlpaal_type := self._parse_type(subdirectory, parsed.type)):
-            log_error('\tDirectory wordt overgeslagen. Kan niet worden herkend.')
+            log_error(f'\tDirectory {subdirectory} wordt overgeslagen. Kan niet worden herkend.')
             return None
         new_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=subdirectory, datum=parsed.datum)
         log_debug(f'\tGedetecteerd: {new_dir}')
@@ -118,14 +115,14 @@ class StudentDirectoryDetector(FileProcessor):
     def report_directory(self, msg: str, student_directory: StudentDirectory):
         log_print(msg)
         for directory in student_directory.directories:
-            log_print(f'\t{directory.summary()}')
+            log_print(f'\t{str(directory)}')
     def process_file(self, dirname: str, storage: AAPAStorage = None, preview=False)->StudentDirectory:
         if not test_directory_exists(dirname):
             log_error(f'Directory {dirname} niet gevonden.')
             return None
-        log_print(f'Verwerken {summary_string(dirname, maxlen=100)}')
+        log_print(f'Verwerken {last_parts_file(dirname, 4)}')
         if not self._get_basedir(dirname, storage):
-            log_error(f'Directory {summary_string(dirname, maxlen=100)} kan niet worden gelinkt met bekende basisdirectory.')
+            log_error(f'Directory {last_parts_file(dirname, 4)} kan niet worden gelinkt met bekende basisdirectory.')
             return None
         try:    
             student = self._get_student(dirname, storage)  
@@ -165,7 +162,7 @@ class MilestoneDetectorPipeline(FilePipeline):
                  ({'insert':{'sql':'insert into MIJLPAAL_DIRECTORIES (id,mijlpaal_type,directory,datum) values(?,?,?,?)'},
                    'update':{'sql':'update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,directory=?,datum=? WHERE id = ?'}}))
         sqls.add('student_directory_directories', SQLcollector(
-            {'insert': {'sql':'insert into STUDENT_DIRECTORY_DIRECTORIES (stud_dir_id,mp_id) values(?,?)'},
+            {'insert': {'sql':'insert into STUDENT_DIRECTORY_DIRECTORIES (stud_dir_id,mp_dir_id) values(?,?)'},
              'delete': {'sql':'delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id in (?)'}}))
         sqls.add('files', SQLcollector(
              {'insert': {'sql':'insert into FILES (id,filename,timestamp,digest,filetype,mijlpaal_type) values(?,?,?,?,?,?)'},
