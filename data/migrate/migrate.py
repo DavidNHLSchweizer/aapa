@@ -24,6 +24,8 @@ def migrate_version(database_name, old_version, new_version, debug=False):
             return False
         migrate_database(database)
         finish_migratie(database, new_version)    
+        if (after_migrate:= getattr(module, 'after_migrate', None)):
+            after_migrate(database_name, debug=debug)
     except Exception as E:
         print(f'Fout bij migratie {migration_module_name}: {E}')
         return False
@@ -56,3 +58,4 @@ def finish_migratie(database: Database, new_version: str):
     print(f'Klaar!\nUpdating database version to {new_version}')
     update_versie(database, new_version)    
     database.commit()
+

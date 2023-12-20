@@ -251,21 +251,24 @@ def migrate_database(database: Database):
         create_mijlpalen_tables(database)
         init_base_directories(database)
         modify_studenten_table(database)
-        correct_student_errors(database)
-        
+        correct_student_errors(database)        
         #to recompute insert_students.json: 
         # 1: comment out the next two lines
         # 2: run migration: py aapa_migrate.py database_name 1.18 1.19
         # 3: run the student-import script: py aapa.py -preview --student=studenten.xlsx
-        # 4: copy the results (insert_students.json) naar directory data\migrate\m119
-        # 5: uncomment the lines
-        # 6: run migration again. 
-        # 7: check results
+        # 4: uncomment the lines
+        # 5: run migration again. 
+        # 6: check results
         #
-        import_studenten(database, r'.\data\migrate\m119\insert_students.json')
-        correct_student_errors(database, False)
         #to recompute the .json files involved: 
         #see above, but run detect script py aapa.py -preview --detect=base_dir directory (for each base directory)
         import_student_directories(database)
         create_views(database)
         cleanup_backup(database)
+
+def after_migrate(database_name: str, debug=False):
+    pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.
+
+        # import_studenten(database, r'.\data\migrate\m119\insert_students.json')
+        # correct_student_errors(database, False)
+        

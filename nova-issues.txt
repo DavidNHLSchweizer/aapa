@@ -1,6 +1,0 @@
-issues/food for thought:
-
-- non-standard directories (Klaas vd Werk->Product)
-- multiple directories
-- bestand-detectie
-- formulier lezen

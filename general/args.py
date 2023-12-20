@@ -99,15 +99,17 @@ def _get_config_arguments(parser: argparse.ArgumentParser):
     group.add_argument('-d', '--database', type=str, help='De naam van de databasefile om mee te werken.\nAls de naam niet wordt ingevoerd (-d=) wordt hij opgevraagd.\nIndien de databasefile niet bestaat wordt hij aangemaakt.')   
     group.add_argument('-rf', '--report_file', type=str, help='Bestandsnaam [.xlsx] voor actie "report". default: uit CONFIG.INI')
     group.add_argument('-c', '--config', type=str, help='Laad een alternatieve configuratiefile. Aangenomen wordt dat dit een .INI bestand is.')
+    group.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
 
 class AAPAConfigOptions:
     def __init__(self, root_directory: str, output_directory: str, database_file: str, 
-                 config_file:str = None, report_filename: str = None):
+                 config_file:str = None, report_filename: str = None, migrate_dir: str = None):
         self.root_directory = root_directory
         self.output_directory: str= output_directory
         self.database_file: str = database_file if database_file else config.get('configuration', 'database')
         self.config_file: str = config_file
         self.report_filename: str = report_filename if report_filename else config.get('report', 'filename')
+        self.migrate_dir: str = migrate_dir
     def __str__(self):
         result = f'CONFIGURATION:\n'
         if self.root_directory is not None:
@@ -120,11 +122,13 @@ class AAPAConfigOptions:
             result = result + f'laad alternatieve CONFIGURATIE {self.config_file}\n'
         if self.report_filename: 
             result = result + f'FILENAME (voor REPORT): {self.report_filename}\n'
+        if self.migrate_dir:
+            result = result + f'Directory voor SQL-data (gebruik in migratiescript): {self.migrate_dir}\n'
         return result + '.'
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAConfigOptions:
         return cls(root_directory = args.root, output_directory = args.output, database_file = args.database, 
-                   config_file = args.config, report_filename = args.report_file)
+                   config_file = args.config, report_filename = args.report_file, migrate_dir=args.migrate)
 
 def _get_other_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('overige opties')
@@ -135,7 +139,7 @@ def _get_other_arguments(parser: argparse.ArgumentParser):
 
 class AAPAOtherOptions:
     def __init__(self, detect_dir:str = None, diff_file:str = None, history_file:str = None,
-                  student_file = None):
+                  student_file:str = None):
         self.detect_dir: str = detect_dir
         self.diff_file: str = diff_file
         self.history_file: str = history_file

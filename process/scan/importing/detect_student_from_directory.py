@@ -95,7 +95,7 @@ class StudentDirectoryDetector(FileProcessor):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
             return None
         if not (mijlpaal_type := self._parse_type(subdirectory, parsed.type)):
-            log_error(f'\tDirectory {subdirectory} wordt overgeslagen. Kan niet worden herkend.')
+            log_error(f'\tDirectory {last_parts_file(subdirectory, 4)} wordt overgeslagen. Kan niet worden herkend.')
             return None
         new_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=subdirectory, datum=parsed.datum)
         log_debug(f'\tGedetecteerd: {new_dir}')
@@ -261,9 +261,8 @@ class MilestoneDetectorPipeline(FilePipeline):
             return True
         return False
 
-def detect_from_directory(directory: str, storage: AAPAStorage, preview=False)->int:
+def detect_from_directory(directory: str, storage: AAPAStorage, migrate_dir: str = None, preview=False)->int:
     directory = decode_path(directory)
-    print(directory)
     if not Path(directory).is_dir():
         log_error(f'Map {directory} bestaat niet. Afbreken.')
         return 0  
@@ -273,6 +272,10 @@ def detect_from_directory(directory: str, storage: AAPAStorage, preview=False)->
     (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
     # report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
     # log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
-    importer.sqls.dump_to_file(f'{Path(directory).parent.name}_{Path(directory).stem}.json')
+    filename = f'{Path(directory).parent.name}_{Path(directory).stem}.json'
+    if migrate_dir:
+        migrate_file = Path(migrate_dir).resolve().joinpath(filename)
+        importer.sqls.dump_to_file(migrate_file)
+        log_print(f'SQL data dumped to file {migrate_file}')
     log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix="nieuwe student-")}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
     return n_processed, n_files      

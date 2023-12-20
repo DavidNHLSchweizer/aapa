@@ -30,9 +30,9 @@ class AAPAProcessor:
     #     else:
     #         read_beoordelingen_from_files(configuration.options.history_file, configuration.storage)
     def __detect_from_directory(self, directory: str, configuration: AAPAConfiguration, preview = False):
-        detect_from_directory(directory, configuration.storage, preview=preview)
+        detect_from_directory(directory, configuration.storage, migrate_dir=configuration.config_options.migrate_dir, preview=preview)
     def __import_student_data(self, xls_filename: str, configuration: AAPAConfiguration, preview = False):
-        import_studenten_XLS(xls_filename, configuration.storage, preview=preview)   
+        import_studenten_XLS(xls_filename, configuration.storage, migrate_dir=configuration.config_options.migrate_dir, preview=preview)   
 
     
     def __process_other_options(self, configuration: AAPAConfiguration, other_options: AAPAOtherOptions, preview = False):        

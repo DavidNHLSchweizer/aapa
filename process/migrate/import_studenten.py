@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Tuple
 from enum import Enum
 from typing import Any
@@ -117,10 +118,9 @@ class StudentenXLSImporter(FileProcessor):
                 log_error(f'Fout bij lezen rij {row}: {self._error}.')
             else:
                 self.__check_and_store_student(student, storage)
-        self.sql.dump_to_file('insert_students.json')
         return (self.n_new,self.n_modified,self.n_already_there)
         
-def import_studenten_XLS(xls_filename: str, storage: AAPAStorage, preview=False):
+def import_studenten_XLS(xls_filename: str, storage: AAPAStorage, migrate_dir: str = None, preview=False):
     importer = StudentenXLSImporter()
     pipeline = SingleFilePipeline('Importeren studenten uit XLS bestand', importer, 
                                   storage, activity=UndoLog.Action.NOLOG)
@@ -133,4 +133,8 @@ def import_studenten_XLS(xls_filename: str, storage: AAPAStorage, preview=False)
             log_print(f'{sop(n_modified, "student", "studenten")} {pva(preview, "aan te passen", "aangepast")} volgens {xls_filename}.')
             log_print(f'{sop(n_already_there, "student", "studenten")} al in database.')
             log_print(f'{sop(n_new+n_modified, "student", "studenten")} {pva(preview, "te importeren of aan te passen", "geimporteerd of aangepast")} volgens {xls_filename}.')
-    storage.commit()
+            if migrate_dir:
+                filename = Path(migrate_dir).resolve().joinpath('insert_students.json')
+                importer.sql.dump_to_file(filename)
+                log_print(f'SQL data dumped to file {filename}')
+            storage.commit()
