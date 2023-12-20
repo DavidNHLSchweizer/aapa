@@ -15,10 +15,10 @@ class DirectoryNameParser:
         student: str = ''
         datum: datetime.datetime = None
         type: str = ''
-    STANDARD_PATTERN = r'(?P<root>.*)\\(?P<student>[a-zA-Z\s]+?\,[a-zA-Z\,\s]+)\\(?P<datum>[\d\-]+)\s(?P<what>.+)'
+    STANDARD_PATTERN = r'(?P<root>.*)\\(?P<student>[\w\s]+?\,[\w\,\s]+)\\(?P<datum>[\d\-]+)\s(?P<what>.+)'
     PATTERN_BEOORDELING = r'((beoordelen|beoordeling)\s)?(?P<type>.+)'
     PATTERN_NON_STANDARD = r'(?P<rest1>.*)?(?P<part>(PVA|Plan van aanpak|Onderzoeksverslag|Technisch verslag|Eindverslag|Afstudeerzitting))(?P<rest2>.*)?'
-    PATTERN_ROOT = r'(?P<root>.*)\\(?P<student>[a-zA-Z\s]+?\,[a-zA-Z\,\s]+)'
+    PATTERN_ROOT = r'(?P<root>.*)\\(?P<student>[\w\s]+?\,[\w\,\s]+)'
     def __init__(self):
         self.standard_pattern = re.compile(self.STANDARD_PATTERN, re.IGNORECASE)
         self.pattern_beoordeling = re.compile(self.PATTERN_BEOORDELING, re.IGNORECASE)

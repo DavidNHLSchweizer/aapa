@@ -7,6 +7,7 @@ from data.storage.CRUDs import CRUDColumnMapper, create_crud, register_crud
 from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.extended_crud import ExtendedCRUD
 from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
+from data.storage.queries.student_directories import StudentDirectoryQueries
 from database.database import Database
 from database.table_def import TableDefinition
 
@@ -29,6 +30,7 @@ register_crud(class_type=StudentDirectory,
                 table=StudentDirectoryTableDefinition(), 
                 crud=ExtendedCRUD,     
                 mapper_type=StudentDirectoriesTableMapper, 
+                queries_type=StudentDirectoryQueries,
                 details_data=
                     [DetailRecData(aggregator_name='data', detail_aggregator_key='directories', 
                                    detail_rec_type=StudentDirectoriesDirectoriesDetailRec),

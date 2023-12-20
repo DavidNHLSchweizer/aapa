@@ -1,4 +1,7 @@
 from __future__ import annotations
+from enum import IntEnum
+from data.classes.const import FileType, MijlpaalBeoordeling, MijlpaalType
+from data.classes.studenten import Student
 from database.sql_table import SQLselect
 from database.table_def import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
@@ -204,32 +207,49 @@ class MijlpaalDirectory_FilesTableDefinition(DetailTableDefinition):
 
 
 #-------------------- views -------------------------------
+def get_sql_cases_for_int_type(column_name: str, int_class: IntEnum, alias_name: str)->str:
+    all_cases = " ".join([f'when {int(elem)} then "{str(elem)}"' for elem in int_class])
+    return f'(case {column_name} {all_cases} else "?" end ) as {alias_name}'
+
 class AanvragenOverzichtDefinition(ViewDefinition):
     def __init__(self):
         stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
         bedrijf = '(select name from BEDRIJVEN as B where B.ID = A.bedrijf_id) as bedrijf'
-        beoordeling = '(case beoordeling when 0 then "" when 1 then "onvoldoende" when 2 then "voldoende" end) as beoordeling'
+        beoordeling = get_sql_cases_for_int_type('beoordeling', MijlpaalBeoordeling, 'beoordeling')
         super().__init__('AANVRAGEN_OVERZICHT', 
                          query=f'select id,{stud_name},datum,{bedrijf},titel,versie,kans,{beoordeling} from AANVRAGEN as A order by 2,3')
         
 class AanvragenFileOverzichtDefinition(ViewDefinition):
     def __init__(self):
+        filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
         stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
         innerjoins = ' inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id inner join FILES as F on F.ID=AF.file_id'
         super().__init__('AANVRAGEN_FILE_OVERZICHT', 
-                         query=f'select A.id as aanvraag_id,{stud_name},titel, F.ID as file_id,F.filename as filename, F.filetype \
+                         query=f'select A.id as aanvraag_id,{stud_name},titel, F.ID as file_id,F.filename as filename,{filetype_str} \
                                 from AANVRAGEN as A {innerjoins} order by 2')
         
 class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
     def __init__(self):
+        filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
+        mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
         query = \
-'select SD.id,SD.directory,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,F.filetype,F.mijlpaal_type \
+f'select SD.id,SD.directory,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
 from STUDENT_DIRECTORIES as SD \
 inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id \
 inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id \
 inner join MIJLPAAL_DIRECTORY_FILES as MDF on MD.ID=MDF.mp_dir_id \
 inner join FILES as F on F.ID=MDF.file_id'
         super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=query)
+
+class StudentDirectoriesOverzichtDefinition(ViewDefinition):
+    def __init__(self):
+        status_str = get_sql_cases_for_int_type('s.status', Student.Status, 'status') 
+        query = f'select s.id,full_name,stud_nr,{status_str},bd.year,bd.period,sdd.directory as "(laatste) directory" from studenten as s \
+inner join student_directories as sdd on s.id = sdd.stud_id \
+inner join basedirs as bd on sdd.basedir_id = bd.id \
+group by sdd.stud_id having max(sdd.id) order by 5,6,2'
+        super().__init__('STUDENT_DIRECTORIES_OVERZICHT', query=query)
+        
 
 class AAPaSchema(Schema):
     ALL_TABLES:list[TableDefinition] = [
@@ -255,6 +275,7 @@ class AAPaSchema(Schema):
                 AanvragenOverzichtDefinition,
                 AanvragenFileOverzichtDefinition,
                 StudentDirectoriesFileOverzichtDefinition,
+                StudentDirectoriesOverzichtDefinition,
                 ]
     def __init__(self):
         super().__init__()

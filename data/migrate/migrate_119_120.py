@@ -1,5 +1,5 @@
 from typing import Tuple
-from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
+from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
         StudentDirectoryTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
         create_roots
 from data.classes.base_dirs import BaseDir
@@ -209,6 +209,10 @@ def correct_student_errors(database: Database, phase_1=True):
                                       ["Cassandra van Oosten", 32])
         database._execute_sql_command(f'delete from STUDENTEN where id = ?', [32])
 
+        # redmar eef sprenger ->redmar sprenger (ivm directories)
+        database._execute_sql_command(f'update studenten set full_name = ? where stud_nr=?',
+                                      ["Redmar Sprenger", "4670183"])
+
         print('--- klaar correcting errors in STUDENTEN table')
 
 def _import_json(database: Database, json_name: str):
@@ -242,6 +246,7 @@ def create_views(database: Database):
     print('creating views')
     print('student directories overzicht')
     database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(StudentDirectoriesOverzichtDefinition()))
     print('--- ready creating views')
 
 def migrate_database(database: Database):
@@ -251,7 +256,7 @@ def migrate_database(database: Database):
         create_mijlpalen_tables(database)
         init_base_directories(database)
         modify_studenten_table(database)
-        correct_student_errors(database)        
+        correct_student_errors(database)    
         #to recompute insert_students.json: 
         # 1: comment out the next two lines
         # 2: run migration: py aapa_migrate.py database_name 1.18 1.19
@@ -260,6 +265,8 @@ def migrate_database(database: Database):
         # 5: run migration again. 
         # 6: check results
         #
+        import_studenten(database, r'.\data\migrate\m119\insert_students.json')
+        correct_student_errors(database, False)    
         #to recompute the .json files involved: 
         #see above, but run detect script py aapa.py -preview --detect=base_dir directory (for each base directory)
         import_student_directories(database)
@@ -269,6 +276,5 @@ def migrate_database(database: Database):
 def after_migrate(database_name: str, debug=False):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.
 
-        # import_studenten(database, r'.\data\migrate\m119\insert_students.json')
-        # correct_student_errors(database, False)
+        # 
         

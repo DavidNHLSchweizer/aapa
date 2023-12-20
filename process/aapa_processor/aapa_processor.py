@@ -1,5 +1,6 @@
 from datetime import datetime
-from general.fileutil import path_with_suffix
+from data.storage.queries.student_directories import StudentDirectoryQueries
+from general.fileutil import last_parts_file, path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.migrate.import_studenten import import_studenten_XLS
@@ -54,7 +55,11 @@ class AAPAProcessor:
             if AAPAaction.INFO in actions:
                 self.__report_info(AAPAOptions(config_options=configuration.config_options, processing_options=processing_options, other_options=other_options))
             if not other_options.no_processing():
-                    self.__process_other_options(configuration, other_options, preview=preview)        
+                    self.__process_other_options(configuration, other_options, preview=preview)      
+            for student in configuration.storage.find_all('studenten'):
+                queries:StudentDirectoryQueries = configuration.storage.queries('student_directories')  
+                stud_dir = queries.find_student_dir(student)
+                print(f'{student}: {last_parts_file(stud_dir.directory,4) if stud_dir else "NO DIRECTORY FOUND..."}')
             if processing_options.no_processing():
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
