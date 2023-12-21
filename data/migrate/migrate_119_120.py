@@ -186,9 +186,9 @@ def modify_studenten_table(database: Database):
     database._execute_sql_command(f'update STUDENTEN set STATUS=? where status is null', [Student.Status.UNKNOWN])
     print('--- klaar initializing status column in STUDENTEN')
 
-def correct_student_errors(database: Database, phase_1=True):
+def correct_student_errors(database: Database, phase_1 = True):
     if phase_1:
-        print('correcting some existing errors in STUDENTEN table')  
+        print('correcting some existing errors in STUDENTEN table (phase: 1)')  
     
         #jorunn Oosterwegel, jelke nelisse, Musaab Asawi
         database._execute_sql_command(f'update STUDENTEN set STATUS=? where id in (?,?,?)', 
@@ -201,7 +201,31 @@ def correct_student_errors(database: Database, phase_1=True):
         database._execute_sql_command('delete from STUDENTEN where id = ?', [17])
         database._execute_sql_command(f'update STUDENTEN set STATUS=? where id = ?', 
                                     [Student.Status.BEZIG, 16])
-    else:    
+
+        #Dennis Stiekema
+        database._execute_sql_command('update STUDENTEN set stud_nr = ? where stud_nr = ?',
+                                    ['3319902','319902']
+                                    )
+        #Jorn Postma
+        database._execute_sql_command('update STUDENTEN set stud_nr = ? where stud_nr = ?',
+                                    ['4672933','S4672933']
+                                    )
+        #Julian van Veen
+        database._execute_sql_command('update STUDENTEN set stud_nr = ? where stud_nr = ?',
+                                    ['4692519','S4692519']
+                                    )
+        #Peter van Schagen
+        database._execute_sql_command('update STUDENTEN set stud_nr = ? where stud_nr = ?',
+                                    ['3519642','519642']
+                                    )
+        #Georgina/Georgie Laskewitz
+        database._execute_sql_command('update STUDENTEN set full_name = ?,first_name=?,email=? where stud_nr = ?',
+                                    ['Georgie Laskewitz', 'Georgie','georgina.laskewitz@student.nhlstenden.com', '3556882']
+                                    )
+        
+
+
+    if not phase_1:
         print('--- continuing correcting errors in STUDENTEN table')
 
         #Jimi/Cassandra van Oosten
@@ -249,7 +273,7 @@ def create_views(database: Database):
     database.execute_sql_command(SQLcreateView(StudentDirectoriesOverzichtDefinition()))
     print('--- ready creating views')
 
-def migrate_database(database: Database):
+def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
         backup_tables(database)
         recode_roots_table(database)
@@ -257,23 +281,24 @@ def migrate_database(database: Database):
         init_base_directories(database)
         modify_studenten_table(database)
         correct_student_errors(database)    
-        #to recompute insert_students.json: 
-        # 1: comment out the next two lines
-        # 2: run migration: py aapa_migrate.py database_name 1.18 1.19
+        #to recompute insert_students.json and student directories: 
+        # 1: set prepare to True
+        # 2: run migration: py aapa_migrate.py database_name 1.18 1.19 en 1.19 1.20
         # 3: run the student-import script: py aapa.py -preview --student=studenten.xlsx
         # 4: uncomment the lines
         # 5: run migration again. 
-        # 6: check results
-        #
-        import_studenten(database, r'.\data\migrate\m119\insert_students.json')
-        correct_student_errors(database, False)    
-        #to recompute the .json files involved: 
-        #see above, but run detect script py aapa.py -preview --detect=base_dir directory (for each base directory)
-        import_student_directories(database)
-        create_views(database)
+        # 6: check results        
+        if phase > 1:
+            import_studenten(database, r'.\data\migrate\m119\insert_students.json')
+            correct_student_errors(database, phase_1=False)    
+            #to recompute the .json files involved: 
+            #see above, but run detect script py aapa.py -preview --detect=base_dir directory (for each base directory)
+        if phase > 2:
+            import_student_directories(database)
+            create_views(database)
         cleanup_backup(database)
 
-def after_migrate(database_name: str, debug=False):
+def after_migrate(database_name: str, debug=False, phase=42):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.
 
         # 

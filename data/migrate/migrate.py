@@ -7,7 +7,7 @@ from process.aapa_processor.initialize import initialize_database
 
 class MigrationException(Exception): pass
 
-def migrate_version(database_name, old_version, new_version, debug=False):    
+def migrate_version(database_name, old_version, new_version, debug=False, phase=42):    
     def remove_dot(s: str)->str:
         return s.replace('.', '')    
     migration_module_name = f'data.migrate.migrate_{remove_dot(old_version)}_{remove_dot(new_version)}'
@@ -22,10 +22,10 @@ def migrate_version(database_name, old_version, new_version, debug=False):
             return False
         if not (database := start_migratie(database_name, old_version, new_version, debug=debug)):
             return False
-        migrate_database(database)
+        migrate_database(database, phase=phase)
         finish_migratie(database, new_version)    
-        if (after_migrate:= getattr(module, 'after_migrate', None)):
-            after_migrate(database_name, debug=debug)
+        if (after_migrate:= getattr(module, 'after_migrate', None)): # to be refined later
+            after_migrate(database_name, debug=debug, phase=phase)
     except Exception as E:
         print(f'Fout bij migratie {migration_module_name}: {E}')
         return False

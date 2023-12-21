@@ -125,7 +125,7 @@ def rename_action_logs(database: Database):
     database._execute_sql_command('alter table ACTIONLOG_FILES RENAME TO UNDOLOGS_FILES')
     print('--- ready adapting ACTIONLOG tables')
 
-def migrate_database(database: Database):
+def migrate_database(database: Database, phase: int):
     with database.pause_foreign_keys():
         modify_studenten_table(database)
         modify_aanvragen_table(database)    

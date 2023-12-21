@@ -1,4 +1,5 @@
 from datetime import datetime
+from data.roots import encode_path
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file, path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
@@ -56,10 +57,11 @@ class AAPAProcessor:
                 self.__report_info(AAPAOptions(config_options=configuration.config_options, processing_options=processing_options, other_options=other_options))
             if not other_options.no_processing():
                     self.__process_other_options(configuration, other_options, preview=preview)      
-            for student in configuration.storage.find_all('studenten'):
-                queries:StudentDirectoryQueries = configuration.storage.queries('student_directories')  
-                stud_dir = queries.find_student_dir(student)
-                print(f'{student}: {last_parts_file(stud_dir.directory,4) if stud_dir else "NO DIRECTORY FOUND..."}')
+            with open('overzichtje.csv', mode="w", encoding='utf-8') as file:                  
+                for student in configuration.storage.find_all('studenten'):
+                    queries:StudentDirectoryQueries = configuration.storage.queries('student_directories')  
+                    stud_dir = queries.find_student_dir(student)
+                    file.write(";".join([str(student.id), student.full_name, student.stud_nr, str(student.status), encode_path(stud_dir.directory)])+"\n")
             if processing_options.no_processing():
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
