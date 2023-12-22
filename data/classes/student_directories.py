@@ -1,11 +1,14 @@
 from __future__ import annotations
+import datetime
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.base_dirs import BaseDir
+from data.classes.const import MijlpaalType
 from data.classes.mijlpaal_base import MijlpaalBase
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
+from general.log import log_warning
 
 
 class StudentDirectoryAggregator(Aggregator):
@@ -26,7 +29,17 @@ class StudentDirectory(AAPAclass):
     @property
     def directories(self)->list[MijlpaalDirectory]:
         return self._data.as_list('directories')    
+    def get_directories(self, mijlpaal_type: MijlpaalType)->list[MijlpaalDirectory]:
+        return [dir for dir in self.directories if dir.mijlpaal_type == mijlpaal_type]
+    def get_directory(self, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->MijlpaalDirectory:
+        for directory in self.get_directories(mijlpaal_type):
+            if directory.datum==datum:
+                return directory
+        return None
     def add(self, mijlpaal: MijlpaalBase):
+        if self.get_directory(mijlpaal.datum, mijlpaal.mijlpaal_type):
+            log_warning(f'Directory {mijlpaal} is al aanwezig. Wordt overgeslagen.')
+            return
         self._data.add(mijlpaal)
     def __str__(self)->str:
         result = f'Student directory voor {str(self.student)}\n\t{self.directory}'
@@ -46,3 +59,6 @@ class StudentDirectory(AAPAclass):
         if not self._data.is_equal(value2._data):
             return False
         return True
+    
+
+    

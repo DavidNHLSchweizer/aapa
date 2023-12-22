@@ -4,6 +4,7 @@ from data.storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file, path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
 from process.aapa_processor.aapa_config import AAPAConfiguration
+from process.migrate.import_basedir import import_basedirs_XLS
 from process.migrate.import_studenten import import_studenten_XLS
 from process.report.report_student_directory import StudentDirectoryReporter
 from process.scan.importing.detect_student_from_directory import detect_from_directory
@@ -35,8 +36,9 @@ class AAPAProcessor:
         detect_from_directory(directory, configuration.storage, migrate_dir=configuration.config_options.migrate_dir, preview=preview)
     def __import_student_data(self, xls_filename: str, configuration: AAPAConfiguration, preview = False):
         import_studenten_XLS(xls_filename, configuration.storage, migrate_dir=configuration.config_options.migrate_dir, preview=preview)   
-
-    
+    def __import_basedir_data(self, xls_filename: str, configuration: AAPAConfiguration, preview = False):
+        import_basedirs_XLS(xls_filename, configuration.storage, migrate_dir=configuration.config_options.migrate_dir, preview=preview)   
+   
     def __process_other_options(self, configuration: AAPAConfiguration, other_options: AAPAOtherOptions, preview = False):        
         if other_options.diff_file:
                 self.__create_diff_file(configuration, other_options)
@@ -45,6 +47,8 @@ class AAPAProcessor:
             StudentDirectoryReporter().report(configuration.storage)
         if other_options.student_file:              
             self.__import_student_data(other_options.student_file, configuration, preview=preview)
+        if other_options.basedir_file:              
+            self.__import_basedir_data(other_options.basedir_file, configuration, preview=preview)
         if other_options.history_file:              
             raise ValueError(f'#NOTIMPLEMENTED: HISTORY {other_options.history_file}')
 
@@ -57,11 +61,11 @@ class AAPAProcessor:
                 self.__report_info(AAPAOptions(config_options=configuration.config_options, processing_options=processing_options, other_options=other_options))
             if not other_options.no_processing():
                     self.__process_other_options(configuration, other_options, preview=preview)      
-            with open('overzichtje.csv', mode="w", encoding='utf-8') as file:                  
-                for student in configuration.storage.find_all('studenten'):
-                    queries:StudentDirectoryQueries = configuration.storage.queries('student_directories')  
-                    stud_dir = queries.find_student_dir(student)
-                    file.write(";".join([str(student.id), student.full_name, student.stud_nr, str(student.status), encode_path(stud_dir.directory)])+"\n")
+            # with open('overzichtje.csv', mode="w", encoding='utf-8') as file:                  
+            #     for student in configuration.storage.find_all('studenten'):
+            #         queries:StudentDirectoryQueries = configuration.storage.queries('student_directories')  
+            #         stud_dir = queries.find_student_dir(student)
+            #         file.write(";".join([str(student.id), student.full_name, student.stud_nr, str(student.status), encode_path(stud_dir.directory)])+"\n")
             if processing_options.no_processing():
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:

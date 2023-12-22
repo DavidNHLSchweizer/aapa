@@ -85,10 +85,10 @@ def init_base_directories(database: Database):
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     print('initialisation values BASEDIRS')  
     for entry in known_bases:
-        code=add_root(fr'{OneDriveCoder.ONEDRIVE}\{entry.directory}')
+        coded_path=add_root(fr'{OneDriveCoder.ONEDRIVE}\{entry.directory}')
         database._execute_sql_command(
             "insert into BASEDIRS('year', 'period', 'forms_version', 'directory') values (?,?,?,?)", 
-            [entry.year, entry.period, entry.forms_version, code])        
+            [entry.year, entry.period, entry.forms_version, coded_path])        
     print('--- ready adding new table BASEDIRS')
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
     _update_roots_table(database)

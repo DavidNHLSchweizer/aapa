@@ -136,14 +136,16 @@ def _get_other_arguments(parser: argparse.ArgumentParser):
     group.add_argument('--difference', dest='difference', type=str,help=argparse.SUPPRESS) #maak een verschilbestand voor een student (voer studentnummer in); "invisible" command; bv: --difference=diff.html
     group.add_argument('--history', dest='history', type=str,help=argparse.SUPPRESS) #voer beoordelingsgegevens in via een aangepast report-bestand; "invisible" command; bv: --history=history.xlsx
     group.add_argument('--student', dest='student', type=str,help='Importeer gegevens over studenten uit Excel-bestand') 
+    group.add_argument('--basedir', dest='basedir', type=str,help='Importeer gegevens voor nieuwe basedir(s) uit Excel-bestand') 
 
 class AAPAOtherOptions:
     def __init__(self, detect_dir:str = None, diff_file:str = None, history_file:str = None,
-                  student_file:str = None):
+                  student_file:str = None, basedir_file: str = None):
         self.detect_dir: str = detect_dir
         self.diff_file: str = diff_file
         self.history_file: str = history_file
         self.student_file: str = student_file
+        self.basedir_file: str = basedir_file
     def __str__(self):
         result = f'OTHER OPTIONS:\n'
         if self.detect_dir is not None:
@@ -154,13 +156,15 @@ class AAPAOtherOptions:
             result = result + f'Bestand voor laden history [#DEPRECATED]: {self.history_file}\n'
         if self.student_file is not None:
             result = result + f'Bestand voor studentgegevens: {self.student_file}\n'
+        if self.basedir_file is not None:
+            result = result + f'Bestand voor basedir-gegevens: {self.basedir_file}\n'
         return result + '.'
     def no_processing(self)->bool:
-            return self.detect_dir is None and self.diff_file is None and self.history_file is None and self.student_file is None
+            return self.detect_dir is None and self.diff_file is None and self.history_file is None and self.student_file is None and self.basedir_file is None
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAOtherOptions:
         return cls(detect_dir = args.detect, diff_file = args.difference, history_file = args.history, 
-                   student_file= args.student)
+                   student_file= args.student, basedir_file= args.basedir)
 
 class AAPAOptions:
     def __init__(self, 
@@ -212,6 +216,8 @@ def report_options(options: AAPAOptions, parts=0)->str:
             result += _report_str('detect from directory', other_options.detect_dir)
         if other_options.student_file:
             result += _report_str('load student data', other_options.student_file)
+        if other_options.basedir_file:
+            result += _report_str('load basedir data', other_options.basedir_file)
         if config_options.config_file:
             result += _report_str('load alternative configuration file', config_options.config_file)
     return result

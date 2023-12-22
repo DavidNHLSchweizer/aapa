@@ -3,6 +3,8 @@ from copy import deepcopy
 import re
 import tkinter.simpledialog as tksimp
 from data.classes.const import MijlpaalType
+from data.classes.mijlpaal_directories import MijlpaalDirectory
+from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
 from data.storage.aapa_storage import AAPAStorage
@@ -11,6 +13,7 @@ from data.classes.files import File
 from data.storage.general.storage_const import StorageException
 from data.storage.queries.aanvragen import AanvraagQueries
 from data.storage.queries.files import FileStorageAnalyzer, FilesQueries
+from data.storage.queries.student_directories import StudentDirectoryQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
@@ -23,6 +26,7 @@ from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
 from process.general.aanvraag_processor import AanvraagCreator
 from process.general.base_processor import FileProcessor
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF, PDFReaderException, is_valid_title
+from process.general.student_dir_builder import StudentDirectoryBuilder
 
 def init_config():
     config.register('import', 'skip_files', ListValueConvertor)
@@ -98,6 +102,10 @@ class AanvraagPDFImporter(FileProcessor):
                 else:
                     log_print(f'\t{str(validator.validated_aanvraag)}')
                     validator.validated_aanvraag.register_file(filename, File.Type.AANVRAAG_PDF, MijlpaalType.AANVRAAG)
+                    StudentDirectoryBuilder(storage).register_file(student=validator.validated_aanvraag.student, 
+                                                                   datum=File.get_timestamp(filename),
+                                                                   filename=filename, 
+                                                                   filetype=File.Type.AANVRAAG_PDF,mijlpaal_type=MijlpaalType.AANVRAAG)
                     return validator.validated_aanvraag
             else:
                 return None

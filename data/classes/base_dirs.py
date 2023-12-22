@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 from data.classes.aapa_class import AAPAclass
+from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.name_utils import Names
 
@@ -41,4 +42,10 @@ class BaseDir(AAPAclass):
         else:
             parts = ['', '', '']
         return ' '.join([part.strip() for part in parts if part])
+    @staticmethod
+    def get_directory_name(student: Student)->str:                
+        result = f'{Names.last_name(student.full_name, include_tussen=False)}'
+        if tussen := Names.tussen(student.full_name):
+            result += f', {tussen}'
+        return result + f', {Names.first_name(student.full_name)}'
         

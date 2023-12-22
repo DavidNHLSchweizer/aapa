@@ -48,16 +48,7 @@ class DirectoryNameParser:
             except ValueError as E:
                 print(f'ValueError: {match.group("datum")}: {E}')
                 return None
-        # elif (match:=self.pattern_zitting.match(str(directory_name))):
-        #     try:
-        #         root,student=_get_root_and_student(match)
-        #         return DirectoryNameParser.Parsed(root=root.strip(), student=student.strip(), 
-        #                                       datum =datetime.datetime.strptime(match.group('datum'),'%Y-%m-%d'),
-        #                                       type = 'afstudeerzitting')
-        #     except ValueError as E:
-        #         print(f'ValueError: {match.group("datum")}: {E}')
-        #         return None
         elif match:=self.pattern_root.match(str(directory_name)):
             root,student=_get_root_and_student(match)
             return DirectoryNameParser.Parsed(root=root.strip(), student=student.strip())
-        return None    
+        return None

@@ -31,14 +31,13 @@ def migrate_version(database_name, old_version, new_version, debug=False, phase=
         return False
     return True
 
-def init_database(database_name, expected_version):
+def init_database(database_name, expected_version, actie='migratie'):
     if not file_exists(database_name):
-        raise MigrationException(f'Database file {database_name} bestaat niet. Migratie niet mogelijk.')
-        
+        raise MigrationException(f'Database file {database_name} bestaat niet. {actie.capitalize()} niet mogelijk.')        
     database = initialize_database(database_name, recreate=False, ignore_version=True)    
     dbv = read_version_info(database)
     if dbv.db_versie != expected_version:
-       print(f'Database {database_name} heeft versie {dbv.db_versie}. Verwacht {expected_version}. Kan migratie niet uitvoeren.') 
+       print(f'Database {database_name} heeft versie {dbv.db_versie}. Verwacht {expected_version}. Kan {actie} niet uitvoeren.') 
        return None
     return database
 
