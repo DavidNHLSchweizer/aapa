@@ -1,5 +1,7 @@
 *.pdf
 *.xlsx
+!basedirs.xlsx
+!studenten.xlsx
 *.log
 *.log.*
 *.docx
