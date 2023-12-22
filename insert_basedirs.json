@@ -8,7 +8,7 @@
                     2040,
                     "1",
                     "v4.0.0b",
-                    "d:\\aapademo\\base"
+                    ":ROOT59:"
                 ]
             ],
             "concatenate": true
@@ -17,6 +17,18 @@
             "sql": "update BASEDIRS set year=?,period=?,forms_version=?,directory=? where id = ?",
             "values": [],
             "concatenate": false
+        }
+    },
+    "fileroot": {
+        "insert": {
+            "sql": "insert into FILEROOT (code,root) values(?,?)",
+            "values": [
+                [
+                    ":ROOT59:",
+                    "d:\\aapa\\DEMO\\AANVRAGEN"
+                ]
+            ],
+            "concatenate": true
         }
     }
 }

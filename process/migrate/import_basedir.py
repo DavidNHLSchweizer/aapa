@@ -7,7 +7,7 @@ import pandas as pd
 from data.classes.base_dirs import BaseDir
 from data.classes.undo_logs import UndoLog
 from data.migrate.sql_coll import SQLcollector, SQLcollectors
-from data.roots import decode_path, encode_path
+from data.roots import add_root, decode_path, encode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from general.log import log_error, log_info, log_print, log_warning
@@ -42,12 +42,15 @@ class BasedirXLSImporter(FileProcessor):
         self.sql.add('base_dirs',
             SQLcollector({'insert':{'sql':'insert into BASEDIRS (id,year,period,forms_version,directory) values(?,?,?,?,?)'}, 
              'update':{'sql':'update BASEDIRS set year=?,period=?,forms_version=?,directory=? where id = ?'}}))
+        self.sql.add('fileroot', SQLcollector({'insert':{'sql':'insert into FILEROOT (code,root) values(?,?)'}, })) 
         super().__init__(description='Importeren basedirs')
     def __get(self, dataframe: pd.DataFrame, rownr: int, colnr: Colnr)->Any:
         return dataframe.at[rownr, self.expected_columns[colnr]]        
     def __add_sql(self, base_dir: BaseDir, is_new=True):
         if is_new:
-            self.sql.insert('base_dirs', [base_dir.id, base_dir.year, base_dir.period, base_dir.forms_version, encode_path(base_dir.directory)])
+            root_code = add_root(base_dir.directory)            
+            self.sql.insert('fileroot', [root_code, base_dir.directory])
+            self.sql.insert('base_dirs', [base_dir.id, base_dir.year, base_dir.period, base_dir.forms_version, root_code])
         else:
             self.sql.update('base_dirs', [base_dir.year,base_dir.period, base_dir.forms_version, encode_path(base_dir.directory), base_dir.stud_nr])
     def __check_format(self, df: pd.DataFrame):    
