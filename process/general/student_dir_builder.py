@@ -20,8 +20,8 @@ class StudentDirectoryBuilder:
         basedir_queries : BaseDirQueries = self.storage.queries('base_dirs')
         if not (base_dir := basedir_queries.find_basedir(directory)):
             raise StorageException(f'Kan student directory voor {student} bestand {filename} niet aan basis-directory koppelen.\nBasis-directory moet eerst worden aangemaakt.')
-        stud_dir_name = Path(base_dir).joinpath(BaseDir.get_directory_name(student))
-        if str(directory).find(stud_dir_name) != 0:
+        stud_dir_name = base_dir.get_student_directory(student)
+        if not directory.is_relative_to(Path(stud_dir_name)):
             raise StorageException(f'Bestand {filename} staat niet op de verwachte plaats.\n\tVerwacht wordt (sub)directory {stud_dir_name}.')
         return StudentDirectory(student, stud_dir_name, base_dir)
     def __get_stud_dir(self, student: Student, filename: str):
@@ -42,7 +42,7 @@ class StudentDirectoryBuilder:
         stud_dir = self.__get_stud_dir(student, filename)
         mp_dir = self.__get_mijlpaal_directory(stud_dir, str(Path(filename).parent), datum, mijlpaal_type)
         mp_dir.register_file(filename,filetype,mijlpaal_type)
-        self.storage.update(stud_dir)
+        self.storage.update('student_directories', stud_dir)
     def register_basedir(self, year: int, period: str, forms_version: str, directory: str):
         if not self.storage.find_values('base_dirs', [year, period], [year,period]):
             self.storage.create('base_dirs', BaseDir(year, period, forms_version, directory))

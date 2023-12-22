@@ -48,4 +48,5 @@ class BaseDir(AAPAclass):
         if tussen := Names.tussen(student.full_name):
             result += f', {tussen}'
         return result + f', {Names.first_name(student.full_name)}'
-        
+    def get_student_directory(self, student: Student)->str:
+        return str(Path(self.directory).joinpath(self.get_directory_name(student)))
