@@ -1,6 +1,7 @@
 from __future__ import annotations
 from data.classes.const import MijlpaalType
-from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
+from data.classes.mappers import ColumnMapper, FilenameColumnMapper, TimeColumnMapper
+from data.storage.general.table_mapper import TableMapper
 from data.aapa_database import FilesTableDefinition
 from data.classes.files import File
 from data.storage.CRUDs import register_crud

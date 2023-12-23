@@ -4,7 +4,8 @@ from data.classes.const import MijlpaalType
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.storage.detail_rec_crud import DetailRecsTableMapper
-from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper, TimeColumnMapper
+from data.classes.mappers import ColumnMapper, FilenameColumnMapper, TimeColumnMapper
+from data.storage.general.table_mapper import TableMapper
 from data.storage.extended_crud import ExtendedCRUD
 from data.storage.CRUDs import register_crud
 from database.database import Database

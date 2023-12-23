@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Any
 
 import pandas as pd
+from data.classes.mappers import ColumnMapper, ObjectMapper
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
 from data.migrate.sql_coll import SQLcollector, SQLcollectors
@@ -17,25 +18,26 @@ from general.singular_or_plural import sop
 from general.valid_email import is_valid_email
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline, SingleFilePipeline
+from process.scan.importing.excel_reader import ExcelReader
+
+class StudentExcelMapper(ObjectMapper):
+    COLUMNS =  ['achternaam', 'voornaam', 'studnr', 'email', 'status']
+    def __init__(self):
+        super().__init__(self.COLUMNS, Student)
+    @staticmethod
+    def status_db_to_value(value: str)->Student.Status:
+        STATUS_CODES = {'aanvraag': Student.Status.AANVRAAG, 'bezig': Student.Status.BEZIG, 'afgestudeerd': Student.Status.AFGESTUDEERD,'gestopt': Student.Status.GESTOPT,}
+        return STATUS_CODES.get(value, Student.Status.UNKNOWN)
+    def _init_column_mapper(self, column_name: str) -> ColumnMapper:
+        match column_name:
+            case 'achternaam': return ColumnMapper(column_name=column_name, attribute_name='last_name')
+            case 'voornaam': return ColumnMapper(column_name=column_name, attribute_name='first_name')
+            case 'studnr': return ColumnMapper(column_name=column_name, attribute_name='stud_nr')
+            case 'status': return ColumnMapper('status', db_to_obj=self.status_db_to_value)
+            case _: return super()._init_column_mapper(column_name)
 
 class StudentenXLSImporter(FileProcessor):
-    NCOLS = 5
-    class Colnr(Enum):
-        ACHTERNAAM   = 0
-        VOORNAAM     = 1
-        STUDNR       = 2
-        EMAIL        = 3
-        STATUS       = 4
-    STATUS_CODES = {'aanvraag': Student.Status.AANVRAAG, 'bezig': Student.Status.BEZIG, 'afgestudeerd': Student.Status.AFGESTUDEERD,'gestopt': Student.Status.GESTOPT,}
-    expected_columns = {Colnr.ACHTERNAAM: 'achternaam', 
-                        Colnr.VOORNAAM: 'voornaam', 
-                        Colnr.STUDNR: 'studnr', 
-                        Colnr.EMAIL: 'email', 
-                        Colnr.STATUS: 'status'}
     def __init__(self):
-        self.writer = None
-        self.sheet = None
-        self._error = ''
         self.n_new = 0
         self.n_modified = 0
         self.n_already_there = 0
@@ -44,26 +46,11 @@ class StudentenXLSImporter(FileProcessor):
             SQLcollector({'insert':{'sql':'insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)'}, 
              'update':{'sql':'update STUDENTEN set full_name=?,first_name=?,email=?,status=? where stud_nr = ?'}}))
         super().__init__(description='Importeren studenten')
-    def __get(self, dataframe: pd.DataFrame, rownr: int, colnr: Colnr)->Any:
-        return dataframe.at[rownr, self.expected_columns[colnr]]        
     def __add_sql(self, student: Student, is_new=True):
         if is_new:
             self.sql.insert('studenten', [student.id, student.stud_nr, student.full_name, student.first_name, student.email, int(student.status)])
         else:
             self.sql.update('studenten', [student.full_name, student.first_name, student.email, int(student.status), student.stud_nr])
-    def __check_format(self, df: pd.DataFrame):    
-        self._error = ''
-        if ncols(df) != self.NCOLS:
-            self._error = f'Onverwacht aantal kolommen ({ncols(df)}). Verwachting is {self.NCOLS}.'
-            return False
-        for column,expected_column in zip(df.columns, self.expected_columns.values()):
-            if column.lower() != expected_column:
-                self._error = f'Onverwachte kolom-header: {column}. Verwachte kolommen:\n\t{[self.expected_columns]}'
-                return False
-        if nrows(df) == 0:
-            self._error = f'Niets om te importeren.'
-            return False
-        return True
     def __check_and_store_student(self, student: Student, storage: AAPAStorage)->Any:
         def check_diff(student: Student, stored: Student, attrib: str)->bool:
             a1 = str(getattr(student, attrib, None))
@@ -90,32 +77,19 @@ class StudentenXLSImporter(FileProcessor):
             storage.create('studenten', student)
             self.__add_sql(student, True)
             self.n_new += 1
-    def __read_student(self, df: pd.DataFrame, row: int)->Student:
-        full_name = Names.full_name(self.__get(df,row,self.Colnr.VOORNAAM), 
-                                                 self.__get(df,row,self.Colnr.ACHTERNAAM))
-        email = self.__get(df,row, self.Colnr.EMAIL)
-        if not is_valid_email(email):
-            log_warning(f'Ongeldige email {self.__get(df,row,self.Colnr.EMAIL)} voor student {full_name}')
-        return Student(full_name=full_name,
-                       first_name = self.__get(df,row,self.Colnr.VOORNAAM), 
-                       stud_nr=str(self.__get(df,row, self.Colnr.STUDNR)), 
-                       email=email,
-                       status = self.STATUS_CODES.get(self.__get(df, row, self.Colnr.STATUS), Student.Status.UNKNOWN)
-                       )        
     def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Tuple[int,int,int]:
-        dataframe = pd.read_excel(filename)
-        if dataframe.empty:
-            log_error(f'Kan data niet laden uit {filename}.')
-            return 0
-        if not self.__check_format(dataframe):
+        reader = ExcelReader(filename, StudentExcelMapper.COLUMNS)
+        if reader.error:
             log_error(f'Kan studentgegevens niet importeren uit {filename}.\n\t\
-                      {self._error}.')
+                      {reader.error}.')
+            return 0
+        mapper = StudentExcelMapper()
         self.n_new = 0
         self.n_modified = 0
         self.n_already_there = 0
-        for row in range(nrows(dataframe)):
-            if not (student := self.__read_student(dataframe, row)):
-                log_error(f'Fout bij lezen rij {row}: {self._error}.')
+        for row,value in enumerate(reader.read()):
+            if not (student := mapper.db_to_object(value)):
+                log_error(f'Fout bij lezen rij {row}: {value}.')
             else:
                 self.__check_and_store_student(student, storage)
         return (self.n_new,self.n_modified,self.n_already_there)

@@ -3,7 +3,8 @@ from enum import Enum, auto
 from typing import Any, Tuple, Type
 from data.classes.aapa_class import AAPAclass
 from data.classes.detail_rec import DetailRecData
-from data.storage.general.mappers import ColumnMapper, TableMapper
+from data.classes.mappers import ColumnMapper
+from data.storage.general.table_mapper import TableMapper
 from data.storage.general.query_builder import QIF, QueryBuilder
 from data.storage.general.storage_const import DBtype, KeyClass, StorageException, StoredClass
 from database.database import Database

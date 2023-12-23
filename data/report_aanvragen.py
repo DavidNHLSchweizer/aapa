@@ -17,7 +17,7 @@ def init_config():
 init_config()
 
 
-class ExcelMapper:
+class ExcelAanvraagMapper:
     class Flags(Enum):
         NONE = 0
         FUNCTION = 1
@@ -40,26 +40,26 @@ class ExcelMapper:
     def __init__(self):
         self._aanvraag = None
     def get_attrib(self, aanvraag: Aanvraag, key: str)->str:
-        if not (entry:=ExcelMapper.ExcelAanvraagMap[key]):
+        if not (entry:=ExcelAanvraagMapper.ExcelAanvraagMap[key]):
             return ''
         match entry['flags']:
-            case ExcelMapper.Flags.NONE: return getattr(aanvraag, entry['attrib'], None)
-            case ExcelMapper.Flags.STR: return str(getattr(aanvraag, entry['attrib'], None))
-            case ExcelMapper.Flags.FUNCTION: 
+            case ExcelAanvraagMapper.Flags.NONE: return getattr(aanvraag, entry['attrib'], None)
+            case ExcelAanvraagMapper.Flags.STR: return str(getattr(aanvraag, entry['attrib'], None))
+            case ExcelAanvraagMapper.Flags.FUNCTION: 
                 if (func :=  getattr(aanvraag, entry['attrib'], None)):
                     return func()
                 return ''
-            case ExcelMapper.Flags.SUBATTRIB:
+            case ExcelAanvraagMapper.Flags.SUBATTRIB:
                 return get_deep_attr(aanvraag, entry['attrib'], '')
             case _: return ''
     def sheet_row(self, aanvraag: Aanvraag)->list[str]:
-        return [self.get_attrib(aanvraag, key) for key in ExcelMapper.ExcelAanvraagMap.keys()]
+        return [self.get_attrib(aanvraag, key) for key in ExcelAanvraagMapper.ExcelAanvraagMap.keys()]
   
 class AanvraagXLSReporter(AanvraagProcessor):
     def __init__(self):
         self.writer = None
         self.sheet = None
-        self.mapper = ExcelMapper()
+        self.mapper = ExcelAanvraagMapper()
         super().__init__(description='Maken XLS rapportage', entry_states=Aanvraag.Status.valid_states(), read_only=True)
     @contextmanager
     def open_xls(self, xls_filename: str)->pd.ExcelWriter:
@@ -78,7 +78,7 @@ class AanvraagXLSReporter(AanvraagProcessor):
         self.writer = None
         self.sheet = None
     def __init_xls(self, xls_filename):
-        pd.DataFrame(columns=[entry['header'] for entry in ExcelMapper.ExcelAanvraagMap.values()]).to_excel(xls_filename, index=False)        
+        pd.DataFrame(columns=[entry['header'] for entry in ExcelAanvraagMapper.ExcelAanvraagMap.values()]).to_excel(xls_filename, index=False)        
         return pd.ExcelWriter(xls_filename, engine='openpyxl', mode='a') 
     def process(self, aanvraag: Aanvraag, preview=False, **kwargs)->bool:
         if self.sheet:

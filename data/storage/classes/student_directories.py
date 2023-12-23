@@ -1,12 +1,13 @@
 from data.aapa_database import StudentDirectory_DirectoriesTableDefinition, StudentDirectoryTableDefinition
 from data.classes.base_dirs import BaseDir
 from data.classes.detail_rec import DetailRec, DetailRecData
+from data.classes.mappers import ColumnMapper, FilenameColumnMapper
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.storage.CRUDs import CRUDColumnMapper, create_crud, register_crud
 from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.extended_crud import ExtendedCRUD
-from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper, TableMapper
+from data.storage.general.table_mapper import TableMapper
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from database.database import Database
 from database.table_def import TableDefinition

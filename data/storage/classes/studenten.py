@@ -1,7 +1,8 @@
 from data.aapa_database import StudentTableDefinition
 from data.classes.studenten import Student
 from data.storage.CRUDs import register_crud
-from data.storage.general.mappers import ColumnMapper, TableMapper
+from data.classes.mappers import ColumnMapper
+from data.storage.general.table_mapper import TableMapper
 from data.storage.queries.studenten import StudentQueries
 from database.database import Database
 

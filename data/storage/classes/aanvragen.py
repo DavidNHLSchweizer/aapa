@@ -3,7 +3,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.detail_rec_crud import DetailRecsTableMapper
 from data.storage.extended_crud import ExtendedCRUD
-from data.storage.general.mappers import ColumnMapper
+from data.classes.mappers import ColumnMapper
 from data.storage.CRUDs import register_crud
 from data.storage.classes.mijlpaal_base import MijlpaalGradeableTableMapper
 from data.storage.queries.aanvragen import AanvraagQueries

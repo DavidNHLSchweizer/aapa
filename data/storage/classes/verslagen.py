@@ -1,7 +1,7 @@
 from data.classes.const import MijlpaalType
 from data.classes.verslagen import Verslag
 from data.aapa_database import VerslagTableDefinition
-from data.storage.general.mappers import ColumnMapper, FilenameColumnMapper
+from data.classes.mappers import ColumnMapper, FilenameColumnMapper
 from data.storage.CRUDs import register_crud
 from data.storage.classes.mijlpaal_base import MijlpaalGradeableTableMapper
 from database.database import Database

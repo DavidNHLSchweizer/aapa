@@ -5,6 +5,7 @@ from typing import Any
 
 import pandas as pd
 from data.classes.base_dirs import BaseDir
+from data.classes.mappers import ColumnMapper, FilenameColumnMapper, ObjectMapper
 from data.classes.undo_logs import UndoLog
 from data.migrate.sql_coll import SQLcollector, SQLcollectors
 from data.roots import add_root, decode_path, encode_path
@@ -18,23 +19,22 @@ from general.singular_or_plural import sop
 from general.valid_email import is_valid_email
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline, SingleFilePipeline
+from process.scan.importing.excel_reader import ExcelReader
+
+class BaseDirExcelMapper(ObjectMapper):
+    COLUMNS =  ['jaar', 'periode', 'forms_versie', 'directory']
+    def __init__(self):
+        super().__init__(self.COLUMNS, BaseDir)
+    def _init_column_mapper(self, column_name: str) -> ColumnMapper:
+        match column_name:
+            case 'jaar': return ColumnMapper(column_name=column_name, attribute_name='year')
+            case 'periode': return ColumnMapper(column_name=column_name, attribute_name='period')
+            case 'forms_versie': return ColumnMapper(column_name=column_name, attribute_name='forms_version')
+            case 'directory': return FilenameColumnMapper(column_name)
+            case _: return super()._init_column_mapper(column_name)
 
 class BasedirXLSImporter(FileProcessor):
-    NCOLS = 4
-    class Colnr(Enum):
-        YEAR            = 0
-        PERIOD          = 1
-        FORMS_VERSION   = 2
-        DIRECTORY       = 3
-    expected_columns = {Colnr.YEAR: 'jaar', 
-                        Colnr.PERIOD: 'periode', 
-                        Colnr.FORMS_VERSION: 'forms_version', 
-                        Colnr.DIRECTORY: 'directory', 
-                        }
     def __init__(self):
-        self.writer = None
-        self.sheet = None
-        self._error = ''
         self.n_new = 0
         self.n_modified = 0
         self.n_already_there = 0
@@ -44,8 +44,6 @@ class BasedirXLSImporter(FileProcessor):
              'update':{'sql':'update BASEDIRS set year=?,period=?,forms_version=?,directory=? where id = ?'}}))
         self.sql.add('fileroot', SQLcollector({'insert':{'sql':'insert into FILEROOT (code,root) values(?,?)'}, })) 
         super().__init__(description='Importeren basedirs')
-    def __get(self, dataframe: pd.DataFrame, rownr: int, colnr: Colnr)->Any:
-        return dataframe.at[rownr, self.expected_columns[colnr]]        
     def __add_sql(self, base_dir: BaseDir, is_new=True):
         if is_new:
             root_code = add_root(base_dir.directory)            
@@ -53,19 +51,6 @@ class BasedirXLSImporter(FileProcessor):
             self.sql.insert('base_dirs', [base_dir.id, base_dir.year, base_dir.period, base_dir.forms_version, root_code])
         else:
             self.sql.update('base_dirs', [base_dir.year,base_dir.period, base_dir.forms_version, encode_path(base_dir.directory), base_dir.stud_nr])
-    def __check_format(self, df: pd.DataFrame):    
-        self._error = ''
-        if ncols(df) != self.NCOLS:
-            self._error = f'Onverwacht aantal kolommen ({ncols(df)}). Verwachting is {self.NCOLS}.'
-            return False
-        for column,expected_column in zip(df.columns, self.expected_columns.values()):
-            if column.lower() != expected_column:
-                self._error = f'Onverwachte kolom-header: {column}. Verwachte kolommen:\n\t{[self.expected_columns]}'
-                return False
-        if nrows(df) == 0:
-            self._error = f'Niets om te importeren.'
-            return False
-        return True
     def __check_and_store_basedir(self, base_dir: BaseDir, storage: AAPAStorage)->Any:
         def check_diff(base_dir: BaseDir, stored: BaseDir, attrib: str)->bool:
             a1 = str(getattr(base_dir, attrib, None))
@@ -93,26 +78,19 @@ class BasedirXLSImporter(FileProcessor):
             storage.create('base_dirs', base_dir)
             self.__add_sql(base_dir, True)
             self.n_new += 1
-    def __read_basedir(self, df: pd.DataFrame, row: int)->BaseDir:
-        return BaseDir(year=int(self.__get(df,row, self.Colnr.YEAR)),
-                        period = str(self.__get(df, row, self.Colnr.PERIOD)).strip(),
-                        forms_version = self.__get(df, row, self.Colnr.FORMS_VERSION).strip(),
-                        directory = decode_path(self.__get(df, row, self.Colnr.DIRECTORY).strip())
-                       )        
     def process_file(self, filename: str, storage: AAPAStorage, preview = False, **kwargs)->Tuple[int,int,int]:
-        dataframe = pd.read_excel(filename)
-        if dataframe.empty:
-            log_error(f'Kan data niet laden uit {filename}.')
-            return 0
-        if not self.__check_format(dataframe):
+        reader = ExcelReader(filename, BaseDirExcelMapper.COLUMNS)
+        if reader.error:
             log_error(f'Kan basedir-gegevens niet importeren uit {filename}.\n\t\
-                      {self._error}.')
+                      {reader.error}.')
+            return 0
+        mapper = BaseDirExcelMapper()
         self.n_new = 0
         self.n_modified = 0
         self.n_already_there = 0
-        for row in range(nrows(dataframe)):
-            if not (base_dir := self.__read_basedir(dataframe, row)):
-                log_error(f'Fout bij lezen rij {row}: {self._error}.')
+        for row,value in enumerate(reader.read()):
+            if not (base_dir := mapper.db_to_object(value)):
+                log_error(f'Fout bij lezen rij {row}: {value}.')
             else:
                 self.__check_and_store_basedir(base_dir, storage)
         return (self.n_new,self.n_modified,self.n_already_there)

@@ -4,7 +4,8 @@ from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.detail_rec import DetailRec
 from data.storage.CRUDs import CRUD, CRUDQueries
-from data.storage.general.mappers import ColumnMapper, TableMapper
+from data.classes.mappers import ColumnMapper
+from data.storage.general.table_mapper import TableMapper
 from data.storage.general.query_builder import QIF
 from data.storage.general.storage_const import StoredClass
 from database.database import Database

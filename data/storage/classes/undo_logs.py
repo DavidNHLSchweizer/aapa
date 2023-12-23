@@ -4,7 +4,8 @@ from data.classes.undo_logs  import UndoLog
 from data.classes.detail_rec import DetailRec, DetailRecData
 from data.storage.CRUDs import register_crud
 from data.storage.detail_rec_crud import DetailRecsTableMapper
-from data.storage.general.mappers import BoolColumnMapper, ColumnMapper, TableMapper, TimeColumnMapper
+from data.classes.mappers import BoolColumnMapper, ColumnMapper, TimeColumnMapper
+from data.storage.general.table_mapper import TableMapper
 from data.storage.extended_crud import ExtendedCRUD
 from data.storage.queries.undo_logs import UndoLogQueries
 from database.database import Database

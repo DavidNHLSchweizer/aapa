@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from typing import Any
-from data.storage.general.mappers import MapperException, TableMapper
+from data.storage.general.table_mapper import MapperException, TableMapper
 from data.storage.general.storage_const import StoredClass
 from database.database import Database
 from database.sql_expr import SQE, Ops
