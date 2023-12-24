@@ -18,18 +18,11 @@ from process.general.aanvraag_processor import AanvraagCreator
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF
 from process.scan.importing.aanvraag_importer import AanvraagImporter
 
-def init_config():
-    config.register('import', 'skip_files', ListValueConvertor)
-    config.init('import', 'skip_files', ['.*Aanvraag toelating afstuderen.*', 
-                '.*Beoordeling.*verslag.*', '.*Plan van aanpak.*', '.*Beoordeling aanvraag.*',
-                '.*Onderzoeksverslag.*', '.*Technisch verslag.*'])
-init_config()
-
-class AanvraagPDFImporter(AanvraagImporter):
+class AanvraagExcelImporter(AanvraagImporter):
     def __init__(self):
-        super().__init__(description='PDF Importer')
+        super().__init__(description='Excel Importer')
     def read_aanvraag(self, filename: str)->Aanvraag:
-        return AanvraagReaderFromPDF(filename).read_aanvraag()
+        return ExcelAanvraagReaderFromPDF(filename).read_aanvraag()
 
 def report_imports(new_aanvragen, preview=False, verbose=False):
     log_info('Rapportage import:', to_console=True)
