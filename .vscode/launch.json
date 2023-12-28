@@ -152,9 +152,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "newest.db",
+                "testing123.db",
                 "1.19",
-                "1.20"
+                "1.20",
+                "-debug"
             ]
         },
         {

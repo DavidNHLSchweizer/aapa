@@ -1,5 +1,6 @@
 @rem set preview=-preview
-@set preview=-preview
+@set preview=
+@rem niet op preview zetten, de stud_dir ids moeten worden gegenereerd via de database!
 py aapa.py -debug %PREVIEW% --detect=":ONEDRIVE:\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1" --migrate="data\migrate\m119" > detect.out
 @copy logs\aapa_debug.log sherlock.log >NUL
 py aapa.py -debug %PREVIEW% --detect=":ONEDRIVE:\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021\Semester 1B" --migrate="data\migrate\m119" >> detect.out
