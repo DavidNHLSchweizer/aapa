@@ -1,5 +1,5 @@
 from datetime import datetime
-from data.roots import encode_path
+from data.roots import decode_path, encode_path
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file, path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
@@ -57,6 +57,8 @@ class AAPAProcessor:
             actions = processing_options.actions
             # print(actions)
             preview = processing_options.preview
+            f = decode_path(r':ROOT6:\Week 8')
+            x = encode_path(f'{f}9')
             if AAPAaction.INFO in actions:
                 self.__report_info(AAPAOptions(config_options=configuration.config_options, processing_options=processing_options, other_options=other_options))
             if not other_options.no_processing():
