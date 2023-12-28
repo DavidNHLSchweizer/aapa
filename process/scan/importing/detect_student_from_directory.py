@@ -268,10 +268,7 @@ def detect_from_directory(directory: str, storage: AAPAStorage, migrate_dir: str
         return 0  
     log_info(f'Start detectie van map  {directory}...', to_console=True)
     importer = MilestoneDetectorPipeline(f'Detectie studentgegevens uit directory {directory}', storage, skip_directories=config.get('detect_directory', 'skip'))
-    # first_id = storage.aanvragen.max_id() + 1
     (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
-    # report_imports(importer.storage.aanvragen.read_all(lambda a: a.id >= first_id), preview=preview)
-    # log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
     filename = f'{Path(directory).parent.name}_{Path(directory).stem}.json'
     if migrate_dir:
         migrate_file = Path(migrate_dir).resolve().joinpath(filename)

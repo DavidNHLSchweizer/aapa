@@ -55,7 +55,7 @@ class PathRootConvertor:
         self.code = code if code else self.__get_next_key(known_codes)
     @staticmethod
     def __contains(value: str, root: str)->bool:
-        return len(value) >= len(root) and value[:len(root)].lower() == root.lower() and len(Path(value[len(root):]).parts) > 1
+        return value.lower()==root.lower() or (len(value) >= len(root) and len(Path(value[len(root):]).parts) > 1 and value[:len(root)].lower() == root.lower())
     @staticmethod
     def __substitute(value:str, substr1:str, substr2: str):
         if  PathRootConvertor.__contains(value, substr1):

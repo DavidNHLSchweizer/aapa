@@ -26,7 +26,7 @@ class AanvraagImporter(FileProcessor):
             log_print(f'\t{str(validator.validated_aanvraag)}')
             validator.validated_aanvraag.register_file(filename, File.Type.AANVRAAG_PDF, MijlpaalType.AANVRAAG)
             StudentDirectoryBuilder(storage).register_file(student=validator.validated_aanvraag.student, 
-                                                            datum=File.get_timestamp(filename),
+                                                            datum=File.get_timestamp(filename) if file_exists(filename) else aanvraag.datum,
                                                             filename=filename, 
                                                             filetype=File.Type.AANVRAAG_PDF,mijlpaal_type=MijlpaalType.AANVRAAG)
             return validator.validated_aanvraag

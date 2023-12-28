@@ -62,13 +62,20 @@ class Names:
             tussens.append(match.group('tussen'))
             last_tussen_end = match.end('tussen')
         if tussens:
-            return ParsedName(first_name=full_name[0:first_tussen_start].strip(), tussen=' '.join(tussens), last_name=full_name[last_tussen_end:].strip())
+            return ParsedName(first_name=full_name[0:first_tussen_start].strip().capitalize(), tussen=' '.join(tussens), last_name=full_name[last_tussen_end:].strip().capitalize())
         else:
             words = full_name.split(' ')
-            return ParsedName(first_name=' '.join(words[:len(words)-1]), last_name=words[len(words)-1])
+            return ParsedName(first_name=' '.join(words[:len(words)-1]).capitalize(), last_name=words[len(words)-1].capitalize())
+    @staticmethod
+    def standardize(full_name: str)->str:
+        parsed = Names.parsed(full_name)
+        result = parsed.first_name.strip().capitalize()
+        if parsed.tussen:
+            result += f' {parsed.tussen}' 
+        return result + f' {parsed.last_name.strip().capitalize()}'
     @staticmethod
     def first_name(full_name: str)->str:
-        return Names.parsed(full_name).first_name
+        return Names.parsed(full_name).first_name.capitalize()
     @staticmethod
     def tussen(full_name: str)->str:
         return Names.parsed(full_name).tussen
@@ -76,9 +83,9 @@ class Names:
     def last_name(full_name: str, include_tussen: bool=True):
         parsed = Names.parsed(full_name)        
         if include_tussen:
-            return f'{parsed.tussen} {parsed.last_name}'
+            return f'{parsed.tussen} {parsed.last_name.capitalize()}'
         else:
-            return parsed.last_name
+            return parsed.last_name.capitalize()
     @staticmethod
     def initials(full_name: str='', email: str = '')->str:
         result = ''
@@ -95,6 +102,6 @@ class Names:
             parsed = Names.parsed(last_name.strip())
             tussen = parsed.tussen
             last = last_name.strip() if not tussen else last_name[:last_name.find(',')].strip()
-            return f'{first_name.strip()}{" " + tussen if tussen else ""}{" " + last}'
+            return f'{first_name.strip().capitalize()}{" " + tussen if tussen else ""}{" " + last.capitalize()}'
         else:
-            return f'{first_name.strip()} {last_name.strip()}'
+            return f'{first_name.strip().capitalize()} {last_name.strip().capitalize()}'

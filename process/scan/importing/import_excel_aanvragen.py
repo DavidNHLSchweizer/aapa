@@ -15,7 +15,7 @@ from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.config import config
-from general.fileutil import created_directory, path_with_suffix, safe_file_name, test_directory_exists
+from general.fileutil import created_directory, last_parts_file, path_with_suffix, safe_file_name, test_directory_exists
 from general.strutil import replace_all
 from general.timeutil import TSC
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
@@ -125,7 +125,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         return Bedrijf(self.__get_value(values, self.ColNr.BEDRIJF))
     def _get_aanvraag(self, values: dict[str, Any])->Aanvraag:
         return Aanvraag(self._get_student(values), self._get_bedrijf(values), 
-                        datum = TSC.str_to_timestamp(self.__get_value(values, self.ColNr.VOLTOOIEN)),
+                        datum = TSC.sortable_str_to_timestamp(self.__get_value(values, self.ColNr.VOLTOOIEN)),
                         titel = self.__get_value(values, self.ColNr.TITEL),
                         )
     def get_filename(self, values: dict[str, Any])->str:
@@ -155,9 +155,10 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         if not preview:
             Word2PdfConvertor().convert(docx_filename, pdf_filename)
             Path(docx_filename).unlink()
+        return pdf_filename
     def process_values(self, values: dict[str, Any], preview=False)->Tuple[Aanvraag, str]:
         pdf_filename = self.create_pdf_file(self.create_file(values, preview), preview)
-        log_print(f'Aanvraagbestand {pdf_filename} {pva(preview, "aanmaken", "aangemaakt")}.')
+        log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
         return (self._get_aanvraag(values), pdf_filename)
     def read_aanvragen(self, filename: str, preview: bool)->Iterable[Tuple[Aanvraag, str]]:
         reader = ExcelReader(filename, self.ENQUETE_COLUMNS.values())

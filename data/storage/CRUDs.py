@@ -218,12 +218,12 @@ class CRUDQueries:
         qb = self.query_builder
         wanted_attributes, wanted_values = self.__get_wanted_values(where_attributes, where_values) 
         log_debug(f'\tFMV: {wanted_attributes=} {wanted_values=}')
-        if wanted_attributes:
+        if wanted_attributes == [None]:
+            where = None
+        else:
             where = qb.build_where_from_values(
                         column_names=wanted_attributes, values=wanted_values,
                             flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES})     
-        else:
-            where = None   
         return qb.find_max_value(attribute, where= where)
     def find_all(self, map_values = True)->list[AAPAclass]:
         self.__db_log('FIND_ALL', f'keys: {self.table.keys} [{map_values=}]')

@@ -138,6 +138,6 @@ class QueryBuilder:
     def build_where_from_object(self, aapa_obj: StoredClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  
         return self.__build_where(*self.query_info.get_data(aapa_obj, columns=column_names, flags=flags))
     def build_where_from_values(self, column_names: list[str], values: list[Any], operators: list[Ops] = None, flags={QIF.ATTRIBUTES})->SQE:  
-        return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags), operators=operators, use_and = QIF.CONNECT_OR in flags)
+        return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags), operators=operators, use_and = not QIF.CONNECT_OR in flags)
     def build_where_for_many(self, column_name: str, values: set[Any], flags={QIF.ATTRIBUTES})->SQE:  
         return self.__build_where(columns=[column_name], values=[values])

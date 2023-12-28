@@ -65,7 +65,11 @@ class FilePipeline(Pipeline):
                 if object is None:
                     self._add_invalid_file(str(filename))
                     return False
-                self._store_new(object)
+                elif isinstance(object, list):
+                    for obj in object:
+                        self._store_new(obj)
+                else:
+                    self._store_new(object)
                 self.storage.commit()
                 return True
             except Exception as E:

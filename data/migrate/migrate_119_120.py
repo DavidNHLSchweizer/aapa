@@ -3,6 +3,7 @@ from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesT
         StudentDirectoryTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
         create_roots
 from data.classes.base_dirs import BaseDir
+from data.classes.files import File
 from data.classes.studenten import Student
 from data.migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
 from data.migrate.sql_coll import SQLcollType, SQLcollector, SQLcollectors
