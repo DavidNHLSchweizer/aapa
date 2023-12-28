@@ -125,8 +125,22 @@ def rename_action_logs(database: Database):
     database._execute_sql_command('alter table ACTIONLOG_FILES RENAME TO UNDOLOGS_FILES')
     print('--- ready adapting ACTIONLOG tables')
 
+def correct_root_directories(database: Database):
+    print('updating root directories voor 2023-2024')
+    database._execute_sql_command(f'UPDATE FILEROOT SET root=? where code=?', [r':ROOT2:\HBO-ICT Afstuderen - Software Engineering\2023-2024 Oud', ':ROOT23:'])
+    database._execute_sql_command(f'INSERT INTO FILEROOT(code,root) VALUES (?,?)', [':ROOT51:', r':ROOT2:\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw'])
+    query = 'select f.id from files as f inner join aanvragen as A on aanvraag_id = a.id where a.stud_nr in (?,?,?,?,?) and substr(filename,1,8)=?'
+    rows = database._execute_sql_command(query,['4534115','4852109','4884272','4888553','4862287',':ROOT23:'], return_values=True)
+    params = [':ROOT51:']
+    params.extend([row['id'] for row in rows])
+    database._execute_sql_command(
+            "UPDATE FILES SET filename=(?||substr(filename,9)) where id in (?,?,?,?,?)", 
+             params)
+    print('--- klaar updating root directories voor 2023-2024') 
+
 def migrate_database(database: Database, phase: int):
     with database.pause_foreign_keys():
+        correct_root_directories(database)        
         modify_studenten_table(database)
         modify_aanvragen_table(database)    
         modify_files_table(database)

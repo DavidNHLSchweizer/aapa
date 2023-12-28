@@ -42,7 +42,7 @@ class VerslagFromZipImporter(MijlpaalCreator):
         def get_student(storage: AAPAStorage, student_name: str, email: str)->Student:
             storage_queries: StudentQueries = storage.queries('studenten')
             student = Student(full_name=student_name, email=email)
-            stored:Student = storage_queries.find_student_by_name_or_email(student=student)
+            stored:Student = storage_queries.find_student_by_name_or_email_or_studnr(student=student)
             if stored:                 
                 return stored
             student.stud_nr = storage_queries.create_unique_student_nr(student=student)

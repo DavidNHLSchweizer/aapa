@@ -10,6 +10,7 @@ from data.storage.aapa_storage import AAPAStorage
 from data.storage.general.storage_const import StorageException
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
+from data.storage.queries.studenten import StudentQueries
 from general.log import log_warning
 
 class StudentDirectoryBuilder:
@@ -24,6 +25,20 @@ class StudentDirectoryBuilder:
         if not directory.is_relative_to(Path(stud_dir_name)):
             raise StorageException(f'Bestand {filename} staat niet op de verwachte plaats.\n\tVerwacht wordt (sub)directory {stud_dir_name}.')
         return StudentDirectory(student, stud_dir_name, base_dir)
+    @staticmethod
+    def get_student_dir_name(storage: AAPAStorage, student: Student, output_directory: str):
+        student_queries: StudentQueries = storage.queries('studenten')
+        if (stored:=student_queries.find_student_by_name_or_email_or_studnr(student)):
+            student = stored
+        student_dir_queries: StudentDirectoryQueries= storage.queries('student_directories')       
+        if (student_dir := student_dir_queries.find_student_dir(student)):
+            return student_dir.directory
+        else:
+            basedir_queries : BaseDirQueries = storage.queries('base_dirs')
+            if not (base_dir := basedir_queries.find_basedir(output_directory, start_at_parent = False)):
+                if not (base_dir := basedir_queries.last_base_dir()):
+                    raise StorageException(f'Geen basis-directories gedefinieerd.')
+            return base_dir.get_student_directory(student)
     def __get_stud_dir(self, student: Student, filename: str):
         queries: StudentDirectoryQueries = self.storage.queries('student_directories')
         if not (stud_dir := queries.find_student_dir(student)):

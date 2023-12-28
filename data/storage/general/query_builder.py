@@ -1,7 +1,8 @@
 from __future__ import annotations
 from enum import Enum
 from typing import Any
-from data.storage.general.table_mapper import MapperException, TableMapper
+from data.classes.mappers import MapperException
+from data.storage.general.table_mapper import TableMapper
 from data.storage.general.storage_const import StoredClass
 from database.database import Database
 from database.sql_expr import SQE, Ops
@@ -15,6 +16,7 @@ class QueryInfo:
         INCLUDE_KEY      = 1 # include key in queries 
         NO_MAP_VALUES    = 2 # do not map values for database
         ATTRIBUTES       = 3 # given column names are attributes   
+        CONNECT_OR       = 4 # connect WHERE clause with OR instead of the default AND
     @staticmethod
     def include_key(flags)->bool:
         return QueryInfo.Flags.INCLUDE_KEY in flags
@@ -108,7 +110,8 @@ class QueryBuilder:
     #     where_attributes = attributes if isinstance(attributes, list) else [attributes]
     #     where_values = values if isinstance(values, list) else [values]
     #     return self.find_ids_from_values(where_attributes, where_values)
-    def __find_ids(self, where_columns: list[str]=None, where_values: list[Any|set[Any]]=None)->list[int]:
+    def __find_ids(self, where_columns: list[str]=None, 
+                   where_values: list[Any|set[Any]]=None)->list[int]:
         if where_columns: 
             sql = SQLselect(self.mapper.table, columns=self.mapper.table_keys(), 
                         where=self.__build_where(*(where_columns,where_values)))
@@ -118,21 +121,23 @@ class QueryBuilder:
             result = [self.mapper.db_to_value(row['id'], 'id') for row in rows] 
             return result
         return []   
-    def __build_where(self, columns: list[str], values: list[Any|set[Any]], operators: list[Ops]=None)->SQE:
+    def __build_where(self, columns: list[str], values: list[Any|set[Any]], 
+                      operators: list[Ops]=None, use_and=True)->SQE:
         result = None
         log_debug(f'BW: {columns}|{values}')
         operators = operators if operators else [Ops.EQ]*len(columns)
         log_debug(operators)
+        connect_op = Ops.AND if use_and else Ops.OR
         for (key,value,operator) in zip(columns, values, operators):
             if isinstance(value, set):
                 new_where_part = SQE(key, Ops.IN, list(value), no_column_ref=True)
             else:
                 new_where_part = SQE(key, operator, value, no_column_ref=True)
-            result = new_where_part if not result else SQE(result, Ops.AND, new_where_part)
+            result = new_where_part if not result else SQE(result, connect_op, new_where_part)
         return result
     def build_where_from_object(self, aapa_obj: StoredClass, column_names: list[str]=None, flags={QIF.INCLUDE_KEY})->SQE:  
         return self.__build_where(*self.query_info.get_data(aapa_obj, columns=column_names, flags=flags))
     def build_where_from_values(self, column_names: list[str], values: list[Any], operators: list[Ops] = None, flags={QIF.ATTRIBUTES})->SQE:  
-        return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags), operators=operators)
+        return self.__build_where(*self.query_info.get_data(columns=column_names, values=values, flags=flags), operators=operators, use_and = QIF.CONNECT_OR in flags)
     def build_where_for_many(self, column_name: str, values: set[Any], flags={QIF.ATTRIBUTES})->SQE:  
         return self.__build_where(columns=[column_name], values=[values])

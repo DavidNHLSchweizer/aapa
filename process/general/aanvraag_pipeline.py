@@ -86,7 +86,8 @@ class AanvragenPipeline(Pipeline):
         return n_processed
 
 class AanvraagCreatorPipeline(FilePipeline):
-    def __init__(self, description: str, processor: AanvraagCreator, storage: AAPAStorage, activity: UndoLog.Action, invalid_filetype: File.Type):
+    def __init__(self, description: str, processor: AanvraagCreator, storage: AAPAStorage, activity: UndoLog.Action, 
+                 invalid_filetype: File.Type=File.Type.UNKNOWN):
         super().__init__(description, processor, storage, activity=activity, invalid_filetype=invalid_filetype)
     def _skip(self, filename: str)->bool:
         return False

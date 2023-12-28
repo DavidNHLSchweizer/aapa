@@ -43,7 +43,7 @@ class StudentDirectoryDetector(FileProcessor):
             raise DetectorException(f'directory {last_parts_file(student_directory)} kan niet worden herkend.')
         student = Student(full_name=parsed.student)
         queries: StudentQueries = storage.queries('studenten')
-        if storage and (stored := queries.find_student_by_name_or_email(student)):
+        if storage and (stored := queries.find_student_by_name_or_email_or_studnr(student)):
             return stored
         return student
     # def _get_aanvraag(self, student: Student, storage: AAPAStorage)->Aanvraag:

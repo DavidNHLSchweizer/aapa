@@ -10,6 +10,7 @@ from data.classes.aanvragen import Aanvraag
 #
 # hernummeren File.Type GRADE_FORM_PDF
 # nieuwe tabel ACTIONLOG_FILES (voorloper op uitbreiding UNDO)
+# correcties voor veranderingen in root directory 
 
 def update_filetypes(database: Database):
     class OldFileType(IntEnum):
@@ -37,8 +38,6 @@ def create_new_tables(database: Database):
     action_log_files_table.add_foreign_key('file_id', 'FILES', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
     database.execute_sql_command(SQLcreateTable(action_log_files_table))
     print('--- klaar toevoegen nieuwe tabellen')
-
-
 
 def migrate_database(database: Database):
     update_filetypes(database)

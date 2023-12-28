@@ -11,6 +11,7 @@ from process.scan.create_forms.create_form import FormCreator
 from process.scan.importing.import_directory import import_directory
 from general.config import config
 from data.storage.aapa_storage import AAPAStorage
+from process.scan.importing.import_excel_aanvragen import import_excel_file
 
 def init_config():
     config.init('requests', 'form_template',r'.\templates\template 0.8.docx')
@@ -42,12 +43,20 @@ def create_beoordelingen_files(storage: AAPAStorage, template_doc, output_direct
     log_info('--- Einde maken beoordelingsformulieren.')
     return result
 
+def process_excel_file(excel_filename, storage: AAPAStorage, output_directory, recursive = True, preview=False):
+    with Preview(preview, storage, 'requests_excel'):
+        log_debug(MAJOR_DEBUG_DIVIDER)
+        n_imported,_ = import_excel_file(excel_filename, output_directory, storage, preview=preview)
+        log_info(f'### {sop(n_imported, "aanvraag", "aanvragen")} {pva(preview, "importeren", "geimporteerd")} van {excel_filename}.', to_console=True)
+        log_debug(MAJOR_DEBUG_DIVIDER)
+
 def process_directory(input_directory, storage: AAPAStorage, output_directory, recursive = True, preview=False):
-    with Preview(preview, storage, 'requests'):
+    with Preview(preview, storage, 'requests_files'):
         log_debug(MAJOR_DEBUG_DIVIDER)
         n_imported,_ = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
         log_info(f'### {sop(n_imported, "bestand", "bestanden")} {pva(preview, "importeren", "geimporteerd")} van {input_directory}.', to_console=True)
         log_debug(MAJOR_DEBUG_DIVIDER)
+
 
 def process_forms(storage: AAPAStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):

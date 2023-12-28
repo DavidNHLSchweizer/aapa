@@ -9,10 +9,12 @@ class StudentQueries(CRUDQueries):
                 raise StorageException(f'More than one student with same {attribute} in database:\n{[str(student) for student in students]}')
             return students[0]        
         return None
-    def find_student_by_name_or_email(self, student: Student)->Student:
+    def find_student_by_name_or_email_or_studnr(self, student: Student)->Student:
         if student.full_name and (stored := self.__find_student_by_attribute(student, 'full_name')):
             return stored
         if student.email and (stored := self.__find_student_by_attribute(student, 'email')):
+            return stored
+        if student.stud_nr and (stored := self.__find_student_by_attribute(student, 'stud_nr')):
             return stored
         return None
     def create_unique_student_nr(self, student: Student)->Student:

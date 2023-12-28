@@ -1,9 +1,6 @@
 from pathlib import Path
 from typing import Tuple
-from enum import Enum
 from typing import Any
-
-import pandas as pd
 from data.classes.mappers import ColumnMapper, ObjectMapper
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
@@ -11,13 +8,10 @@ from data.migrate.sql_coll import SQLcollector, SQLcollectors
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.studenten import StudentQueries
 from general.log import log_error, log_info, log_print, log_warning
-from general.name_utils import Names
-from general.pdutil import ncols, nrows
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
-from general.valid_email import is_valid_email
 from process.general.base_processor import FileProcessor
-from process.general.pipeline import FilePipeline, SingleFilePipeline
+from process.general.pipeline import SingleFilePipeline
 from process.scan.importing.excel_reader import ExcelReader
 
 class StudentExcelMapper(ObjectMapper):
@@ -48,9 +42,9 @@ class StudentenXLSImporter(FileProcessor):
         super().__init__(description='Importeren studenten')
     def __add_sql(self, student: Student, is_new=True):
         if is_new:
-            self.sql.insert('studenten', [student.id, student.stud_nr, student.full_name, student.first_name, student.email, int(student.status)])
+            self.sql.insert('studenten', [student.id, str(student.stud_nr), student.full_name, student.first_name, student.email, int(student.status)])
         else:
-            self.sql.update('studenten', [student.full_name, student.first_name, student.email, int(student.status), student.stud_nr])
+            self.sql.update('studenten', [student.full_name, student.first_name, student.email, int(student.status), str(student.stud_nr)])
     def __check_and_store_student(self, student: Student, storage: AAPAStorage)->Any:
         def check_diff(student: Student, stored: Student, attrib: str)->bool:
             a1 = str(getattr(student, attrib, None))
@@ -60,7 +54,7 @@ class StudentenXLSImporter(FileProcessor):
                 return True
             return False
         queries: StudentQueries = storage.queries('studenten')
-        if stored:=queries.find_student_by_name_or_email(student):
+        if stored:=queries.find_student_by_name_or_email_or_studnr(student):
             log_warning(f'\tStudent {student} al in database')
             different = check_diff(student, stored, 'email') or\
                     check_diff(student, stored, 'first_name') or\

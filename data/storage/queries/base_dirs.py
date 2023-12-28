@@ -6,10 +6,10 @@ from data.storage.general.storage_const import StorageException
 from general.log import log_debug
 
 class BaseDirQueries(CRUDQueries):
-    def find_basedir(self, directory: str|Path)->BaseDir:
+    def find_basedir(self, directory: str|Path, start_at_parent = True)->BaseDir:
         if directory == '' or directory==(parent:=str(Path(directory).parent)):
             return None        
-        candidate_basedir = parent
+        candidate_basedir = parent if start_at_parent else directory
         encoded = encode_path(candidate_basedir)
         log_debug(f'encoded: {encoded}')
         if stored:=self.find_values(attributes='directory', values=candidate_basedir):
@@ -17,3 +17,5 @@ class BaseDirQueries(CRUDQueries):
                 raise StorageException(f'More than one basedir with same name in database:\n{[str(basedir) for basedir in stored]}')
             return stored[0]
         return self.find_basedir(candidate_basedir)
+    def last_base_dir(self)->BaseDir:
+        return self.crud.read(self.find_max_value('id'))

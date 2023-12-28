@@ -13,7 +13,7 @@ from process.undo.undo_processor import undo_last
 from process.scan.create_forms.create_diff_file import DifferenceProcessor
 from data.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
-from process.scan.scan import process_directory, process_forms
+from process.scan.scan import process_directory, process_excel_file, process_forms
 from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, report_options
 from general.versie import banner
 
@@ -69,7 +69,8 @@ class AAPAProcessor:
             if processing_options.no_processing():
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
-                process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
+                process_excel_file('test_aanvragen.xlsx', configuration.storage, configuration.output_directory, preview=preview)
+                # process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
             if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
                 # #checking basedirs
                 # for basedir in configuration.storage.basedirs.read_all():

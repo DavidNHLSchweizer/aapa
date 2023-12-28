@@ -103,7 +103,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
-    queries:AanvraagQueries = importer.storage.queries('aanvragen')
+    queries:AanvraagQueries = storage.queries('aanvragen')
     new_aanvragen = queries.find_new_aanvragen(first_id=first_id)
     report_imports(new_aanvragen, preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')

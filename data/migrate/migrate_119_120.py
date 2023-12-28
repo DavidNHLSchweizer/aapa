@@ -61,8 +61,7 @@ def create_mijlpalen_tables(database: Database):
     database.execute_sql_command(SQLcreateTable(StudentDirectoryTableDefinition()))             
     database.execute_sql_command(SQLcreateTable(StudentDirectory_DirectoriesTableDefinition())) 
     database.execute_sql_command(SQLcreateTable(MijlpaalDirectoryTableDefinition()))             
-    database.execute_sql_command(SQLcreateTable(MijlpaalDirectory_FilesTableDefinition())) 
-       
+    database.execute_sql_command(SQLcreateTable(MijlpaalDirectory_FilesTableDefinition()))        
 
     print('--- klaar toevoegen nieuwe tabellen')
 
@@ -79,7 +78,8 @@ def init_base_directories(database: Database):
                BaseDir(2022, '2', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 2'),
                BaseDir(2022, '3', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 3'),
                BaseDir(2022, '4', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Periode 4'),
-               BaseDir(2023, '1', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024') 
+               BaseDir(2023, '1', 'v4.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Oud'),
+               BaseDir(2023, '2', 'v5.0.0b', r'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw'), 
     ]
     print('adding new table BASEDIRS')
     database.execute_sql_command(SQLcreateTable(BaseDirsTableDefinition()))
@@ -98,9 +98,10 @@ def _start_with_new_roots(database: Database):
                    rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2020-2021',
                    rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022',
                    rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023',
-                   rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024',
                    rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023\Beoordeling aanvragen 2023',
-                   rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024\Beoordeling aanvragen 2023',
+                   rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Oud',
+                   rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Oud\Beoordeling aanvragen 2023',
+                   rf'NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw',
                   ]
     database._execute_sql_command('DELETE from FILEROOT')
     reset_roots()  
@@ -260,7 +261,9 @@ def import_student_directories(database: Database):
             '2022-2023_Periode 2.json',
             '2022-2023_Periode 3.json',
             '2022-2023_Periode 4.json',
-            'HBO-ICT Afstuderen - Software Engineering_2023-2024.json',]
+            'HBO-ICT Afstuderen - Software Engineering_2023-2024 Oud.json',
+            'HBO-ICT Afstuderen - Software Engineering_2023-2024 Nieuw.json',
+            ]
     print("importing student directories from generated list SQL-commandos")
     for json_name in JSONS:
         _import_json(database, rf'.\data\migrate\m119\{json_name}')
