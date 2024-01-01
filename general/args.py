@@ -16,15 +16,15 @@ from general.config import config
 
 class AAPAaction(Enum):
     NONE      = 0
-    SCAN      = 1
-    FORM      = 2
-    MAIL      = 3
-    FULL      = 4
-    NEW       = 5
-    INFO      = 6
-    REPORT    = 7
-    UNDO      = 8
-    ZIPIMPORT = 9
+    SCAN      = auto()
+    FORM      = auto()
+    MAIL      = auto()
+    FULL      = auto()
+    NEW       = auto()
+    INFO      = auto()
+    REPORT    = auto()
+    UNDO      = auto()
+    ZIPIMPORT = auto()
 
     def help_str(self):
         match self:
@@ -88,7 +88,7 @@ class AAPAProcessingOptions:
             return result
         return cls(actions=_get_actions(args.actions), preview=args.preview, force=args.force, debug=args.debug)
     def no_processing(self)->bool:
-        return not any([a in self.actions for a in {AAPAaction.SCAN, AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
+        return not any([a in self.actions for a in {AAPAaction.SCAN,AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
 
 def _get_config_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('configuratie opties')
@@ -98,18 +98,20 @@ def _get_config_arguments(parser: argparse.ArgumentParser):
                         help='De directory voor het aanmaken en invullen van beoordelingsformulieren.\nAls geen directory wordt ingevoerd (-o=) wordt deze opgevraagd.')
     group.add_argument('-d', '--database', type=str, help='De naam van de databasefile om mee te werken.\nAls de naam niet wordt ingevoerd (-d=) wordt hij opgevraagd.\nIndien de databasefile niet bestaat wordt hij aangemaakt.')   
     group.add_argument('-rf', '--report_file', type=str, help='Bestandsnaam [.xlsx] voor actie "report". default: uit CONFIG.INI')
+    group.add_argument('-x', '--excel_in', type=str, help='Bestandsnaam [.xlsx] voor actie "scan" vanuit excel-bestand. Moet worden ingevoerd voor deze actie.')
     group.add_argument('-c', '--config', type=str, help='Laad een alternatieve configuratiefile. Aangenomen wordt dat dit een .INI bestand is.')
     group.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
 
 class AAPAConfigOptions:
     def __init__(self, root_directory: str, output_directory: str, database_file: str, 
-                 config_file:str = None, report_filename: str = None, migrate_dir: str = None):
+                 config_file:str = None, report_filename: str = None, migrate_dir: str = None, excel_in: str=None):
         self.root_directory = root_directory
         self.output_directory: str= output_directory
         self.database_file: str = database_file if database_file else config.get('configuration', 'database')
         self.config_file: str = config_file
         self.report_filename: str = report_filename if report_filename else config.get('report', 'filename')
         self.migrate_dir: str = migrate_dir
+        self.excel_in: str = excel_in
     def __str__(self):
         result = f'CONFIGURATION:\n'
         if self.root_directory is not None:
@@ -124,11 +126,13 @@ class AAPAConfigOptions:
             result = result + f'FILENAME (voor REPORT): {self.report_filename}\n'
         if self.migrate_dir:
             result = result + f'Directory voor SQL-data (gebruik in migratiescript): {self.migrate_dir}\n'
+        if self.excel_in: 
+            result = result + f'FILENAME (voor SCAN input): {self.excel_in}\n'
         return result + '.'
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAConfigOptions:
         return cls(root_directory = args.root, output_directory = args.output, database_file = args.database, 
-                   config_file = args.config, report_filename = args.report_file, migrate_dir=args.migrate)
+                   config_file = args.config, report_filename = args.report_file, migrate_dir=args.migrate, excel_in=args.excel_in)
 
 def _get_other_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('overige opties')

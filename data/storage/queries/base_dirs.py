@@ -6,6 +6,14 @@ from data.storage.general.storage_const import StorageException
 from general.log import log_debug
 
 class BaseDirQueries(CRUDQueries):
+    def is_basedir(self, directory: str|Path)->bool:    
+        directory = str(directory)
+        if not directory:
+            return False
+        encoded = encode_path(directory)
+        result = self.find_values(attributes='directory', values=encoded)
+        log_debug(f'is_basedir: encoded: {encoded} dus {result != []}')
+        return result != []
     def find_basedir(self, directory: str|Path, start_at_parent = True)->BaseDir:
         if directory == '' or directory==(parent:=str(Path(directory).parent)):
             return None        

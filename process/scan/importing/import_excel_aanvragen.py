@@ -192,6 +192,6 @@ def import_excel_file(xls_filename: str, output_directory: str, storage: AAPASto
     new_aanvragen = queries.find_new_aanvragen(first_id=first_id)
     report_imports(new_aanvragen, preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
-    log_info(f'...Import afgerond ({sop(n_processed, "nieuwe aanvraag", "nieuwe aanvragen")}. In directory: {sop(n_files, "bestand", "bestanden")})', to_console=True)
+    log_info(f'...Import afgerond ({sop(new_aanvragen, "nieuwe aanvraag", "nieuwe aanvragen")} gelezen uit bestand {xls_filename}', to_console=True)
     log_debug(MAJOR_DEBUG_DIVIDER)
     return n_processed, n_files      

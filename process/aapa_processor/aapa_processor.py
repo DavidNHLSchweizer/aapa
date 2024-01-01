@@ -69,8 +69,9 @@ class AAPAProcessor:
             if processing_options.no_processing():
                 return
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
-                process_excel_file('test_aanvragen.xlsx', configuration.storage, configuration.output_directory, preview=preview)
-                # process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
+                if configuration.config_options.excel_in:
+                    process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
+                process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
             if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
                 # #checking basedirs
                 # for basedir in configuration.storage.basedirs.read_all():
