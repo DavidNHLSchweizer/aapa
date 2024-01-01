@@ -63,9 +63,8 @@ def process_directory(input_directory, storage: AAPAStorage, output_directory, r
         log_debug(MAJOR_DEBUG_DIVIDER)
         check_root_directory(input_directory,storage)
         n_imported,_ = import_directory(input_directory, output_directory, storage, recursive, preview=preview)
-        log_info(f'### {sop(n_imported, "bestand", "bestanden")} {pva(preview, "importeren", "geimporteerd")} van {input_directory}.', to_console=True)
+        log_info(f'### {sop(n_imported, "aanvraag", "aanvragen")} {pva(preview, "importeren", "geimporteerd")} van {input_directory}.', to_console=True)
         log_debug(MAJOR_DEBUG_DIVIDER)
-
 
 def process_forms(storage: AAPAStorage, output_directory, recursive = True, preview=False):
     with Preview(preview, storage, 'requests'):

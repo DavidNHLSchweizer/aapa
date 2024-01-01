@@ -37,10 +37,12 @@ def AAPArun_script(options: AAPAOptions)->bool:
 
 ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvragen',
             'output': 'De directory waar beoordelingsformulieren worden aangemaakt',
+            'input': 'Kies (excel) input bestand met nieuwe aanvragen (optioneel)',
             'database':'De database voor het programma',
             'root-input-button': 'Kies de root-directory',
             'output-input-button': 'Kies de output-directory',
             'database-input-button': 'Kies de database',
+            'input-input-button': 'Kies input bestand',
             'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories',
             'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
@@ -54,6 +56,7 @@ class AAPATuiParams:
     root_directory: str = ''
     output_directory: str = ''
     database: str = ''
+    excel_in: str = ''
     preview: bool = True
     def get_options(self, action: AAPAaction, report_filename = '')->AAPAOptions:
         def _get_config_options(report_filename: str)->AAPAConfigOptions:
@@ -62,6 +65,7 @@ class AAPATuiParams:
             result.output_directory=self.output_directory
             result.database_file=self.database
             result.report_filename=report_filename
+            result.excel_in = self.excel_in
             return result
         def _get_processing_options(action: AAPAaction)->AAPAProcessingOptions:
             result = get_options_from_commandline(ArgumentOption.PROCES)
@@ -86,21 +90,22 @@ class AapaDirectoriesForm(Static):
             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
             yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
             yield LabeledInput('Database', id='database', validators=Required(), button=True)
+            yield LabeledInput('Input file', id='input', button=True)
     def on_mount(self):
         self.border_title = 'AAPA Configuratie'
         for id in ['root', 'output', 'database']:
             self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips[id]
-        for id in ['root-input-button', 'output-input-button', 'database-input-button']:
+        for id in ['root-input-button', 'output-input-button', 'database-input-button', 'input-input-button']:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         self._load_config()
     def _load_config(self):        
-        for id in {'root', 'output', 'database'}:
+        for id in {'root', 'output', 'database', 'input'}:
             self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
     def _store_config_id(self, id: str):
-        for id in {'root', 'output', 'database'}:
+        for id in {'root', 'output', 'database', 'input'}:
             config.set('configuration', id, self.query_one(f'#{id}', LabeledInput).value)
     def _store_config(self):
-        for id in {'root', 'output', 'database'}:
+        for id in {'root', 'output', 'database', 'input'}:
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
@@ -109,10 +114,15 @@ class AapaDirectoriesForm(Static):
             input.cursor_position = len(result)
             input.focus()
             self._store_config_id(input_id)
-    def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str):
+    def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str, for_open: bool = False):
         input = self.query_one(f'#{input_id}', LabeledInput).input
-        if (result := windows_style(tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
-                                            filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension))):
+        if for_open:
+            result = windows_style(tkifd.askopenfilename(initialfile=input.value, title=title, 
+                                            filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension))
+        else:
+            result = windows_style(tkifd.asksaveasfilename(initialfile=input.value, title=title, confirmoverwrite = False,
+                                            filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension))
+        if result:
             input.value=result
             input.cursor_position = len(result)
             input.focus()
@@ -122,6 +132,7 @@ class AapaDirectoriesForm(Static):
             case 'root-input-button': self.edit_root()
             case 'output-input-button': self.edit_output_directory()
             case 'database-input-button': self.edit_database()
+            case 'input-input-button': self.edit_inputfile()
         message.stop()
     def edit_root(self):
         self._select_directory('root', 'Selecteer root directory voor aanvragen)')
@@ -129,16 +140,21 @@ class AapaDirectoriesForm(Static):
         self._select_directory('output', 'Selecteer de output directory voor nieuwe formulieren')
     def edit_database(self):
         self._select_file('database','Select databasefile', 'database files', '.db')
+    def edit_inputfile(self):
+        self._select_file('input','Select inputfile', 'excel files', '.xlsx')
     @property
     def params(self)-> AAPATuiParams:
         return AAPATuiParams(root_directory= self.query_one('#root', LabeledInput).input.value, 
                              output_directory= self.query_one('#output', LabeledInput).input.value,
-                             database=self.query_one('#database', LabeledInput).input.value)
+                             database=self.query_one('#database', LabeledInput).input.value,
+                             excel_in = self.query_one('#input', LabeledInput).input.value
+                             )
     @params.setter
     def params(self, value: AAPATuiParams):
         self.query_one('#root', LabeledInput).input.value = value.root_directory
         self.query_one('#output', LabeledInput).input.value = value.output_directory
         self.query_one('#database', LabeledInput).input.value = value.database
+        self.query_one('#input', LabeledInput).input.value = value.excel_in
         
 class AapaButtons(Static):
     def compose(self)->ComposeResult:

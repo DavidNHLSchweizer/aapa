@@ -24,8 +24,10 @@ def init_config():
     config.init('configuration', 'database', DEFAULTDATABASE)
     config.register('configuration', 'root', OnedrivePathValueConvertor)
     config.register('configuration', 'output', OnedrivePathValueConvertor)
+    config.register('configuration', 'input', OnedrivePathValueConvertor)
     config.init('configuration', 'root', '')
     config.init('configuration', 'output', '')  
+    config.init('configuration', 'input', '')  
 init_config()
 
 def verifyRecreate():
