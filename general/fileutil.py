@@ -1,3 +1,5 @@
+import datetime
+import os
 import sys
 from pathlib import Path
 
@@ -128,3 +130,7 @@ def last_parts_file(filename: str, max_parts=3)->str:
     parts_path = Path("...").joinpath(*parts[len(parts)-max_parts:])
     return str(parts_path)
 
+def set_file_times(filename: str, filetime: datetime.datetime):
+    print(filetime.__class__)
+    timestamp = filetime.timestamp()
+    os.utime(filename, (timestamp,timestamp))

@@ -1,4 +1,6 @@
+import datetime
 from enum import IntEnum
+import os
 from pathlib import Path
 from mailmerge import MailMerge
 from typing import Any, Iterable, Tuple
@@ -15,7 +17,7 @@ from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.config import config
-from general.fileutil import created_directory, last_parts_file, path_with_suffix, safe_file_name, test_directory_exists
+from general.fileutil import created_directory, last_parts_file, path_with_suffix, safe_file_name, set_file_times, test_directory_exists
 from general.strutil import replace_all
 from general.timeutil import TSC
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
@@ -105,8 +107,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         self.storage = storage
         self.output_directory = output_directory
         with MailMerge(self.template) as document:
-            self.merge_fields = document.get_merge_fields()   
-                 
+            self.merge_fields = document.get_merge_fields()    
     def find_merge_field_vraag(self, merge_field: str)->str:
         def _standardize_vraag(vraag: str)->str:
             return replace_all(replace_all(vraag, ':/(),-', ''), ' ?\n', '_').replace('___', '__')
@@ -146,20 +147,22 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         if not preview:
             merge_dict = {field: str(values.get(self.find_merge_field_vraag(field), '?')) 
                           for field in self.merge_fields}
-            with MailMergeException(self.template) as document:
+            with MailMerge(self.template) as document:
                 document.merge(**merge_dict)
                 document.write(filename)
         return filename
-    def create_pdf_file(self, docx_filename: str, preview=False)->str:
+    def create_pdf_file(self, docx_filename: str, aanvraag_datum: datetime.datetime, preview=False)->str:
         pdf_filename = str(path_with_suffix(docx_filename, '.pdf'))
         if not preview:
             Word2PdfConvertor().convert(docx_filename, pdf_filename)
+            set_file_times(pdf_filename, aanvraag_datum)
             Path(docx_filename).unlink()
         return pdf_filename
     def process_values(self, values: dict[str, Any], preview=False)->Tuple[Aanvraag, str]:
-        pdf_filename = self.create_pdf_file(self.create_file(values, preview), preview)
+        aanvraag = self._get_aanvraag(values)
+        pdf_filename = self.create_pdf_file(self.create_file(values, preview), aanvraag.datum, preview)
         log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
-        return (self._get_aanvraag(values), pdf_filename)
+        return (aanvraag, pdf_filename)
     def read_aanvragen(self, filename: str, preview: bool)->Iterable[Tuple[Aanvraag, str]]:
         reader = ExcelReader(filename, self.ENQUETE_COLUMNS.values())
         if reader.error:

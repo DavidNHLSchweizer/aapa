@@ -1,21 +1,6 @@
-
-
-    # NCOLS = 5
-    # class Colnr(Enum):
-    #     ACHTERNAAM   = 0
-    #     VOORNAAM     = 1
-    #     STUDNR       = 2
-    #     EMAIL        = 3
-    #     STATUS       = 4
-    # STATUS_CODES = {'aanvraag': Student.Status.AANVRAAG, 'bezig': Student.Status.BEZIG, 'afgestudeerd': Student.Status.AFGESTUDEERD,'gestopt': Student.Status.GESTOPT,}
-    # expected_columns = {Colnr.ACHTERNAAM: 'achternaam', 
-    #                     Colnr.VOORNAAM: 'voornaam', 
-    #                     Colnr.STUDNR: 'studnr', 
-    #                     Colnr.EMAIL: 'email', 
-    #                     Colnr.STATUS: 'status'}
-
 from typing import Any, Iterable
 import pandas as pd
+from pythoncom import CoInitialize
 
 from general.pdutil import ncols, nrows
     
@@ -28,6 +13,8 @@ class ExcelReader:
             self.error = self.__check_expected_columns(expected_columns)
         else:
             self.error = ''
+        CoInitialize() #needed for TUI interface, else async or multithreading problems
+
     def __check_expected_columns(self, expected_columns: list[str])->str:
         try:
             if ncols(self.dataframe) != len(expected_columns):
