@@ -125,8 +125,10 @@ class AanvragenFromExcelImporter(AanvraagImporter):
     def _get_bedrijf(self, values: dict[str,Any])->Bedrijf:
         return Bedrijf(self.__get_value(values, self.ColNr.BEDRIJF))
     def _get_aanvraag(self, values: dict[str, Any])->Aanvraag:
+        datum = TSC.sortable_str_to_timestamp(self.__get_value(values, self.ColNr.VOLTOOIEN))
         return Aanvraag(self._get_student(values), self._get_bedrijf(values), 
-                        datum = TSC.sortable_str_to_timestamp(self.__get_value(values, self.ColNr.VOLTOOIEN)),
+                        datum = datum,
+                        datum_str = datum,
                         titel = self.__get_value(values, self.ColNr.TITEL),
                         )
     def get_filename(self, values: dict[str, Any])->str:
@@ -158,8 +160,15 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             set_file_times(pdf_filename, aanvraag_datum)
             Path(docx_filename).unlink()
         return pdf_filename
+    def _existing_aanvraag(self, aanvraag: Aanvraag)->bool:
+        queries: AanvraagQueries = self.storage.queries('aanvragen')
+        return queries.find_aanvraag(aanvraag) 
     def process_values(self, values: dict[str, Any], preview=False)->Tuple[Aanvraag, str]:
         aanvraag = self._get_aanvraag(values)
+        log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
+        if stored := self._existing_aanvraag(aanvraag):
+            log_warning(f'Aanvraag {stored} al in database. Wordt overgeslagen.')
+            return (None,'')
         pdf_filename = self.create_pdf_file(self.create_file(values, preview), aanvraag.datum, preview)
         log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
         return (aanvraag, pdf_filename)

@@ -1,3 +1,5 @@
+import datetime
+import re
 from typing import Tuple
 from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
         StudentDirectoryTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
@@ -15,6 +17,7 @@ from database.sql_view import SQLcreateView
 from database.table_def import TableDefinition
 import database.dbConst as dbc
 from general.keys import reset_key
+from general.timeutil import TSC
 
 # recoding all fileroots 
 # toevoegen VERSLAGEN tabel en BASEDIRS tabel
@@ -241,6 +244,24 @@ def correct_student_errors(database: Database, phase_1 = True):
 
         print('--- klaar correcting errors in STUDENTEN table')
 
+
+def _correct_date(date_fld: str)->str:
+    PATTERN  = r'Datum (?P<date>.*)'
+    if match := re.match(PATTERN, date_fld):
+        date = datetime.datetime.strptime(match.group('date'), '%m/%d/%Y %H:%M:%S %p')
+        return TSC.timestamp_to_sortable_str(date)
+    return date_fld
+
+def correct_aanvragen_errors(database: Database):
+    print('--- correcting data in AANVRAGEN table')
+    # Datum 12/16/2023 11:23:46 AM -> 2023-12-16 11:23:46        
+    rows = database._execute_sql_command(f'select id,datum_str from aanvragen where datum_str like ?',
+                                    [ "Datum %/%/____ %:%:% _M"], True)
+    for row in rows:
+        database._execute_sql_command(f'update aanvragen set datum_str = ? where id = ?',
+                                        [_correct_date(row["datum_str"]), row["id"]])
+    print('--- klaar correcting data in AANVRAGEN table')
+        
 def _import_json(database: Database, json_name: str):
     sqlcolls = SQLcollectors.read_from_dump(json_name)
     sqlcolls.execute_sql(database)
@@ -300,6 +321,7 @@ def migrate_database(database: Database, phase = 42):
         if phase > 2:
             import_student_directories(database)
             create_views(database)
+            correct_aanvragen_errors(database)
         cleanup_backup(database)
 
 def after_migrate(database_name: str, debug=False, phase=42):

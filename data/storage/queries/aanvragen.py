@@ -3,6 +3,7 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.studenten import Student
 from data.storage.CRUDs import CRUDQueries
 from database.sql_expr import Ops
+from general.timeutil import TSC
 
 class  AanvraagQueries(CRUDQueries):
     def find_kans(self, student: Student)->int:
@@ -27,6 +28,16 @@ class  AanvraagQueries(CRUDQueries):
         if rows := self.find_values_where('id', where_attributes=['id', 'status'], where_values=[first_id, Aanvraag.Status.valid_states()], 
                                   where_operators =[Ops.GTE, Ops.IN]):
             return self.crud.read_many({row['id'] for row in rows})
+        return None
+    def find_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
+        self.get_crud(Student).queries.ensure_key(aanvraag.student)        
+        self.get_crud(Bedrijf).queries.ensure_key(aanvraag.bedrijf)   
+        stored = self.find_values_where('id', where_attributes=['student', 'bedrijf', 'datum_str', 'titel'],
+                                        where_values = [aanvraag.student.id, aanvraag.bedrijf.id, 
+                                                        TSC.timestamp_to_sortable_str(aanvraag.datum_str), 
+                                                        aanvraag.titel])
+        if stored:
+            return self.crud.read(stored[0]['id'])
         return None
 # find_all(where_attributes='status', where_values=Aanvraag.Status.valid_states())
 
