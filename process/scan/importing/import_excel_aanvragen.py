@@ -30,6 +30,7 @@ from process.scan.importing.excel_reader import ExcelReader
 
 def init_config():
     config.init('import', 'xls_template', r'.\templates\2. Aanvraag goedkeuring afstudeeropdracht nieuwe vorm MAILMERGE.docx')
+    config.init('import', 'temp_dir', r'.\temp\import')
 init_config()
 
 
@@ -133,32 +134,33 @@ class AanvragenFromExcelImporter(AanvraagImporter):
                         )
     def get_filename(self, values: dict[str, Any])->str:
         student = self._get_student(values)
-        student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,student,self.output_directory))
         datum = self.__get_value(values, self.ColNr.VOLTOOIEN)
         bedrijf = self._get_bedrijf(values)
-        return str(student_directory.joinpath(safe_file_name(f'2. Aanvraag Afstuderen {datum}-{student.full_name}-{bedrijf.name}.docx')))   
+        return safe_file_name(f'2. Aanvraag Afstuderen {datum}-{student.full_name}-{bedrijf.name}.docx')       
+        # return str(student_directory.joinpath(safe_file_name(f'2. Aanvraag Afstuderen {datum}-{student.full_name}-{bedrijf.name}.docx')))       
     def create_file(self, values: dict[str, Any], preview=False)->str:
         filename = self.get_filename(values)
-        directory = Path(filename).parent
-        if not test_directory_exists(str(directory)):
-            if preview:
-                log_info(f'Directory {directory} aanmaken.')
-            else:
-                if created_directory(str(directory)):
-                    log_info(f'Directory {directory} aangemaakt.')
+        docx_filename = str(Path(config.get('import', 'temp_dir')).joinpath(filename))
         if not preview:
             merge_dict = {field: str(values.get(self.find_merge_field_vraag(field), '?')) 
                           for field in self.merge_fields}
             with MailMerge(self.template) as document:
                 document.merge(**merge_dict)
-                document.write(filename)
-        return filename
-    def create_pdf_file(self, docx_filename: str, aanvraag_datum: datetime.datetime, preview=False)->str:
-        pdf_filename = str(path_with_suffix(docx_filename, '.pdf'))
+                document.write(str(docx_filename))
+        return docx_filename
+    def create_pdf_file(self, aanvraag: Aanvraag, docx_filename: str, preview=False)->str:
+        student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,aanvraag.student,self.output_directory))
+        if not test_directory_exists(str(student_directory)):
+            if preview:
+                log_info(f'Directory {student_directory} aanmaken.')
+            else:
+                if created_directory(str(student_directory)):
+                    log_info(f'Directory {student_directory} aangemaakt.')
+        pdf_filename = student_directory.joinpath(str(path_with_suffix(Path(docx_filename).stem, '.pdf')))
         if not preview:
             Word2PdfConvertor().convert(docx_filename, pdf_filename)
-            set_file_times(pdf_filename, aanvraag_datum)
-            Path(docx_filename).unlink()
+            set_file_times(pdf_filename, aanvraag.datum)
+            self.files_to_delete.append(Path(docx_filename))
         return pdf_filename
     def _existing_aanvraag(self, aanvraag: Aanvraag)->bool:
         queries: AanvraagQueries = self.storage.queries('aanvragen')
@@ -167,11 +169,25 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         aanvraag = self._get_aanvraag(values)
         log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
         if stored := self._existing_aanvraag(aanvraag):
-            log_warning(f'Aanvraag {stored} al in database. Wordt overgeslagen.')
+            log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
             return (None,'')
-        pdf_filename = self.create_pdf_file(self.create_file(values, preview), aanvraag.datum, preview)
+        pdf_filename = self.create_pdf_file(aanvraag, self.create_file(values, preview), preview)
         log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
         return (aanvraag, pdf_filename)
+    def before_reading(self, preview = False):
+        temp_directory = config.get('import', 'temp_dir')
+        if not test_directory_exists(str(temp_directory)):
+            if preview:
+                log_info(f'Directory {temp_directory} aanmaken.')
+            else:
+                if created_directory(str(temp_directory)):
+                    log_info(f'Directory {temp_directory} aangemaakt.')
+        self.files_to_delete: list[Path]= [] #delete docx files after processing, otherwise sharepoint will not do it ?
+    def after_reading(self, preview = False):
+        if preview:
+            return
+        for file in self.files_to_delete:
+            file.unlink()
     def read_aanvragen(self, filename: str, preview: bool)->Iterable[Tuple[Aanvraag, str]]:
         reader = ExcelReader(filename, self.ENQUETE_COLUMNS.values())
         if reader.error:
@@ -180,7 +196,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         for values in reader.read():
             (aanvraag,aanvraag_filename) = self.process_values(values, preview)
             if aanvraag:
-                yield (aanvraag, aanvraag_filename)        
+                yield (aanvraag, aanvraag_filename)                        
 def report_imports(new_aanvragen, preview=False):
     log_info('Rapportage import:', to_console=True)
     if not new_aanvragen:

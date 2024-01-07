@@ -248,7 +248,7 @@ def correct_student_errors(database: Database, phase_1 = True):
 def _correct_date(date_fld: str)->str:
     PATTERN  = r'Datum (?P<date>.*)'
     if match := re.match(PATTERN, date_fld):
-        date = datetime.datetime.strptime(match.group('date'), '%m/%d/%Y %H:%M:%S %p')
+        date = datetime.datetime.strptime(match.group('date'), '%m/%d/%Y %I:%M:%S %p')
         return TSC.timestamp_to_sortable_str(date)
     return date_fld
 

@@ -40,24 +40,29 @@ class AanvraagImporter(FileProcessor):
             case _: return True
     def read_aanvraag(self, filename: str)->Aanvraag:
         return None # implement in subclass
+    def before_reading(self, preview = False):
+        pass
+    def after_reading(self, preview = False):
+        pass
     def read_aanvragen(self, filename: str, preview: bool)->Iterable[Tuple[Aanvraag, str]]:
-        yield [] # implement in subclass
+        yield (None, '') # implement in subclass
     def process_file(self, filename: str, storage: AAPAStorage = None, preview=False)->Aanvraag|list[Aanvraag]:
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
         log_print(f'Lezen {summary_string(filename, maxlen=100)}')
         try:      
+            self.before_reading(preview)
             if self.multiple:
                 result = []
                 for (aanvraag,aanvraag_filename) in self.read_aanvragen(filename, preview):
                     if validated := self._validate(storage, aanvraag_filename, aanvraag):
                         result.append(validated)
-                return result
             elif (aanvraag := self.read_aanvraag(filename)):
-                return self._validate(storage, filename, aanvraag)
+                result = self._validate(storage, filename, aanvraag)
             else:
-                return None
+                result = None
         except ImportException as exception:
             log_warning(f'{exception}\n\t{ERRCOMMENT}.')           
-        return None
+        self.after_reading(preview)
+        return result
