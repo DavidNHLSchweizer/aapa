@@ -7,6 +7,7 @@ from typing import Tuple
 from data.classes.base_dirs import BaseDir
 from general.fileutil import summary_string
 from general.log import log_warning
+from general.name_utils import Names
 
 class DirectoryNameParser:
     @dataclass
@@ -15,6 +16,14 @@ class DirectoryNameParser:
         student: str = ''
         datum: datetime.datetime = None
         type: str = ''
+        def email(self)->str:
+            parsed_name = Names.parsed(self.student)
+            result = parsed_name.first_name
+            # ".".join(parsed_name.first_name.split())
+            if parsed_name.tussen:
+                result = f'{result} {parsed_name.tussen}'
+            result = f'{result} {parsed_name.last_name}'
+            return ".".join(result.split()).lower() + f'@student.nhlstenden.com'
     STANDARD_PATTERN = r'(?P<root>.*)\\(?P<student>[\w\s]+?\,[\w\,\s]+)\\(?P<datum>[\d\-]+)\s(?P<what>.+)'
     PATTERN_BEOORDELING = r'((beoordelen|beoordeling)\s)?(?P<type>.+)'
     PATTERN_NON_STANDARD = r'(?P<rest1>.*)?(?P<part>(PVA|Plan van aanpak|Onderzoeksverslag|Technisch verslag|Eindverslag|Afstudeerzitting))(?P<rest2>.*)?'

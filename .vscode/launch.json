@@ -34,9 +34,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--detect=C:\\Users\\david\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2022-2023\\Periode 2",
+                "--detect=C:\\Users\\david\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2023-2024 Nieuw",
                 "-preview",
-                "-debug",           
+                "-debug",     
+                "--migrate=data\\migrate\\m119",
             ]
         },
         {

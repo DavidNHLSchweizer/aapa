@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Tuple
 from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
@@ -37,14 +37,17 @@ class StudentDirectoryDetector(FileProcessor):
         self.filetype_detector = FileTypeDetector()
         self.base_dir: BaseDir = None
         self.current_student_directory: StudentDirectory = None
+        self.new_students:dict[int:Student] = {}
     
-    def _get_student(self, student_directory: str, storage: AAPAStorage):
+    def _get_student(self, student_directory: str, storage: AAPAStorage)->Student:
         if not (parsed := self.parser.parsed(student_directory)):
             raise DetectorException(f'directory {last_parts_file(student_directory)} kan niet worden herkend.')
-        student = Student(full_name=parsed.student)
+        student = Student(full_name=parsed.student,email=parsed.email())
         queries: StudentQueries = storage.queries('studenten')
         if storage and (stored := queries.find_student_by_name_or_email_or_studnr(student)):
             return stored
+        storage.ensure_key('studenten',student)
+        self.new_students[student.id] = student
         return student
     # def _get_aanvraag(self, student: Student, storage: AAPAStorage)->Aanvraag:
     #     if student.id == EMPTY_ID:
@@ -125,9 +128,11 @@ class StudentDirectoryDetector(FileProcessor):
             log_error(f'Directory {last_parts_file(dirname, 4)} kan niet worden gelinkt met bekende basisdirectory.')
             return None
         try:    
-            student = self._get_student(dirname, storage)  
+            student = self._get_student(dirname, storage)
             log_print(f'Student: {student}')
-            if not student.valid():
+            if student in self.new_students.values():
+                log_warning(f'Student {student} nog niet in database. Wordt toegevoegd.\n\tLET OP: controleer het berekende email-adres {student.email}.')
+            elif not student.valid():
                 log_warning(f'Gegevens student {student} zijn niet compleet.')
             student_directory = StudentDirectory(student, dirname, self.base_dir)
             new_dir = MijlpaalDirectory(mijlpaal_type=MijlpaalType.AANVRAAG, directory=dirname, datum=TSC.AUTOTIMESTAMP)
@@ -149,10 +154,15 @@ class StudentDirectoryDetector(FileProcessor):
 class MilestoneDetectorPipeline(FilePipeline):
     def __init__(self, description: str, storage: AAPAStorage, skip_directories:list[str]=[]):
         super().__init__(description, StudentDirectoryDetector(), storage, activity=UndoLog.Action.DETECT)
+        self._processor:StudentDirectoryDetector = self.processors[0]
         self.skip_directories=skip_directories
         self.sqls = self.__init_sql_collectors()
     def __init_sql_collectors(self)->SQLcollectors:
         sqls = SQLcollectors()
+        sqls.add('studenten', 
+                 SQLcollector(
+                {'insert':{'sql':'insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)'},
+                }))
         sqls.add('student_directories', 
                  SQLcollector(
                 {'insert':{'sql':'insert into STUDENT_DIRECTORIES (id,stud_id,directory,basedir_id) values(?,?,?,?)'},
@@ -226,7 +236,7 @@ class MilestoneDetectorPipeline(FilePipeline):
             if stored_directory != student_directory:
                 self.sqls.update('student_directories', _get_values(student_directory, False))
         else:
-            self.sqls.insert('student_directories', _get_values(student_directory, True))
+            self.sqls.insert('student_directories', _get_values(student_directory, True))            
         self.__get_sql_mijlpaal_directories(student_directory.id, student_directory.directories, 
                                             stored_mijlpaal_directories=stored_mijlpaal_directories, stored_files=stored_files)
     def __get_stored_files(self, student_directory: StudentDirectory)->list[File]:
@@ -256,6 +266,12 @@ class MilestoneDetectorPipeline(FilePipeline):
 
         #must get the right IDs from the database first to get the correct SQL codes
         self.__get_sql(self.storage.read('student_directories', student_directory.id), stored_directory, stored_mijlpaal_directories, stored_files)
+        student_id = student_directory.student.id
+        log_debug(f'inserting new students {[id for id in self._processor.new_students.keys()]}')
+        if student_id in self._processor.new_students.keys():
+            student = self._processor.new_students[student_id]
+            log_debug(f'\tinserting {student}')
+            self.sqls.insert('studenten', [student.id,'ONBEKEND',student.full_name,student.first_name,student.email,student.status])
     def _skip(self, filename: str)->bool:        
         if Path(filename).stem in self.skip_directories:
             return True
