@@ -17,7 +17,7 @@ class FormCreator(AanvraagProcessor):
         if not file_exists(template_doc):
             log_exception(f'kan template {template_doc} niet vinden.', MailMergeException)
         self.template_doc = template_doc
-        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF}, 
+        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF,Aanvraag.Status.IMPORTED_XLS}, 
                          exit_state=Aanvraag.Status.NEEDS_GRADING,
                          description='Aanmaken beoordelingsformulier')
     def merge_document(self, template_doc: str, output_file_name: str, **kwds)->str:

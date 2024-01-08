@@ -12,6 +12,7 @@ from data.storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.storage.queries.aanvragen import AanvraagQueries
+from data.storage.queries.studenten import StudentQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_print, log_warning, log_info
 from general.preview import pva
@@ -26,6 +27,7 @@ from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.word_processor import Word2PdfConvertor
 from process.scan.create_forms.create_form import MailMergeException
 from process.scan.importing.aanvraag_importer import AanvraagImporter
+from process.scan.importing.detect_student_from_directory import StudentDirectoryDetector
 from process.scan.importing.excel_reader import ExcelReader
 
 def init_config():
@@ -120,9 +122,17 @@ class AanvragenFromExcelImporter(AanvraagImporter):
     def __get_value(self, values: dict[str, Any], colnr: ColNr)->str:
         return str(values.get(self.ENQUETE_COLUMNS.get(colnr, colnr.name)))
     def _get_student(self, values:dict[str, Any])->Student:
-        return Student(full_name=self.__get_value(values, self.ColNr.NAAM),
+        result = Student(full_name=self.__get_value(values, self.ColNr.NAAM),
                           stud_nr=self.__get_value(values, self.ColNr.STUDNR),
                           email=self.__get_value(values, self.ColNr.EMAIL))
+        student_queries: StudentQueries = self.storage.queries('studenten')
+        if (stored := student_queries.find_student_by_name_or_email_or_studnr(result)):
+            result.id = stored.id
+            result.status = stored.status
+            if stored.stud_nr == StudentDirectoryDetector.UNKNOWN_STUDNR:
+                stored.stud_nr = result.stud_nr                
+                self.storage.update('studenten', stored)
+        return result
     def _get_bedrijf(self, values: dict[str,Any])->Bedrijf:
         return Bedrijf(self.__get_value(values, self.ColNr.BEDRIJF))
     def _get_aanvraag(self, values: dict[str, Any])->Aanvraag:
@@ -131,6 +141,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
                         datum = datum,
                         datum_str = datum,
                         titel = self.__get_value(values, self.ColNr.TITEL),
+                        status=Aanvraag.Status.IMPORTED_XLS
                         )
     def get_filename(self, values: dict[str, Any])->str:
         student = self._get_student(values)
@@ -156,7 +167,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             else:
                 if created_directory(str(student_directory)):
                     log_info(f'Directory {student_directory} aangemaakt.')
-        pdf_filename = student_directory.joinpath(str(path_with_suffix(Path(docx_filename).stem, '.pdf')))
+        pdf_filename = student_directory.joinpath(f"{Path(docx_filename).stem}.pdf")
         if not preview:
             Word2PdfConvertor().convert(docx_filename, pdf_filename)
             set_file_times(pdf_filename, aanvraag.datum)

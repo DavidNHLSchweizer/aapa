@@ -80,14 +80,16 @@ class AanvraagStatus(IntEnum):
     DELETED         = -1
     NEW             = 0
     IMPORTED_PDF    = 1
-    NEEDS_GRADING   = 2
-    GRADED          = 3
-    ARCHIVED        = 4 
-    MAIL_READY      = 5
-    READY           = 6
-    READY_IMPORTED  = 7
+    IMPORTED_XLS    = 2
+    NEEDS_GRADING   = 3
+    GRADED          = 4
+    ARCHIVED        = 5 
+    MAIL_READY      = 6
+    READY           = 7
+    READY_IMPORTED  = 8
     def __str__(self):
-        _AS_STRS = {AanvraagStatus.DELETED: 'verwijderd', AanvraagStatus.NEW: 'nog niet bekend', AanvraagStatus.IMPORTED_PDF: 'gelezen (PDF)',  
+        _AS_STRS = {AanvraagStatus.DELETED: 'verwijderd', AanvraagStatus.NEW: 'nog niet bekend', 
+                    AanvraagStatus.IMPORTED_PDF: 'gelezen (PDF)',  AanvraagStatus.IMPORTED_XLS: 'geimporteerd (PDF)',
                 AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', 
                 AanvraagStatus.ARCHIVED: 'gearchiveerd', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'geheel verwerkt', 
                 AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}

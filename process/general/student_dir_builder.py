@@ -50,7 +50,7 @@ class StudentDirectoryBuilder:
             mp_dir = MijlpaalDirectory(mijlpaal_type, directory, datum)
             stud_dir.add(mp_dir)
         if mp_dir.directory != directory:
-            raise StorageException(f'Onverwachte directory {directory}. Inconsistente of corrupte database.')
+            log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory is {mp_dir.directory}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
         return mp_dir
     def register_file(self, student: Student, datum: datetime.datetime, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType):
         self.storage.ensure_key('studenten', student)        

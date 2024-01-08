@@ -31,6 +31,7 @@ class DetectorException(Exception): pass
 
 class StudentDirectoryDetector(FileProcessor):
     ERRCOMMENT= 'Directory kan niet worden herkend'
+    UNKNOWN_STUDNR = 'UNKNOWN_STUDNR'
     def __init__(self):
         super().__init__(description='StudentDirectory Detector')
         self.parser = DirectoryNameParser()
@@ -271,7 +272,7 @@ class MilestoneDetectorPipeline(FilePipeline):
         if student_id in self._processor.new_students.keys():
             student = self._processor.new_students[student_id]
             log_debug(f'\tinserting {student}')
-            self.sqls.insert('studenten', [student.id,'ONBEKEND',student.full_name,student.first_name,student.email,student.status])
+            self.sqls.insert('studenten', [student.id,StudentDirectoryDetector.UNKNOWN_STUDNR,student.full_name,student.first_name,student.email,student.status])
     def _skip(self, filename: str)->bool:        
         if Path(filename).stem in self.skip_directories:
             return True

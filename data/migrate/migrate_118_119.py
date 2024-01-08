@@ -1,6 +1,7 @@
+from enum import IntEnum
 from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, FilesTableDefinition, \
                             StudentTableDefinition, UndoLogTableDefinition
-from data.classes.const import MijlpaalType
+from data.classes.const import AanvraagStatus, MijlpaalType
 from data.classes.files import File
 from database.sql_table import SQLcreateTable
 from database.database import Database
@@ -31,6 +32,27 @@ def modify_studenten_table(database: Database):
     database._execute_sql_command('drop table OLD_STUDENTEN')
     print('end adding primary key to STUDENTEN table, also adding status and remove telnr.')
 
+class OldAanvraagStatus(IntEnum):
+    DELETED         = -1
+    NEW             = 0
+    IMPORTED_PDF    = 1
+    NEEDS_GRADING   = 2
+    GRADED          = 3
+    ARCHIVED        = 4 
+    MAIL_READY      = 5
+    READY           = 6
+    READY_IMPORTED  = 7
+Old=OldAanvraagStatus
+New=AanvraagStatus
+
+translation= {
+    Old.NEEDS_GRADING: New.NEEDS_GRADING,
+    Old.GRADED: New.GRADED,
+    Old.ARCHIVED: New.ARCHIVED,
+    Old.MAIL_READY: New.ARCHIVED,
+    Old.READY: New.READY,
+    Old.READY_IMPORTED: New.READY_IMPORTED,}
+
 def modify_aanvragen_table(database: Database):
     print('modifying AANVRAGEN table.')
     database._execute_sql_command('alter table AANVRAGEN RENAME TO OLD_AANVRAGEN')
@@ -45,9 +67,15 @@ def modify_aanvragen_table(database: Database):
         WHERE ((STUDENTEN.stud_nr=OLD_AANVRAGEN.stud_nr) AND (AANVRAGEN.ID=OLD_AANVRAGEN.ID))'
     for row in database._execute_sql_command(sql, [], True):
         database._execute_sql_command('update AANVRAGEN set stud_id=? where id=?', [row[1], row[0]])
+    print('end modifying STUDENT references to AANVRAGEN table.')
+    print('implementing new Status values for AANVRAGEN.')
+    for row in database._execute_sql_command(f'select id, status from AANVRAGEN WHERE status in ({",".join(["?"] * len(translation.keys()))})', 
+                                                list(translation.keys()), True):
+        database._execute_sql_command('update AANVRAGEN set status=? where id=?', [translation[row['status']], row['id']]) 
+
+    print('end modifying new Status values for AANVRAGEN.')
     database._execute_sql_command('drop table OLD_AANVRAGEN')
     #kans en versie komt niet echt uit de verf, maar dat is lastig oplosbaar, laat eerst maar zo. 
-    print('end modifying STUDENT references to AANVRAGEN table.')
     print('end modifying AANVRAGEN table.')
 
 class OldFilesTableDefinition(TableDefinition):
