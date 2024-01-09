@@ -19,6 +19,8 @@
 !template*.docx
 !template*.htm
 !templates/forms/**
+!templates/*.docx
+!templates/*.htm
 ?.py
 ??.py
 t?.py
