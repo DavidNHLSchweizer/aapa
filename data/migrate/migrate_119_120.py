@@ -130,15 +130,15 @@ def _find_unused_roots(database: Database)->list[str]:
 def _find_old_files(database: Database)->list[Tuple[int,str]]:
     result = [(row['id'], old_decode_path(row['filename'])) for 
                row in database._execute_sql_command(f'select id,filename from BACKUP_FILES', return_values=True)]
-    with open('OLD_FILES.txt', 'w', encoding='utf-8') as file:
-        file.writelines(f'{str(f)}\n' for f in result)
+    # with open('OLD_FILES.txt', 'w', encoding='utf-8') as file:
+    #     file.writelines(f'{str(f)}\n' for f in result)
     return result
 
 def _find_all_files(database:Database):
     storage = AAPAStorage(database)
     result= [(file.id, file.filename) for file in storage.find_all('files')]
-    with open('NEW_FILES.txt', 'w', encoding='utf-8') as file:
-        file.writelines(f'{str(f)}\n' for f in result)
+    # with open('NEW_FILES.txt', 'w', encoding='utf-8') as file:
+    #     file.writelines(f'{str(f)}\n' for f in result)
     return result
 
 def _check_results(old_files, new_files):    

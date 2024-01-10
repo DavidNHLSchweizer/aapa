@@ -28,7 +28,7 @@ class  AanvraagQueries(CRUDQueries):
         if rows := self.find_values_where('id', where_attributes=['id', 'status'], where_values=[first_id, Aanvraag.Status.valid_states()], 
                                   where_operators =[Ops.GTE, Ops.IN]):
             return self.crud.read_many({row['id'] for row in rows})
-        return None
+        return []
     def find_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
         self.get_crud(Student).queries.ensure_key(aanvraag.student)        
         self.get_crud(Bedrijf).queries.ensure_key(aanvraag.bedrijf)   

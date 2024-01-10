@@ -155,10 +155,14 @@ class Roots(Singleton):
                 candidate_encoding = converter.encode_path(path)
                 if allow_single or not self.sorter.is_single_root(candidate_encoding):
                     candidates.add(candidate_encoding)
-        for candidate in candidates:
-            if len(candidate) < len(path):
-                path = candidate            
-        return self.encode_onedrive(path)
+        if len(candidates) == 1:
+            encoded = list(candidates)[0] # to also cover extreme cases (very short paths, shorted than the coded path)
+        else:
+            encoded = path
+            for candidate in candidates:
+                if len(candidate) < len(encoded):
+                    encoded = candidate
+        return self.encode_onedrive(encoded)
     def get_one_drive_root(self)->str:
         return self._onedrive_coder.onedrive_root
     def get_code(self, code: str)->str:

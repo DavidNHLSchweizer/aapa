@@ -25,9 +25,11 @@ def init_config():
     config.register('configuration', 'root', OnedrivePathValueConvertor)
     config.register('configuration', 'output', OnedrivePathValueConvertor)
     config.register('configuration', 'input', OnedrivePathValueConvertor)
+    config.register('configuration', 'scanroot', OnedrivePathValueConvertor)
     config.init('configuration', 'root', '')
     config.init('configuration', 'output', '')  
     config.init('configuration', 'input', '')  
+    config.init('configuration', 'scanroot', r'')  
 init_config()
 
 def verifyRecreate():

@@ -16,6 +16,7 @@ from process.mail.mail import process_graded
 from process.scan.scan import process_directory, process_excel_file, process_forms
 from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, report_options
 from general.versie import banner
+from general.config import config
 
 class AAPAProcessor:
     def __report_info(self, options: AAPAOptions):
@@ -71,7 +72,8 @@ class AAPAProcessor:
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
                 if configuration.config_options.excel_in:
                     process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
-                process_directory(configuration.root, configuration.storage, configuration.output_directory, preview=preview)
+                if old_root := config.get('configuration', 'scanroot'):
+                    process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
             if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
                 # #checking basedirs
                 # for basedir in configuration.storage.basedirs.read_all():

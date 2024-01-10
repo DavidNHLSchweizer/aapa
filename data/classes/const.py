@@ -82,7 +82,7 @@ class AanvraagStatus(IntEnum):
     IMPORTED_PDF    = 1
     IMPORTED_XLS    = 2
     NEEDS_GRADING   = 3
-    GRADED          = 4
+    GRADED          = 4 
     ARCHIVED        = 5 
     MAIL_READY      = 6
     READY           = 7

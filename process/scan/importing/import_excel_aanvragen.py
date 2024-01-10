@@ -31,7 +31,7 @@ from process.scan.importing.detect_student_from_directory import StudentDirector
 from process.scan.importing.excel_reader import ExcelReader
 
 def init_config():
-    config.init('import', 'xls_template', r'.\templates\2. Aanvraag goedkeuring afstudeeropdracht nieuwe vorm MAILMERGE.docx')
+    config.init('import', 'xls_template', r'.\templates\2. Aanvraag goedkeuring afstudeeropdracht nieuwe vorm MAILMERGE 3.00b.docx')
     config.init('import', 'temp_dir', r'.\temp\import')
 init_config()
 
