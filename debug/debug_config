@@ -15,7 +15,7 @@ storage.*
 process.*
 tui.*
 [DISABLED]
-data.migrate.*
+migrate.*
 general.*
 [ENABLED]
 general.preview

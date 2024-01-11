@@ -5,10 +5,9 @@ from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesT
         StudentDirectoryTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
         create_roots
 from data.classes.base_dirs import BaseDir
-from data.classes.files import File
 from data.classes.studenten import Student
-from data.migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
-from data.migrate.sql_coll import SQLcollType, SQLcollector, SQLcollectors
+from migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
+from migrate.sql_coll import SQLcollectors
 from data.roots import OneDriveCoder, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
 from database.database import Database
@@ -288,7 +287,7 @@ def import_student_directories(database: Database):
             ]
     print("importing student directories from generated list SQL-commandos")
     for json_name in JSONS:
-        _import_json(database, rf'.\data\migrate\m119\{json_name}')
+        _import_json(database, rf'.\migrate\m119\{json_name}')
     print("... ready importing student directories from generated list SQL-commandos")
 
 def create_views(database: Database):
@@ -314,7 +313,7 @@ def migrate_database(database: Database, phase = 42):
         # 5: run migration again. 
         # 6: check results        
         if phase > 1:
-            import_studenten(database, r'.\data\migrate\m119\insert_students.json')
+            import_studenten(database, r'.\migrate\m119\insert_students.json')
             correct_student_errors(database, phase_1=False)    
             #to recompute the .json files involved: 
             #see above, but run detect script py aapa.py -preview --detect=base_dir directory (for each base directory)

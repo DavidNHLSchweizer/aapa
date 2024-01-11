@@ -7,7 +7,7 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from data.migrate.sql_coll import SQLcollector, SQLcollectors
+from migrate.sql_coll import SQLcollector, SQLcollectors
 from data.roots import decode_path, encode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries

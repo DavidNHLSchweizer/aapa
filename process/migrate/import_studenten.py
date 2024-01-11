@@ -4,7 +4,7 @@ from typing import Any
 from data.classes.mappers import ColumnMapper, ObjectMapper
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
-from data.migrate.sql_coll import SQLcollector, SQLcollectors
+from migrate.sql_coll import SQLcollector, SQLcollectors
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.studenten import StudentQueries
 from general.log import log_error, log_info, log_print, log_warning

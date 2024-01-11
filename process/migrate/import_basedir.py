@@ -7,18 +7,15 @@ import pandas as pd
 from data.classes.base_dirs import BaseDir
 from data.classes.mappers import ColumnMapper, FilenameColumnMapper, ObjectMapper
 from data.classes.undo_logs import UndoLog
-from data.migrate.sql_coll import SQLcollector, SQLcollectors
-from data.roots import add_root, decode_path, encode_path
+from migrate.sql_coll import SQLcollector, SQLcollectors
+from data.roots import add_root, encode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from general.log import log_error, log_info, log_print, log_warning
-from general.name_utils import Names
-from general.pdutil import ncols, nrows
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
-from general.valid_email import is_valid_email
 from process.general.base_processor import FileProcessor
-from process.general.pipeline import FilePipeline, SingleFilePipeline
+from process.general.pipeline import SingleFilePipeline
 from process.scan.importing.excel_reader import ExcelReader
 
 class BaseDirExcelMapper(ObjectMapper):

@@ -1,6 +1,6 @@
 import argparse
 
-from data.migrate.migrate import migrate_version
+from migrate.migrate import migrate_version
   
 parser = argparse.ArgumentParser()
 parser.add_argument('database', type=str, help = 'database name (full filename)')

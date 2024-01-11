@@ -1,10 +1,7 @@
-
-
 import argparse
 from data.aapa_database import DBVERSION
-from data.migrate.migrate import init_database
-from data.migrate.sql_coll import SQLcollectors
-from database.database import Database
+from migrate.migrate import init_database
+from migrate.sql_coll import SQLcollectors
 from general.log import init_logging
 
 if __name__== '__main__':

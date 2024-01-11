@@ -10,7 +10,7 @@ class MigrationException(Exception): pass
 def migrate_version(database_name, old_version, new_version, debug=False, phase=42):    
     def remove_dot(s: str)->str:
         return s.replace('.', '')    
-    migration_module_name = f'data.migrate.migrate_{remove_dot(old_version)}_{remove_dot(new_version)}'
+    migration_module_name = f'migrate.migrate_{remove_dot(old_version)}_{remove_dot(new_version)}'
     try:
         module = importlib.import_module(migration_module_name)
     except ModuleNotFoundError as E:

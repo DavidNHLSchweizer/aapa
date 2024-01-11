@@ -31,6 +31,8 @@ t?.py
 /temp/**
 /temp2/**
 /DEMO/**
+/nova/**
+/production_data/**
 /backup
 /zzz_backup/**
 /logs

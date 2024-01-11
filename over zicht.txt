@@ -1,6 +1,0 @@
-class AanvragenStorage(MilestonesStorage):
-    def __init__(self, database: Database):
-        super().__init__(database, class_type=Aanvraag)	
-class ActionlogStorage(StorageBase):
-    def __init__(self, database: Database):
-        super().__init__(database, class_type=ActionLog)

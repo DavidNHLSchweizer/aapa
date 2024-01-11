@@ -1,5 +1,4 @@
 import logging
-import pkgutil
 from general.classutil import find_calling_module
 from general.fileutil import file_exists, from_main_path
 from general.singleton import Singleton
