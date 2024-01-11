@@ -1,5 +1,5 @@
 from general.args import AAPAConfigOptions, AAPAOtherOptions, AAPAProcessingOptions, ArgumentOption, get_options_from_commandline, get_debug
-from general.log import init_logging, log_error
+from general.log import init_logging
 from general.preview import Preview
 from process.aapa_processor.aapa_config import AAPAConfiguration, LOGFILENAME
 from process.aapa_processor.aapa_processor import AAPAProcessor, AAPARunnerContext

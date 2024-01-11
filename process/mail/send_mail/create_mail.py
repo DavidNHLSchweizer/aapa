@@ -34,7 +34,7 @@ class FeedbackMailCreator:
         result = {}
         for n, template in enumerate(templates):             
             body = ''
-            with open(template) as file:
+            with open(template, encoding='cp1252') as file:
                 for line in file:
                     body = body + line
             result[index2beoordeling[n]] = body 
