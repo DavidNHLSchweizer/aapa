@@ -23,7 +23,7 @@ class FilenameInZipParser:
                 else:
                     words.append(word.title())
             return ' '.join(words)
-    PATTERN = 'Inleveren\s+(?P<product_type>.+)\s+\((?P<kans>.+)\)_(?P<email>.+)_poging_(?P<datum>[\d\-]+)_(?P<filename>.+)'
+    PATTERN = r'Inleveren\s+(?P<product_type>.+)\s+\((?P<kans>.+)\)_(?P<email>.+)_poging_(?P<datum>[\d\-]+)_(?P<filename>.+)'
     def __init__(self):
         self.pattern = re.compile(FilenameInZipParser.PATTERN)
     def parsed(self, filename: str)->FilenameInZipParser.Parsed:
