@@ -34,6 +34,21 @@ AapaDirectoriesForm .small {
     background: darkgoldenrod;
 }
 
+AapaSwitcher {
+    color: blue;
+    width: 35;
+}
+
+AapaSwitcher Static {
+    width: 24;
+}
+
+AapaSwitcher Switch {
+    border: none;
+    padding: 0;
+
+}
+
 AapaButtons {
     align: center middle;
     max-height: 4;
