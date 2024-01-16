@@ -17,9 +17,9 @@ from general.log import log_debug
 from general.singleton import Singleton
 
 class CRUDs(dict):
-    # override in subclasses to handle more complicated cases
+    # All CRUD (or subclasses) objects have this to access any CRUD.
     # any cruds are created as needed 
-    # (for e.g. associated class types such as Milestone.student, or detail tables)
+    # (for e.g. associated class types such as aanvraag.student, or detail tables)
     def __init__(self, database: Database):
         self.database=database
     def get_crud(self, class_type: StoredClass)->CRUD:
@@ -42,7 +42,8 @@ class CRUD:
                 (most classes do this, mostly because it guarantees that higher ID means later 
                 creation, SQLite does not guarantee this)
             mapper: the TableMapper mapping object values to the table
-            queries: the CRUDQueries object: functions to query the table
+            queries: the CRUDQueries object: functions to query the table 
+                (can be subclassed for specialized queries, e.g. AanvraagQueries)
             table: the TableDefinition
 
         public methods:

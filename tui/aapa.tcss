@@ -36,7 +36,7 @@ AapaDirectoriesForm .small {
 
 AapaButtons {
     align: center middle;
-    max-height: 4;
+    max-height: 12;
     background: wheat;
     border-top: double purple; 
     width: 200;   
@@ -85,10 +85,23 @@ AapaButtons Label {
     color: black; 
 }
 
+AapaButtons LabeledSwitch {
+    height: 3;
+    align: left middle;
+}
+AapaButtons .label {
+    margin: 0;
+    padding: 1;
+}
+
 AapaButtons RadioSet {
     layout: horizontal;
     outline: solid purple;    
     margin: 0 4 0 0;
+}
+
+AapaButtons LabeledSwitchGroup{
+    width: 44;
 }
 
 AapaButtons RadioButton {
