@@ -1,5 +1,7 @@
 $BARBIE: rgb(224,33,138); /* e0218a */
 
+/* NOTE: margins are "top left bottom right" if 4 numbers */
+
 Tooltip {
     color: black 90%;
     background: wheat 90%;
@@ -36,7 +38,7 @@ AapaDirectoriesForm .small {
 
 AapaButtons {
     align: center middle;
-    max-height: 12;
+    max-height: 14;
     background: wheat;
     border-top: double purple; 
     width: 200;   
@@ -44,7 +46,7 @@ AapaButtons {
 
 AapaButtons ButtonBar {
     width: 100;
-    margin: 0 2 0 2;
+    margin: 1 1 0 2;
 }
 
 AapaButtons Button {
@@ -101,7 +103,7 @@ AapaButtons RadioSet {
 }
 
 AapaButtons LabeledSwitchGroup{
-    width: 44;
+    width: 40;
 }
 
 AapaButtons RadioButton {
@@ -110,4 +112,11 @@ AapaButtons RadioButton {
 
 .input--cursor {
     color: slategray;
+}
+
+.second_row {
+    margin: 1 0 0 2;
+}
+.third_row {
+    margin: 1 0 0 3;
 }

@@ -259,7 +259,7 @@ class AAPAApp(App):
         if await show_console():
             self.terminal.run(AAPArun_script,options=options)             
     async def action_scan(self):    
-        await self.run_AAPA(AAPAaction.SCAN)
+        await self.run_AAPA(AAPAaction.INPUT)
     async def action_form(self):    
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):

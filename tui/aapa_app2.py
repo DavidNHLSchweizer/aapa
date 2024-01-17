@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum, auto
 import random
 import logging
 from textual.screen import Screen
@@ -62,23 +63,21 @@ class AAPATuiParams:
     excel_in: str = ''
     bbinput_directory: str = ''
     preview: bool = True
+    input_options: set[AAPAProcessingOptions.INPUTOPTIONS] = set()
     def get_options(self, action: AAPAaction, report_filename = '')->AAPAOptions:
         def _get_config_options(report_filename: str)->AAPAConfigOptions:
-            log_debug('1')
             result = get_options_from_commandline(ArgumentOption.CONFIG)
             result.root_directory=self.root_directory
             result.output_directory=self.output_directory
             result.database_file=self.database
             result.report_filename=report_filename
             result.excel_in = self.excel_in
-            log_debug('1v')
             return result
         def _get_processing_options(action: AAPAaction)->AAPAProcessingOptions:
-            log_debug('2')
             result = get_options_from_commandline(ArgumentOption.PROCES)
             result.actions=[action]
             result.preview=self.preview
-            log_debug('2v')
+            result.input_options = self.input_options
             return result
         def _get_other_options()->AAPAOtherOptions:
             return get_options_from_commandline(ArgumentOption.OTHER) 
@@ -174,21 +173,24 @@ class AapaDirectoriesForm(Static):
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
-            yield LabeledSwitchGroup(width=44,  title='Input Options',
-                                     labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], id ='lsg')
-            yield ButtonBar([ButtonDef('Input', variant= 'primary', id='scan', classes = 'not_next'),
+            yield LabeledSwitchGroup(width=40,  title='Input Options',
+                                     labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], 
+                                     id ='lsg')
+            with Vertical():
+                yield ButtonBar([ButtonDef('Input', variant= 'primary', id='scan', classes = 'not_next'),
                              ButtonDef('Form', variant= 'primary', id='form', classes = 'not_next'),
                              ButtonDef('Mail', variant= 'primary', id='mail', classes = 'not_next'), 
-                             ButtonDef('Undo', variant= 'error', id='undo')], 
+                             ButtonDef('Undo', variant= 'error', id='undo')], id='main'
                              ) 
-            with RadioSet():
-                yield RadioButton('preview', id='preview', value=True)
-                yield RadioButton('uitvoeren', id='uitvoeren')
-            yield Button('Rapport', variant = 'primary', id='report')
+                with RadioSet(classes='second_row'):
+                    yield RadioButton('preview', id='preview', value=True)
+                    yield RadioButton('uitvoeren', id='uitvoeren')
+                yield Button( 'Rapport', variant= 'primary', id='report', classes = 'third_row') 
+                # yield Button('Rapport', variant = 'primary', id='report', classes='third_row')
 
     def on_mount(self):
         log_debug ('mounting')
-        button_bar = self.query_one(ButtonBar)
+        button_bar = self.query_one('#main', ButtonBar)
         button_bar.styles.width = 6 + button_bar.nr_buttons() * 12
         for id in {'scan', 'form', 'mail', 'undo', 'report'}:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
@@ -219,6 +221,28 @@ class AapaButtons(Static):
             self.query_one('#preview', RadioButton).value = True
         else:
             self.query_one('#uitvoeren', RadioButton).value= True
+    @property
+    def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
+        trans_dict = {0: AAPAProcessingOptions.INPUTOPTIONS.SCAN,
+                      1: AAPAProcessingOptions.INPUTOPTIONS.EXCEL, 
+                      2: AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
+        result = set()
+        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
+        for index in trans_dict.keys():
+            if switch_group.get_value(index):
+                result.add(trans_dict[index])
+        return result
+    @input_options.setter
+    def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
+        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.SCAN:0,
+                      AAPAProcessingOptions.INPUTOPTIONS.EXCEL:1, 
+                      AAPAProcessingOptions.INPUTOPTIONS.BBZIP:2, }
+        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
+        for option in AAPAProcessingOptions.INPUTOPTIONS:
+            switch_group.set_value(trans_dict[option],option in value)
+
+
+        
   
 class EnableButtons(Message): pass
 
@@ -265,7 +289,7 @@ class AAPAApp(App):
         self.post_message(EnableButtons())
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
-            case 'scan': await self.action_scan()
+            case 'scan': await self.action_input()
             case 'form': await self.action_form()
             case 'mail': await self.action_mail()
             case 'undo': await self.action_undo()
@@ -278,24 +302,19 @@ class AAPAApp(App):
         # logging.info(f'{options}')
         if await show_console():
             self.terminal.run(AAPArun_script,options=options)             
-    async def action_scan(self):    
-        await self.run_AAPA(AAPAaction.SCAN)
+    async def action_input(self):    
+        await self.run_AAPA(AAPAaction.INPUT)
     async def action_form(self):    
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
     def refresh_last_action(self)->UndoLog:
-        log_debug('RFA')
-        
         options = self._create_options()
-        log_debug('RFA2')
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
             queries : UndoLogQueries = configuration.storage.queries('undo_logs')
             self.last_action = queries.last_undo_log()
-            log_debug('RFA2')
             return self.last_action
-        log_debug('RFA3')
         return None
     async def enable_buttons(self):
         self.refresh_last_action()
@@ -324,11 +343,13 @@ class AAPAApp(App):
     def params(self)->AAPATuiParams:
         result = self.directories_form.params
         result.preview = self.query_one(AapaButtons).preview
+        result.input_options = self.query_one(AapaButtons).input_options
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
         self.directories_form.params = value
         self.query_one(AapaButtons).preview = value.preview                       
+        self.query_one(AapaButtons).input_options = value.input_options
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):

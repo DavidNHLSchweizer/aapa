@@ -69,7 +69,7 @@ class AAPAProcessor:
             #         file.write(";".join([str(student.id), student.full_name, student.stud_nr, str(student.status), encode_path(stud_dir.directory)])+"\n")
             if processing_options.no_processing():
                 return
-            if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
+            if AAPAaction.INPUT in actions or AAPAaction.FULL in actions:
                 if configuration.config_options.excel_in:
                     process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
                 if old_root := config.get('configuration', 'scanroot'):
