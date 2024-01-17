@@ -1,3 +1,4 @@
+from time import sleep
 import datetime
 from enum import IntEnum
 import os
@@ -177,14 +178,19 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         queries: AanvraagQueries = self.storage.queries('aanvragen')
         return queries.find_aanvraag(aanvraag) 
     def process_values(self, values: dict[str, Any], preview=False)->Tuple[Aanvraag, str]:
-        aanvraag = self._get_aanvraag(values)
-        log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
-        if stored := self._existing_aanvraag(aanvraag):
-            log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
-            return (None,'')
-        pdf_filename = self.create_pdf_file(aanvraag, self.create_file(values, preview), preview)
-        log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
-        return (aanvraag, pdf_filename)
+        log_debug(f'Start process_values: {self.__get_value(values, self.ColNr.NAAM)}')
+        try:
+            aanvraag = self._get_aanvraag(values)
+            log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
+            if stored := self._existing_aanvraag(aanvraag):
+                log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
+                return (None,'')
+            pdf_filename = self.create_pdf_file(aanvraag, self.create_file(values, preview), preview)
+            log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
+            return (aanvraag, pdf_filename)
+        except Exception as E:
+            log_debug(f'Error in process_values: {E}')
+            return (None,None)
     def before_reading(self, preview = False):
         temp_directory = config.get('import', 'temp_dir')
         if not test_directory_exists(str(temp_directory)):
@@ -204,10 +210,16 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         if reader.error:
             log_error(f'{reader.error}')
             return None
-        for values in reader.read():
-            (aanvraag,aanvraag_filename) = self.process_values(values, preview)
-            if aanvraag:
-                yield (aanvraag, aanvraag_filename)                        
+        for n, values in enumerate(reader.read()):
+            log_debug(f'{n}:{self.__get_value(values, self.ColNr.NAAM)}')
+            try:
+                (aanvraag,aanvraag_filename) = self.process_values(values, preview)
+                if aanvraag:
+                    yield (aanvraag, aanvraag_filename)                        
+            except Exception as E:
+                log_debug(f'Error in read_aanvragen:\n{E}')
+                sleep(.5)
+                yield (None,None)
 def report_imports(new_aanvragen, preview=False):
     log_info('Rapportage import:', to_console=True)
     if not new_aanvragen:
@@ -218,7 +230,6 @@ def report_imports(new_aanvragen, preview=False):
         for aanvraag in new_aanvragen:
             log_print(f'\t{str(aanvraag)}')
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te importeren", "geimporteerd")}.', to_console=True)
-
 def import_excel_file(xls_filename: str, output_directory: str, storage: AAPAStorage, preview=False)->Tuple[int,int]:
     log_info(f'Start import van excel-file {xls_filename}...', to_console=True)
     importer = AanvraagCreatorPipeline(f'Importeren aanvragen uit Excel-bestand {xls_filename}', 
