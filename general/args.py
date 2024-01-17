@@ -28,7 +28,7 @@ class AAPAaction(Enum):
     def help_str(self):
         match self:
             case AAPAaction.NONE: return 'Geen actie [DEFAULT]'
-            case AAPAaction.INPUT: return 'Vind en importeer nieuwe aanvragen of verslagen (zie ook --input_mode)'
+            case AAPAaction.INPUT: return 'Vind en importeer nieuwe aanvragen of verslagen (zie ook --input_options)'
             case AAPAaction.FORM: return 'Maak beoordelingsformulieren'
             case AAPAaction.MAIL: return 'Vind en verwerk beoordeelde aanvragen en zet feedbackmails klaar'
             case AAPAaction.FULL: return 'Volledig proces: scan + form + mail'
@@ -63,7 +63,7 @@ def _get_processing_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
-    parser.add_argument('--input_mode', type=str, help='Input options: one or more of "S" (scan directory), "F" (Forms-Excel file), "B" (Blackboard zipfile).\nExample: "--input_mode=SF".')
+    parser.add_argument('--input_options', type=str, help='Input options: one or more of "S" (scan directory), "F" (Forms-Excel file), "B" (Blackboard zipfile).\nExample: "--input_options=SF".')
 
 class AAPAProcessingOptions:
     class INPUTOPTIONS(Enum):

@@ -118,7 +118,7 @@ AapaButtons RadioSet {
 }
 
 AapaButtons LabeledSwitchGroup{
-    width: 40;
+    width: 42;
 }
 
 AapaButtons RadioButton {

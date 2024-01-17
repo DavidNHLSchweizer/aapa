@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass,field
 from enum import Enum, auto
 import random
 import logging
@@ -55,15 +55,16 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid',
             'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',
             }
-@dataclass
 class AAPATuiParams:
-    root_directory: str = ''
-    output_directory: str = ''
-    database: str = ''
-    excel_in: str = ''
-    bbinput_directory: str = ''
-    preview: bool = True
-    input_options: set[AAPAProcessingOptions.INPUTOPTIONS] = set()
+    def __init__(self, root_directory: str = '', output_directory: str = '', database: str = '', excel_in: str = '',
+                 bbinput_directory: str = '', preview: bool = True, input_options: set[AAPAProcessingOptions.INPUTOPTIONS] = set()):
+        self.root_directory = root_directory
+        self.output_directory = output_directory
+        self.database = database
+        self.excel_in = excel_in
+        self.bbinput_directory = bbinput_directory
+        self.preview=preview
+        self.input_options = input_options
     def get_options(self, action: AAPAaction, report_filename = '')->AAPAOptions:
         def _get_config_options(report_filename: str)->AAPAConfigOptions:
             result = get_options_from_commandline(ArgumentOption.CONFIG)
@@ -173,7 +174,7 @@ class AapaDirectoriesForm(Static):
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
-            yield LabeledSwitchGroup(width=40,  title='Input Options',
+            yield LabeledSwitchGroup(width=42,  title='Input Options',
                                      labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], 
                                      id ='lsg')
             with Vertical():
