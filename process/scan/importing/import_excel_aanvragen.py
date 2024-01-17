@@ -176,21 +176,28 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         return pdf_filename
     def _existing_aanvraag(self, aanvraag: Aanvraag)->bool:
         queries: AanvraagQueries = self.storage.queries('aanvragen')
-        return queries.find_aanvraag(aanvraag) 
-    def process_values(self, values: dict[str, Any], preview=False)->Tuple[Aanvraag, str]:
-        log_debug(f'Start process_values: {self.__get_value(values, self.ColNr.NAAM)}')
+        return queries.find_aanvraag(aanvraag) #
+    def create_files(self, aanvraag: Aanvraag, values: dict[str, Any], preview=False)->str:
+        log_debug(f'Start create_files: {aanvraag.summary()}')
+        try:
+            pdf_filename = self.create_pdf_file(aanvraag, self.create_file(values, preview), preview)
+            log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
+            return pdf_filename
+        except Exception as E:
+            log_debug(f'Error in create_files: {E}')
+            return None
+    def convert_values(self, values: dict[str, Any])->Aanvraag:
+        log_debug(f'Start convert_values: {self.__get_value(values, self.ColNr.NAAM)}')
         try:
             aanvraag = self._get_aanvraag(values)
             log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
             if stored := self._existing_aanvraag(aanvraag):
                 log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
-                return (None,'')
-            pdf_filename = self.create_pdf_file(aanvraag, self.create_file(values, preview), preview)
-            log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
-            return (aanvraag, pdf_filename)
+                return None
+            return aanvraag
         except Exception as E:
-            log_debug(f'Error in process_values: {E}')
-            return (None,None)
+            log_debug(f'Error in convert_values: {E}')
+            return None
     def before_reading(self, preview = False):
         temp_directory = config.get('import', 'temp_dir')
         if not test_directory_exists(str(temp_directory)):
@@ -210,15 +217,20 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         if reader.error:
             log_error(f'{reader.error}')
             return None
+        all_aanvragen = []
         for n, values in enumerate(reader.read()):
             log_debug(f'{n}:{self.__get_value(values, self.ColNr.NAAM)}')
             try:
-                (aanvraag,aanvraag_filename) = self.process_values(values, preview)
-                if aanvraag:
-                    yield (aanvraag, aanvraag_filename)                        
+                aanvraag,filename = self.convert_values(values)
+                if aanvraag:                    
+                    if (previous := self._find_previous_aanvraag(all_aanvragen, aanvraag)):
+                        log_warning(f'Nieuwere aanvraag van {aanvraag.student}: vorige versie wordt niet in behandeling genomen.')
+                        all_aanvragen.remove(previous)
+                    all_aanvragen[aanvraag.student.full_name] = None
             except Exception as E:
                 log_debug(f'Error in read_aanvragen:\n{E}')
                 sleep(.5)
+        # for aanvraag
                 yield (None,None)
 def report_imports(new_aanvragen, preview=False):
     log_info('Rapportage import:', to_console=True)
