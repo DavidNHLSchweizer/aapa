@@ -144,31 +144,43 @@ class AanvragenFromExcelImporter(AanvraagImporter):
                         titel = self.__get_value(values, self.ColNr.TITEL),
                         status=Aanvraag.Status.IMPORTED_XLS
                         )
-    def get_filename(self, values: dict[str, Any])->str:
-        student = self._get_student(values)
-        datum = self.__get_value(values, self.ColNr.VOLTOOIEN)
-        bedrijf = self._get_bedrijf(values)
-        return safe_file_name(f'2. Aanvraag Afstuderen {datum}-{student.full_name}-{bedrijf.name}.docx')       
-        # return str(student_directory.joinpath(safe_file_name(f'2. Aanvraag Afstuderen {datum}-{student.full_name}-{bedrijf.name}.docx')))       
-    def create_file(self, values: dict[str, Any], preview=False)->str:
-        filename = self.get_filename(values)
-        docx_filename = str(Path(config.get('import', 'temp_dir')).joinpath(filename))
+    def _get_filename_stem(self, aanvraag: Aanvraag)->str:
+        return safe_file_name(f'2. Aanvraag Afstuderen {aanvraag.datum}-{aanvraag.student.full_name}-{aanvraag.bedrijf.name}')       
+    def get_docx_filename(self, aanvraag: Aanvraag)->str:
+        return str(Path(config.get('import', 'temp_dir')).joinpath(self._get_filename_stem(aanvraag)).with_suffix(".docx"))
+    def get_pdf_filename(self, aanvraag: Aanvraag)->str:
+        student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,aanvraag.student,self.output_directory))
+        return student_directory.joinpath(self._get_filename_stem(aanvraag)).with_suffix(".pdf")
+    def convert_values(self, values: dict[str, Any])->Tuple[Aanvraag,str,str]:
+        #return (aanvraag, docx_filename, pdf_filename)
+        log_debug(f'Start convert_values: {self.__get_value(values, self.ColNr.NAAM)}')
+        try:
+            aanvraag = self._get_aanvraag(values)
+            log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
+            if stored := self._existing_aanvraag(aanvraag):
+                log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
+                return (None,None,None)
+            return aanvraag, self.get_docx_filename(aanvraag), self.get_pdf_filename(aanvraag)
+        except Exception as E:
+            log_debug(f'Error in convert_values: {E}')
+            return None
+    def create_docx_file(self, values: dict[str, Any], docx_filename: str, preview=False):
         if not preview:
             merge_dict = {field: str(values.get(self.find_merge_field_vraag(field), '?')) 
                           for field in self.merge_fields}
             with MailMerge(self.template) as document:
                 document.merge(**merge_dict)
                 document.write(str(docx_filename))
-        return docx_filename
-    def create_pdf_file(self, aanvraag: Aanvraag, docx_filename: str, preview=False)->str:
-        student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,aanvraag.student,self.output_directory))
+    def create_pdf_file(self, aanvraag: Aanvraag, docx_filename, pdf_filename: str, preview=False)->str:
+        student_directory = Path(pdf_filename).parent
         if not test_directory_exists(str(student_directory)):
             if preview:
                 log_info(f'Directory {student_directory} aanmaken.')
             else:
                 if created_directory(str(student_directory)):
                     log_info(f'Directory {student_directory} aangemaakt.')
-        pdf_filename = student_directory.joinpath(f"{Path(docx_filename).stem}.pdf")
+                else:
+                    log_error(f'Error creating directory {student_directory}')
         if not preview:
             Word2PdfConvertor().convert(docx_filename, pdf_filename)
             set_file_times(pdf_filename, aanvraag.datum)
@@ -176,28 +188,19 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         return pdf_filename
     def _existing_aanvraag(self, aanvraag: Aanvraag)->bool:
         queries: AanvraagQueries = self.storage.queries('aanvragen')
-        return queries.find_aanvraag(aanvraag) #
-    def create_files(self, aanvraag: Aanvraag, values: dict[str, Any], preview=False)->str:
+        return queries.find_aanvraag(aanvraag) 
+    def create_files(self, aanvraag: Aanvraag, values: dict[str, Any], docx_filename: str, pdf_filename: str, preview=False)->bool:
         log_debug(f'Start create_files: {aanvraag.summary()}')
         try:
-            pdf_filename = self.create_pdf_file(aanvraag, self.create_file(values, preview), preview)
+            self.create_docx_file(values, docx_filename, preview)
+            if not preview:
+                sleep(0.3) #small pause, to maybe help sharepoint 
+            self.create_pdf_file(aanvraag, docx_filename, pdf_filename, preview)
             log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
-            return pdf_filename
+            return True
         except Exception as E:
             log_debug(f'Error in create_files: {E}')
-            return None
-    def convert_values(self, values: dict[str, Any])->Aanvraag:
-        log_debug(f'Start convert_values: {self.__get_value(values, self.ColNr.NAAM)}')
-        try:
-            aanvraag = self._get_aanvraag(values)
-            log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
-            if stored := self._existing_aanvraag(aanvraag):
-                log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
-                return None
-            return aanvraag
-        except Exception as E:
-            log_debug(f'Error in convert_values: {E}')
-            return None
+            return False
     def before_reading(self, preview = False):
         temp_directory = config.get('import', 'temp_dir')
         if not test_directory_exists(str(temp_directory)):
@@ -212,26 +215,49 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             return
         for file in self.files_to_delete:
             file.unlink()
-    def read_aanvragen(self, filename: str, preview: bool)->Iterable[Tuple[Aanvraag, str]]:
+    def _find_same_student_aanvraag(self, all_aanvragen: dict[str,Aanvraag], aanvraag: Aanvraag)->dict:
+        # email is uniek (en correct omdat dat automatisch door Forms gegenereerd wordt)
+        return all_aanvragen.get(aanvraag.student.email, None) 
+    def _find_previous_aanvraag(self, all_aanvragen: dict[str,Aanvraag], aanvraag: Aanvraag)->dict:
+        if previous:=self._find_same_student_aanvraag(all_aanvragen, aanvraag) and previous['aanvraag'].datum < aanvraag.datum:
+            return previous
+        return None    
+    def _find_later_aanvraag(self, all_aanvragen: dict[str, dict], aanvraag: Aanvraag)->dict:
+        if later:=self._find_same_student_aanvraag(all_aanvragen, aanvraag) and later[aanvraag].datum > aanvraag.datum:
+            return later
+        return None    
+    def get_aanvragen(self, filename: str)->dict[str,dict]:
+        #return form: dict[student.email] = {'values': (values), 'aanvraag': aanvraag, 'docx_filename', 'pdf_filename': pdf_filename}
         reader = ExcelReader(filename, self.ENQUETE_COLUMNS.values())
         if reader.error:
             log_error(f'{reader.error}')
             return None
-        all_aanvragen = []
-        for n, values in enumerate(reader.read()):
-            log_debug(f'{n}:{self.__get_value(values, self.ColNr.NAAM)}')
+        all_aanvragen = {}
+        for values in enumerate(reader.read()):
+            aanvraag,docx_filename, pdf_filename = self.convert_values(values)
+            if aanvraag:                    
+                if (previous := self._find_previous_aanvraag(all_aanvragen, aanvraag)):
+                    log_warning(f'Nieuwere aanvraag van {aanvraag.student}.\nVorige versie wordt niet in behandeling genomen.')
+                    all_aanvragen.pop(previous.student.email)
+                if (later := self._find_later_aanvraag(all_aanvragen, aanvraag)):
+                    log_warning(f'Nieuwere versie al gelezen ({later.summary()}.\nDeze versie wordt niet in behandeling genomen.')
+                else:
+                    all_aanvragen[aanvraag.student.email] = {'values': values, 'aanvraag': aanvraag, 
+                                                            'docx_filename': docx_filename, 
+                                                            'pdf_filename': pdf_filename}
+        return all_aanvragen
+    def read_aanvragen(self, filename: str, preview: bool)->Iterable[Aanvraag,str]:
+        #return form: dict[student.email] = {'aanvraag': aanvraag, 'docx_filename', 'pdf_filename': pdf_filename}
+        for n, entry in enumerate(self.get_aanvragen(filename).values()):
+            log_debug(f'{n}:{entry['aanvraag'].student.full_name}')
             try:
-                aanvraag,filename = self.convert_values(values)
-                if aanvraag:                    
-                    if (previous := self._find_previous_aanvraag(all_aanvragen, aanvraag)):
-                        log_warning(f'Nieuwere aanvraag van {aanvraag.student}: vorige versie wordt niet in behandeling genomen.')
-                        all_aanvragen.remove(previous)
-                    all_aanvragen[aanvraag.student.full_name] = None
+                if self.create_files(entry['aanvraag'], entry['values'], entry['docx_filename'], entry['pdf_filename'], preview):
+                    yield entry['aanvraag'], entry['pdf_filename']
             except Exception as E:
                 log_debug(f'Error in read_aanvragen:\n{E}')
-                sleep(.5)
-        # for aanvraag
+                sleep(.5) # hope this helps with sharepoint delays
                 yield (None,None)
+
 def report_imports(new_aanvragen, preview=False):
     log_info('Rapportage import:', to_console=True)
     if not new_aanvragen:
