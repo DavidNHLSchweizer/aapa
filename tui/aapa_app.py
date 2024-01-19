@@ -85,6 +85,7 @@ def windows_style(path: str)->str:
     return ''
 
 class AapaDirectoriesForm(Static):
+    CONFIG_FILE_IDS = {'root', 'output', 'database', 'input'} 
     def compose(self)->ComposeResult:
         with Vertical():
             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
@@ -93,19 +94,41 @@ class AapaDirectoriesForm(Static):
             yield LabeledInput('Input file', id='input', button=True)
     def on_mount(self):
         self.border_title = 'AAPA Configuratie'
-        for id in ['root', 'output', 'database']:
+        for id in self.CONFIG_FILE_IDS:
             self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips[id]
-        for id in ['root-input-button', 'output-input-button', 'database-input-button', 'input-input-button']:
-            self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
+        for id_button in [f'{id}-input-button' for id in self.CONFIG_FILE_IDS]:
+            self.query_one(f'#{id_button}', Button).tooltip = ToolTips[id_button]
         self._load_config()
-    def _load_config(self):        
-        for id in {'root', 'output', 'database', 'input'}:
-            self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
+    def _options_from_commandline(self)->AAPAOptions:
+        options = AAPAOptions(*get_options_from_commandline())
+        if not options.config_options.root_directory:
+            options.config_options.root_directory = config.get('configuration', 'root')
+        if not options.config_options.output_directory:
+            options.config_options.output_directory = config.get('configuration', 'output')
+        if not options.config_options.database_file:
+            options.config_options.database_file = config.get('configuration', 'database')
+        if not options.config_options.excel_in:
+            options.config_options.excel_in = config.get('configuration', 'input')
+        if options.processing_options.onedrive:
+            options.recode_for_onedrive(options.processing_options.onedrive)
+        return options            
+    def _load_config(self):
+        def _get_option(options: AAPAOptions, id: str)->str:
+            match id:
+                case 'root': return options.config_options.root_directory
+                case 'output': return  options.config_options.output_directory
+                case 'database': return  options.config_options.database_file
+                case 'input': return options.config_options.excel_in
+                case _: return None
+        options = self._options_from_commandline()
+        for id in self.CONFIG_FILE_IDS:
+            dinges = self.query_one(f'#{id}', LabeledInput)
+            self.query_one(f'#{id}', LabeledInput).value = _get_option(options, id)
     def _store_config_id(self, id: str):
-        for id in {'root', 'output', 'database', 'input'}:
+        for id in self.CONFIG_FILE_IDS:
             config.set('configuration', id, self.query_one(f'#{id}', LabeledInput).value)
     def _store_config(self):
-        for id in {'root', 'output', 'database', 'input'}:
+        for id in self.CONFIG_FILE_IDS:
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input

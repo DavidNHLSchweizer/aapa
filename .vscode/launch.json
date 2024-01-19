@@ -24,7 +24,6 @@
             "args": [
                 "info",
                 "-debug",
-                "--onedrive=d:\\demonic"
             ]
         },
         {
@@ -170,6 +169,7 @@
             "justMyCode": true,
             "args": [
                 "-debug",
+                "--onedrive=d:\\hellno"
             ]
         }
     ]

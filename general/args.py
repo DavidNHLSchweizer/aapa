@@ -178,6 +178,14 @@ class AAPAOtherOptions:
                    student_file= args.student, basedir_file= args.basedir)
 
 class AAPAOptions:
+    def recode(self, obj: object, attribute: str, onedrive_root: str):
+        # at initialization the override to the OneDrive code in the config file is decoded with the 'real' onedrive, this must be corrected
+        setattr(obj, attribute, decode_onedrive(encode_onedrive(getattr(obj,attribute)), onedrive_root))
+    def recode_for_onedrive(self, onedrive_root: str):
+        self.recode(self.config_options, 'root_directory', onedrive_root)
+        self.recode(self.config_options, 'output_directory', onedrive_root)
+        self.recode(self.config_options, 'database_file', onedrive_root)
+        self.recode(self.config_options, 'excel_in', onedrive_root)
     def __init__(self, 
                  config_options: AAPAConfigOptions = None, 
                  processing_options: AAPAProcessingOptions = None, 
@@ -185,9 +193,8 @@ class AAPAOptions:
         self.config_options = config_options
         self.processing_options = processing_options
         self.other_options = other_options      
-        # at initialization the override to the OneDrive code in the config file is decoded with the 'real' onedrive, this must be corrected
         if processing_options.onedrive: 
-            self.config_options.database_file = decode_onedrive(encode_onedrive(self.config_options.database_file), processing_options.onedrive)
+            self.recode_for_onedrive(processing_options.onedrive)
     def __str__(self):
         return f'{str(self.config_options)}\n{str(self.processing_options)}\n{str(self.other_options)}'
     @classmethod
