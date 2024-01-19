@@ -10,6 +10,7 @@ from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButto
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
+from data.roots import encode_onedrive
 from data.storage.queries.undo_logs import UndoLogQueries
 from general.args import AAPAConfigOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
 from general.log import log_debug, pop_console, push_console
@@ -126,7 +127,7 @@ class AapaDirectoriesForm(Static):
             self.query_one(f'#{id}', LabeledInput).value = _get_option(options, id)
     def _store_config_id(self, id: str):
         for id in self.CONFIG_FILE_IDS:
-            config.set('configuration', id, self.query_one(f'#{id}', LabeledInput).value)
+            config.set('configuration', id, encode_onedrive(self.query_one(f'#{id}', LabeledInput).value))
     def _store_config(self):
         for id in self.CONFIG_FILE_IDS:
             self._store_config_id(id)
@@ -157,6 +158,8 @@ class AapaDirectoriesForm(Static):
             case 'database-input-button': self.edit_database()
             case 'input-input-button': self.edit_inputfile()
         message.stop()
+    def on_input_changed(self, message: Message):
+        self._store_config() # this should ensure that the config is always in sync with the app
     def edit_root(self):
         self._select_directory('root', 'Selecteer root directory voor aanvragen)')
     def edit_output_directory(self):

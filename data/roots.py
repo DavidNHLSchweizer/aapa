@@ -27,8 +27,8 @@ class OneDriveCoder:
             return ''
         if isinstance(path, Path):
             path = str(path)
-        if path.find(self.onedrive_root) == 0:
-            return path.replace(self.onedrive_root, self.ONEDRIVE)
+        if self.onedrive_root and path.lower().find(self.onedrive_root.lower()) == 0:
+            return self.ONEDRIVE+path[len(self.onedrive_root):]
         return path
     def is_onedrive(self, path: str)->bool:
         return path.find(self.onedrive_root) == 0 

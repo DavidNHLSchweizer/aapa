@@ -169,7 +169,7 @@
             "justMyCode": true,
             "args": [
                 "-debug",
-                "--onedrive=d:\\hellno"
+                "--onedrive=d:\\onedrive"
             ]
         }
     ]
