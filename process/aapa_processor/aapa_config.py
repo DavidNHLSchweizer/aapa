@@ -89,7 +89,7 @@ class AAPAConfiguration:
         # (stored in the output_directory) are created with the wrong root
         # this will cause problems later on
         if not preview:
-            self.storage.add_file_root(str(self.root))
+            self.storage.add_file_root(str(encode_onedrive(self.root)))
         if created_directory(self.output_directory):
             log_print(f'Map {self.output_directory} aangemaakt.')
         self.storage.add_file_root(str(self.output_directory))

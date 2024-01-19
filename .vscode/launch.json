@@ -24,6 +24,7 @@
             "args": [
                 "info",
                 "-debug",
+                "--onedrive=d:\\onedrive"
             ]
         },
         {

@@ -111,13 +111,15 @@ class AAPAConfigOptions:
     def __init__(self, root_directory: str, output_directory: str, database_file: str, 
                  config_file:str=None, report_filename: str=None, migrate_dir: str=None, 
                  excel_in: str=None):
-        self.root_directory = root_directory
-        self.output_directory: str= output_directory
-        self.database_file: str = database_file if database_file else config.get('configuration', 'database')
+        def get_default(param: str, config_key: str)->str:
+            return param if param is not None else config.get('configuration', config_key)
+        self.root_directory = get_default(root_directory, 'root')
+        self.output_directory = get_default(output_directory, 'output')
+        self.database_file = get_default(database_file, 'database')
         self.config_file: str = config_file
-        self.report_filename: str = report_filename if report_filename else config.get('report', 'filename')
+        self.report_filename = get_default(report_filename, 'filename')
         self.migrate_dir: str = migrate_dir
-        self.excel_in: str = excel_in
+        self.excel_in: str = get_default(excel_in, 'input')
     def __str__(self):
         result = f'CONFIGURATION:\n'
         if self.root_directory is not None:
