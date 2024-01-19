@@ -2,6 +2,7 @@ from __future__ import annotations
 from enum import Enum, auto
 
 import gettext
+from data.roots import decode_onedrive, encode_onedrive
 from general.versie import banner
 def __vertaling(Text):
     Text = Text.replace('usage', 'aanroep')
@@ -184,6 +185,9 @@ class AAPAOptions:
         self.config_options = config_options
         self.processing_options = processing_options
         self.other_options = other_options      
+        # at initialization the override to the OneDrive code in the config file is decoded with the 'real' onedrive, this must be corrected
+        if processing_options.onedrive: 
+            self.config_options.database_file = decode_onedrive(encode_onedrive(self.config_options.database_file), processing_options.onedrive)
     def __str__(self):
         return f'{str(self.config_options)}\n{str(self.processing_options)}\n{str(self.other_options)}'
     @classmethod

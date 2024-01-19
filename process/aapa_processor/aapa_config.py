@@ -59,9 +59,7 @@ class AAPAConfiguration:
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
-        if onedrive_root:
-            database = decode_onedrive(encode_onedrive(database), onedrive_root)
-        print(f'database: {database}')
+        log_info(f'database: {database}')
         return from_main_path(path_with_suffix(database, '.db'))
     def __initialize_database(self, recreate: bool, onedrive_root=None)->bool:
         try:
