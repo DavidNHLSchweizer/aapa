@@ -14,13 +14,13 @@ class OneDriveCoder:
     ONEDRIVE = ':ONEDRIVE:'
     def __init__(self, onedrive_root: str|Path):
         self.onedrive_root = str(Path(onedrive_root).resolve())
-    def decode_onedrive(self, path: str|Path)->str:
+    def decode_onedrive(self, path: str|Path, onedrive_root=None)->str:
         if not path: 
             return ''
         if isinstance(path, Path):
             path = str(path)
         if path.find(self.ONEDRIVE) == 0:
-            return path.replace(self.ONEDRIVE, self.onedrive_root)
+            return path.replace(self.ONEDRIVE, onedrive_root if onedrive_root else self.onedrive_root)
         return path
     def encode_onedrive(self, path: str|Path)->str:
         if not path: 
@@ -81,16 +81,16 @@ class Roots(Singleton):
     def __init__(self, base_path: str):
         self.sorter = RootSorter()
         self.reset(base_path)
-    def reset(self, base_path: str):
-        self._onedrive_coder = OneDriveCoder(Path(find_onedrive_path(base_path)).parent)
+    def reset(self, base_path: str, onedrive_root: str = None):
+        self._onedrive_coder = OneDriveCoder(onedrive_root if onedrive_root else Path(find_onedrive_path(base_path)).parent)
         self._converters:list[PathRootConvertor] = []
         self._update_known()
         self.add(base_path, initial=True)
     def _update_known(self):
         self.known_codes = {converter.code for converter in self._converters}
         self.known_roots = {converter.root for converter in self._converters}       
-    def decode_onedrive(self, path: str|Path)->str:        
-        return self._onedrive_coder.decode_onedrive(path)
+    def decode_onedrive(self, path: str|Path, onedrive_root=None)->str:        
+        return self._onedrive_coder.decode_onedrive(path, onedrive_root=onedrive_root)
     def encode_onedrive(self, path: str|Path)->str:
         return self._onedrive_coder.encode_onedrive(path)
     def add(self, root_path: str|Path, code = None, nolog=False, initial=False)->str:  
@@ -165,6 +165,8 @@ class Roots(Singleton):
         return self.encode_onedrive(encoded)
     def get_one_drive_root(self)->str:
         return self._onedrive_coder.onedrive_root
+    def set_one_drive_root(self, path: str):
+        self._onedrive_coder.onedrive_root = path
     def get_code(self, code: str)->str:
         if root_conv := self.__find_code(code):
             return root_conv.root
@@ -197,13 +199,14 @@ class Roots(Singleton):
                     return converter
         return None
 
-
 _roots = Roots(BASEPATH)
 
+def set_one_drive_root(path: str):
+    _roots.set_one_drive_root(path)
 def get_onedrive_root()->Path:
     return _roots.get_one_drive_root()
-def decode_onedrive(path: str|Path)->str:
-    return _roots.decode_onedrive(path)
+def decode_onedrive(path: str|Path, onedrive_root=None)->str:
+    return _roots.decode_onedrive(path, onedrive_root=onedrive_root)
 def encode_onedrive(path: str|Path)->str:
     return _roots.encode_onedrive(path)
 
@@ -218,6 +221,6 @@ def decode_path(path: str|Path)->str:
     return _roots.decode_path(path)
 def encode_path(path: str|Path, allow_single=True)->str:
     return _roots.encode_path(path, allow_single=allow_single)
-def reset_roots():
+def reset_roots(onedrive_root: str=None):
     reset_key('ROOT')
-    _roots.reset(BASEPATH)
+    _roots.reset(BASEPATH, onedrive_root=onedrive_root)

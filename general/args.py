@@ -64,19 +64,23 @@ def _get_processing_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
+    parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 
 class AAPAProcessingOptions:
-    def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False):
+    def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False, onedrive: str=None):
         self.actions = actions
         self.preview = preview
         self.force   = force
         self.debug   = debug
+        self.onedrive = onedrive
         if not self.actions:
             self.actions = [AAPAaction.NONE]
     def __str__(self):
         result = f'ACTIONS: {AAPAaction.get_actions_str(self.actions)}\n'
         result = result + f'PREVIEW MODE: {self.preview}\n'
         result = result + f'DEBUG: {self.debug}  FORCE: {self.force}\n'
+        if self.onedrive: 
+            result = result + f'ONEDRIVE ROOT: {self.onedrive}\n'
         return result + '.'
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAProcessingOptions:
@@ -86,7 +90,7 @@ class AAPAProcessingOptions:
                 if a := AAPAaction.from_action_choice(action):
                     result.append(a)
             return result
-        return cls(actions=_get_actions(args.actions), preview=args.preview, force=args.force, debug=args.debug)
+        return cls(actions=_get_actions(args.actions), preview=args.preview, force=args.force, debug=args.debug, onedrive=args.onedrive)
     def no_processing(self)->bool:
         return not any([a in self.actions for a in {AAPAaction.SCAN,AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
 
@@ -104,7 +108,8 @@ def _get_config_arguments(parser: argparse.ArgumentParser):
 
 class AAPAConfigOptions:
     def __init__(self, root_directory: str, output_directory: str, database_file: str, 
-                 config_file:str = None, report_filename: str = None, migrate_dir: str = None, excel_in: str=None):
+                 config_file:str=None, report_filename: str=None, migrate_dir: str=None, 
+                 excel_in: str=None):
         self.root_directory = root_directory
         self.output_directory: str= output_directory
         self.database_file: str = database_file if database_file else config.get('configuration', 'database')
@@ -132,7 +137,8 @@ class AAPAConfigOptions:
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAConfigOptions:
         return cls(root_directory = args.root, output_directory = args.output, database_file = args.database, 
-                   config_file = args.config, report_filename = args.report_file, migrate_dir=args.migrate, excel_in=args.excel_in)
+                   config_file = args.config, report_filename = args.report_file, migrate_dir=args.migrate, 
+                   excel_in=args.excel_in)
 
 def _get_other_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('overige opties')
@@ -140,7 +146,7 @@ def _get_other_arguments(parser: argparse.ArgumentParser):
     group.add_argument('--difference', dest='difference', type=str,help=argparse.SUPPRESS) #maak een verschilbestand voor een student (voer studentnummer in); "invisible" command; bv: --difference=diff.html
     group.add_argument('--history', dest='history', type=str,help=argparse.SUPPRESS) #voer beoordelingsgegevens in via een aangepast report-bestand; "invisible" command; bv: --history=history.xlsx
     group.add_argument('--student', dest='student', type=str,help='Importeer gegevens over studenten uit Excel-bestand') 
-    group.add_argument('--basedir', dest='basedir', type=str,help='Importeer gegevens voor nieuwe basedir(s) uit Excel-bestand') 
+    group.add_argument('--basedir', dest='basedir', type=str,help='Importeer gegevens voor nieuwe basedir(s) uit Excel-bestand')    
 
 class AAPAOtherOptions:
     def __init__(self, detect_dir:str = None, diff_file:str = None, history_file:str = None,
@@ -226,12 +232,12 @@ def report_options(options: AAPAOptions, parts=0)->str:
             result += _report_str('load alternative configuration file', config_options.config_file)
     return result
 
-def _get_arguments():
+def _get_arguments(command_line_arguments:list[str]=None):
     parser = argparse.ArgumentParser(description=banner(), prog='aapa', usage='%(prog)s [actie(s)] [opties]', formatter_class=argparse.RawTextHelpFormatter)
     _get_processing_arguments(parser)
     _get_config_arguments(parser)    
     _get_other_arguments(parser)
-    return parser.parse_args()
+    return parser.parse_args(command_line_arguments)
 
 def get_debug()->bool:
     return _get_arguments().debug
@@ -242,9 +248,9 @@ class ArgumentOption(Enum):
     OTHER  = auto()
     ALL    = auto()
 
-def get_options_from_commandline(which: ArgumentOption=ArgumentOption.ALL)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
+def get_options_from_commandline(which: ArgumentOption=ArgumentOption.ALL, command_line_arguments:list[str]=None)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
     try:
-        args = _get_arguments()
+        args = _get_arguments(command_line_arguments)
         match which:
             case ArgumentOption.CONFIG:
                 return AAPAConfigOptions.from_args(args)

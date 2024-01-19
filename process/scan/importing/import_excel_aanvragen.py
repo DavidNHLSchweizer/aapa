@@ -246,7 +246,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
                                                             'docx_filename': docx_filename, 
                                                             'pdf_filename': pdf_filename}
         return all_aanvragen
-    def read_aanvragen(self, filename: str, preview: bool)->Iterable[Aanvraag,str]:
+    def read_aanvragen(self, filename: str, preview: bool)->Iterable[Tuple[Aanvraag,str]]:
         #return form: dict[student.email] = {'aanvraag': aanvraag, 'docx_filename', 'pdf_filename': pdf_filename}
         for n, entry in enumerate(self.get_aanvragen(filename).values()):
             log_debug(f'{n}:{entry['aanvraag'].student.full_name}')

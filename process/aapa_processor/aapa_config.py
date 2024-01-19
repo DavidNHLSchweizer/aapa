@@ -3,6 +3,7 @@ from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
 from data.roots import decode_onedrive, encode_onedrive
+from data.storage.general.storage_const import StorageException
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
 from general.log import log_error, log_info, log_print, log_warning
 from general.config import ValueConvertor, config
@@ -52,17 +53,19 @@ class AAPAConfiguration:
             config.read(config_file)
             log_info(f'Alternative configuratie file {config_file} geladen.')
         self.config_options = config_options
-    def get_database_name(self):
+    def get_database_name(self, onedrive_root:str=None):
         if self.config_options.database_file:
             database = self.config_options.database_file
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
+        if onedrive_root:
+            database = decode_onedrive(encode_onedrive(database), onedrive_root)
         print(f'database: {database}')
         return from_main_path(path_with_suffix(database, '.db'))
-    def __initialize_database(self, recreate: bool)->bool:
+    def __initialize_database(self, recreate: bool, onedrive_root=None)->bool:
         try:
-            database = self.get_database_name()
+            database = self.get_database_name(onedrive_root=onedrive_root)
             if not file_exists(str(database)):
                 err_msg = f'Database {database} bestaat niet.'            
                 if recreate:
@@ -71,13 +74,16 @@ class AAPAConfiguration:
                     self.validation_error = err_msg
                     log_error(err_msg)
                     return False
-            self.database = initialize_database(database, recreate)
-            self.storage  = initialize_storage(self.database)
+            self.database = initialize_database(database, recreate, onedrive_root=onedrive_root)
             if not self.database or not self.database.connection:
                 self.validation_error = f'Database {database} gecorrumpeerd of ander probleem met database'
+                self.storage = None
                 return False
+            self.storage  = initialize_storage(self.database)
+
         except Exception as Mystery:
-            print(f'Error initializing database: {Mystery}')
+            log_error(f'Error initializing database: {Mystery}')
+            self.storage = None
             return False
         return True
     def __prepare_storage_roots(self, preview: bool):
@@ -104,7 +110,15 @@ class AAPAConfiguration:
         elif not test_directory_exists(self.output_directory):
             log_warning(f'Output directory "{self.output_directory}" voor aanvragen bestaat niet. Wordt aangemaakt.')
         if valid:
-            self.__prepare_storage_roots(preview)
+            try:
+                self.__prepare_storage_roots(preview=preview)
+            except Exception as E:
+                err_msg = f'Fout bij initialisatie database-verbindingslaag'
+                if not isinstance(E, AttributeError):
+                    err_msg += f': {E}'
+                self.validation_error = err_msg + '.'
+                valid = False
+                return False
             return True
         else:
             self.validation_error = f'Directories voor aanvragen en/of nieuwe beoordelingsformulieren niet ingesteld.'
@@ -139,7 +153,7 @@ class AAPAConfiguration:
                (not file_exists(self.get_database_name()) or processing_options.force or verifyRecreate())        
         return result
     def __initialize_database_part(self, processing_options: AAPAProcessingOptions)->bool:
-        return self.__initialize_database(self.__must_recreate(processing_options))
+        return self.__initialize_database(self.__must_recreate(processing_options), processing_options.onedrive)
     def __initialize_directories_part(self, processing_options: AAPAProcessingOptions)->bool:
         return self.__initialize_directories(preview=processing_options.preview)
     def initialize(self, processing_options: AAPAProcessingOptions, part = PART.BOTH)->bool:
