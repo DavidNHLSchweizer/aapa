@@ -2,7 +2,7 @@ from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
-from data.roots import decode_onedrive, encode_onedrive
+from data.roots import decode_onedrive, dump_roots, encode_onedrive, get_onedrive_root, set_one_drive_root
 from data.storage.general.storage_const import StorageException
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
 from general.log import log_error, log_info, log_print, log_warning
@@ -53,7 +53,7 @@ class AAPAConfiguration:
             config.read(config_file)
             log_info(f'Alternative configuratie file {config_file} geladen.')
         self.config_options = config_options
-    def get_database_name(self, onedrive_root:str=None):
+    def get_database_name(self):
         if self.config_options.database_file:
             database = self.config_options.database_file
             config.set('configuration', 'database', database) 
@@ -61,9 +61,9 @@ class AAPAConfiguration:
             database = config.get('configuration','database') 
         log_info(f'database: {database}')
         return from_main_path(path_with_suffix(database, '.db'))
-    def __initialize_database(self, recreate: bool, onedrive_root=None)->bool:
+    def __initialize_database(self, recreate: bool)->bool:
         try:
-            database = self.get_database_name(onedrive_root=onedrive_root)
+            database = self.get_database_name()
             if not file_exists(str(database)):
                 err_msg = f'Database {database} bestaat niet.'            
                 if recreate:
@@ -72,13 +72,12 @@ class AAPAConfiguration:
                     self.validation_error = err_msg
                     log_error(err_msg)
                     return False
-            self.database = initialize_database(database, recreate, onedrive_root=onedrive_root)
+            self.database = initialize_database(database, recreate)
             if not self.database or not self.database.connection:
                 self.validation_error = f'Database {database} gecorrumpeerd of ander probleem met database'
                 self.storage = None
                 return False
             self.storage  = initialize_storage(self.database)
-
         except Exception as Mystery:
             log_error(f'Error initializing database: {Mystery}')
             self.storage = None
@@ -151,18 +150,25 @@ class AAPAConfiguration:
                (not file_exists(self.get_database_name()) or processing_options.force or verifyRecreate())        
         return result
     def __initialize_database_part(self, processing_options: AAPAProcessingOptions)->bool:
-        return self.__initialize_database(self.__must_recreate(processing_options), processing_options.onedrive)
+        return self.__initialize_database(self.__must_recreate(processing_options))
     def __initialize_directories_part(self, processing_options: AAPAProcessingOptions)->bool:
         return self.__initialize_directories(preview=processing_options.preview)
     def initialize(self, processing_options: AAPAProcessingOptions, part = PART.BOTH)->bool:
+        if processing_options.onedrive:
+            set_one_drive_root(processing_options.onedrive)
+        print (get_onedrive_root())
         match part:
             case AAPAConfiguration.PART.DATABASE:
-                return self.__initialize_database_part(processing_options)
+                result = self.__initialize_database_part(processing_options)
             case AAPAConfiguration.PART.DIRECTORIES:
-                return self.__initialize_directories_part(processing_options)
+                result = self.__initialize_directories_part(processing_options)
             case AAPAConfiguration.PART.BOTH:
                 db_valid = self.__initialize_database_part(processing_options) 
                 dir_valid = self.__initialize_directories_part(processing_options)
-                return db_valid and dir_valid
+                result = db_valid and dir_valid
+        print (get_onedrive_root())
+        dump_roots('rootsdump.out')
+
+        return result
         # if self.options.history_file is not None:
         #     self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')

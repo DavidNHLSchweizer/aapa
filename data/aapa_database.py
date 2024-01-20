@@ -11,7 +11,7 @@ from general.keys import reset_key
 from general.config import config
 from general.log import log_debug, log_error, log_info, log_warning
 from general.versie import Versie
-from data.roots import add_root, decode_path, get_roots, reset_roots, set_one_drive_root
+from data.roots import add_root, decode_path, get_roots, reset_roots
 
 class AAPaException(Exception): pass
 
@@ -49,13 +49,12 @@ def create_root(database: Database, code, root: str):
     database._execute_sql_command('insert into FILEROOT (code, root) values (?,?);', [code, root])
     database.commit()
 
-def create_roots(database: Database, onedrive_root=None):
-    set_one_drive_root(onedrive_root)
+def create_roots(database: Database):
     for code,root in get_roots():
         create_root(database, code, root)        
             
-def load_roots(database: Database, onedrive_root=None):
-    reset_roots(onedrive_root=onedrive_root)
+def load_roots(database: Database):
+    reset_roots()
     for row in database._execute_sql_command('select code, root from fileroot', [], True): 
         if row['code'] == ':ROOT1:':
             continue # first row is already loaded, this is the NHL Stenden BASEPATH
@@ -286,13 +285,13 @@ class AAPaSchema(Schema):
             self.add_view(viewdef())
 
 class AAPaDatabase(Database):
-    def __init__(self, filename, _reset_flag = False, ignore_version=False, onedrive_root=None):
+    def __init__(self, filename, _reset_flag = False, ignore_version=False):
         super().__init__(filename, _reset_flag)
         self.schema = Schema.read_from_database(self)  
         if not self._reset_flag: 
             version_correct = self.check_version(recreate=False,ignore_error=ignore_version)
             if version_correct:
-                self.load_file_roots(False, onedrive_root=onedrive_root)
+                self.load_file_roots(False)
                 self.reset_keys()
     def reset_keys(self):
         def is_keyed_table(table: TableDefinition)->bool:
@@ -312,11 +311,11 @@ class AAPaDatabase(Database):
         else:
             return 0
     @classmethod
-    def create_from_schema(cls, schema: Schema, filename: str, onedrive_root=None):
+    def create_from_schema(cls, schema: Schema, filename: str):
         result = super().create_from_schema(schema, filename)
         if result:
             result.check_version(recreate=True)
-            result.load_file_roots(True, onedrive_root=onedrive_root)
+            result.load_file_roots(True)
             result.reset_keys()
         return result
     def __version_error(self, db_versie, errorStr):
@@ -347,12 +346,12 @@ class AAPaDatabase(Database):
             if not ignore_error:
                 log_error('Deze versie van het programma kan deze database niet openen.\nGebruik commando "new" of migreer de data naar de juiste databaseversie.')
                 raise E
-    def load_file_roots(self, recreate = False, onedrive_root=None):
+    def load_file_roots(self, recreate = False):
         log_info('--- Laden paden voor File Encoding')
         if recreate:
-            create_roots(self, onedrive_root=onedrive_root)
+            create_roots(self)
         else:
-            load_roots(self, onedrive_root=onedrive_root)
+            load_roots(self)
         report = '\n'.join([f'{code} = "{root}"' for (code,root) in get_roots()])
         log_info(f'Bekende paden:\n{report}')
         log_info('--- Einde laden paden File Encoding')
