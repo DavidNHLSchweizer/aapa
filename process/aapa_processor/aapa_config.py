@@ -167,7 +167,7 @@ class AAPAConfiguration:
                 dir_valid = self.__initialize_directories_part(processing_options)
                 result = db_valid and dir_valid
         print (get_onedrive_root())
-        dump_roots('rootsdump.out')
+        dump_roots('rootsdump2.out')
 
         return result
         # if self.options.history_file is not None:
