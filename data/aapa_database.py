@@ -11,7 +11,7 @@ from general.keys import reset_key
 from general.config import config
 from general.log import log_debug, log_error, log_info, log_warning
 from general.versie import Versie
-from data.roots import add_root, decode_path, dump_roots, get_roots, reset_roots
+from data.roots import add_root, decode_path, get_roots, reset_roots
 
 class AAPaException(Exception): pass
 
@@ -54,14 +54,11 @@ def create_roots(database: Database):
         create_root(database, code, root)        
             
 def load_roots(database: Database):
-    dump_roots('rootsdmp.out', 'load roots',False)
     reset_roots()
-    dump_roots('rootsdmp.out', 'na reset roots',True)
     for row in database._execute_sql_command('select code, root from fileroot', [], True): 
         if row['code'] == ':ROOT1:':
             continue # first row is already loaded, this is the NHL Stenden BASEPATH
         add_root(decode_path(row['root']), row['code']) 
-    dump_roots('rootsdmp.out', 'na load roots',True)
             
 class DetailTableDefinition(TableDefinition):
     def __init__(self, name: str, 

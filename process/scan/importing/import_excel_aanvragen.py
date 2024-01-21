@@ -233,7 +233,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             log_error(f'{reader.error}')
             return None
         all_aanvragen = {}
-        for values in enumerate(reader.read()):
+        for n, values in enumerate(reader.read()):
             aanvraag,docx_filename, pdf_filename = self.convert_values(values)
             if aanvraag:                    
                 if (previous := self._find_previous_aanvraag(all_aanvragen, aanvraag)):

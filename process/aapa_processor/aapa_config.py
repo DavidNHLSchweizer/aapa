@@ -2,10 +2,10 @@ from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
-from data.roots import decode_onedrive, dump_roots, encode_onedrive, get_onedrive_root, set_one_drive_root
+from data.roots import decode_onedrive, encode_onedrive, get_onedrive_root, set_one_drive_root
 from data.storage.general.storage_const import StorageException
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
-from general.log import log_error, log_info, log_print, log_warning
+from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.config import ValueConvertor, config
 from process.aapa_processor.initialize import initialize_database, initialize_storage
 from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
@@ -156,7 +156,7 @@ class AAPAConfiguration:
     def initialize(self, processing_options: AAPAProcessingOptions, part = PART.BOTH)->bool:
         if processing_options.onedrive:
             set_one_drive_root(processing_options.onedrive)
-        print (get_onedrive_root())
+            log_debug(f'Using alternate onedrive root: [{get_onedrive_root()}]')
         match part:
             case AAPAConfiguration.PART.DATABASE:
                 result = self.__initialize_database_part(processing_options)
@@ -166,9 +166,6 @@ class AAPAConfiguration:
                 db_valid = self.__initialize_database_part(processing_options) 
                 dir_valid = self.__initialize_directories_part(processing_options)
                 result = db_valid and dir_valid
-        print (get_onedrive_root())
-        dump_roots('rootsdump2.out')
-
         return result
         # if self.options.history_file is not None:
         #     self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')
