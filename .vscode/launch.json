@@ -24,6 +24,7 @@
             "args": [
                 "info",
                 "-debug",
+                "--onedrive=d:\\onedrive"
             ]
         },
         {
@@ -104,7 +105,7 @@
                 "scan",
                 "-debug",
                 "-preview",
-                "--excel=test_aanvragen_99.xlsx"                
+                "--onedrive=d:\\onedrive",                
             ]
         },
         {
@@ -169,7 +170,22 @@
             "justMyCode": true,
             "args": [
                 "-debug",
+                "--onedrive=d:\\onedrive"
             ]
-        }
+        },
+        {
+            "name": "Python: remove_aanvraag",
+            "type": "python",
+            "request": "launch",
+            "program": "remove_aanvraag.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-debug",
+                "-preview",
+                "--onedrive=d:\\onedrive",
+                "--aanvraag=205,206"
+            ]
+        },
     ]
 }

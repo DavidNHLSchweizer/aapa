@@ -72,8 +72,8 @@ class AAPAProcessor:
             if AAPAaction.INPUT in actions or AAPAaction.FULL in actions:
                 if configuration.config_options.excel_in:
                     process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
-                if old_root := config.get('configuration', 'scanroot'):
-                    process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
+                # if old_root := config.get('configuration', 'scanroot'): 
+                #     process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
             if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
                 # #checking basedirs
                 # for basedir in configuration.storage.basedirs.read_all():
@@ -141,4 +141,3 @@ class AAPARunnerContext:
         log_info('Ready.')
         log_info(f'+++ AAPA stopped +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}\n', to_console=True)
 
-#TODO testing results of rootify on different accounts

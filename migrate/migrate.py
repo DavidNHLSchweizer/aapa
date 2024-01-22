@@ -47,7 +47,7 @@ def update_versie(database, new_version):
     create_version_info(database, dbv)
 
 def start_migratie(database_name: str, old_version: str, new_version: str, debug=False)->Database:
-    def underscorify(s: str, replace_chars: str)->str:
+    def underscorify(s: str, replace_chars: str=".  	")->str:
         result = s
         for char in replace_chars:
             result = result.replace(char,'_')
