@@ -172,6 +172,19 @@
                 "-debug",
                 "--onedrive=d:\\onedrive"
             ]
-        }
+        },
+        {
+            "name": "Python: remove_aanvraag",
+            "type": "python",
+            "request": "launch",
+            "program": "remove_aanvraag.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-debug",
+                "-preview",
+                "--onedrive=d:\\onedrive",
+            ]
+        },
     ]
 }

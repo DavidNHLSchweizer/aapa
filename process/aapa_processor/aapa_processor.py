@@ -141,4 +141,3 @@ class AAPARunnerContext:
         log_info('Ready.')
         log_info(f'+++ AAPA stopped +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}\n', to_console=True)
 
-#TODO testing results of rootify on different accounts
