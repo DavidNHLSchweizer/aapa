@@ -165,7 +165,7 @@
             "name": "Python: run_tui.py",
             "type": "python",
             "request": "launch",
-            "program": "run_tui2.py",
+            "program": "run_tui.py",
             "console": "externalTerminal",
             "justMyCode": true,
             "args": [

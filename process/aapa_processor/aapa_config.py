@@ -2,7 +2,7 @@ from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
-from data.roots import decode_onedrive, encode_onedrive, get_onedrive_root, set_one_drive_root
+from data.roots import decode_onedrive, encode_onedrive, get_onedrive_root, set_onedrive_root
 from data.storage.general.storage_const import StorageException
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
 from general.log import log_debug, log_error, log_info, log_print, log_warning
@@ -157,7 +157,7 @@ class AAPAConfiguration:
         return self.__initialize_directories(preview=processing_options.preview)
     def initialize(self, processing_options: AAPAProcessingOptions, part = PART.BOTH)->bool:
         if processing_options.onedrive:
-            set_one_drive_root(processing_options.onedrive)
+            set_onedrive_root(processing_options.onedrive)
             log_debug(f'Using alternate onedrive root: [{get_onedrive_root()}]')
         match part:
             case AAPAConfiguration.PART.DATABASE:

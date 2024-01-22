@@ -1,5 +1,4 @@
-from dataclasses import dataclass,field
-from enum import Enum, auto
+from dataclasses import dataclass
 import random
 import logging
 from textual.screen import Screen
@@ -7,10 +6,11 @@ from textual.widget import Widget
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.message import Message
-from textual.widgets import Collapsible, Header, Footer, Static, Button, RadioSet, RadioButton, Switch
+from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
+from data.roots import encode_onedrive
 from data.storage.queries.undo_logs import UndoLogQueries
 from general.args import AAPAConfigOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
 from general.log import log_debug, pop_console, push_console
@@ -19,7 +19,6 @@ from process.aapa_processor.aapa_config import AAPAConfiguration
 from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.labeled_input import LabeledInput
-from tui.common.labeled_switch import LabeledSwitchGroup
 from tui.common.required import Required
 from tui.common.terminal import  TerminalScreen
 from tui.common.verify import DialogMessage, verify
@@ -40,14 +39,12 @@ def AAPArun_script(options: AAPAOptions)->bool:
 ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvragen',
             'output': 'De directory waar beoordelingsformulieren worden aangemaakt',
             'input': 'Kies (excel) input bestand met nieuwe aanvragen (optioneel)',
-            'bbinput': 'De directory waar uit Blackboard afkomstige .ZIP-files worden gevonden',
             'database':'De database voor het programma',
             'root-input-button': 'Kies de root-directory',
             'output-input-button': 'Kies de output-directory',
             'database-input-button': 'Kies de database',
-            'bbinput-input-button': 'Kies de Blackboard Input directory',
             'input-input-button': 'Kies input bestand',
-            'scan': 'Importeer data volgens Input Options (aanvragen in Excel en/of root-directory/subdirectories en/of rapporten in Blackboard .ZIP-file)',
+            'scan': 'Zoek nieuwe aanvragen in root-directory/subdirectories',
             'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
             'undo': 'Maak de laatste actie (scan,form of mail) ongedaan',
@@ -55,16 +52,13 @@ ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvrag
             'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database, kan niet worden teruggedraaid',
             'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',
             }
+@dataclass
 class AAPATuiParams:
-    def __init__(self, root_directory: str = '', output_directory: str = '', database: str = '', excel_in: str = '',
-                 bbinput_directory: str = '', preview: bool = True, input_options: set[AAPAProcessingOptions.INPUTOPTIONS] = set()):
-        self.root_directory = root_directory
-        self.output_directory = output_directory
-        self.database = database
-        self.excel_in = excel_in
-        self.bbinput_directory = bbinput_directory
-        self.preview=preview
-        self.input_options = input_options
+    root_directory: str = ''
+    output_directory: str = ''
+    database: str = ''
+    excel_in: str = ''
+    preview: bool = True
     def get_options(self, action: AAPAaction, report_filename = '')->AAPAOptions:
         def _get_config_options(report_filename: str)->AAPAConfigOptions:
             result = get_options_from_commandline(ArgumentOption.CONFIG)
@@ -78,11 +72,9 @@ class AAPATuiParams:
             result = get_options_from_commandline(ArgumentOption.PROCES)
             result.actions=[action]
             result.preview=self.preview
-            result.input_options = self.input_options
             return result
         def _get_other_options()->AAPAOtherOptions:
             return get_options_from_commandline(ArgumentOption.OTHER) 
-        log_debug('rfafa')
         return AAPAOptions(config_options=_get_config_options(report_filename),
                            processing_options=_get_processing_options(action),
                            other_options=_get_other_options())
@@ -94,28 +86,50 @@ def windows_style(path: str)->str:
     return ''
 
 class AapaDirectoriesForm(Static):
+    CONFIG_FILE_IDS = {'root', 'output', 'database', 'input'} 
     def compose(self)->ComposeResult:
         with Vertical():
             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
-            yield LabeledInput('Database', id='database', validators=Required(), button=True)
-            yield LabeledInput('Blackboard input directory', id='bbinput', validators=Required(), button=True)
-            yield LabeledInput('Input file', id='input', button=True)
             yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
+            yield LabeledInput('Database', id='database', validators=Required(), button=True)
+            yield LabeledInput('Input file', id='input', button=True)
     def on_mount(self):
         self.border_title = 'AAPA Configuratie'
-        for id in ['root', 'output', 'input', 'bbinput', 'database']:
+        for id in self.CONFIG_FILE_IDS:
             self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips[id]
-        for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'input-input-button', 'output-input-button']:
-            self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
+        for id_button in [f'{id}-input-button' for id in self.CONFIG_FILE_IDS]:
+            self.query_one(f'#{id_button}', Button).tooltip = ToolTips[id_button]
         self._load_config()
-    def _load_config(self):        
-        for id in {'root', 'output', 'database', 'bbinput', 'input'}:
-            self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
+    def _options_from_commandline(self)->AAPAOptions:
+        options = AAPAOptions(*get_options_from_commandline())
+        if not options.config_options.root_directory:
+            options.config_options.root_directory = config.get('configuration', 'root')
+        if not options.config_options.output_directory:
+            options.config_options.output_directory = config.get('configuration', 'output')
+        if not options.config_options.database_file:
+            options.config_options.database_file = config.get('configuration', 'database')
+        if not options.config_options.excel_in:
+            options.config_options.excel_in = config.get('configuration', 'input')
+        if options.processing_options.onedrive:
+            options.recode_for_onedrive(options.processing_options.onedrive)
+        return options            
+    def _load_config(self):
+        def _get_option(options: AAPAOptions, id: str)->str:
+            match id:
+                case 'root': return options.config_options.root_directory
+                case 'output': return  options.config_options.output_directory
+                case 'database': return  options.config_options.database_file
+                case 'input': return options.config_options.excel_in
+                case _: return None
+        options = self._options_from_commandline()
+        for id in self.CONFIG_FILE_IDS:
+            dinges = self.query_one(f'#{id}', LabeledInput)
+            self.query_one(f'#{id}', LabeledInput).value = _get_option(options, id)
     def _store_config_id(self, id: str):
-        for id in {'root', 'output', 'database', 'bbinput', 'input'}:
-            config.set('configuration', id, self.query_one(f'#{id}', LabeledInput).value)
+        for id in self.CONFIG_FILE_IDS:
+            config.set('configuration', id, encode_onedrive(self.query_one(f'#{id}', LabeledInput).value))
     def _store_config(self):
-        for id in {'root', 'output', 'database', 'bbinput', 'input'}:
+        for id in self.CONFIG_FILE_IDS:
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
@@ -142,15 +156,14 @@ class AapaDirectoriesForm(Static):
             case 'root-input-button': self.edit_root()
             case 'output-input-button': self.edit_output_directory()
             case 'database-input-button': self.edit_database()
-            case 'bbinput-input-button': self.edit_bbinput_directory()
             case 'input-input-button': self.edit_inputfile()
         message.stop()
+    def on_input_changed(self, message: Message):
+        self._store_config() # this should ensure that the config is always in sync with the app
     def edit_root(self):
         self._select_directory('root', 'Selecteer root directory voor aanvragen)')
     def edit_output_directory(self):
         self._select_directory('output', 'Selecteer de output directory voor nieuwe formulieren')
-    def edit_bbinput_directory(self):
-        self._select_directory('bbinput', 'Selecteer directory voor Blackboard .ZIP-files)')
     def edit_database(self):
         self._select_file('database','Select databasefile', 'database files', '.db')
     def edit_inputfile(self):
@@ -158,7 +171,6 @@ class AapaDirectoriesForm(Static):
     @property
     def params(self)-> AAPATuiParams:
         return AAPATuiParams(root_directory= self.query_one('#root', LabeledInput).input.value, 
-                            bbinput_directory= self.query_one('#bbinput', LabeledInput).input.value,
                              output_directory= self.query_one('#output', LabeledInput).input.value,
                              database=self.query_one('#database', LabeledInput).input.value,
                              excel_in = self.query_one('#input', LabeledInput).input.value
@@ -166,7 +178,6 @@ class AapaDirectoriesForm(Static):
     @params.setter
     def params(self, value: AAPATuiParams):
         self.query_one('#root', LabeledInput).input.value = value.root_directory
-        self.query_one('#bbinput', LabeledInput).input.value = 'goedemorgen', #value.bbinput_directory
         self.query_one('#output', LabeledInput).input.value = value.output_directory
         self.query_one('#database', LabeledInput).input.value = value.database
         self.query_one('#input', LabeledInput).input.value = value.excel_in
@@ -174,30 +185,22 @@ class AapaDirectoriesForm(Static):
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
-            yield LabeledSwitchGroup(width=42,  title='Input Options',
-                                     labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], 
-                                     id ='lsg')
-            with Vertical():
-                yield ButtonBar([ButtonDef('Input', variant= 'primary', id='scan', classes = 'not_next'),
+            yield ButtonBar([ButtonDef('Scan', variant= 'primary', id='scan', classes = 'not_next'),
                              ButtonDef('Form', variant= 'primary', id='form', classes = 'not_next'),
                              ButtonDef('Mail', variant= 'primary', id='mail', classes = 'not_next'), 
-                             ButtonDef('Undo', variant= 'error', id='undo')], id='main'
+                             ButtonDef('Undo', variant= 'error', id='undo')], 
                              ) 
-                with RadioSet(classes='second_row'):
-                    yield RadioButton('preview', id='preview', value=True)
-                    yield RadioButton('uitvoeren', id='uitvoeren')
-                yield Button( 'Rapport', variant= 'primary', id='report', classes = 'third_row') 
-                # yield Button('Rapport', variant = 'primary', id='report', classes='third_row')
-
+            with RadioSet():
+                yield RadioButton('preview', id='preview', value=True)
+                yield RadioButton('uitvoeren', id='uitvoeren')
+            yield Button('Rapport', variant = 'primary', id='report')
     def on_mount(self):
-        log_debug ('mounting')
-        button_bar = self.query_one('#main', ButtonBar)
+        button_bar = self.query_one(ButtonBar)
         button_bar.styles.width = 6 + button_bar.nr_buttons() * 12
         for id in {'scan', 'form', 'mail', 'undo', 'report'}:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         for id in {'preview', 'uitvoeren'}:
             self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}'] 
-        log_debug ('endmounting')
     def button(self, id: str)->Button:
         return self.query_one(f'#{id}', Button)
     def enable_action_buttons(self, undo_log: UndoLog):
@@ -222,28 +225,6 @@ class AapaButtons(Static):
             self.query_one('#preview', RadioButton).value = True
         else:
             self.query_one('#uitvoeren', RadioButton).value= True
-    @property
-    def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
-        trans_dict = {0: AAPAProcessingOptions.INPUTOPTIONS.SCAN,
-                      1: AAPAProcessingOptions.INPUTOPTIONS.EXCEL, 
-                      2: AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
-        result = set()
-        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
-        for index in trans_dict.keys():
-            if switch_group.get_value(index):
-                result.add(trans_dict[index])
-        return result
-    @input_options.setter
-    def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
-        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.SCAN:0,
-                      AAPAProcessingOptions.INPUTOPTIONS.EXCEL:1, 
-                      AAPAProcessingOptions.INPUTOPTIONS.BBZIP:2, }
-        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
-        for option in AAPAProcessingOptions.INPUTOPTIONS:
-            switch_group.set_value(trans_dict[option],option in value)
-
-
-        
   
 class EnableButtons(Message): pass
 
@@ -290,7 +271,7 @@ class AAPAApp(App):
         self.post_message(EnableButtons())
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
-            case 'scan': await self.action_input()
+            case 'scan': await self.action_scan()
             case 'form': await self.action_form()
             case 'mail': await self.action_mail()
             case 'undo': await self.action_undo()
@@ -303,13 +284,14 @@ class AAPAApp(App):
         # logging.info(f'{options}')
         if await show_console():
             self.terminal.run(AAPArun_script,options=options)             
-    async def action_input(self):    
+    async def action_scan(self):    
         await self.run_AAPA(AAPAaction.INPUT)
     async def action_form(self):    
         await self.run_AAPA(AAPAaction.FORM)
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
     def refresh_last_action(self)->UndoLog:
+        log_debug('RFA')
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
@@ -344,13 +326,11 @@ class AAPAApp(App):
     def params(self)->AAPATuiParams:
         result = self.directories_form.params
         result.preview = self.query_one(AapaButtons).preview
-        result.input_options = self.query_one(AapaButtons).input_options
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
         self.directories_form.params = value
         self.query_one(AapaButtons).preview = value.preview                       
-        self.query_one(AapaButtons).input_options = value.input_options
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):

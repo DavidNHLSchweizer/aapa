@@ -1,5 +1,5 @@
 from pathlib import Path
-from data.roots import BASEPATH, OneDriveCoder, add_root, decode_path, encode_path, get_code, get_expanded, get_onedrive_root, get_roots, reset_roots, set_one_drive_root
+from data.roots import BASEPATH, OneDriveCoder, add_root, decode_path, encode_path, get_code, get_expanded, get_onedrive_root, get_roots, reset_roots, set_onedrive_root
 
 onedrive_root = get_onedrive_root()
 onedrive_base = onedrive_root.joinpath(BASEPATH)
@@ -91,7 +91,7 @@ def test_getroots_additional():
 MOCKER = r'C:\MOCKER'
 def test_mock_onedrive():
     _create_test_roots()
-    set_one_drive_root(MOCKER)
+    set_onedrive_root(MOCKER)
     assert decode_path(':ROOT1:') == rf'{MOCKER}\{BASEPATH}'
     assert decode_path(':ROOT2:') == NODUP
     assert decode_path(':ROOT3:') == rf'{MOCKER}\{BASEPATH}\hallo'

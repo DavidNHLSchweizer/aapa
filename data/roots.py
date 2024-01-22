@@ -184,7 +184,7 @@ class Roots(Singleton):
         for converter in self._converters:
             converter.replace_onedrive(str(old_onedrive), str(new_onedrive))
         self._sort()        
-    def set_one_drive_root(self, path: str):
+    def set_onedrive_root(self, path: str):
         old_root = self._onedrive_coder.onedrive_root
         self._onedrive_coder.onedrive_root = path
         self.replace_onedrive(old_root, path)
@@ -233,8 +233,8 @@ class Roots(Singleton):
 
 _roots = Roots(BASEPATH)
 
-def set_one_drive_root(path: str):
-    _roots.set_one_drive_root(path)
+def set_onedrive_root(path: str):
+    _roots.set_onedrive_root(path)
 def get_onedrive_root()->Path:
     return _roots.get_one_drive_root()
 def decode_onedrive(path: str|Path, onedrive_root=None)->str:
