@@ -68,7 +68,19 @@ def _get_processing_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 
 class AAPAProcessingOptions:
-    def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False):
+    class INPUTOPTIONS(Enum):
+        SCAN= auto()
+        EXCEL=auto()
+        BBZIP=auto()
+        def __str__(self):
+            _AS_STRS = {AAPAProcessingOptions.INPUTOPTIONS.SCAN: 'Scan directory (PDF-files)', 
+                        AAPAProcessingOptions.INPUTOPTIONS.EXCEL: 'Import from MS-FORMS Excel-file',
+                        AAPAProcessingOptions.INPUTOPTIONS.BBZIP: 'Import ZIPfile(s) from Blackboard',}
+            return _AS_STRS[self]
+        @staticmethod
+        def summary(values: set[AAPAProcessingOptions.INPUTOPTIONS])->str:
+            return ",".join([str(option) for option in values])        
+    def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.SCAN,INPUTOPTIONS.EXCEL}, onedrive=None):
         self.actions = actions
         self.input_options = input_options
         self.preview = preview
@@ -115,11 +127,11 @@ class AAPAConfigOptions:
                  excel_in: str=None):
         def get_default(param: str, config_key: str)->str:
             return param if param is not None else config.get('configuration', config_key)
-        self.root_directory = get_default(root_directory, 'root')
-        self.output_directory = get_default(output_directory, 'output')
-        self.database_file = get_default(database_file, 'database')
+        self.root_directory: str = get_default(root_directory, 'root')
+        self.output_directory: str = get_default(output_directory, 'output')
+        self.database_file: str = get_default(database_file, 'database')
         self.config_file: str = config_file
-        self.report_filename = get_default(report_filename, 'filename')
+        self.report_filename: str = get_default(report_filename, 'filename')
         self.migrate_dir: str = migrate_dir
         self.excel_in: str = get_default(excel_in, 'input')
     def __str__(self):
