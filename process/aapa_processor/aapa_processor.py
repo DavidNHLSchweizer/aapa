@@ -72,8 +72,8 @@ class AAPAProcessor:
             if AAPAaction.SCAN in actions or AAPAaction.FULL in actions:
                 if configuration.config_options.excel_in:
                     process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
-                if old_root := config.get('configuration', 'scanroot'):
-                    process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
+                # if old_root := config.get('configuration', 'scanroot'): 
+                #     process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
             if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
                 # #checking basedirs
                 # for basedir in configuration.storage.basedirs.read_all():
