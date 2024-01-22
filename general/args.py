@@ -245,11 +245,14 @@ def report_options(options: AAPAOptions, parts=0)->str:
             result += _report_str('load alternative configuration file', config_options.config_file)
     return result
 
-def _get_arguments(command_line_arguments:list[str]=None):
-    parser = argparse.ArgumentParser(description=banner(), prog='aapa', usage='%(prog)s [actie(s)] [opties]', formatter_class=argparse.RawTextHelpFormatter)
+def _copy_parser(parser: argparse.ArgumentParser):
     _get_processing_arguments(parser)
     _get_config_arguments(parser)    
     _get_other_arguments(parser)
+
+def _get_arguments(command_line_arguments:list[str]=None):
+    parser = argparse.ArgumentParser(description=banner(), prog='aapa', usage='%(prog)s [actie(s)] [opties]', formatter_class=argparse.RawTextHelpFormatter)
+    _copy_parser(parser)
     return parser.parse_args(command_line_arguments)
 
 def get_debug()->bool:
@@ -261,21 +264,23 @@ class ArgumentOption(Enum):
     OTHER  = auto()
     ALL    = auto()
 
+def _get_options_from_commandline(args: dict, which: ArgumentOption=ArgumentOption.ALL)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
+    match which:
+        case ArgumentOption.CONFIG:
+            return AAPAConfigOptions.from_args(args)
+        case ArgumentOption.PROCES:
+            return AAPAProcessingOptions.from_args(args)
+        case ArgumentOption.OTHER:
+            return AAPAOtherOptions.from_args(args)
+        case ArgumentOption.ALL:
+            return (AAPAConfigOptions.from_args(args),
+                    AAPAProcessingOptions.from_args(args),
+                    AAPAOtherOptions.from_args(args))               
+
 def get_options_from_commandline(which: ArgumentOption=ArgumentOption.ALL, command_line_arguments:list[str]=None)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
     try:
         args = _get_arguments(command_line_arguments)
-        match which:
-            case ArgumentOption.CONFIG:
-                return AAPAConfigOptions.from_args(args)
-            case ArgumentOption.PROCES:
-                return AAPAProcessingOptions.from_args(args)
-            case ArgumentOption.OTHER:
-                return AAPAOtherOptions.from_args(args)
-            case ArgumentOption.ALL:
-                return (AAPAConfigOptions.from_args(args),
-                        AAPAProcessingOptions.from_args(args),
-                        AAPAOtherOptions.from_args(args))
-                
+        return _get_options_from_commandline(args, which)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
         return None

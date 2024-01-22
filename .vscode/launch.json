@@ -184,6 +184,7 @@
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive",
+                "--aanvraag=205,206"
             ]
         },
     ]
