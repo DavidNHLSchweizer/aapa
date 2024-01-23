@@ -243,7 +243,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         #return form: dict[student.email] = {'aanvraag': aanvraag, 'docx_filename', 'pdf_filename': pdf_filename}
         log_debug(f'Start read_aanvragen\n\t{filename}\n\tlast-id={self.last_id}')
         for n, entry in enumerate(self.get_aanvragen(filename).values()):
-            log_debug(f'{n}:{entry['aanvraag'].student.full_name}')
+            log_debug(f'{n}:{entry["aanvraag"].student.full_name}')
             try:
                 if self.create_files(entry['aanvraag'], entry['values'], entry['docx_filename'], entry['pdf_filename'], preview):
                     self.ids_read.append(entry['id'])
@@ -267,7 +267,8 @@ class AanvragenFromExcelImporter(AanvraagImporter):
     def after_reading(self, preview = False):
         if preview:
             return
-        config.set('import', 'last_id', max(self.ids_read))
+        if self.ids_read:
+            config.set('import', 'last_id', max(self.ids_read))
         for file in self.files_to_delete:
             file.unlink()
 
