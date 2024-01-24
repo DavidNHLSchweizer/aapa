@@ -1,27 +1,44 @@
 from __future__ import annotations
 from pathlib import Path
 import re
+import ctypes
+import locale
 from typing import Tuple
 from general.keys import get_next_key, reset_key
 from general.log import log_info
 from general.onedrive import find_onedrive_path
 from general.singleton import Singleton
 
+
 class RootException(Exception): pass
 BASEPATH = r'NHL Stenden'
 
 class OneDriveCoder:
     ONEDRIVE = ':ONEDRIVE:'
+    DOCUMENTS = ':DOCUMENTS:'
     onedrive_root = None
     def __init__(self, onedrive_root: str|Path):
         OneDriveCoder.onedrive_root =Path(onedrive_root).resolve() 
+        self._documents = self._init_get_documents_translation()
+    def _init_get_documents_translation(self):        
+        # hack to find whether it is xxxx - Documents or xxxx - Documenten
+        # locale for computer does not work for this, the onedrive language is 
+        # apparently not dependent on the local computer language
+        # so just test the two possibilities to find which one works
+        _SHARED_DOCUMENTS_PATH = rf'{self.ONEDRIVE}\{BASEPATH}\HBO-ICT Afstuderen - :DOCUMENTS:'
+        # this is the only path we are interested in
+        for translation in ['Documents', 'Documenten']:
+            if Path(_SHARED_DOCUMENTS_PATH.replace(self.DOCUMENTS, translation)).is_dir():
+                return translation
+        return 'Documents'
     def decode_onedrive(self, path: str|Path, onedrive_root=None)->str:
         if not path: 
             return ''
         if isinstance(path, Path):
             path = str(path)
         if path.find(self.ONEDRIVE) == 0:
-            return path.replace(self.ONEDRIVE, str(onedrive_root if onedrive_root else self.onedrive_root))
+            result = path.replace(self.ONEDRIVE, str(onedrive_root if onedrive_root else self.onedrive_root))
+            return result.replace(self.DOCUMENTS, self._documents)
         return path
     def encode_onedrive(self, path: str|Path)->str:
         if not path: 
@@ -29,7 +46,8 @@ class OneDriveCoder:
         if isinstance(path, Path):
             path = str(path)
         if self.onedrive_root and path.lower().find(str(self.onedrive_root).lower()) == 0:
-            return self.ONEDRIVE+path[len(str(self.onedrive_root)):]
+            result = self.ONEDRIVE+path[len(str(self.onedrive_root)):]
+            return result.replace(self._documents, self.DOCUMENTS)
         return path
     def is_onedrive(self, path: str)->bool:
         return path.find(str(self.onedrive_root)) == 0 

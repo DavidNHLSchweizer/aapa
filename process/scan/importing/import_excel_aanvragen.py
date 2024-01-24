@@ -141,7 +141,10 @@ class AanvragenFromExcelImporter(AanvraagImporter):
     def _get_bedrijf(self, values: dict[str,Any])->Bedrijf:
         return Bedrijf(self.__get_value(values, self.ColNr.BEDRIJF))
     def _get_aanvraag(self, values: dict[str, Any])->Aanvraag:
-        datum = TSC.sortable_str_to_timestamp(self.__get_value(values, self.ColNr.VOLTOOIEN))
+        if (datum_str:=self.__get_value(values, self.ColNr.VOLTOOIEN)) == 'NaT':
+            log_info(f'Datum (tijd van voltooien) is niet ingevuld.\nWaarschijnlijk is de student ({self.__get_value(values, self.ColNr.NAAM)}) nog bezig met invullen.')
+            return None # not yet completed
+        datum = TSC.sortable_str_to_timestamp(datum_str)
         return Aanvraag(self._get_student(values), self._get_bedrijf(values), 
                         datum = datum,
                         datum_str = datum,
@@ -157,17 +160,18 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         return str(student_directory.joinpath(f'{self._get_filename_stem(aanvraag)}.pdf'))
     def convert_values(self, values: dict[str, Any])->Tuple[Aanvraag,str,str]:
         #return (aanvraag, docx_filename, pdf_filename)
+        NONINO = (None,None,None)
         log_debug(f'Start convert_values: {self.__get_value(values, self.ColNr.NAAM)}')
         try:
-            aanvraag = self._get_aanvraag(values)
-            log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
-            if stored := self._existing_aanvraag(aanvraag):
-                log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
-                return (None,None,None)
-            return aanvraag, self.get_docx_filename(aanvraag), self.get_pdf_filename(aanvraag)
+            if (aanvraag := self._get_aanvraag(values)):                   
+                log_info(f'\t{aanvraag.student.full_name}:', to_console=True)
+                if stored := self._existing_aanvraag(aanvraag):
+                    log_warning(f'Aanvraag {stored}\n\tal in database. Wordt overgeslagen.')
+                    return NONINO
+                return aanvraag, self.get_docx_filename(aanvraag), self.get_pdf_filename(aanvraag)
         except Exception as E:
             log_debug(f'Error in convert_values: {E}')
-            return None
+        return NONINO
     def create_docx_file(self, values: dict[str, Any], docx_filename: str, preview=False):
         if not preview:
             merge_dict = {field: str(values.get(self.find_merge_field_vraag(field), '?')) 
