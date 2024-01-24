@@ -70,23 +70,12 @@ class AAPAProcessor:
             if processing_options.no_processing():
                 return
             if AAPAaction.INPUT in actions or AAPAaction.FULL in actions:
-                if configuration.config_options.excel_in:
+                if AAPAProcessingOptions.INPUTOPTIONS.EXCEL in processing_options.input_options and configuration.config_options.excel_in:
                     process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
-                if old_root := config.get('configuration', 'scanroot'): 
+                if AAPAProcessingOptions.INPUTOPTIONS.SCAN in processing_options.input_options and (old_root := config.get('configuration', 'scanroot')): 
                     process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
-            if AAPAaction.ZIPIMPORT in actions: #voorlopig testing123...
-                # #checking basedirs
-                # for basedir in configuration.storage.basedirs.read_all():
-                #     log_print(f'*** DIRECTORY {basedir.year} {basedir.period}')
-                #     for directory in Path(basedir.directory).glob('*'):
-                #         if directory.is_dir():
-                #             print(f'{directory}:{BaseDir.get_student_name(str(directory))}')
-
-                # for student in configuration.storage.studenten.read_all():
-                #     parsed = Names.parsed(student.full_name)
-                #     if parsed.first_name != student.first_name:
-                #         print(f'{student.full_name}: {student.first_name} - {parsed}')
-                log_info('not yet implemented')
+                if AAPAProcessingOptions.INPUTOPTIONS.BBZIP in processing_options.input_options:
+                    log_info('BBZIP: not yet implemented', to_console=True)
                         # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022', configuration.storage, preview=preview)    
                 # log_print(f'*** DIRECTORY 2022-2023')
                 # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023', configuration.storage, preview=preview)    

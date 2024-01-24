@@ -102,10 +102,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "scan",
+                "input",
                 "-debug",
                 "-preview",
-                "--onedrive=d:\\onedrive",                
+                "--onedrive=d:\\onedrive", 
+                "--input_options=FBI",               
             ]
         },
         {

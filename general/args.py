@@ -3,6 +3,7 @@ from enum import Enum, auto
 
 import gettext
 from data.roots import decode_onedrive, encode_onedrive
+from general.log import log_error
 from general.versie import banner
 def __vertaling(Text):
     # dit is de enige manier (voor zover bekend) om teksten in de 'usage' aanroep (aapa.py --help)
@@ -17,6 +18,8 @@ import argparse
 
 from general.config import config
 
+class ArgumentsException(Exception): pass
+
 class AAPAaction(Enum):
     NONE      = 0
     INPUT     = auto()
@@ -27,7 +30,6 @@ class AAPAaction(Enum):
     INFO      = auto()
     REPORT    = auto()
     UNDO      = auto()
-    ZIPIMPORT = auto()
     def help_str(self):
         match self:
             case AAPAaction.NONE: return 'Geen actie [DEFAULT]'
@@ -39,7 +41,6 @@ class AAPAaction(Enum):
             case AAPAaction.INFO: return 'Laat configuratie (directories en database) zien'
             case AAPAaction.REPORT: return 'Rapporteer alle aanvragen in een .XLSX-bestand'
             case AAPAaction.UNDO: return 'Ongedaan maken van de laatste procesgang'
-            case AAPAaction.ZIPIMPORT: return 'Importeren verslagen uit zipfile'
             case _: return ''
     @staticmethod
     def all_help_str():
@@ -66,7 +67,7 @@ def _get_processing_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
-    parser.add_argument('--input_options', type=str, help='Input options: one or more of "S" (scan directory), "F" (Forms-Excel file), "B" (Blackboard zipfile).\nExample: "--input_options=SF".')
+    parser.add_argument('-io', '--input_options', type=str, help='Input options: one or more of "S" (scan directory), "F" (Forms-Excel file), "B" (Blackboard zipfile).\nExample: "--input_options=SF".')
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 
 class AAPAProcessingOptions:
@@ -82,6 +83,17 @@ class AAPAProcessingOptions:
         @staticmethod
         def summary(values: set[AAPAProcessingOptions.INPUTOPTIONS])->str:
             return ",".join([str(option) for option in values])        
+        @staticmethod
+        def from_str(s: str)->set[AAPAProcessingOptions.INPUTOPTIONS]:
+            result = set()
+            for ch in s.upper():
+                match ch:
+                    case 'S': result.add(AAPAProcessingOptions.INPUTOPTIONS.SCAN)
+                    case 'F': result.add(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
+                    case 'B': result.add(AAPAProcessingOptions.INPUTOPTIONS.BBZIP)
+                    case _: log_error(f'Ongeldige waarde voor input_options: {ch}. Geldige waarden zijn S, B, en F. Wordt genegeerd.' )
+            return result
+                    
     def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.SCAN,INPUTOPTIONS.EXCEL}, onedrive=None):
         self.actions = actions
         self.input_options = input_options
@@ -107,7 +119,9 @@ class AAPAProcessingOptions:
                 if a := AAPAaction.from_action_choice(action):
                     result.append(a)
             return result
-        return cls(actions=_get_actions(args.actions), preview=args.preview, input_options = args.input_options, force=args.force, debug=args.debug, onedrive=args.onedrive)
+        return cls(actions=_get_actions(args.actions), preview=args.preview, 
+                   input_options = AAPAProcessingOptions.INPUTOPTIONS.from_str(args.input_options), 
+                   force=args.force, debug=args.debug, onedrive=args.onedrive)
     def no_processing(self)->bool:
         return not any([a in self.actions for a in {AAPAaction.INPUT,AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
 
