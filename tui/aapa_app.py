@@ -198,6 +198,7 @@ class AapaButtons(Static):
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         for id in {'preview', 'uitvoeren'}:
             self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}'] 
+        self.input_options = self._get_input_options()
         log_debug ('endmounting')
     def button(self, id: str)->Button:
         return self.query_one(f'#{id}', Button)
@@ -236,14 +237,15 @@ class AapaButtons(Static):
         return result
     @input_options.setter
     def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
-        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.SCAN:0,
-                      AAPAProcessingOptions.INPUTOPTIONS.EXCEL:1, 
+        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.SCAN:1,
+                      AAPAProcessingOptions.INPUTOPTIONS.EXCEL:0, 
                       AAPAProcessingOptions.INPUTOPTIONS.BBZIP:2, }
         switch_group = self.query_one('#lsg', LabeledSwitchGroup)
         for option in AAPAProcessingOptions.INPUTOPTIONS:
             switch_group.set_value(trans_dict[option],option in value)
-
-
+    def _get_input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
+        processing_options: AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
+        return processing_options.input_options
         
   
 class EnableButtons(Message): pass

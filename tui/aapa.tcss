@@ -102,10 +102,10 @@ AapaButtons Label {
     color: black; 
 }
 
-AapaButtons LabeledSwitch {
-    height: 3;
-    align: left middle;
-}
+# AapaButtons LabeledSwitch {
+#     align: left middle;
+#     margin: 1 0 0 0;
+# }
 AapaButtons .label {
     margin: 0;
     padding: 1;

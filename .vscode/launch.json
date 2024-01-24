@@ -171,7 +171,8 @@
             "justMyCode": true,
             "args": [
                 "-debug",
-                "--onedrive=d:\\onedrive"
+                "--onedrive=d:\\onedrive",
+                "--input_options=FB",
             ]
         },
         {

@@ -6,24 +6,27 @@ from textual.containers import Horizontal, Vertical
 class LabeledSwitch(Static):
     DEFAULT_CSS = """
     LabeledSwitch {
-        height: 3;
+        height: 2;
         align: left middle;
+        border: none;
     }
     .label {
-        margin: 0;
-        padding: 1;
-    }
+        margin: 1 0 0 1;
+        padding: 0 0 0 1;
+        color: black;
+    } 
     .switch {
-        border: solid black;
-        margin: 0;
+        border: none;
+        margin: 1 5 0 0;
         min-width: 5;
         align: right middle;
     }
     .switch:focus{
-        border: double white;   
+         border: none; 
+         background: white;  
     }
     .switch:hover{
-        border: double white;   
+        border: none;   
     }
     
     """
@@ -69,7 +72,7 @@ class LabeledSwitchGroup(Static):
             for label in self._labels:
                 yield LabeledSwitch(label.rjust(maxlen))
     def on_mount(self):
-        self.styles.max_height = len(self._labels) * 3 + 2
+        self.styles.max_height = len(self._labels) * 2 + 2
         self.styles.min_height = self.styles.max_height
         if self._width:
             self.styles.width = Scalar(self._width, Unit.CELLS, Unit.WIDTH)
@@ -87,15 +90,14 @@ if __name__ == "__main__":
     import logging
     from textual.app import App
     from textual.widgets import Footer
-    from required import Required
     class TestApp(App):
         BINDINGS = [
                     ('t', 'toggle_', 'Toggle switches'),
                     ]  
         def compose(self) -> ComposeResult:
-            with Collapsible(title='Input options'):
-                yield LabeledSwitchGroup(width=42,  
-                                     labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], id ='lsg')
+            # with Collapsible(title='Input options'):
+            yield LabeledSwitchGroup(width=42,  
+                                     labels=['MS-Forms Excel file:', 'PDF-files (directory scan):', 'Blackboard ZIP-files:'], id ='lsg')
             yield(Footer())
         def action_toggle_(self):           
             for labi in self.query(LabeledSwitch):
