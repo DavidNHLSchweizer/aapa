@@ -2,12 +2,9 @@
 
 from data.classes.aanvragen import Aanvraag
 from data.storage.aapa_storage import AAPAStorage
-from database.database import Database
-from general.args import get_options_from_commandline
 from general.log import log_print
 from migrate.sql_coll import SQLcollector, SQLcollectors
-from process.aapa_processor.aapa_config import AAPAConfiguration
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+
 
 class RemoverException(Exception):pass
 
