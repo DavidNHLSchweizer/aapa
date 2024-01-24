@@ -82,7 +82,7 @@ class LabeledSwitchGroup(Static):
     def _switches(self)->list[LabeledSwitch]:
         return self.query(LabeledSwitch)
     def get_value(self, index: int)->bool:
-        return self._switches[index]
+        return self._switches[index].value
     def set_value(self, index: int, value: bool):
         self._switches[index].value = value
          

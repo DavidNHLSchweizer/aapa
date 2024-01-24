@@ -1,5 +1,4 @@
 from dataclasses import dataclass,field
-from enum import Enum, auto
 import random
 import logging
 from textual.screen import Screen
@@ -7,7 +6,7 @@ from textual.widget import Widget
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.message import Message
-from textual.widgets import Collapsible, Header, Footer, Static, Button, RadioSet, RadioButton, Switch
+from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal, Vertical
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
@@ -83,7 +82,6 @@ class AAPATuiParams:
             return result
         def _get_other_options()->AAPAOtherOptions:
             return get_options_from_commandline(ArgumentOption.OTHER) 
-        log_debug('rfafa')
         return AAPAOptions(config_options=_get_config_options(report_filename),
                            processing_options=_get_processing_options(action),
                            other_options=_get_other_options())
@@ -195,8 +193,6 @@ class AapaButtons(Static):
                 with Horizontal():
                     yield(RadioSetPanel())
                     yield Button( 'Rapport', variant= 'default', id='report', classes = 'report_button') 
-                # yield Button('Rapport', variant = 'primary', id='report', classes='third_row')
-
     def on_mount(self):
         log_debug ('mounting')
         button_bar = self.query_one('#main', ButtonBar)
@@ -233,8 +229,8 @@ class AapaButtons(Static):
             self.query_one('#uitvoeren', RadioButton).value= True
     @property
     def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
-        trans_dict = {0: AAPAProcessingOptions.INPUTOPTIONS.SCAN,
-                      1: AAPAProcessingOptions.INPUTOPTIONS.EXCEL, 
+        trans_dict = {0: AAPAProcessingOptions.INPUTOPTIONS.EXCEL,
+                      1: AAPAProcessingOptions.INPUTOPTIONS.SCAN, 
                       2: AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
         result = set()
         switch_group = self.query_one('#lsg', LabeledSwitchGroup)
@@ -244,8 +240,8 @@ class AapaButtons(Static):
         return result
     @input_options.setter
     def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
-        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.SCAN:1,
-                      AAPAProcessingOptions.INPUTOPTIONS.EXCEL:0, 
+        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.EXCEL:0,
+                      AAPAProcessingOptions.INPUTOPTIONS.SCAN:1, 
                       AAPAProcessingOptions.INPUTOPTIONS.BBZIP:2, }
         switch_group = self.query_one('#lsg', LabeledSwitchGroup)
         for option in AAPAProcessingOptions.INPUTOPTIONS:
