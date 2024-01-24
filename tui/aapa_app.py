@@ -171,7 +171,15 @@ class AapaDirectoriesForm(Static):
         self.query_one('#output', LabeledInput).input.value = value.output_directory
         self.query_one('#database', LabeledInput).input.value = value.database
         self.query_one('#input', LabeledInput).input.value = value.excel_in
-        
+    
+class RadioSetPanel(Static):
+    def compose(self)->ComposeResult:
+        with RadioSet(classes='radio_panel'):
+            yield RadioButton('preview', id='preview', value=True)
+            yield RadioButton('uitvoeren', id='uitvoeren')
+    def on_mount(self):
+        self.styles.width = self.query_one(RadioSet).styles.width
+
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
@@ -183,11 +191,10 @@ class AapaButtons(Static):
                              ButtonDef('Form', variant= 'primary', id='form', classes = 'not_next'),
                              ButtonDef('Mail', variant= 'primary', id='mail', classes = 'not_next'), 
                              ButtonDef('Undo', variant= 'error', id='undo')], id='main'
-                             ) 
-                with RadioSet(classes='second_row'):
-                    yield RadioButton('preview', id='preview', value=True)
-                    yield RadioButton('uitvoeren', id='uitvoeren')
-                yield Button( 'Rapport', variant= 'primary', id='report', classes = 'third_row') 
+                             )                 
+                with Horizontal():
+                    yield(RadioSetPanel())
+                    yield Button( 'Rapport', variant= 'default', id='report', classes = 'report_button') 
                 # yield Button('Rapport', variant = 'primary', id='report', classes='third_row')
 
     def on_mount(self):

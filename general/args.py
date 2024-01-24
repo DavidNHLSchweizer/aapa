@@ -86,12 +86,13 @@ class AAPAProcessingOptions:
         @staticmethod
         def from_str(s: str)->set[AAPAProcessingOptions.INPUTOPTIONS]:
             result = set()
-            for ch in s.upper():
-                match ch:
-                    case 'S': result.add(AAPAProcessingOptions.INPUTOPTIONS.SCAN)
-                    case 'F': result.add(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
-                    case 'B': result.add(AAPAProcessingOptions.INPUTOPTIONS.BBZIP)
-                    case _: log_error(f'Ongeldige waarde voor input_options: {ch}. Geldige waarden zijn S, B, en F. Wordt genegeerd.' )
+            if s:
+                for ch in s.upper():
+                    match ch:
+                        case 'S': result.add(AAPAProcessingOptions.INPUTOPTIONS.SCAN)
+                        case 'F': result.add(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
+                        case 'B': result.add(AAPAProcessingOptions.INPUTOPTIONS.BBZIP)
+                        case _: log_error(f'Ongeldige waarde voor input_options: {ch}. Geldige waarden zijn S, B, en F. Wordt genegeerd.' )
             return result
                     
     def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.SCAN,INPUTOPTIONS.EXCEL}, onedrive=None):
