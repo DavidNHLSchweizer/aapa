@@ -5,6 +5,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.studenten import Student
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.aanvragen import AanvraagQueries
+from data.storage.queries.studenten import StudentQueries
 from general.log import log_error, log_warning
 from general.valid_email import is_valid_email, try_extract_email
 from process.general.pdf_aanvraag_reader import is_valid_title
@@ -19,9 +20,16 @@ class AanvraagValidator:
             return False
         if not self.__check_titel():
             return False
+        if not self.__check_student():
+            return False
         self.__insert_versie_en_kans()
         if self.validated_aanvraag.student.status == Student.Status.UNKNOWN:
             self.validated_aanvraag.student.status = Student.Status.AANVRAAG
+        return True
+    def __check_student(self)->bool:
+        queries: StudentQueries = self.storage.queries('studenten')
+        if stored_student := queries.find_student_by_name_or_email_or_studnr(self.validated_aanvraag.student):
+            self.validated_aanvraag.student = stored_student
         return True
     def __check_email(self)->bool:
         if not is_valid_email(self.validated_aanvraag.student.email):
