@@ -47,6 +47,21 @@ init_special_cases()
 class Names:
     TUSSEN_PATTERN = r"(?P<tussen>\b(der|den|de|van|ter|te|in\'t|in\s't|in)\b)+?"
     @staticmethod
+    def _title(name: str)->str:
+        def __title(name: str, split_char: str)->str:               
+            parts = name.strip().split(split_char)
+            result_parts = []
+            for part in parts:
+                if re.match(Names.TUSSEN_PATTERN, part.lower()):
+                    result_parts.append(part.lower())
+                else:
+                    result_parts.append(part.capitalize())
+            return split_char.join(result_parts)       
+        if name.find('-') > 0:
+            return __title(name, '-')
+        else:
+            return __title(name, ' ')
+    @staticmethod
     def parsed(full_name: str)->ParsedName:
         if special_cases.contains(full_name):
             return special_cases.parsed_name(full_name)
@@ -62,20 +77,20 @@ class Names:
             tussens.append(match.group('tussen'))
             last_tussen_end = match.end('tussen')
         if tussens:
-            return ParsedName(first_name=full_name[0:first_tussen_start].strip().capitalize(), tussen=' '.join(tussens), last_name=full_name[last_tussen_end:].strip().capitalize())
+            return ParsedName(first_name=Names._title(full_name[0:first_tussen_start].strip()), tussen=' '.join(tussens), last_name=Names._title(full_name[last_tussen_end:].strip()))
         else:
             words = full_name.split(' ')
-            return ParsedName(first_name=' '.join(words[:len(words)-1]).capitalize(), last_name=words[len(words)-1].capitalize())
+            return ParsedName(first_name=Names._title(' '.join(words[:len(words)-1])), last_name=Names._title(words[len(words)-1]))
     @staticmethod
     def standardize(full_name: str)->str:
         parsed = Names.parsed(full_name)
-        result = parsed.first_name.strip().capitalize()
+        result = Names._title(parsed.first_name.strip())
         if parsed.tussen:
             result += f' {parsed.tussen}' 
-        return result + f' {parsed.last_name.strip().capitalize()}'
+        return result + f' {Names._title(parsed.last_name.strip())}'
     @staticmethod
     def first_name(full_name: str)->str:
-        return Names.parsed(full_name).first_name.capitalize()
+        return Names._title(Names.parsed(full_name).first_name)
     @staticmethod
     def tussen(full_name: str)->str:
         return Names.parsed(full_name).tussen
@@ -83,9 +98,9 @@ class Names:
     def last_name(full_name: str, include_tussen: bool=True):
         parsed = Names.parsed(full_name)        
         if include_tussen:
-            return f'{parsed.tussen} {parsed.last_name.capitalize()}'
+            return f'{parsed.tussen} {Names._title(parsed.last_name)}'
         else:
-            return parsed.last_name.capitalize()
+            return Names._title(parsed.last_name)
     @staticmethod
     def initials(full_name: str='', email: str = '')->str:
         result = ''
@@ -102,6 +117,6 @@ class Names:
             parsed = Names.parsed(last_name.strip())
             tussen = parsed.tussen
             last = last_name.strip() if not tussen else last_name[:last_name.find(',')].strip()
-            return f'{first_name.strip().capitalize()}{" " + tussen if tussen else ""}{" " + last.capitalize()}'
+            return f'{Names._title(first_name.strip())}{" " + tussen if tussen else ""}{" " + Names._title(last)}'
         else:
-            return f'{first_name.strip().capitalize()} {last_name.strip().capitalize()}'
+            return f'{Names._title(first_name.strip())} {Names._title(last_name.strip())}'

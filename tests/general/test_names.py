@@ -57,6 +57,16 @@ testcases7 = [
     {'name': "Jan-Pieter van Voorst de Tering", 'parsed': ParsedName('Jan-Pieter', "van", 'Voorst de Tering')},
     ]
 
+testcases8 = [ 
+    {'name': "jan-pieter van voorst de tering", 'parsed': ParsedName('Jan-Pieter', "van", 'Voorst de Tering')},
+    {'name': 'jan auke van klaasvansen',  'parsed': ParsedName('Jan Auke', 'van', 'Klaasvansen')},
+    {'name': 'jan van de klaassende',  'parsed': ParsedName('Jan', 'van de', 'Klaassende')},
+    {'name': 'jan van der klaassin',  'parsed': ParsedName('Jan', 'van der', 'Klaassin')},
+    {'name': 'jan de klaassede',  'parsed': ParsedName('Jan', 'de', 'Klaassede')},
+    {'name': 'jan ter klaassen',  'parsed': ParsedName('Jan', 'ter', 'Klaassen')},
+    {'name': "jan in 't klaassen",  'parsed': ParsedName('Jan', "in 't", 'Klaassen')},
+    ]
+
 testcases_special = [ 
     {'name': 'Jan Pieter Klaassen Katrijns',  'parsed': ParsedName('Jan Pieter', '', 'Klaassen Katrijns')},
     {'name': 'Jan-Pieter Klaassen Katrijns',  'parsed': ParsedName('Jan-Pieter', '', 'Klaassen Katrijns')},
@@ -86,6 +96,9 @@ def test_testcase_6():
 
 def test_testcase_7():
     _test(testcases7)        
+
+def test_testcase_8():
+    _test(testcases8)        
 
 def test_testcase_special():
     for entry in testcases_special:
