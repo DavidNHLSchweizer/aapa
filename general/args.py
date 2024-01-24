@@ -229,7 +229,10 @@ def report_options(options: AAPAOptions, parts=0)->str:
     if parts == 0 or parts == 1:
         result += _report_str('root directory', config_options.root_directory, config.get('configuration', 'root'))
         result +=  _report_str('forms directory', config_options.output_directory, config.get('configuration', 'output'))
-        result +=  _report_str('database', config_options.database_file, config.get('configuration', 'database'))
+        result +=  _report_str('database', config_options.database_file, config.get('configuration', 'database'))        
+        if config_options.excel_in:
+            result +=  _report_str('excel input file', config_options.excel_in, config.get('configuration', 'input'))        
+
     if parts == 1: 
         return result
     if parts == 0 or parts == 2:
