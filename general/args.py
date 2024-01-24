@@ -5,6 +5,8 @@ import gettext
 from data.roots import decode_onedrive, encode_onedrive
 from general.versie import banner
 def __vertaling(Text):
+    # dit is de enige manier (voor zover bekend) om teksten in de 'usage' aanroep (aapa.py --help)
+    # in het Nederlands te vertalen
     Text = Text.replace('usage', 'aanroep')
     Text = Text.replace('positional arguments', 'positionele argumenten')
     Text = Text.replace('options', 'opties')
@@ -249,6 +251,10 @@ def report_options(options: AAPAOptions, parts=0)->str:
     return result
 
 def _copy_parser(parser: argparse.ArgumentParser):
+    """
+    Als losse functie beschikbaar: vult een gegeven parser aan met alle parsing opties. 
+    Hiermee kunnen custom parsers gebruik maken van de standaard AAPA opties (zie remove_aanvraag.py)
+    """
     _get_processing_arguments(parser)
     _get_config_arguments(parser)    
     _get_other_arguments(parser)
@@ -268,6 +274,11 @@ class ArgumentOption(Enum):
     ALL    = auto()
 
 def _get_options_from_commandline(args: dict, which: ArgumentOption=ArgumentOption.ALL)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
+    """
+    Helper functie voor get_options_from_commandline
+    Doet het eigenlijke werk (verwerken van de met ArgumentParser.parse geparsede command-line arguments)
+    Als losse functie ook beschikbaar voor custom functionaliteit (zie remove_aanvraag.py)
+    """
     match which:
         case ArgumentOption.CONFIG:
             return AAPAConfigOptions.from_args(args)
@@ -280,9 +291,21 @@ def _get_options_from_commandline(args: dict, which: ArgumentOption=ArgumentOpti
                     AAPAProcessingOptions.from_args(args),
                     AAPAOtherOptions.from_args(args))               
 
-def get_options_from_commandline(which: ArgumentOption=ArgumentOption.ALL, command_line_arguments:list[str]=None)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
+def get_options_from_commandline(which: ArgumentOption=ArgumentOption.ALL)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions,AAPAOtherOptions]]:
+    """
+    Lees de commando-regel opties, parse deze, en geef deze terug in de vorm van AAPAoptions
+    
+    parameters:
+    which: ArgumentOption
+        ArgumentOption.ALL: geef alle ingevoerde opties terug in tuple-vorm: (AAPAConfigOptions, AAPAProcessingOptions, AAPAOtherOptions)
+            deze kunnen apart worden gebruikt of voor het initialiseren van AAPAOptions 
+                (options = AAPAOptions(*get_options_from_command_line(ArgumentOption.ALL))
+        ArgumentOption.CONFIG: geef alleen de AAPAConfigOptions
+        ArgumentOption.PROCES: geef alleen de AAPAProcesOptions
+        ArgumentOption.OTHER: geef alleen de AAPAOtherOptions
+    """
     try:
-        args = _get_arguments(command_line_arguments)
+        args = _get_arguments()
         return _get_options_from_commandline(args, which)
     except IndexError as E:
         print(f'Ongeldige opties aangegeven: {E}.')   
@@ -299,4 +322,3 @@ if __name__=="__main__":
     if other_options: 
         print(str(other_options))
     print(report_options(AAPAOptions.from_args(args)))
-    

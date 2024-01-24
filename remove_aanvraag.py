@@ -1,6 +1,6 @@
 
 from argparse import ArgumentParser
-from general.args import _copy_parser, _get_options_from_commandline, get_options_from_commandline
+from general.args import _copy_parser, _get_options_from_commandline
 from migrate.remover import AanvraagRemover
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.aapa_processor.aapa_processor import AAPARunnerContext
