@@ -1,7 +1,5 @@
 $BARBIE: rgb(224,33,138); /* e0218a */
 
-/* NOTE: margins are "top left bottom right" if 4 numbers */
-
 Tooltip {
     color: black 90%;
     background: wheat 90%;
@@ -11,7 +9,7 @@ Tooltip {
 AapaDirectoriesForm {
     height: 18;
     background: wheat;
-    margin: 1;
+    margin: 0;
     border: round purple;
 }
 
@@ -53,14 +51,15 @@ AapaSwitcher Switch {
 
 AapaButtons {
     align: center middle;
-    max-height: 10;
-    background: wheat;
-    border-top: double purple; 
-    width: 200;   
+    max-height: 9;
+    background:  wheat;
+    max-width: 150;   
+    min-width: 120;
 }
 
 AapaButtons ButtonBar {
-    width: 100;
+    width: 56;
+    max-width: 60;
     margin: 1 1 0 2;
 }
 
@@ -102,23 +101,26 @@ AapaButtons Label {
     color: black; 
 }
 
-# AapaButtons LabeledSwitch {
-#     align: left middle;
-#     margin: 1 0 0 0;
-# }
 AapaButtons .label {
     margin: 0;
     padding: 1;
 }
 
+AapaButtons RadioSetPanel {
+    max-width: 34;
+    min-width: 34;
+    padding: 1 0 0 0;
+}
+
 AapaButtons RadioSet {
     layout: horizontal;
     outline: solid purple;    
-    margin: 1 4 0 1;
+    margin: 0 2 0 2;
 }
 
 AapaButtons LabeledSwitchGroup{
     width: 42;
+    height: 7;
 }
 
 AapaButtons RadioButton {
@@ -130,7 +132,7 @@ AapaButtons RadioButton {
 }
 
 .report_button {
-    margin: 1 0 0 6;
+    margin: 1 0 0 8;
 }
 
 .report_button :hover {

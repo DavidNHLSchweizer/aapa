@@ -28,7 +28,8 @@ class OneDriveCoder:
         _SHARED_DOCUMENTS_PATH = rf'{self.ONEDRIVE}\{BASEPATH}\HBO-ICT Afstuderen - :DOCUMENTS:'
         # this is the only path we are interested in
         for translation in ['Documents', 'Documenten']:
-            if Path(_SHARED_DOCUMENTS_PATH.replace(self.DOCUMENTS, translation)).is_dir():
+            d =  _SHARED_DOCUMENTS_PATH.replace(self.ONEDRIVE, str(self.onedrive_root)).replace(self.DOCUMENTS, translation)
+            if Path(d).is_dir():
                 return translation
         return 'Documents'
     def decode_onedrive(self, path: str|Path, onedrive_root=None)->str:

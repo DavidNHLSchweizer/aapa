@@ -175,8 +175,6 @@ class RadioSetPanel(Static):
         with RadioSet(classes='radio_panel'):
             yield RadioButton('preview', id='preview', value=True)
             yield RadioButton('uitvoeren', id='uitvoeren')
-    def on_mount(self):
-        self.styles.width = self.query_one(RadioSet).styles.width
 
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
@@ -287,6 +285,7 @@ class AAPAApp(App):
             global_terminal = self._terminal
         return self._terminal
     def callback(self, result: bool):
+        log_debug('enabelcalbak')
         self.post_message(EnableButtons())
     def _init_onedrive_root(self):
         processing_options = get_options_from_commandline(ArgumentOption.PROCES)
@@ -321,12 +320,15 @@ class AAPAApp(App):
     async def action_mail(self):
         await self.run_AAPA(AAPAaction.MAIL)
     def refresh_last_action(self)->UndoLog:
+        log_debug('Refresh last')
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
             queries : UndoLogQueries = configuration.storage.queries('undo_logs')
             self.last_action = queries.last_undo_log()
+            log_debug(f'Refresh last {self.last_action}')
             return self.last_action
+        log_debug('Refresh last none')
         return None
     async def enable_buttons(self):
         self.refresh_last_action()
