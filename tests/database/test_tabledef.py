@@ -1,6 +1,6 @@
 import pytest
 import database.dbConst as dbc
-from database.tabledef import ColumnDefinition, ColumnFlags, TableDefinition, TableFlags
+from database.table_def import ColumnDefinition, ColumnFlags, TableDefinition, TableFlags
 
 TEST = 'test'
 TABLE2 = 'table2'

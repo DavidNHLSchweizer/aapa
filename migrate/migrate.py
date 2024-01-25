@@ -7,7 +7,7 @@ from process.aapa_processor.initialize import initialize_database
 
 class MigrationException(Exception): pass
 
-def migrate_version(database_name, old_version, new_version, debug=False, phase=42):    
+def migrate_version(database_name, old_version, new_version, debug=False, phase=42)->bool:    
     def remove_dot(s: str)->str:
         return s.replace('.', '')    
     migration_module_name = f'migrate.migrate_{remove_dot(old_version)}_{remove_dot(new_version)}'
@@ -47,7 +47,12 @@ def update_versie(database, new_version):
     create_version_info(database, dbv)
 
 def start_migratie(database_name: str, old_version: str, new_version: str, debug=False)->Database:
-    init_logging(f'migrate{old_version.replace(".","_")}-{new_version.replace(".","_")}.log', debug=debug)    
+    def underscorify(s: str, replace_chars: str=".  	")->str:
+        result = s
+        for char in replace_chars:
+            result = result.replace(char,'_')
+        return result
+    init_logging(f'migrate{underscorify(old_version)}-{underscorify(new_version)}.log', debug=debug)    
     if not (database := init_database(database_name, old_version)):
         return None
     print(f'Migrating database {database_name} from version {old_version} to {new_version}.')

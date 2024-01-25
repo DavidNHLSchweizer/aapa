@@ -9,8 +9,9 @@ class BaseDirQueries(CRUDQueries):
     def is_basedir(self, directory: str|Path)->bool:    
         directory = str(directory)
         if not directory:
-            return False
+            return False        
         encoded = encode_path(directory)
+        log_debug(f'BDQ: {directory}->{encoded}')
         result = self.find_values(attributes='directory', values=encoded)
         log_debug(f'is_basedir: encoded: {encoded} dus {result != []}')
         return result != []

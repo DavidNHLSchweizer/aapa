@@ -24,6 +24,7 @@
             "args": [
                 "info",
                 "-debug",
+                "--onedrive=d:\\onedrive"
             ]
         },
         {
@@ -101,10 +102,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "scan",
+                "input",
                 "-debug",
                 "-preview",
-                "--excel=test_aanvragen_99.xlsx"                
+                "--onedrive=d:\\onedrive", 
+                "--input_options=FBI",               
             ]
         },
         {
@@ -169,7 +171,23 @@
             "justMyCode": true,
             "args": [
                 "-debug",
+                "--onedrive=d:\\onedrive",
+                "--input_options=FB",
             ]
-        }
+        },
+        {
+            "name": "Python: remove_aanvraag",
+            "type": "python",
+            "request": "launch",
+            "program": "remove_aanvraag.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-debug",
+                "-preview",
+                "--onedrive=d:\\onedrive",
+                "--aanvraag=205,206"
+            ]
+        },
     ]
 }

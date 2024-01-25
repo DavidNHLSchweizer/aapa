@@ -2,9 +2,10 @@ from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
-from data.roots import decode_onedrive, encode_onedrive
+from data.roots import decode_onedrive, encode_onedrive, get_onedrive_root, set_onedrive_root
+from data.storage.general.storage_const import StorageException
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
-from general.log import log_error, log_info, log_print, log_warning
+from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.config import ValueConvertor, config
 from process.aapa_processor.initialize import initialize_database, initialize_storage
 from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
@@ -21,15 +22,18 @@ class OnedrivePathValueConvertor(ValueConvertor):
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
 def init_config():
+    config.register('configuration', 'database', OnedrivePathValueConvertor)
     config.init('configuration', 'database', DEFAULTDATABASE)
     config.register('configuration', 'root', OnedrivePathValueConvertor)
     config.register('configuration', 'output', OnedrivePathValueConvertor)
     config.register('configuration', 'input', OnedrivePathValueConvertor)
+    config.register('configuration', 'bbinput', OnedrivePathValueConvertor)    
     config.register('configuration', 'scanroot', OnedrivePathValueConvertor)
     config.init('configuration', 'root', '')
     config.init('configuration', 'output', '')  
     config.init('configuration', 'input', '')  
-    config.init('configuration', 'scanroot', r'')  
+    config.init('configuration', 'bbinput', '')  
+    config.init('configuration', 'scanroot', '')  
 init_config()
 
 def verifyRecreate():
@@ -57,6 +61,7 @@ class AAPAConfiguration:
             config.set('configuration', 'database', database) 
         else:
             database = config.get('configuration','database') 
+        log_info(f'database: {database}')
         return from_main_path(path_with_suffix(database, '.db'))
     def __initialize_database(self, recreate: bool)->bool:
         try:
@@ -70,12 +75,14 @@ class AAPAConfiguration:
                     log_error(err_msg)
                     return False
             self.database = initialize_database(database, recreate)
-            self.storage  = initialize_storage(self.database)
             if not self.database or not self.database.connection:
                 self.validation_error = f'Database {database} gecorrumpeerd of ander probleem met database'
+                self.storage = None
                 return False
+            self.storage  = initialize_storage(self.database)
         except Exception as Mystery:
-            print(f'Error initializing database: {Mystery}')
+            log_error(f'Error initializing database: {Mystery}')
+            self.storage = None
             return False
         return True
     def __prepare_storage_roots(self, preview: bool):
@@ -83,7 +90,7 @@ class AAPAConfiguration:
         # (stored in the output_directory) are created with the wrong root
         # this will cause problems later on
         if not preview:
-            self.storage.add_file_root(str(self.root))
+            self.storage.add_file_root(str(encode_onedrive(self.root)))
         if created_directory(self.output_directory):
             log_print(f'Map {self.output_directory} aangemaakt.')
         self.storage.add_file_root(str(self.output_directory))
@@ -102,7 +109,15 @@ class AAPAConfiguration:
         elif not test_directory_exists(self.output_directory):
             log_warning(f'Output directory "{self.output_directory}" voor aanvragen bestaat niet. Wordt aangemaakt.')
         if valid:
-            self.__prepare_storage_roots(preview)
+            try:
+                self.__prepare_storage_roots(preview=preview)
+            except Exception as E:
+                err_msg = f'Fout bij initialisatie database-verbindingslaag'
+                if not isinstance(E, AttributeError):
+                    err_msg += f': {E}'
+                self.validation_error = err_msg + '.'
+                valid = False
+                return False
             return True
         else:
             self.validation_error = f'Directories voor aanvragen en/of nieuwe beoordelingsformulieren niet ingesteld.'
@@ -141,14 +156,18 @@ class AAPAConfiguration:
     def __initialize_directories_part(self, processing_options: AAPAProcessingOptions)->bool:
         return self.__initialize_directories(preview=processing_options.preview)
     def initialize(self, processing_options: AAPAProcessingOptions, part = PART.BOTH)->bool:
+        if processing_options.onedrive:
+            set_onedrive_root(processing_options.onedrive)
+            log_debug(f'Using alternate onedrive root: [{get_onedrive_root()}]')
         match part:
             case AAPAConfiguration.PART.DATABASE:
-                return self.__initialize_database_part(processing_options)
+                result = self.__initialize_database_part(processing_options)
             case AAPAConfiguration.PART.DIRECTORIES:
-                return self.__initialize_directories_part(processing_options)
+                result = self.__initialize_directories_part(processing_options)
             case AAPAConfiguration.PART.BOTH:
                 db_valid = self.__initialize_database_part(processing_options) 
                 dir_valid = self.__initialize_directories_part(processing_options)
-                return db_valid and dir_valid
+                result = db_valid and dir_valid
+        return result
         # if self.options.history_file is not None:
         #     self.options.history_file = path_with_suffix(self.__get_history_file(self.options.history_file), '.xlsx')

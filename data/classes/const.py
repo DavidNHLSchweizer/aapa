@@ -58,7 +58,7 @@ class MijlpaalType(IntEnum):
     ONDERZOEKS_VERSLAG  = 3
     TECHNISCH_VERSLAG   = 4
     EIND_VERSLAG        = 5
-    PRODUCT_BEOORDELING = 6.
+    PRODUCT_BEOORDELING = 6
     PRESENTATIE         = 7
     EINDBEOORDELING     = 8
     def default_filetype(self)->FileType:

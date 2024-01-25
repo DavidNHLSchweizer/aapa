@@ -33,3 +33,4 @@ def find_onedrive_path(resource_value: str)->str:
     except ValueError as VE:
         log_error(__exception_str(VE, 'ValueError'))
         return None
+

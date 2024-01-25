@@ -1,8 +1,8 @@
 from pathlib import Path
-from data.roots import BASEPATH, OneDriveCoder, add_root, decode_path, encode_path, get_code, get_onedrive_root, get_roots, reset_roots
+from data.roots import BASEPATH, OneDriveCoder, add_root, decode_path, encode_path, get_code, get_expanded, get_onedrive_root, get_roots, reset_roots, set_onedrive_root
 
 onedrive_root = get_onedrive_root()
-onedrive_base = Path(onedrive_root).joinpath(BASEPATH)
+onedrive_base = onedrive_root.joinpath(BASEPATH)
 
 def test_root1():
     assert encode_path(onedrive_base) == ':ROOT1:'
@@ -69,16 +69,38 @@ def test_getroots_initial():
     roots = get_roots()
     assert roots == [(':ROOT1:', rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}')]
 
-def test_getroots_additional():
-    NODUP = 'no duplicates please'
+NODUP = 'no duplicates please'
+def _create_test_roots():
+    reset_roots()
     add_root(NODUP)
     hallo = onedrive_base.joinpath('hallo')
     add_root(hallo)       
     onedrive  = onedrive_root.joinpath('OneDrive')
     add_root(onedrive)
+    
+    
+def test_getroots_additional():
+    _create_test_roots()
     roots = get_roots()
     assert roots == [(':ROOT1:', rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}'), 
                      (':ROOT2:', NODUP), 
                      (':ROOT3:', rf':ROOT1:\hallo'),
                      (':ROOT4:', rf'{OneDriveCoder.ONEDRIVE}\OneDrive'),
                      ]
+    
+MOCKER = r'C:\MOCKER'
+def test_mock_onedrive():
+    _create_test_roots()
+    set_onedrive_root(MOCKER)
+    assert decode_path(':ROOT1:') == rf'{MOCKER}\{BASEPATH}'
+    assert decode_path(':ROOT2:') == NODUP
+    assert decode_path(':ROOT3:') == rf'{MOCKER}\{BASEPATH}\hallo'
+    assert decode_path(':ROOT4:') == rf'{MOCKER}\OneDrive'
+
+def test_expanded():
+    reset_roots()
+    add_root(rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}\Dinges')
+    add_root(rf'{OneDriveCoder.ONEDRIVE}\{BASEPATH}\Dinges\dingetje')
+    
+    assert get_expanded(':ROOT2:') == decode_path(':ROOT2:')
+    assert get_expanded(':ROOT3:') == decode_path(':ROOT3:')
