@@ -7,6 +7,7 @@ from data.storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists, summary_string
 from general.log import log_debug, log_error, log_print, log_warning
 from process.general.base_processor import FileProcessor
+from process.general.pdf_aanvraag_reader import PDFReaderException
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.scan.importing.aanvraag_validator import AanvraagValidator
 
@@ -51,6 +52,7 @@ class AanvraagImporter(FileProcessor):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
         log_print(f'Lezen {summary_string(filename, maxlen=100)}')
+        result = None
         try:      
             self.before_reading(preview)
             if self.multiple:
@@ -60,9 +62,7 @@ class AanvraagImporter(FileProcessor):
                         result.append(validated)
             elif (aanvraag := self.read_aanvraag(filename)):
                 result = self._validate(storage, filename, aanvraag)
-            else:
-                result = None
-        except ImportException as exception:
+        except (ImportException,PDFReaderException) as exception:
             log_warning(f'{exception}\n\t{ERRCOMMENT}.')           
         self.after_reading(preview)
         return result
