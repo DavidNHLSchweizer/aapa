@@ -1,6 +1,7 @@
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar, Unit
-from textual.widgets import Static, Label, Input, Button
+from textual.widgets import Static, Label, Input, Button, Switch
+from textual.containers import Horizontal
 from textual.events import Resize
 import logging
 
@@ -72,6 +73,14 @@ class LabeledInput(Static):
         width: 100%;
         max-width: 100%;
     }
+    LabeledInput Switch {
+        width: 8;
+        border: none;
+        margin: 1 0 0 0;
+        min-width: 5;
+        align: left middle;
+        height: 1;
+    }
     """
     def __init__(self, label_text, horizontal=False, width=None, button=False, **kwdargs):
         self._label_text = label_text
@@ -80,6 +89,8 @@ class LabeledInput(Static):
         self._button = button
         super().__init__('', **kwdargs, classes = LabeledInput.HORIZONTAL if horizontal else LabeledInput.VERTICAL)
     def compose(self)->ComposeResult:
+        # with Horizontal():
+        #     yield Switch(True)
         yield Label(self._label_text, id=self._label_id())
         if self._button:
             yield InputWithButton(id=self._input_id(), validators=self._validators, width=self._width)

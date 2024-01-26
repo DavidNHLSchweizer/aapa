@@ -7,9 +7,8 @@ from textual.widget import Widget
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.message import Message
-from textual.scrollbar import ScrollDown, ScrollUp
-from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton, Collapsible, TabbedContent, TabPane
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton, Switch, TabbedContent, TabPane, Label
+from textual.containers import Horizontal
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
 from data.roots import set_onedrive_root
@@ -51,6 +50,12 @@ ToolTips = {'root': 'De root-directory waar de studenten van een bepaald jaarcoh
             'scanroot-input-button': 'Kies de directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
             'bbinput-input-button': 'Kies de Blackboard Input directory',
             'input-input-button': 'Kies input bestand',
+            'lsg0-switch': 'Lees aanvragen uit de Excel-inputfile',
+            'lsg1-switch': 'Scan aanvraagbestanden',
+            'lsg2-switch': 'Importeer verslagen uit Blackboard-zipbestanden',
+            'lsg0-label': 'Lees aanvragen uit de Excel-inputfile',
+            'lsg1-label': 'Scan aanvraagbestanden',
+            'lsg2-label': 'Importeer verslagen uit Blackboard-zipbestanden',
             'scan': 'Importeer data volgens Input Options (aanvragen in Excel en/of root-directory/subdirectories en/of rapporten in Blackboard .ZIP-file)',
             'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
@@ -95,22 +100,19 @@ def windows_style(path: str)->str:
     if path:
         return path.replace('/', '\\')
     return ''
-
+MISSINGHELP = 'Help helaas niet ingevoerd...'
 class AapaDirectoriesForm(Static):
     scrolled = False
     def compose(self)->ComposeResult:
-    #     with VerticalScroll(id='vertico'):
-    #         with Collapsible(title='Root, Database, Blackboard input directory'):
-    #             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
-    #             yield LabeledInput('Database', id='database', validators=Required(), button=True)
-    #             yield LabeledInput('Blackboard input directory', id='bbinput', validators=Required(), button=True)
-    #         yield LabeledInput('Input file', id='input', button=True)
-    #         yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
         with TabbedContent():
             with TabPane('input', id='input_tab'):
-                yield LabeledInput('Input file', id='input', button=True)
+                yield LabeledInput('MS-Forms Excel file', id='input', button=True)
                 yield LabeledInput('Scan directory', id='scanroot', button=True)
-                yield LabeledInput('Blackboard input directory', id='bbinput', validators=Required(), button=True)
+                yield LabeledInput('Blackboard ZIP-files directory', id='bbinput', validators=Required(), button=True)
+                yield LabeledSwitchGroup(title='Input Opties',
+                                     labels=['MS-Forms Excel file', 'Scan Directory (PDF-files)', 'Blackboard ZIP-files'], 
+                                     horizontal=True,
+                                     id ='lsg')
             with TabPane('output', id='output_tab'):
                 yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
             with TabPane('basisconfiguratie', id='base_tab'):
@@ -119,10 +121,15 @@ class AapaDirectoriesForm(Static):
     def on_mount(self):
         self.border_title = 'AAPA Configuratie'
         for id in ['root', 'output', 'input', 'scanroot', 'bbinput', 'database']:
-            self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips[id]
+            self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips.get(id, MISSINGHELP)
         for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'scanroot-input-button', 'input-input-button', 'output-input-button']:
-            self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
+            self.query_one(f'#{id}', Button).tooltip = ToolTips.get(id, MISSINGHELP)
+        for id in ['lsg0-label', 'lsg1-label', 'lsg2-label']:
+            self.query_one(f'#{id}', Label).tooltip = ToolTips.get(id, MISSINGHELP)
+        for id in ['lsg0-switch', 'lsg1-switch', 'lsg2-switch']:
+            self.query_one(f'#{id}', Switch).tooltip = ToolTips.get(id, MISSINGHELP)
         self._load_config()
+        self.input_options = self._get_input_options()
     def _load_config(self):        
         for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
             self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
@@ -181,6 +188,29 @@ class AapaDirectoriesForm(Static):
                              database=self.query_one('#database', LabeledInput).input.value,
                              excel_in = self.query_one('#input', LabeledInput).input.value
                              )
+    @property
+    def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
+        trans_dict = {0: AAPAProcessingOptions.INPUTOPTIONS.EXCEL,
+                      1: AAPAProcessingOptions.INPUTOPTIONS.SCAN, 
+                      2: AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
+        result = set()
+        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
+        for index in trans_dict.keys():
+            if switch_group.get_value(index):
+                result.add(trans_dict[index])
+        return result
+    @input_options.setter
+    def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
+        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.EXCEL:0,
+                      AAPAProcessingOptions.INPUTOPTIONS.SCAN:1, 
+                      AAPAProcessingOptions.INPUTOPTIONS.BBZIP:2, }
+        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
+        for option in AAPAProcessingOptions.INPUTOPTIONS:
+            switch_group.set_value(trans_dict[option],option in value)
+    def _get_input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
+        processing_options: AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
+        return processing_options.input_options
+
     @params.setter
     def params(self, value: AAPATuiParams):
         self.query_one('#root', LabeledInput).input.value = value.root_directory
@@ -198,18 +228,16 @@ class RadioSetPanel(Static):
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
-            yield LabeledSwitchGroup(width=38,  title='Input Opties',
-                                     labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], 
-                                     id ='lsg')
-            with Vertical():
-                yield ButtonBar([ButtonDef('Input', variant= 'primary', id='scan', classes = 'not_next'),
-                             ButtonDef('Form', variant= 'primary', id='form', classes = 'not_next'),
-                             ButtonDef('Mail', variant= 'primary', id='mail', classes = 'not_next'), 
-                             ButtonDef('Undo', variant= 'error', id='undo')], id='main'
-                             )                 
-                with Horizontal():
-                    yield(RadioSetPanel())
-                    yield Button( 'Rapport', variant= 'default', id='report', classes = 'report_button') 
+            # yield LabeledSwitchGroup(width=38,  title='Input Opties',
+            #                          labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], 
+            #                          id ='lsg')
+            yield ButtonBar([ButtonDef('Input', variant= 'primary', id='scan', classes = 'not_next'),
+                            ButtonDef('Form', variant= 'primary', id='form', classes = 'not_next'),
+                            ButtonDef('Mail', variant= 'primary', id='mail', classes = 'not_next'), 
+                            ButtonDef('Undo', variant= 'error', id='undo')], id='main'
+                            )                 
+            yield(RadioSetPanel())
+            yield Button( 'Rapport', variant= 'default', id='report', classes = 'report_button') 
     def on_mount(self):
         log_debug ('mounting')
         button_bar = self.query_one('#main', ButtonBar)
@@ -218,7 +246,6 @@ class AapaButtons(Static):
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         for id in {'preview', 'uitvoeren'}:
             self.query_one(f'#{id}').tooltip = ToolTips[f'mode_{id}'] 
-        self.input_options = self._get_input_options()
         log_debug ('endmounting')
     def button(self, id: str)->Button:
         return self.query_one(f'#{id}', Button)
@@ -244,29 +271,7 @@ class AapaButtons(Static):
             self.query_one('#preview', RadioButton).value = True
         else:
             self.query_one('#uitvoeren', RadioButton).value= True
-    @property
-    def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
-        trans_dict = {0: AAPAProcessingOptions.INPUTOPTIONS.EXCEL,
-                      1: AAPAProcessingOptions.INPUTOPTIONS.SCAN, 
-                      2: AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
-        result = set()
-        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
-        for index in trans_dict.keys():
-            if switch_group.get_value(index):
-                result.add(trans_dict[index])
-        return result
-    @input_options.setter
-    def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
-        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.EXCEL:0,
-                      AAPAProcessingOptions.INPUTOPTIONS.SCAN:1, 
-                      AAPAProcessingOptions.INPUTOPTIONS.BBZIP:2, }
-        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
-        for option in AAPAProcessingOptions.INPUTOPTIONS:
-            switch_group.set_value(trans_dict[option],option in value)
-    def _get_input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
-        processing_options: AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
-        return processing_options.input_options
-        
+       
   
 class EnableButtons(Message): pass
 
@@ -376,13 +381,13 @@ class AAPAApp(App):
     def params(self)->AAPATuiParams:
         result = self.directories_form.params
         result.preview = self.query_one(AapaButtons).preview
-        result.input_options = self.query_one(AapaButtons).input_options
+        result.input_options = self.query_one(AapaDirectoriesForm).input_options
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
         self.directories_form.params = value
         self.query_one(AapaButtons).preview = value.preview                       
-        self.query_one(AapaButtons).input_options = value.input_options
+        self.query_one(AapaDirectoriesForm).input_options = value.input_options
     def action_toggle_preview(self):
         self.query_one(AapaButtons).toggle()
     def action_edit_root(self):

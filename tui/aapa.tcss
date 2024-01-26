@@ -7,7 +7,7 @@ Tooltip {
 }
 
 AapaDirectoriesForm {
-    height: 19;
+    height: 22;
     background: wheat;
     margin: 0;
     border: round purple;
@@ -34,6 +34,10 @@ AapaDirectoriesForm .small {
     background: darkgoldenrod;
 }
 
+AapaDirectoriesForm LabeledSwitchGroup{
+    height: 4;
+}
+
 AapaSwitcher {
     color: blue;
     width: 35;
@@ -51,8 +55,8 @@ AapaSwitcher Switch {
 
 AapaButtons {
     align: center middle;
-    max-height: 9;
-    background:  wheat;
+    max-height: 5;
+    background: wheat;
     max-width: 150;   
     min-width: 120;
 }
@@ -116,11 +120,6 @@ AapaButtons RadioSet {
     layout: horizontal;
     outline: solid purple;    
     margin: 0 2 0 2;
-}
-
-AapaButtons LabeledSwitchGroup{
-    width: 42;
-    height: 8;
 }
 
 AapaButtons RadioButton {

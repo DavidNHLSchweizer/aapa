@@ -61,19 +61,25 @@ class LabeledSwitchGroup(Static):
         background: wheat;
     }
     """
-    def __init__(self, labels: list[str], width = None, title='', **kwdargs):
+    def __init__(self, labels: list[str], width = None, title='', horizontal = False, **kwdargs):
         self._width = width
         self._labels = labels
+        self._horizontal = horizontal
         super().__init__(**kwdargs)
         self.border_title = title
+    def _switch_id(self, index: int)->str:
+        return f'{self.id}{str(index)}'
     def compose(self)->ComposeResult:
         maxlen = max([len(label) for label in self._labels]) 
-        with Vertical():
-            for label in self._labels:
-                yield LabeledSwitch(label.rjust(maxlen))
+        with Horizontal() if self._horizontal else Vertical():
+            for n, label in enumerate(self._labels):
+                if not self._horizontal:
+                    label = label.rjust(maxlen)
+                yield LabeledSwitch(label=label, width=len(label) + 10 if self._horizontal else maxlen, id=self._switch_id(n))
     def on_mount(self):
-        self.styles.max_height = len(self._labels) * 2 + 2
-        self.styles.min_height = self.styles.max_height
+        if not self._horizontal:
+            self.styles.max_height = len(self._labels) * 2 + 2
+            self.styles.min_height = self.styles.max_height
         if self._width:
             self.styles.width = Scalar(self._width, Unit.CELLS, Unit.WIDTH)
         else:
