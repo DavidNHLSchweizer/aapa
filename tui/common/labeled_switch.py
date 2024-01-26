@@ -72,7 +72,7 @@ class LabeledSwitchGroup(Static):
             for label in self._labels:
                 yield LabeledSwitch(label.rjust(maxlen))
     def on_mount(self):
-        self.styles.max_height = len(self._labels) * 2 + 1
+        self.styles.max_height = len(self._labels) * 2 + 2
         self.styles.min_height = self.styles.max_height
         if self._width:
             self.styles.width = Scalar(self._width, Unit.CELLS, Unit.WIDTH)

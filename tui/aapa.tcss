@@ -120,7 +120,7 @@ AapaButtons RadioSet {
 
 AapaButtons LabeledSwitchGroup{
     width: 42;
-    height: 7;
+    height: 8;
 }
 
 AapaButtons RadioButton {
