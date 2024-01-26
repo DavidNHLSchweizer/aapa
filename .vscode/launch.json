@@ -106,7 +106,7 @@
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive", 
-                "--input_options=S",               
+                "--input_options=F",               
             ]
         },
         {

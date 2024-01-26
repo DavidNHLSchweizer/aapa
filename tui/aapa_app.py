@@ -1,13 +1,15 @@
 from dataclasses import dataclass,field
 import random
 import logging
+from textual.events import Enter
 from textual.screen import Screen
 from textual.widget import Widget
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.message import Message
-from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton
-from textual.containers import Horizontal, Vertical
+from textual.scrollbar import ScrollDown, ScrollUp
+from textual.widgets import Header, Footer, Static, Button, RadioSet, RadioButton, Collapsible, TabbedContent, TabPane
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
 from data.roots import set_onedrive_root
@@ -37,14 +39,16 @@ def AAPArun_script(options: AAPAOptions)->bool:
         pop_console()
     return True
 
-ToolTips = {'root': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvragen',
+ToolTips = {'root': 'De root-directory waar de studenten van een bepaald jaarcohort worden opgeslagen',
             'output': 'De directory waar beoordelingsformulieren worden aangemaakt',
             'input': 'Kies (excel) input bestand met nieuwe aanvragen (optioneel)',
             'bbinput': 'De directory waar uit Blackboard afkomstige .ZIP-files worden gevonden',
+            'scanroot': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
             'database':'De database voor het programma',
             'root-input-button': 'Kies de root-directory',
             'output-input-button': 'Kies de output-directory',
             'database-input-button': 'Kies de database',
+            'scanroot-input-button': 'Kies de directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
             'bbinput-input-button': 'Kies de Blackboard Input directory',
             'input-input-button': 'Kies input bestand',
             'scan': 'Importeer data volgens Input Options (aanvragen in Excel en/of root-directory/subdirectories en/of rapporten in Blackboard .ZIP-file)',
@@ -93,28 +97,40 @@ def windows_style(path: str)->str:
     return ''
 
 class AapaDirectoriesForm(Static):
+    scrolled = False
     def compose(self)->ComposeResult:
-        with Vertical():
-            yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
-            yield LabeledInput('Database', id='database', validators=Required(), button=True)
-            yield LabeledInput('Blackboard input directory', id='bbinput', validators=Required(), button=True)
-            yield LabeledInput('Input file', id='input', button=True)
-            yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
+    #     with VerticalScroll(id='vertico'):
+    #         with Collapsible(title='Root, Database, Blackboard input directory'):
+    #             yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
+    #             yield LabeledInput('Database', id='database', validators=Required(), button=True)
+    #             yield LabeledInput('Blackboard input directory', id='bbinput', validators=Required(), button=True)
+    #         yield LabeledInput('Input file', id='input', button=True)
+    #         yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
+        with TabbedContent():
+            with TabPane('input', id='input_tab'):
+                yield LabeledInput('Input file', id='input', button=True)
+                yield LabeledInput('Scan directory', id='scanroot', button=True)
+                yield LabeledInput('Blackboard input directory', id='bbinput', validators=Required(), button=True)
+            with TabPane('output', id='output_tab'):
+                yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
+            with TabPane('basisconfiguratie', id='base_tab'):
+                yield LabeledInput('Root directory', id='root', validators=Required(), button=True)
+                yield LabeledInput('Database', id='database', validators=Required(), button=True)                
     def on_mount(self):
         self.border_title = 'AAPA Configuratie'
-        for id in ['root', 'output', 'input', 'bbinput', 'database']:
+        for id in ['root', 'output', 'input', 'scanroot', 'bbinput', 'database']:
             self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips[id]
-        for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'input-input-button', 'output-input-button']:
+        for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'scanroot-input-button', 'input-input-button', 'output-input-button']:
             self.query_one(f'#{id}', Button).tooltip = ToolTips[id]
         self._load_config()
     def _load_config(self):        
-        for id in {'root', 'output', 'database', 'bbinput', 'input'}:
+        for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
             self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
     def _store_config_id(self, id: str):
-        for id in {'root', 'output', 'database', 'bbinput', 'input'}:
+        for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
             config.set('configuration', id, self.query_one(f'#{id}', LabeledInput).value)
     def _store_config(self):
-        for id in {'root', 'output', 'database', 'bbinput', 'input'}:
+        for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(f'#{input_id}', LabeledInput).input
@@ -141,11 +157,14 @@ class AapaDirectoriesForm(Static):
             case 'root-input-button': self.edit_root()
             case 'output-input-button': self.edit_output_directory()
             case 'database-input-button': self.edit_database()
+            case 'scanroot-input-button': self.edit_scanroot()
             case 'bbinput-input-button': self.edit_bbinput_directory()
             case 'input-input-button': self.edit_inputfile()
         message.stop()
     def edit_root(self):
-        self._select_directory('root', 'Selecteer root directory voor aanvragen)')
+        self._select_directory('root', 'Selecteer root directory voor studenten)')
+    def edit_scanroot(self):
+        self._select_directory('scanroot', 'Selecteer root directory voor scannen nieuwe aanvragen)')
     def edit_output_directory(self):
         self._select_directory('output', 'Selecteer de output directory voor nieuwe formulieren')
     def edit_bbinput_directory(self):

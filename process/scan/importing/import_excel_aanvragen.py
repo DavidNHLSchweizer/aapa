@@ -225,7 +225,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         reader = ExcelReader(filename, self.ENQUETE_COLUMNS.values())
         if reader.error:
             log_error(f'{reader.error}')
-            return None
+            return {}
         all_aanvragen = {}
         for values in reader.read():
             if (id:=self._get_id(values)) <= self.last_id:

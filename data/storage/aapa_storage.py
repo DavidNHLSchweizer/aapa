@@ -93,9 +93,11 @@ class AAPAStorage:
             create_root(self.database, code, encoded_root)
             # self.commit()
         return code
-    def add_basedir(self, basedir: str|Path, year: int = datetime.datetime.today().year, period: str = '1', forms_version='?'):
+    def add_basedir(self, basedir: str|Path, year: int = datetime.datetime.today().year, period: str = '1', forms_version='?'):        
         self.add_file_root(basedir)
-        self.crud('base_dirs').create(BaseDir(year, period, forms_version, encode_path(str(basedir))))
+        new_basedir = BaseDir(year, period, forms_version, encode_path(str(basedir)))
+        self.queries('base_dirs').ensure_key(new_basedir)
+        self.crud('base_dirs').create(new_basedir)
     def commit(self):
         self.database.commit()
 
