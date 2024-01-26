@@ -179,7 +179,7 @@ class RadioSetPanel(Static):
 class AapaButtons(Static):
     def compose(self)->ComposeResult:
         with Horizontal():
-            yield LabeledSwitchGroup(width=42,  title='Input Options',
+            yield LabeledSwitchGroup(width=38,  title='Input Opties',
                                      labels=['MS-Forms Excel file', 'PDF-files (directory scan)', 'Blackboard ZIP-files'], 
                                      id ='lsg')
             with Vertical():
