@@ -7,7 +7,7 @@ Tooltip {
 }
 
 AapaDirectoriesForm {
-    height: 22;
+    height: 18;
     background: wheat;
     margin: 0;
     border: round purple;

@@ -1,9 +1,13 @@
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar, Unit
+from textual.color import Color
 from textual.widgets import Static, Label, Input, Button, Switch
 from textual.containers import Horizontal
 from textual.events import Resize
 import logging
+
+def selector_from_id(id: str)->str:
+    return f'#{id}'
 
 class InputWithButton(Static):
     DEFAULT_CSS = """
@@ -56,6 +60,9 @@ class LabeledInput(Static):
     COMPONENT_CLASSES = [HORIZONTAL, VERTICAL]
 
     DEFAULT_CSS = """
+    LabeledInput{
+        max-height: 4;
+    }
     LabeledInput.labeled_input--horizontal {
         layout: horizontal;
     }
@@ -76,22 +83,40 @@ class LabeledInput(Static):
     LabeledInput Switch {
         width: 8;
         border: none;
-        margin: 1 0 0 0;
+        margin: 0 2 0 1;
         min-width: 5;
         align: left middle;
         height: 1;
     }
+    .switch {
+        border: none;
+        min-width: 5;
+        align: right middle;
+    }
+    .switch:focus{
+         border: none; 
+         background: sandybrown;  
+    }
+    .switch:hover{
+        border: none;   
+    }
+
     """
-    def __init__(self, label_text, horizontal=False, width=None, button=False, **kwdargs):
+    def __init__(self, label_text, horizontal=False, width=None, button=False, switch=False, **kwdargs):
         self._label_text = label_text
         self._width = width
         self._validators = kwdargs.pop('validators', None)
         self._button = button
+        self._switch = switch
+        self._switch_width = 11 if self._switch else 0
         super().__init__('', **kwdargs, classes = LabeledInput.HORIZONTAL if horizontal else LabeledInput.VERTICAL)
     def compose(self)->ComposeResult:
-        # with Horizontal():
-        #     yield Switch(True)
-        yield Label(self._label_text, id=self._label_id())
+        if self._switch:
+            with Horizontal():
+                yield Switch(True, id = self._switch_id(),classes='switch')
+                yield Label(self._label_text, id=self._label_id())
+        else:
+            yield Label(self._label_text, id=self._label_id())
         if self._button:
             yield InputWithButton(id=self._input_id(), validators=self._validators, width=self._width)
         else:
@@ -101,21 +126,42 @@ class LabeledInput(Static):
             self.styles.width = Scalar(self._width, Unit.CELLS, Unit.WIDTH)
         else:
             self.styles.width = Scalar(100, Unit.WIDTH, Unit.PERCENT)
+        if self._switch:
+            switch = self.query_one(selector_from_id(self._switch_id()))
+            self.post_message(Switch.Changed(switch,switch.value))
     def _label_id(self)->str:
         return f'{self.id}-label'
     def _input_id(self)->str:
         return f'{self.id}-input'
+    def _switch_id(self)->str:
+        return f'{self.id}-switch'
+    def on_switch_changed(self,message: Switch.Changed):
+        label = self.query_one(selector_from_id(self._label_id()))
+        input = self.query_one(selector_from_id(self._input_id()))
+        if message.value:
+            label.styles.color = 'black'
+            input.styles.color = 'black'
+            input.styles.text_style = 'none'
+            input.disabled = False
+        else:
+            label.styles.color = 'gray'
+            input.styles.text_style = 'italic'
+            input.disabled = True
+    
     @property
     def input(self)->Input:
-        return self.query_one(f'#{self._input_id()}', Input)
+        return self.query_one(selector_from_id(self._input_id()), Input)
     def on_resize(self, message: Resize):        
-        if self.horizontal:
-            self.input.styles.width = message.size.width - len(self._label_text)-1 
+        if self.horizontal:            
+            self.input.styles.width = message.size.width - len(self._label_text)-1 - self._switch_width
         else:
-            self.input.styles.width = message.size.width 
+            self.input.styles.width = message.size.width - self._switch_width
     @property
     def input(self)->Input | InputWithButton:
-        return self.query_one(f'#{self._input_id()}')
+        return self.query_one(selector_from_id(self._input_id()))
+    @property
+    def switch(self)->Switch:
+        return self.query_one(selector_from_id(self._switch_id())) if self._switch else None
     @property
     def value(self)->str:
         return self.input.value
@@ -123,8 +169,14 @@ class LabeledInput(Static):
     def value(self, value: str):
         self.input.value = value
     @property
+    def switch_value(self)->str:
+        return self.switch.value
+    @switch_value.setter
+    def switch_value(self, value: str):
+        self.switch.value = value
+    @property
     def label(self)->Label:
-        return self.query_one(f'#{self._label_id()}', Label)
+        return self.query_one(selector_from_id(self._label_id()), Label)
     @property
     def horizontal(self)->bool:
         return LabeledInput.HORIZONTAL in self.classes 
@@ -143,12 +195,13 @@ if __name__ == "__main__":
                     ]  
         def compose(self) -> ComposeResult:
             yield InputWithButton(width=80, validators=Required())
-            yield LabeledInput('Labeling', True, width=60, validators=Required(), id='labeling')
-            yield LabeledInput('qbux234234 234234 234 234', False, width=50, validators=None, id='labeling2')
-            yield LabeledInput('Raveling', True, width=80, button=True, validators=Required(), id='labeling3')
-            yield LabeledInput('qbux234234 dsriugt6i3u4ui 234', False, width=90, button=True, validators=None, id='labeling4')
-            yield LabeledInput('Sexy mf', False, validators=Required(), button=True, id='labeling5')
-            yield LabeledInput('TRaveling Light', True, validators=Required(), button=True, id='labeling7')
+            yield LabeledInput('Labeling', False, width=100, validators=Required(), switch=True, id='labeling')
+            yield LabeledInput('Two Labeling', True, width=100, validators=Required(), switch=True, id='labeling2')
+            yield LabeledInput('qbux234234 234234 234 234', False, width=50, validators=None, id='labeling2bbb')
+            yield LabeledInput('Raveling', True, width=80, button=True, switch=True, validators=Required(), id='labeling3')
+            yield LabeledInput('qbux234234 dsriugt6i3u4ui 234', False, switch=True, width=90, button=True, validators=None, id='labeling4')
+            yield LabeledInput('Sexy mf', False, validators=Required(), switch=True, button=True, id='labeling5')
+            yield LabeledInput('TRaveling Light', True, validators=Required(), switch=True, button=True, id='labeling7')
             yield Button('De Button')
             yield Footer()
         def action_toggle_(self):           

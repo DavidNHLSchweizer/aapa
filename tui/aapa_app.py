@@ -50,12 +50,12 @@ ToolTips = {'root': 'De root-directory waar de studenten van een bepaald jaarcoh
             'scanroot-input-button': 'Kies de directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
             'bbinput-input-button': 'Kies de Blackboard Input directory',
             'input-input-button': 'Kies input bestand',
-            'lsg0-switch': 'Lees aanvragen uit de Excel-inputfile',
-            'lsg1-switch': 'Scan aanvraagbestanden',
-            'lsg2-switch': 'Importeer verslagen uit Blackboard-zipbestanden',
-            'lsg0-label': 'Lees aanvragen uit de Excel-inputfile',
-            'lsg1-label': 'Scan aanvraagbestanden',
-            'lsg2-label': 'Importeer verslagen uit Blackboard-zipbestanden',
+            # 'lsg0-switch': 'Lees aanvragen uit de Excel-inputfile',
+            # 'lsg1-switch': 'Scan aanvraagbestanden',
+            # 'lsg2-switch': 'Importeer verslagen uit Blackboard-zipbestanden',
+            'input-switch': 'Lees aanvragen uit de Excel-inputfile',
+            'scanroot-switch': 'Scan aanvraagbestanden',
+            'bbinput-switch': 'Importeer verslagen uit Blackboard-zipbestanden',
             'scan': 'Importeer data volgens Input Options (aanvragen in Excel en/of root-directory/subdirectories en/of rapporten in Blackboard .ZIP-file)',
             'form': 'Maak aanvraagformulieren',
             'mail': 'Zet mails klaar voor beoordeelde aanvragen',
@@ -106,13 +106,13 @@ class AapaDirectoriesForm(Static):
     def compose(self)->ComposeResult:
         with TabbedContent():
             with TabPane('input', id='input_tab'):
-                yield LabeledInput('MS-Forms Excel file', id='input', button=True)
-                yield LabeledInput('Scan directory', id='scanroot', button=True)
-                yield LabeledInput('Blackboard ZIP-files directory', id='bbinput', validators=Required(), button=True)
-                yield LabeledSwitchGroup(title='Input Opties',
-                                     labels=['MS-Forms Excel file', 'Scan Directory (PDF-files)', 'Blackboard ZIP-files'], 
-                                     horizontal=True,
-                                     id ='lsg')
+                yield LabeledInput('Importeer aanvragen in MS-Forms Excel file:', id='input', button=True, switch=True)
+                yield LabeledInput('Importeer aanvragen (PDF-files) in directory:', id='scanroot', button=True, switch=True)
+                yield LabeledInput('Importeer verslagen uit Blackboard (ZIP-files) in directory:', id='bbinput', validators=Required(), button=True, switch=True)
+                # yield LabeledSwitchGroup(title='Input Opties',
+                #                      labels=['MS-Forms Excel file', 'Scan Directory (PDF-files)', 'Blackboard ZIP-files'], 
+                #                      horizontal=True,
+                #                      id ='lsg')
             with TabPane('output', id='output_tab'):
                 yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
             with TabPane('basisconfiguratie', id='base_tab'):
@@ -124,9 +124,9 @@ class AapaDirectoriesForm(Static):
             self.query_one(f'#{id}', LabeledInput).input.tooltip = ToolTips.get(id, MISSINGHELP)
         for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'scanroot-input-button', 'input-input-button', 'output-input-button']:
             self.query_one(f'#{id}', Button).tooltip = ToolTips.get(id, MISSINGHELP)
-        for id in ['lsg0-label', 'lsg1-label', 'lsg2-label']:
-            self.query_one(f'#{id}', Label).tooltip = ToolTips.get(id, MISSINGHELP)
-        for id in ['lsg0-switch', 'lsg1-switch', 'lsg2-switch']:
+        # for id in ['root-i-label', 'lsg1-label', 'lsg2-label']:
+        #     self.query_one(f'#{id}', Label).tooltip = ToolTips.get(id, MISSINGHELP)
+        for id in ['bbinput-switch', 'scanroot-switch', 'input-switch']:
             self.query_one(f'#{id}', Switch).tooltip = ToolTips.get(id, MISSINGHELP)
         self._load_config()
         self.input_options = self._get_input_options()
@@ -190,23 +190,23 @@ class AapaDirectoriesForm(Static):
                              )
     @property
     def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
-        trans_dict = {0: AAPAProcessingOptions.INPUTOPTIONS.EXCEL,
-                      1: AAPAProcessingOptions.INPUTOPTIONS.SCAN, 
-                      2: AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
+        trans_dict = {'input-switch': AAPAProcessingOptions.INPUTOPTIONS.EXCEL,
+                      'scanroot-switch': AAPAProcessingOptions.INPUTOPTIONS.SCAN, 
+                      'bbinput-switch': AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
         result = set()
-        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
         for index in trans_dict.keys():
-            if switch_group.get_value(index):
+            value = self.query_one(f'#{index}', Switch).value
+            if value:
                 result.add(trans_dict[index])
         return result
     @input_options.setter
     def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
-        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.EXCEL:0,
-                      AAPAProcessingOptions.INPUTOPTIONS.SCAN:1, 
-                      AAPAProcessingOptions.INPUTOPTIONS.BBZIP:2, }
-        switch_group = self.query_one('#lsg', LabeledSwitchGroup)
+        trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.EXCEL: 'input-switch',
+                       AAPAProcessingOptions.INPUTOPTIONS.SCAN: 'scanroot-switch', 
+                      AAPAProcessingOptions.INPUTOPTIONS.BBZIP: 'bbinput-switch' }
         for option in AAPAProcessingOptions.INPUTOPTIONS:
-            switch_group.set_value(trans_dict[option],option in value)
+             switch = self.query_one(f'#{trans_dict[option]}', Switch)
+             switch.value = option in value
     def _get_input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
         processing_options: AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
         return processing_options.input_options
