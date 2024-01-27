@@ -106,8 +106,8 @@ class AapaDirectoriesForm(Static):
     def compose(self)->ComposeResult:
         with TabbedContent():
             with TabPane('input', id='input_tab'):
-                yield LabeledInput('Importeer aanvragen in MS-Forms Excel file:', id='input', button=True, switch=True)
-                yield LabeledInput('Importeer aanvragen (PDF-files) in directory:', id='scanroot', button=True, switch=True)
+                yield LabeledInput('Importeer aanvragen uit MS-Forms Excel file:', id='input', button=True, switch=True)
+                yield LabeledInput('Importeer aanvragen (PDF-files) uit directory:', id='scanroot', button=True, switch=True)
                 yield LabeledInput('Importeer verslagen uit Blackboard (ZIP-files) in directory:', id='bbinput', validators=Required(), button=True, switch=True)
                 # yield LabeledSwitchGroup(title='Input Opties',
                 #                      labels=['MS-Forms Excel file', 'Scan Directory (PDF-files)', 'Blackboard ZIP-files'], 
