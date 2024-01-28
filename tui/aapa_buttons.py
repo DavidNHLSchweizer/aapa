@@ -5,10 +5,10 @@ from data.classes.undo_logs import UndoLog
 from general.log import log_debug
 
 from tui.common.button_bar import ButtonBar, ButtonDef
-from tui.const import MISSINGHELP, ToolTips
+from tui.const import BASE_CSS, MISSINGHELP, ToolTips
 
 class AapaButtonsPanel(Static):
-    DEFAULT_CSS = """
+    DEFAULT_CSS = BASE_CSS + """
         AapaButtonsPanel {
             align: center middle;
             max-height: 5;

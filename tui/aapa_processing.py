@@ -2,7 +2,7 @@ from textual.app import ComposeResult
 from textual.widgets import Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal
 
-from tui.const import MISSINGHELP, AapaProcessingMode, ProcessingModeChanged, ToolTips
+from tui.const import BASE_CSS, MISSINGHELP, AapaProcessingMode, ProcessingModeChanged, ToolTips
 
 class RadioSetPanel(Static):
     def __init__(self, radioset_id: str, values: list[str], **kwdargs):
@@ -23,12 +23,12 @@ class ModePanel(RadioSetPanel):
         super().__init__(radioset_id='mode', values=['aanvragen', 'rapporten'], **kwdargs)
 
 class AapaProcessingForm(Static):
-    DEFAULT_CSS = """
+    DEFAULT_CSS = BASE_CSS + """
         AapaProcessingForm {
             height: 5;
             background: $background;
             margin: 0;
-            border: round $accent;
+            border: round $border;
         }
         AapaProcessingForm RadioSetPanel {
             max-width: 38;
@@ -37,7 +37,7 @@ class AapaProcessingForm(Static):
         }
         AapaProcessingForm RadioSet {
             layout: horizontal;
-            outline: solid $accent;    
+            outline: solid $border;    
             margin: 0 2 0 2;
         }
         AapaProcessingForm RadioButton {

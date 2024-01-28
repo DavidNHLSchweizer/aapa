@@ -3,7 +3,11 @@ from enum import Enum, auto
 from textual.message import Message
 from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, ArgumentOption, get_options_from_commandline
 
-
+BASE_CSS = """
+    $BARBIE: rgb(224,33,138); /* e0218a */
+    $background: wheat;
+    $border: purple;
+"""
 
 class AapaProcessingMode(Enum):
     AANVRAGEN = auto()

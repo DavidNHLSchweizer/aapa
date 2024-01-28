@@ -20,7 +20,7 @@ from tui.aapa_processing import AapaProcessingForm
 from general.config import config
 from tui.common.terminal import  TerminalScreen
 from tui.common.verify import DialogMessage, verify
-from tui.const import AAPATuiParams, ProcessingModeChanged, windows_style
+from tui.const import BASE_CSS, AAPATuiParams, ProcessingModeChanged, windows_style
 from tui.terminal_console import init_console, show_console
 import tkinter.filedialog as tkifd
 
@@ -50,7 +50,13 @@ class AAPAApp(App):
                 Binding('ctrl+b', 'edit_database', 'Kies database file', priority = True, show=False),
                 Binding('ctrl+q', 'barbie', '', priority = True, show=False),
                ]
-    CSS_PATH = ['aapa.tcss']
+    DEFAULT_CSS = BASE_CSS + """
+        Tooltip {
+            color: black 90%;
+            background: $background 90%;
+            border: solid $border;
+        }
+    """
     def __init__(self, **kwdargs):
         self.terminal_active = False
         self.last_action: UndoLog = None

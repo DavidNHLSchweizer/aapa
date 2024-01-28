@@ -5,16 +5,16 @@ from general.args import AAPAProcessingOptions, ArgumentOption, get_options_from
 from general.config import config
 from tui.common.labeled_input import LabeledInput
 from tui.common.required import Required
-from tui.const import MISSINGHELP, AAPATuiParams, AapaProcessingMode, ProcessingModeChanged, ToolTips, windows_style
+from tui.const import BASE_CSS, MISSINGHELP, AAPATuiParams, AapaProcessingMode, ProcessingModeChanged, ToolTips, windows_style
 import tkinter.filedialog as tkifd
 
 class AapaConfigurationForm(Static):
-    DEFAULT_CSS = """
+    DEFAULT_CSS = BASE_CSS + """
         AapaConfigurationForm {
             height: 18;
             background: $background;
             margin: 0;
-            border: round $accent;
+            border: round $border;
         }
         AapaConfigurationForm LabeledInput {
             margin: 0 0 0 1;
