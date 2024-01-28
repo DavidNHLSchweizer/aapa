@@ -1,5 +1,18 @@
+from enum import Enum, auto
+
+from textual.message import Message
 from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, ArgumentOption, get_options_from_commandline
 
+
+
+class AapaProcessingMode(Enum):
+    AANVRAGEN = auto()
+    RAPPORTEN = auto()  
+
+class ProcessingModeChanged(Message):
+    def __init__(self, mode: AapaProcessingMode):
+        self.mode = mode
+        super().__init__()
 
 MISSINGHELP = 'Help helaas niet ingevoerd...'
 
@@ -18,7 +31,6 @@ ToolTips = {'config':
                 'input-input-button': 'Kies input bestand',
                 'input-switch': 'Lees aanvragen uit de Excel-inputfile',
                 'scanroot-switch': 'Scan aanvraagbestanden',
-                'bbinput-switch': 'Importeer verslagen uit Blackboard-zipbestanden',
                 },
             'processing':
                 {

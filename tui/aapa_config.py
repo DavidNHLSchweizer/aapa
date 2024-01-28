@@ -5,7 +5,7 @@ from general.args import AAPAProcessingOptions, ArgumentOption, get_options_from
 from general.config import config
 from tui.common.labeled_input import LabeledInput
 from tui.common.required import Required
-from tui.const import MISSINGHELP, AAPATuiParams, ToolTips, windows_style
+from tui.const import MISSINGHELP, AAPATuiParams, AapaProcessingMode, ProcessingModeChanged, ToolTips, windows_style
 import tkinter.filedialog as tkifd
 
 class AapaConfigurationForm(Static):
@@ -37,12 +37,15 @@ class AapaConfigurationForm(Static):
         }
     """
     scrolled = False
+    def __init__(self):
+        self._mode = AapaProcessingMode.AANVRAGEN
+        super().__init__()
     def compose(self)->ComposeResult:
         with TabbedContent():
             with TabPane('input', id='input_tab'):
                 yield LabeledInput('Importeer aanvragen uit MS-Forms Excel file:', id='input', button=True, switch=True)
                 yield LabeledInput('Importeer aanvragen (PDF-files) uit directory:', id='scanroot', button=True, switch=True)
-                yield LabeledInput('Importeer verslagen uit Blackboard (ZIP-files) in directory:', id='bbinput', validators=Required(), button=True, switch=True)
+                yield LabeledInput('Importeer verslagen uit Blackboard (ZIP-files) in directory:', id='bbinput', validators=Required(), button=True)
             with TabPane('output', id='output_tab'):
                 yield LabeledInput('Output directory', id='output', validators=Required(), button=True)
             with TabPane('basisconfiguratie', id='base_tab'):
@@ -55,10 +58,11 @@ class AapaConfigurationForm(Static):
             self.query_one(f'#{id}', LabeledInput).input.tooltip = tooltips.get(id, MISSINGHELP)
         for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'scanroot-input-button', 'input-input-button', 'output-input-button']:
             self.query_one(f'#{id}', Button).tooltip = tooltips.get(id, MISSINGHELP)
-        for id in ['bbinput-switch', 'scanroot-switch', 'input-switch']:
+        for id in ['scanroot-switch', 'input-switch']:
             self.query_one(f'#{id}', Switch).tooltip = tooltips.get(id, MISSINGHELP)
         self._load_config()
         self.input_options = self._get_input_options()
+        self.enable_all()
     def _load_config(self):        
         for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
             self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
@@ -121,24 +125,35 @@ class AapaConfigurationForm(Static):
     def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
         trans_dict = {'input-switch': AAPAProcessingOptions.INPUTOPTIONS.EXCEL,
                       'scanroot-switch': AAPAProcessingOptions.INPUTOPTIONS.SCAN, 
-                      'bbinput-switch': AAPAProcessingOptions.INPUTOPTIONS.BBZIP, }
+                      }
         result = set()
         for index in trans_dict.keys():
             value = self.query_one(f'#{index}', Switch).value
             if value:
                 result.add(trans_dict[index])
-        return result
+        return self._match_options_to_processing_mode(result)
     @input_options.setter
     def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
         trans_dict = {AAPAProcessingOptions.INPUTOPTIONS.EXCEL: 'input-switch',
                        AAPAProcessingOptions.INPUTOPTIONS.SCAN: 'scanroot-switch', 
-                      AAPAProcessingOptions.INPUTOPTIONS.BBZIP: 'bbinput-switch' }
-        for option in AAPAProcessingOptions.INPUTOPTIONS:
+                      }
+        value = self._match_options_to_processing_mode(value)
+        for option in {AAPAProcessingOptions.INPUTOPTIONS.EXCEL, AAPAProcessingOptions.INPUTOPTIONS.SCAN}:
              switch = self.query_one(f'#{trans_dict[option]}', Switch)
              switch.value = option in value
+    def _match_options_to_processing_mode(self, value: set[AAPAProcessingOptions.INPUTOPTIONS])->set[AAPAProcessingOptions.INPUTOPTIONS]:
+        if not value:
+            return value
+        match self.processing_mode:
+            case AapaProcessingMode.AANVRAGEN:
+                value.discard(AAPAProcessingOptions.INPUTOPTIONS.BBZIP)
+            case AapaProcessingMode.RAPPORTEN:
+                value.discard(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
+                value.discard(AAPAProcessingOptions.INPUTOPTIONS.SCAN)
+        return value
     def _get_input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
         processing_options: AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
-        return processing_options.input_options
+        return self._match_options_to_processing_mode(processing_options.input_options)
     @params.setter
     def params(self, value: AAPATuiParams):
         self.query_one('#root', LabeledInput).input.value = value.root_directory
@@ -146,3 +161,31 @@ class AapaConfigurationForm(Static):
         self.query_one('#output', LabeledInput).input.value = value.output_directory
         self.query_one('#database', LabeledInput).input.value = value.database
         self.query_one('#input', LabeledInput).input.value = value.excel_in
+    def _enable_input(self, id: str, value: bool):
+        input_widget = self.query_one(f'#{id}', LabeledInput)
+        input_widget.disabled = not value
+        input_widget.visible = value                
+    def enable_all(self):
+        output_tab = self.query_one('#output_tab')
+        input = self.query_one('#input', LabeledInput)
+        bbinput = self.query_one('#bbinput', LabeledInput)
+        match self._mode:
+            case AapaProcessingMode.AANVRAGEN:
+                self._enable_input('input', True)
+                self._enable_input('scanroot', True)
+                self._enable_input('bbinput', False)
+                output_tab.disabled = False
+
+            case AapaProcessingMode.RAPPORTEN:
+                self._enable_input('input', False)
+                self._enable_input('scanroot', False)
+                self._enable_input('bbinput', True)
+                output_tab.disabled = True
+        
+    @property 
+    def processing_mode(self)->AapaProcessingMode:
+        return self._mode
+    @processing_mode.setter
+    def processing_mode(self, value: AapaProcessingMode):
+        self._mode = value
+        self.enable_all()

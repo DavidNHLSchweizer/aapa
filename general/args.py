@@ -97,7 +97,7 @@ class AAPAProcessingOptions:
                     
     def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.SCAN,INPUTOPTIONS.EXCEL}, onedrive=None):
         self.actions = actions
-        self.input_options = input_options
+        self.input_options:set[self.INPUTOPTIONS] = input_options
         self.preview = preview
         self.force   = force
         self.debug   = debug

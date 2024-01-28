@@ -22,7 +22,7 @@ from tui.common.button_bar import ButtonBar, ButtonDef
 from general.config import config
 from tui.common.terminal import  TerminalScreen
 from tui.common.verify import DialogMessage, verify
-from tui.const import AAPATuiParams, ToolTips, windows_style
+from tui.const import AAPATuiParams, ProcessingModeChanged, ToolTips, windows_style
 from tui.terminal_console import init_console, show_console
 import tkinter.filedialog as tkifd
 
@@ -140,33 +140,35 @@ class AAPAApp(App):
                                            confirmoverwrite=True))):
             await self.run_AAPA(AAPAaction.REPORT,filename=filename)
     @property 
-    def directories_form(self)->AapaConfigurationForm:
+    def config_form(self)->AapaConfigurationForm:
         return self.query_one(AapaConfigurationForm)
     @property 
     def params(self)->AAPATuiParams:
-        result = self.directories_form.params
+        result = self.config_form.params
         result.preview = self.query_one(AapaProcessingForm).preview
         result.input_options = self.query_one(AapaConfigurationForm).input_options
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
-        self.directories_form.params = value
+        self.config_form.params = value
         self.query_one(AapaProcessingForm).preview = value.preview                       
         self.query_one(AapaConfigurationForm).input_options = value.input_options
     def action_toggle_preview(self):
         self.query_one(AapaProcessingForm).toggle()
     def action_edit_root(self):
-        self.directories_form.edit_root()
+        self.config_form.edit_root()
     def action_edit_forms(self):
-        self.directories_form.edit_output_directory()
+        self.config_form.edit_output_directory()
     def action_edit_database(self):
-        self.directories_form.edit_database()
+        self.config_form.edit_database()
     def action_einde(self):
         self.exit()
     def _animate_widget_attribute(self, widget: Widget, attribute, target, duration):
         result = getattr(widget.styles, attribute, None)
         widget.styles.animate(attribute, target, duration = duration*(1+ random.random()))
         return result
+    def on_processing_mode_changed(self, message: ProcessingModeChanged):
+        self.config_form.processing_mode = message.mode      
     def action_barbie(self):
         BARBIE = '#e0218a'
         self.barbie = not self.barbie
