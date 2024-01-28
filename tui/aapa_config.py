@@ -14,7 +14,7 @@ class AapaConfigurationForm(Static):
             height: 18;
             background: $background;
             margin: 0;
-            border: round purple;
+            border: round $accent;
         }
         AapaConfigurationForm LabeledInput {
             margin: 0 0 0 1;

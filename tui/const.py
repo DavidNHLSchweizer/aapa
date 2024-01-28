@@ -18,19 +18,19 @@ MISSINGHELP = 'Help helaas niet ingevoerd...'
 
 ToolTips = {'config': 
                 {'root': 'De root-directory waar de studenten van een bepaald jaarcohort worden opgeslagen',
-                'output': 'De directory waar beoordelingsformulieren worden aangemaakt voor aanvragen',
-                'input': 'Kies (excel) input bestand met nieuwe aanvragen (optioneel)',
-                'bbinput': 'De directory waar uit Blackboard afkomstige .ZIP-files worden gevonden',
-                'scanroot': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
-                'database':'De database voor het programma',
                 'root-input-button': 'Kies de root-directory',
+                'output': 'De directory waar beoordelingsformulieren worden aangemaakt voor aanvragen',
                 'output-input-button': 'Kies de output-directory',
-                'database-input-button': 'Kies de database',
-                'scanroot-input-button': 'Kies de directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
-                'bbinput-input-button': 'Kies de Blackboard Input directory',
+                'input': 'Kies (excel) input bestand met nieuwe aanvragen (optioneel)',
                 'input-input-button': 'Kies input bestand',
                 'input-switch': 'Lees aanvragen uit de Excel-inputfile',
+                'bbinput': 'De directory waar uit Blackboard afkomstige .ZIP-files worden gevonden',
+                'bbinput-input-button': 'Kies de Blackboard Input directory',
+                'scanroot': 'De directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
+                'scanroot-input-button': 'Kies de directory waarbinnen gezocht wordt naar (nieuwe) aanvragen', 
                 'scanroot-switch': 'Scan aanvraagbestanden',
+                'database':'De database voor het programma',
+                'database-input-button': 'Kies de database',
                 },
             'processing':
                 {

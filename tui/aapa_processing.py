@@ -28,7 +28,7 @@ class AapaProcessingForm(Static):
             height: 5;
             background: $background;
             margin: 0;
-            border: round purple;
+            border: round $accent;
         }
         AapaProcessingForm RadioSetPanel {
             max-width: 38;
@@ -37,7 +37,7 @@ class AapaProcessingForm(Static):
         }
         AapaProcessingForm RadioSet {
             layout: horizontal;
-            outline: solid purple;    
+            outline: solid $accent;    
             margin: 0 2 0 2;
         }
         AapaProcessingForm RadioButton {
