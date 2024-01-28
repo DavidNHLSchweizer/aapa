@@ -22,8 +22,6 @@ class ExcelReader:
             for column,expected_column in zip(self.columns, expected_columns):
                 if column.lower() != expected_column.lower():
                     return f'Onverwachte kolom-header: {column} in {self.xls_name}. Verwachte kolommen:\n\t{expected_columns}'
-            if nrows(self.dataframe) == 0:
-                return f'Niets om te importeren in {self.xls_name}.'
             return ''
         except Exception as E:
             return f'Onverwachte fout in Excel sheet {self.xls_name}: {E}'

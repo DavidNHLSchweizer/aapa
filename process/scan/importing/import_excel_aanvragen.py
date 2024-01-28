@@ -16,6 +16,7 @@ from data.storage.queries.aanvragen import AanvraagQueries
 from data.storage.queries.studenten import StudentQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_print, log_warning, log_info
+from general.pdutil import nrows
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.config import IntValueConvertor, config
@@ -225,6 +226,9 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         reader = ExcelReader(filename, self.ENQUETE_COLUMNS.values())
         if reader.error:
             log_error(f'{reader.error}')
+            return {}
+        if nrows(reader.dataframe) == 0:
+            log_warning(f'Niets om te importeren in {filename}.')
             return {}
         all_aanvragen = {}
         for values in reader.read():
