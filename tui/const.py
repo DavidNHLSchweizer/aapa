@@ -7,6 +7,13 @@ BASE_CSS = """
     $BARBIE: rgb(224,33,138); /* e0218a */
     $background: wheat;
     $border: purple;
+
+    AAPAApp Tooltip {
+        color: black 90%;
+        background: $background 90%;
+        border: solid $border;
+    }
+
 """
 
 class AapaProcessingMode(Enum):
