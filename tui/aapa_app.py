@@ -50,13 +50,7 @@ class AAPAApp(App):
                 Binding('ctrl+b', 'edit_database', 'Kies database file', priority = True, show=False),
                 Binding('ctrl+q', 'barbie', '', priority = True, show=False),
                ]
-    DEFAULT_CSS = BASE_CSS + """
-        Tooltip {
-            color: black 90%;
-            background: $background 90%;
-            border: solid $border;
-        }
-    """
+    DEFAULT_CSS = BASE_CSS
     def __init__(self, **kwdargs):
         self.terminal_active = False
         self.last_action: UndoLog = None
