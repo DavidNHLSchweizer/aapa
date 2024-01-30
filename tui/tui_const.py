@@ -58,7 +58,6 @@ class AAPATuiParams:
     def __init__(self, root_directory: str = '', output_directory: str = '', database: str = '', excel_in: str = '',
                  bbinput_directory: str = '', preview: bool = True, input_options: set[AAPAProcessingOptions.INPUTOPTIONS] = set(), 
                  processing_mode= AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN):
-                #  set[AAPAProcessingOptions.PROCESSINGMODE] = set()):
         self.root_directory = root_directory
         self.output_directory = output_directory
         self.database = database
