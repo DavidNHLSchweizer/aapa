@@ -20,7 +20,7 @@ from tui.aapa_processing import AapaProcessingForm
 from general.config import config
 from tui.common.terminal import  TerminalScreen
 from tui.common.verify import DialogMessage, verify
-from tui.const import BASE_CSS, AAPATuiParams, ProcessingModeChanged, windows_style
+from tui.tui_const import BASE_CSS, AAPATuiParams, ProcessingModeChanged, windows_style
 from tui.terminal_console import init_console, show_console
 import tkinter.filedialog as tkifd
 
@@ -145,12 +145,14 @@ class AAPAApp(App):
         result = self.config_form.params
         result.preview = self.query_one(AapaProcessingForm).preview
         result.input_options = self.query_one(AapaConfigurationForm).input_options
+        result.processing_mode = self.query_one(AapaConfigurationForm).processing_mode
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
         self.config_form.params = value
         self.query_one(AapaProcessingForm).preview = value.preview                       
         self.query_one(AapaConfigurationForm).input_options = value.input_options
+        self.query_one(AapaConfigurationForm).processing_mode = value.processing_mode
     def action_toggle_preview(self):
         self.query_one(AapaProcessingForm).toggle()
     def action_edit_root(self):

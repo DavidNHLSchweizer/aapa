@@ -1,8 +1,9 @@
 from textual.app import ComposeResult
-from textual.widgets import Static, Button, RadioSet, RadioButton
+from textual.widgets import Static, RadioSet, RadioButton
 from textual.containers import Horizontal
+from general.args import AAPAProcessingOptions
 
-from tui.const import BASE_CSS, MISSINGHELP, AapaProcessingMode, ProcessingModeChanged, ToolTips
+from tui.tui_const import BASE_CSS, MISSINGHELP, ProcessingModeChanged, ToolTips
 
 class RadioSetPanel(Static):
     def __init__(self, radioset_id: str, values: list[str], **kwdargs):
@@ -65,17 +66,17 @@ class AapaProcessingForm(Static):
         else:
             self.query_one('#uitvoeren', RadioButton).value= True
     @property
-    def processing_mode(self)->AapaProcessingMode:
+    def processing_mode(self)->AAPAProcessingOptions.PROCESSINGMODE:       
         if self.query_one('#aanvragen', RadioButton).value == True:
-            return AapaProcessingMode.AANVRAGEN
+            return AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN
         elif self.query_one('#rapporten', RadioButton).value == True:
-            return AapaProcessingMode.RAPPORTEN
+            return AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN
     @processing_mode.setter
-    def processing_mode(self, value: AapaProcessingMode):
+    def processing_mode(self, value: AAPAProcessingOptions.PROCESSINGMODE):
         match value:
-            case AapaProcessingMode.AANVRAGEN:
+            case AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN:
                 self.query_one('#aanvragen', RadioButton).value = True
-            case AapaProcessingMode.RAPPORTEN:
+            case AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN:
                 self.query_one('#rapporten', RadioButton).value = True
     def on_radio_set_changed(self, message:RadioSet.Changed):
         if message.radio_set.id == 'mode':

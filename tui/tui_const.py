@@ -1,7 +1,6 @@
-from enum import Enum, auto
-
 from textual.message import Message
 from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, ArgumentOption, get_options_from_commandline
+from general.log import log_debug
 
 BASE_CSS = """
     $BARBIE: rgb(224,33,138); /* e0218a */
@@ -16,12 +15,8 @@ BASE_CSS = """
 
 """
 
-class AapaProcessingMode(Enum):
-    AANVRAGEN = auto()
-    RAPPORTEN = auto()  
-
 class ProcessingModeChanged(Message):
-    def __init__(self, mode: AapaProcessingMode):
+    def __init__(self, mode: AAPAProcessingOptions.PROCESSINGMODE):
         self.mode = mode
         super().__init__()
 
@@ -61,7 +56,9 @@ ToolTips = {'config':
 
 class AAPATuiParams:
     def __init__(self, root_directory: str = '', output_directory: str = '', database: str = '', excel_in: str = '',
-                 bbinput_directory: str = '', preview: bool = True, input_options: set[AAPAProcessingOptions.INPUTOPTIONS] = set()):
+                 bbinput_directory: str = '', preview: bool = True, input_options: set[AAPAProcessingOptions.INPUTOPTIONS] = set(), 
+                 processing_mode= AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN):
+                #  set[AAPAProcessingOptions.PROCESSINGMODE] = set()):
         self.root_directory = root_directory
         self.output_directory = output_directory
         self.database = database
@@ -69,6 +66,7 @@ class AAPATuiParams:
         self.bbinput_directory = bbinput_directory
         self.preview=preview
         self.input_options = input_options
+        self.processing_mode = processing_mode
     def get_options(self, action: AAPAaction, report_filename = '')->AAPAOptions:
         def _get_config_options(report_filename: str)->AAPAConfigOptions:
             result = get_options_from_commandline(ArgumentOption.CONFIG)
@@ -77,18 +75,22 @@ class AAPATuiParams:
             result.database_file=self.database
             result.report_filename=report_filename
             result.excel_in = self.excel_in
+            result.bbinput_directory = self.bbinput_directory
             return result
         def _get_processing_options(action: AAPAaction)->AAPAProcessingOptions:
             result = get_options_from_commandline(ArgumentOption.PROCES)
             result.actions=[action]
             result.preview=self.preview
             result.input_options = self.input_options
+            result.processing_mode = {self.processing_mode}
             return result
         def _get_other_options()->AAPAOtherOptions:
             return get_options_from_commandline(ArgumentOption.OTHER) 
-        return AAPAOptions(config_options=_get_config_options(report_filename),
+        result= AAPAOptions(config_options=_get_config_options(report_filename),
                            processing_options=_get_processing_options(action),
                            other_options=_get_other_options())
+        log_debug(f'AAPATuiParams.get_options: {result}')
+        return result
 
 def windows_style(path: str)->str:
     #because askdirectory/askfile returns a Posix-style path which causes trouble

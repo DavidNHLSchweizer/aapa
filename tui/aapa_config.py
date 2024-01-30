@@ -5,7 +5,7 @@ from general.args import AAPAProcessingOptions, ArgumentOption, get_options_from
 from general.config import config
 from tui.common.labeled_input import LabeledInput
 from tui.common.required import Required
-from tui.const import BASE_CSS, MISSINGHELP, AAPATuiParams, AapaProcessingMode, ProcessingModeChanged, ToolTips, windows_style
+from tui.tui_const import BASE_CSS, MISSINGHELP, AAPATuiParams, ToolTips, windows_style
 import tkinter.filedialog as tkifd
 
 class AapaConfigurationForm(Static):
@@ -38,7 +38,7 @@ class AapaConfigurationForm(Static):
     """
     scrolled = False
     def __init__(self):
-        self._mode = AapaProcessingMode.AANVRAGEN
+        self._processing_mode = AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN
         super().__init__()
     def compose(self)->ComposeResult:
         with TabbedContent():
@@ -145,9 +145,7 @@ class AapaConfigurationForm(Static):
         if not value:
             return value
         match self.processing_mode:
-            case AapaProcessingMode.AANVRAGEN:
-                value.discard(AAPAProcessingOptions.INPUTOPTIONS.BBZIP)
-            case AapaProcessingMode.RAPPORTEN:
+            case AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN:
                 value.discard(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
                 value.discard(AAPAProcessingOptions.INPUTOPTIONS.SCAN)
         return value
@@ -167,23 +165,25 @@ class AapaConfigurationForm(Static):
         input_widget.visible = value                
     def enable_all(self):
         output_tab = self.query_one('#output_tab')
-        match self._mode:
-            case AapaProcessingMode.AANVRAGEN:
+        match self._processing_mode:
+            case AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN:
                 self._enable_input('input', True)
                 self._enable_input('scanroot', True)
                 self._enable_input('bbinput', False)
                 output_tab.disabled = False
 
-            case AapaProcessingMode.RAPPORTEN:
+            case AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN:
                 self._enable_input('input', False)
                 self._enable_input('scanroot', False)
                 self._enable_input('bbinput', True)
                 output_tab.disabled = True
         
     @property 
-    def processing_mode(self)->AapaProcessingMode:
-        return self._mode
+    def processing_mode(self)->AAPAProcessingOptions.PROCESSINGMODE:
+        return self._processing_mode
     @processing_mode.setter
-    def processing_mode(self, value: AapaProcessingMode):
-        self._mode = value
+    def processing_mode(self, value: AAPAProcessingOptions.PROCESSINGMODE|set[AAPAProcessingOptions.PROCESSINGMODE]):
+        if isinstance(value,set):
+            value = AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in value else AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN
+        self._processing_mode = value
         self.enable_all()

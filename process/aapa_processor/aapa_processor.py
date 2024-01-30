@@ -68,22 +68,21 @@ class AAPAProcessor:
             #         stud_dir = queries.find_student_dir(student)
             #         file.write(";".join([str(student.id), student.full_name, student.stud_nr, str(student.status), encode_path(stud_dir.directory)])+"\n")
             if processing_options.no_processing():
-                return
+                return            
             if AAPAaction.INPUT in actions or AAPAaction.FULL in actions:
-                if AAPAProcessingOptions.INPUTOPTIONS.EXCEL in processing_options.input_options and configuration.config_options.excel_in:
-                    process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
-                if AAPAProcessingOptions.INPUTOPTIONS.SCAN in processing_options.input_options and (old_root := config.get('configuration', 'scanroot')): 
-                    process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
-                if AAPAProcessingOptions.INPUTOPTIONS.BBZIP in processing_options.input_options:
-                    log_info('BBZIP: not yet implemented', to_console=True)
-                        # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2021-2022', configuration.storage, preview=preview)    
-                # log_print(f'*** DIRECTORY 2022-2023')
-                # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2022-2023', configuration.storage, preview=preview)    
-                # log_print(f'*** DIRECTORY 2023-2024')
-                # detect_from_directory(r'C:\Users\e3528\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024', configuration.storage, preview=preview)    
+                if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
+                    if AAPAProcessingOptions.INPUTOPTIONS.EXCEL in processing_options.input_options and configuration.config_options.excel_in:
+                        process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
+                    if AAPAProcessingOptions.INPUTOPTIONS.SCAN in processing_options.input_options and (old_root := config.get('configuration', 'scanroot')): 
+                        process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
+                if AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN in processing_options.processing_mode:                    
+                    log_info(f'BBZIP {configuration.config_options.bbinput_directory}: not yet implemented', to_console=True)
                 # import_zipfile(r'./nova/Gradebook 2023-10-20.zip', 'dummy', storage=configuration.storage, preview=preview)
             if AAPAaction.FORM in actions or AAPAaction.FULL in actions:
-                process_forms(configuration.storage, configuration.output_directory, preview=preview)
+                if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
+                    process_forms(configuration.storage, configuration.output_directory, preview=preview)
+                if AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN in processing_options.processing_mode:
+                    log_info(f'BBZIP {configuration.config_options.bbinput_directory}: not yet implemented', to_console=True)
             #TODO: dit bijwerken if configuration.options.history_file:
             #     self.__read_history_file(configuration)
             if AAPAaction.MAIL in actions or AAPAaction.FULL in actions:

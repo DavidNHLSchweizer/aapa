@@ -33,7 +33,7 @@ class AAPAaction(Enum):
     def help_str(self):
         match self:
             case AAPAaction.NONE: return 'Geen actie [DEFAULT]'
-            case AAPAaction.INPUT: return 'Vind en importeer nieuwe aanvragen of verslagen (zie ook --input_options)'
+            case AAPAaction.INPUT: return 'Vind en importeer nieuwe aanvragen of verslagen (zie ook --input_options, --input_mode)'
             case AAPAaction.FORM: return 'Maak beoordelingsformulieren'
             case AAPAaction.MAIL: return 'Vind en verwerk beoordeelde aanvragen en zet feedbackmails klaar'
             case AAPAaction.FULL: return 'Volledig proces: scan + form + mail'
@@ -67,18 +67,18 @@ def _get_processing_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
-    parser.add_argument('-io', '--input_options', type=str, help='Input options: one or more of "S" (scan directory), "F" (Forms-Excel file), "B" (Blackboard zipfile).\nExample: "--input_options=SF".')
+    parser.add_argument('-io', '--input_options', type=str, choices=['S','F', 'SF'], default='S',help='Input opties: een of meer van "S" (scan directory [default]), "F" (Forms-Excel file).\Voorbeeld: "--input_options=SF".')
+    parser.add_argument('-pm', '--processing_mode', type=str, choices=['A','R', 'AR'], default='A',help='Processing mode: een of meer van "A" (aanvragen [default]), "R" (Rapporten).\nVoorbeeld: "--processing_mode=R".')
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 
 class AAPAProcessingOptions:
     class INPUTOPTIONS(Enum):
         SCAN= auto()
         EXCEL=auto()
-        BBZIP=auto()
         def __str__(self):
             _AS_STRS = {AAPAProcessingOptions.INPUTOPTIONS.SCAN: 'Scan directory (PDF-files)', 
                         AAPAProcessingOptions.INPUTOPTIONS.EXCEL: 'Import from MS-FORMS Excel-file',
-                        AAPAProcessingOptions.INPUTOPTIONS.BBZIP: 'Import ZIPfile(s) from Blackboard',}
+            }
             return _AS_STRS[self]
         @staticmethod
         def summary(values: set[AAPAProcessingOptions.INPUTOPTIONS])->str:
@@ -91,13 +91,35 @@ class AAPAProcessingOptions:
                     match ch:
                         case 'S': result.add(AAPAProcessingOptions.INPUTOPTIONS.SCAN)
                         case 'F': result.add(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
-                        case 'B': result.add(AAPAProcessingOptions.INPUTOPTIONS.BBZIP)
-                        case _: log_error(f'Ongeldige waarde voor input_options: {ch}. Geldige waarden zijn S, B, en F. Wordt genegeerd.' )
+                        case _: log_error(f'Ongeldige waarde voor input_options: {ch}. Geldige waarden zijn S en F. Wordt genegeerd.' )
             return result
-                    
-    def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.SCAN,INPUTOPTIONS.EXCEL}, onedrive=None):
+    class PROCESSINGMODE(Enum):
+        AANVRAGEN= auto()
+        RAPPORTEN =auto()
+        def __str__(self):
+            _AS_STRS = {AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN: 'Verwerk aanvragen', 
+                        AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN: 'Verwerk rapporten',
+            }
+            return _AS_STRS[self]
+        @staticmethod
+        def summary(values: set[AAPAProcessingOptions.PROCESSINGMODE])->str:
+            return ",".join([str(option) for option in values])        
+        @staticmethod
+        def from_str(s: str)->set[AAPAProcessingOptions.PROCESSINGMODE]:
+            result = set()
+            if s:
+                for ch in s.upper():
+                    match ch:
+                        case 'A': result.add(AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN)
+                        case 'R': result.add(AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN)
+                        case _: log_error(f'Ongeldige waarde voor processing_mode: {ch}. Geldige waarden zijn A en R. Wordt genegeerd.' )
+            return result
+    
+    
+    def __init__(self, actions: list[AAPAaction], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.EXCEL}, processing_mode = {PROCESSINGMODE.AANVRAGEN}, onedrive=None):
         self.actions = actions
         self.input_options:set[self.INPUTOPTIONS] = input_options
+        self.processing_mode:set[self.PROCESSINGMODE] = processing_mode
         self.preview = preview
         self.force   = force
         self.debug   = debug
@@ -107,6 +129,7 @@ class AAPAProcessingOptions:
     def __str__(self):
         result = f'ACTIONS: {AAPAaction.get_actions_str(self.actions)}\n'
         result = result + f'INPUT OPTIONS: {self.INPUTOPTIONS.summary(self.input_options)}'
+        result = result + f'PROCESSING MODE: {self.PROCESSINGMODE.summary(self.processing_mode)}'
         result = result + f'PREVIEW MODE: {self.preview}\n'
         result = result + f'DEBUG: {self.debug}  FORCE: {self.force}\n'
         if self.onedrive: 
@@ -121,7 +144,8 @@ class AAPAProcessingOptions:
                     result.append(a)
             return result
         return cls(actions=_get_actions(args.actions), preview=args.preview, 
-                   input_options = AAPAProcessingOptions.INPUTOPTIONS.from_str(args.input_options), 
+                   input_options = AAPAProcessingOptions.INPUTOPTIONS.from_str(args.input_options),
+                   processing_mode= AAPAProcessingOptions.PROCESSINGMODE.from_str(args.processing_mode),
                    force=args.force, debug=args.debug, onedrive=args.onedrive)
     def no_processing(self)->bool:
         return not any([a in self.actions for a in {AAPAaction.INPUT,AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
@@ -132,6 +156,8 @@ def _get_config_arguments(parser: argparse.ArgumentParser):
                         help='De rootdirectory voor het opslaan van nieuwe aanvragen of rapporten.\nAls geen directory wordt ingevoerd (-r=) wordt deze opgevraagd.')
     group.add_argument('-o', '--output', dest='output',  type=str, 
                         help='De directory voor het aanmaken en invullen van beoordelingsformulieren.\nAls geen directory wordt ingevoerd (-o=) wordt deze opgevraagd.')
+    group.add_argument('-bb', '--bbinput', dest='bbinput',  type=str, 
+                        help='De directory waar Blackboard .ZIP-files (voor invoer rapporten) worden gelezen.\nAls geen directory wordt ingevoerd (-bb=) wordt deze opgevraagd.')
     group.add_argument('-d', '--database', type=str, help='De naam van de databasefile om mee te werken.\nAls de naam niet wordt ingevoerd (-d=) wordt hij opgevraagd.\nIndien de databasefile niet bestaat wordt hij aangemaakt.')   
     group.add_argument('-rf', '--report_file', type=str, help='Bestandsnaam [.xlsx] voor actie "report". default: uit CONFIG.INI')
     group.add_argument('-x', '--excel_in', type=str, help='Bestandsnaam [.xlsx] voor actie "input" vanuit excel-bestand. Moet worden ingevoerd voor deze actie.')
@@ -139,7 +165,7 @@ def _get_config_arguments(parser: argparse.ArgumentParser):
     group.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
 
 class AAPAConfigOptions:
-    def __init__(self, root_directory: str, output_directory: str, database_file: str, 
+    def __init__(self, root_directory: str, output_directory: str, bbinput_directory: str, database_file: str, 
                  config_file:str=None, report_filename: str=None, migrate_dir: str=None, 
                  excel_in: str=None):
         def get_default(param: str, config_key: str)->str:
@@ -147,6 +173,7 @@ class AAPAConfigOptions:
         self.root_directory: str = get_default(root_directory, 'root')
         self.output_directory: str = get_default(output_directory, 'output')
         self.database_file: str = get_default(database_file, 'database')
+        self.bbinput_directory: str = get_default(bbinput_directory, 'bbinput')
         self.config_file: str = config_file
         self.report_filename: str = get_default(report_filename, 'filename')
         self.migrate_dir: str = migrate_dir
@@ -159,6 +186,8 @@ class AAPAConfigOptions:
             result = result + f'FORMULIEREN naar directory: {self.output_directory}\n'
         if self.database_file:
             result = result + f'DATABASE: {self.database_file}\n'
+        if self.bbinput_directory is not None:
+            result = result + f'BLACKBOARD input directory: {self.bbinput_directory}\n'
         if self.config_file: 
             result = result + f'laad alternatieve CONFIGURATIE {self.config_file}\n'
         if self.report_filename: 
@@ -170,7 +199,7 @@ class AAPAConfigOptions:
         return result + '.'
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAConfigOptions:
-        return cls(root_directory = args.root, output_directory = args.output, database_file = args.database, 
+        return cls(root_directory = args.root, output_directory = args.output, bbinput_directory=args.bbinput, database_file = args.database, 
                    config_file = args.config, report_filename = args.report_file, migrate_dir=args.migrate, 
                    excel_in=args.excel_in)
 
