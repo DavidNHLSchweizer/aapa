@@ -29,4 +29,7 @@ class MijlpaalDirectory(MijlpaalBase):
         return True
     def __gt__(self, value2: MijlpaalDirectory)->bool:
         return value2 is not None and self.directory > value2.directory
-
+    @staticmethod
+    def directory_name(mijlpaal_type: MijlpaalType, datum: datetime.datetime)->str:
+        beoordelen = ' Beoordelen' if not mijlpaal_type  in [MijlpaalType.PRODUCT_BEOORDELING, MijlpaalType.EINDBEOORDELING, MijlpaalType.AFSTUDEERZITTING] else ""
+        return f'{datetime.datetime.strftime(datum, "%Y-%m-%d")}{beoordelen} {str(mijlpaal_type).title()}'

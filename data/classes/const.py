@@ -61,6 +61,7 @@ class MijlpaalType(IntEnum):
     PRODUCT_BEOORDELING = 6
     PRESENTATIE         = 7
     EINDBEOORDELING     = 8
+    AFSTUDEERZITTING    = 9
     def default_filetype(self)->FileType:
         match self:
             case MijlpaalType.AANVRAAG: return FileType.AANVRAAG_PDF
@@ -73,7 +74,8 @@ class MijlpaalType(IntEnum):
         _MT_STRS = {MijlpaalType.UNKNOWN: '', MijlpaalType.AANVRAAG: 'aanvraag', MijlpaalType.PVA: 'plan van aanpak', 
                     MijlpaalType.ONDERZOEKS_VERSLAG: 'onderzoeksverslag', MijlpaalType.TECHNISCH_VERSLAG: 'technisch verslag',
                     MijlpaalType.EIND_VERSLAG: 'eindverslag', MijlpaalType.PRODUCT_BEOORDELING: 'productbeoordeling',
-                    MijlpaalType.PRESENTATIE: 'presentatie', MijlpaalType.EINDBEOORDELING: 'eindbeoordeling' }
+                    MijlpaalType.PRESENTATIE: 'presentatie', MijlpaalType.EINDBEOORDELING: 'eindbeoordeling', 
+                    MijlpaalType.AFSTUDEERZITTING: 'afstudeerzitting' }
         return _MT_STRS.get(self, _UNKNOWN)
     
 class AanvraagStatus(IntEnum):

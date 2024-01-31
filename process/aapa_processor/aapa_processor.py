@@ -1,20 +1,19 @@
 from datetime import datetime
-from data.roots import decode_path, encode_path
 from data.storage.queries.student_directories import StudentDirectoryQueries
-from general.fileutil import last_parts_file, path_with_suffix
+from general.fileutil import path_with_suffix
 from general.log import log_error, log_info, log_print, log_warning
 from process.aapa_processor.aapa_config import AAPAConfiguration
+from process.input.importing.import_bb_directory import import_bbdirectory
 from process.migrate.import_basedir import import_basedirs_XLS
 from process.migrate.import_studenten import import_studenten_XLS
 from process.report.report_student_directory import StudentDirectoryReporter
 from process.input.importing.detect_student_from_directory import detect_from_directory
-from process.input.importing.import_verslagen import import_zipfile
 from process.undo.undo_processor import undo_last
 from process.input.create_forms.create_diff_file import DifferenceProcessor
 from data.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.input.scan import process_directory, process_excel_file, process_forms
-from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, report_options
+from general.args import AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, report_options
 from general.versie import banner
 from general.config import config
 
@@ -75,8 +74,8 @@ class AAPAProcessor:
                         process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
                     if AAPAProcessingOptions.INPUTOPTIONS.SCAN in processing_options.input_options and (old_root := config.get('configuration', 'scanroot')): 
                         process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
-                if AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN in processing_options.processing_mode:                    
-                    log_info(f'BBZIP {configuration.config_options.bbinput_directory}: not yet implemented', to_console=True)
+                if AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN in processing_options.processing_mode: 
+                    import_bbdirectory(configuration.config_options.bbinput_directory, configuration.config_options.root_directory, configuration.storage, preview=preview)                    
                 # import_zipfile(r'./nova/Gradebook 2023-10-20.zip', 'dummy', storage=configuration.storage, preview=preview)
             if AAPAaction.FORM in actions or AAPAaction.FULL in actions:
                 if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:

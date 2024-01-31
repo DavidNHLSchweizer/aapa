@@ -62,6 +62,9 @@ class Names:
         else:
             return __title(name, ' ')
     @staticmethod
+    def is_tussen(w: str)->bool:
+        return re.match(Names.TUSSEN_PATTERN, w, re.IGNORECASE) is not None
+    @staticmethod
     def parsed(full_name: str)->ParsedName:
         if special_cases.contains(full_name):
             return special_cases.parsed_name(full_name)
