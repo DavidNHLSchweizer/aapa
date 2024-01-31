@@ -271,8 +271,23 @@ def get_roots(sorted=True)->list[tuple[str,str]]:
 def add_root(root_path: str|Path, code: str = None, nolog=False)->str:    
     return _roots.add(root_path, code=code, nolog=nolog)
 def decode_path(path: str|Path)->str:
+    """decode an encoded path (encoded with encode_path)."""
     return _roots.decode_path(path)
 def encode_path(path: str|Path, allow_single=True)->str:
+    """ encode a path (for storing in the database).
+            replaces appropiate parts with :ROOTnn: codes as defined earlier with add_root.
+        parameters:
+            path: str or pathlib.Path   the path to encode
+            allow_single=True: if False, a encoded path of just :ROOTnn: is not allowed.
+        returns: 
+            the "best possible" encoded path. 
+            "best possible" means: (in order of priority)
+            1) a single root code (:ROOTnn:), e.g. :ROOT42:)
+            2) the shortest string found of the form :ROOTnn:\[end_of_path]
+                e.g. :ROOT42:\padje\file.doc
+            3) the full pathname (if the filename is not mapped to one of the known roots).
+            The encoded path will not have more than one root code (root codes can be nested, however).           
+    """
     return _roots.encode_path(path, allow_single=allow_single)
 def reset_roots():
     reset_key('ROOT')
