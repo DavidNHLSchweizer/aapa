@@ -3,9 +3,10 @@ from textual.widgets import Static, Button, Switch, TabbedContent, TabPane
 from general.args import AAPAProcessingOptions, ArgumentOption, get_options_from_commandline
 
 from general.config import config
-from tui.common.labeled_input import LabeledInput
-from tui.common.required import Required
-from tui.tui_const import BASE_CSS, MISSINGHELP, AAPATuiParams, ToolTips, windows_style
+from tui.general.labeled_input import LabeledInput
+from tui.general.utils import Required
+from tui.general.utils import id2selector
+from tui.common import BASE_CSS, MISSINGHELP, AAPATuiParams, ToolTips, windows_style
 import tkinter.filedialog as tkifd
 
 class AapaConfigurationForm(Static):
@@ -55,32 +56,32 @@ class AapaConfigurationForm(Static):
         tooltips = ToolTips.get('config', {})
         self.border_title = 'Configuratie'
         for id in ['root', 'output', 'input', 'scanroot', 'bbinput', 'database']:
-            self.query_one(f'#{id}', LabeledInput).input.tooltip = tooltips.get(id, MISSINGHELP)
+            self.query_one(id2selector(id), LabeledInput).input.tooltip = tooltips.get(id, MISSINGHELP)
         for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'scanroot-input-button', 'input-input-button', 'output-input-button']:
-            self.query_one(f'#{id}', Button).tooltip = tooltips.get(id, MISSINGHELP)
+            self.query_one(id2selector(id), Button).tooltip = tooltips.get(id, MISSINGHELP)
         for id in ['scanroot-switch', 'input-switch']:
-            self.query_one(f'#{id}', Switch).tooltip = tooltips.get(id, MISSINGHELP)
+            self.query_one(id2selector(id), Switch).tooltip = tooltips.get(id, MISSINGHELP)
         self._load_config()
         self.input_options = self._get_input_options()
         self.enable_all()
     def _load_config(self):        
         for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
-            self.query_one(f'#{id}', LabeledInput).value = config.get('configuration', id)
+            self.query_one(id2selector(id), LabeledInput).value = config.get('configuration', id)
     def _store_config_id(self, id: str):
         for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
-            config.set('configuration', id, self.query_one(f'#{id}', LabeledInput).value)
+            config.set('configuration', id, self.query_one(id2selector(id), LabeledInput).value)
     def _store_config(self):
         for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
-        input = self.query_one(f'#{input_id}', LabeledInput).input
+        input = self.query_one(id2selector(input_id), LabeledInput).input
         if (result := windows_style(tkifd.askdirectory(mustexist=True, title=title, initialdir=input.value))):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
             self._store_config_id(input_id)
     def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str, for_open: bool = False):
-        input = self.query_one(f'#{input_id}', LabeledInput).input
+        input = self.query_one(id2selector(input_id), LabeledInput).input
         if for_open:
             result = windows_style(tkifd.askopenfilename(initialfile=input.value, title=title, 
                                             filetypes=[(default_file, f'*{default_extension}'),('all files', '*')], defaultextension=default_extension))
@@ -115,11 +116,11 @@ class AapaConfigurationForm(Static):
         self._select_file('input','Select inputfile', 'excel files', '.xlsx')
     @property
     def params(self)-> AAPATuiParams:
-        return AAPATuiParams(root_directory= self.query_one('#root', LabeledInput).input.value, 
-                            bbinput_directory= self.query_one('#bbinput', LabeledInput).input.value,
-                             output_directory= self.query_one('#output', LabeledInput).input.value,
-                             database=self.query_one('#database', LabeledInput).input.value,
-                             excel_in = self.query_one('#input', LabeledInput).input.value
+        return AAPATuiParams(root_directory= self.query_one(id2selector('root'), LabeledInput).input.value, 
+                            bbinput_directory= self.query_one(id2selector('bbinput'), LabeledInput).input.value,
+                             output_directory= self.query_one(id2selector('output'), LabeledInput).input.value,
+                             database=self.query_one(id2selector('database'), LabeledInput).input.value,
+                             excel_in = self.query_one(id2selector('input'), LabeledInput).input.value
                              )
     @property
     def input_options(self)->set[AAPAProcessingOptions.INPUTOPTIONS]:
@@ -127,10 +128,10 @@ class AapaConfigurationForm(Static):
                       'scanroot-switch': AAPAProcessingOptions.INPUTOPTIONS.SCAN, 
                       }
         result = set()
-        for index in trans_dict.keys():
-            value = self.query_one(f'#{index}', Switch).value
+        for key in trans_dict.keys():
+            value = self.query_one(id2selector(key), Switch).value
             if value:
-                result.add(trans_dict[index])
+                result.add(trans_dict[key])
         return self._match_options_to_processing_mode(result)
     @input_options.setter
     def input_options(self, value: set[AAPAProcessingOptions.INPUTOPTIONS]):
@@ -139,7 +140,7 @@ class AapaConfigurationForm(Static):
                       }
         value = self._match_options_to_processing_mode(value)
         for option in {AAPAProcessingOptions.INPUTOPTIONS.EXCEL, AAPAProcessingOptions.INPUTOPTIONS.SCAN}:
-             switch = self.query_one(f'#{trans_dict[option]}', Switch)
+             switch = self.query_one(id2selector(trans_dict[option]), Switch)
              switch.value = option in value
     def _match_options_to_processing_mode(self, value: set[AAPAProcessingOptions.INPUTOPTIONS])->set[AAPAProcessingOptions.INPUTOPTIONS]:
         if not value:
@@ -154,17 +155,17 @@ class AapaConfigurationForm(Static):
         return self._match_options_to_processing_mode(processing_options.input_options)
     @params.setter
     def params(self, value: AAPATuiParams):
-        self.query_one('#root', LabeledInput).input.value = value.root_directory
-        self.query_one('#bbinput', LabeledInput).input.value = value.bbinput_directory
-        self.query_one('#output', LabeledInput).input.value = value.output_directory
-        self.query_one('#database', LabeledInput).input.value = value.database
-        self.query_one('#input', LabeledInput).input.value = value.excel_in
+        self.query_one(id2selector('root'), LabeledInput).input.value = value.root_directory
+        self.query_one(id2selector('bbinput'), LabeledInput).input.value = value.bbinput_directory
+        self.query_one(id2selector('output'), LabeledInput).input.value = value.output_directory
+        self.query_one(id2selector('database'), LabeledInput).input.value = value.database
+        self.query_one(id2selector('input'), LabeledInput).input.value = value.excel_in
     def _enable_input(self, id: str, value: bool):
-        input_widget = self.query_one(f'#{id}', LabeledInput)
+        input_widget = self.query_one(id2selector(id), LabeledInput)
         input_widget.disabled = not value
         input_widget.visible = value                
     def enable_all(self):
-        output_tab = self.query_one('#output_tab')
+        output_tab = self.query_one(id2selector('output_tab'))
         match self._processing_mode:
             case AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN:
                 self._enable_input('input', True)

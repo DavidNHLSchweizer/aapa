@@ -14,13 +14,13 @@ from general.args import  AAPAaction, AAPAOptions, ArgumentOption, get_options_f
 from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner
 from process.aapa_processor.aapa_config import AAPAConfiguration
-from tui.aapa_buttons import AapaButtonsPanel
-from tui.aapa_config import AapaConfigurationForm
-from tui.aapa_processing import AapaProcessingForm
+from tui.buttons import AapaButtonsPanel
+from tui.configuration import AapaConfigurationForm
+from tui.processing import AapaProcessingForm
 from general.config import config
-from tui.common.terminal import  TerminalScreen
-from tui.common.verify import DialogMessage, verify
-from tui.tui_const import BASE_CSS, AAPATuiParams, ProcessingModeChanged, windows_style
+from tui.general.terminal import  TerminalScreen
+from tui.general.verify import DialogMessage, verify
+from tui.common import BASE_CSS, AAPATuiParams, ProcessingModeChanged, windows_style
 from tui.terminal_console import init_console, show_console
 import tkinter.filedialog as tkifd
 

@@ -1,13 +1,11 @@
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar, Unit
-from textual.color import Color
 from textual.widgets import Static, Label, Input, Button, Switch
 from textual.containers import Horizontal
 from textual.events import Resize
 import logging
 
-def selector_from_id(id: str)->str:
-    return f'#{id}'
+from tui.general.utils import id2selector
 
 class InputWithButton(Static):
     DEFAULT_CSS = """
@@ -127,7 +125,7 @@ class LabeledInput(Static):
         else:
             self.styles.width = Scalar(100, Unit.WIDTH, Unit.PERCENT)
         if self._switch:
-            switch = self.query_one(selector_from_id(self._switch_id()))
+            switch = self.query_one(id2selector(self._switch_id()))
             self.post_message(Switch.Changed(switch,switch.value))
     def _label_id(self)->str:
         return f'{self.id}-label'
@@ -136,8 +134,8 @@ class LabeledInput(Static):
     def _switch_id(self)->str:
         return f'{self.id}-switch'
     def on_switch_changed(self,message: Switch.Changed):
-        label = self.query_one(selector_from_id(self._label_id()))
-        input = self.query_one(selector_from_id(self._input_id()))
+        label = self.query_one(id2selector(self._label_id()))
+        input = self.query_one(id2selector(self._input_id()))
         if message.value:
             label.styles.color = 'black'
             input.styles.color = 'black'
@@ -150,7 +148,7 @@ class LabeledInput(Static):
     
     @property
     def input(self)->Input:
-        return self.query_one(selector_from_id(self._input_id()), Input)
+        return self.query_one(id2selector(self._input_id()), Input)
     def on_resize(self, message: Resize):        
         if self.horizontal:            
             self.input.styles.width = message.size.width - len(self._label_text)-1 - self._switch_width
@@ -158,10 +156,10 @@ class LabeledInput(Static):
             self.input.styles.width = message.size.width - self._switch_width
     @property
     def input(self)->Input | InputWithButton:
-        return self.query_one(selector_from_id(self._input_id()))
+        return self.query_one(id2selector(self._input_id()))
     @property
     def switch(self)->Switch:
-        return self.query_one(selector_from_id(self._switch_id())) if self._switch else None
+        return self.query_one(id2selector(self._switch_id())) if self._switch else None
     @property
     def value(self)->str:
         return self.input.value
@@ -176,7 +174,7 @@ class LabeledInput(Static):
         self.switch.value = value
     @property
     def label(self)->Label:
-        return self.query_one(selector_from_id(self._label_id()), Label)
+        return self.query_one(id2selector(self._label_id()), Label)
     @property
     def horizontal(self)->bool:
         return LabeledInput.HORIZONTAL in self.classes 
@@ -188,7 +186,7 @@ if __name__ == "__main__":
     import logging
     from textual.app import App
     from textual.widgets import Footer
-    from required import Required
+    from utils import Required
     class TestApp(App):
         BINDINGS = [
                     ('t', 'toggle_', 'Toggle horizontal'),

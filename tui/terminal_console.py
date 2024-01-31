@@ -3,7 +3,7 @@ from textual.app import App
 from textual.screen import ScreenResultCallbackType
 from general.log import ConsoleFactory, PrintFuncs
 from general.singleton import Singleton
-from tui.common.terminal import TerminalScreen, TerminalWrite
+from tui.general.terminal import TerminalScreen, TerminalWrite
 
 class Console(Singleton):
     def __init__(self, app: App, callback: ScreenResultCallbackType = None, name='terminal'):

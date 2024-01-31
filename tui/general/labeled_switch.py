@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.css.scalar import Scalar, Unit
-from textual.widgets import Collapsible, Label, Static, Switch
+from textual.widgets import Label, Static, Switch
 from textual.containers import Horizontal, Vertical
 
 class LabeledSwitch(Static):
@@ -101,7 +101,6 @@ if __name__ == "__main__":
                     ('t', 'toggle_', 'Toggle switches'),
                     ]  
         def compose(self) -> ComposeResult:
-            # with Collapsible(title='Input options'):
             yield LabeledSwitchGroup(width=42,  
                                      labels=['MS-Forms Excel file:', 'PDF-files (directory scan):', 'Blackboard ZIP-files:'], id ='lsg')
             yield(Footer())

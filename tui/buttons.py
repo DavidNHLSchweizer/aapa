@@ -4,8 +4,9 @@ from textual.containers import Horizontal
 from data.classes.undo_logs import UndoLog
 from general.log import log_debug
 
-from tui.common.button_bar import ButtonBar, ButtonDef
-from tui.tui_const import BASE_CSS, MISSINGHELP, ToolTips
+from tui.general.button_bar import ButtonBar, ButtonDef
+from tui.general.utils import id2selector
+from tui.common import BASE_CSS, MISSINGHELP, ToolTips
 
 class AapaButtonsPanel(Static):
     DEFAULT_CSS = BASE_CSS + """
@@ -82,13 +83,13 @@ class AapaButtonsPanel(Static):
     def on_mount(self):
         log_debug ('mounting')
         tooltips = ToolTips.get('buttons', {})
-        button_bar = self.query_one('#main', ButtonBar)
+        button_bar = self.query_one(id2selector('main'), ButtonBar)
         button_bar.styles.width = 6 + button_bar.nr_buttons() * 12
         for id in {'scan', 'form', 'mail', 'undo', 'report'}:
-            self.query_one(f'#{id}', Button).tooltip = tooltips.get(id, MISSINGHELP)
+            self.query_one(id2selector(id), Button).tooltip = tooltips.get(id, MISSINGHELP)
         log_debug ('endmounting')
     def button(self, id: str)->Button:
-        return self.query_one(f'#{id}', Button)
+        return self.query_one(id2selector(id), Button)
     def enable_action_buttons(self, undo_log: UndoLog):
         button_ids = {UndoLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
                       UndoLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 

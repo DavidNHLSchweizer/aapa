@@ -27,7 +27,7 @@ ToolTips = {'config':
                 'root-input-button': 'Kies de root-directory',
                 'output': 'De directory waar beoordelingsformulieren worden aangemaakt voor aanvragen',
                 'output-input-button': 'Kies de output-directory',
-                'input': 'Kies (excel) input bestand met nieuwe aanvragen (optioneel)',
+                'input': 'Kies (excel) input bestand met nieuwe aanvragen',
                 'input-input-button': 'Kies input bestand',
                 'input-switch': 'Lees aanvragen uit de Excel-inputfile',
                 'bbinput': 'De directory waar uit Blackboard afkomstige .ZIP-files worden gevonden',

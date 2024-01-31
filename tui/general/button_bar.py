@@ -47,7 +47,6 @@ if __name__== '__main__':
     import logging
     logging.basicConfig(filename='verify.log', filemode='w', format='%(module)s-%(funcName)s-%(lineno)d: %(message)s', level=logging.DEBUG)
     class TestApp(App):
-        # BINDINGS = [("v", "verify", "Verify")]
         DEFAULT_CSS = """
         ButtonBar.horizontal {
             outline: round purple;

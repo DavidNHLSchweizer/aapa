@@ -8,7 +8,7 @@ from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Button, RichLog, Static
 from textual.message import Message
-from tui.common.button_bar import ButtonBar, ButtonDef
+from tui.general.button_bar import ButtonBar, ButtonDef
 
 
 class TerminalWrite(Message):
