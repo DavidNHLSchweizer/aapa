@@ -8,7 +8,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Static
 from textual.message import Message
 from general.log import log_debug
-from tui.common.button_bar import ButtonBar, ButtonDef
+from tui.general.button_bar import ButtonBar, ButtonDef
 
 class DialogStringBuilder:
     def __init__(self, raw_string: str):
