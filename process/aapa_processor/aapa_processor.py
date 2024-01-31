@@ -7,13 +7,13 @@ from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.migrate.import_basedir import import_basedirs_XLS
 from process.migrate.import_studenten import import_studenten_XLS
 from process.report.report_student_directory import StudentDirectoryReporter
-from process.scan.importing.detect_student_from_directory import detect_from_directory
-from process.scan.importing.import_verslagen import import_zipfile
+from process.input.importing.detect_student_from_directory import detect_from_directory
+from process.input.importing.import_verslagen import import_zipfile
 from process.undo.undo_processor import undo_last
-from process.scan.create_forms.create_diff_file import DifferenceProcessor
+from process.input.create_forms.create_diff_file import DifferenceProcessor
 from data.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
-from process.scan.scan import process_directory, process_excel_file, process_forms
+from process.input.scan import process_directory, process_excel_file, process_forms
 from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, report_options
 from general.versie import banner
 from general.config import config

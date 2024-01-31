@@ -19,8 +19,8 @@ from general.singular_or_plural import sop
 from general.timeutil import TSC
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
-from process.scan.importing.dirname_parser import DirectoryNameParser
-from process.scan.importing.filename_parser import FileTypeDetector
+from process.input.importing.dirname_parser import DirectoryNameParser
+from process.input.importing.filename_parser import FileTypeDetector
 
 def init_config():
     config.register('detect_directory', 'skip', ListValueConvertor)

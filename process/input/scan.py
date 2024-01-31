@@ -6,13 +6,13 @@ from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
 from process.general.aanvraag_pipeline import AanvragenPipeline
-from process.scan.create_forms.copy_request import CopyAanvraagProcessor
-from process.scan.create_forms.create_diff_file import DifferenceProcessor
-from process.scan.create_forms.create_form import FormCreator
-from process.scan.importing.import_directory import import_directory
+from process.input.create_forms.copy_request import CopyAanvraagProcessor
+from process.input.create_forms.create_diff_file import DifferenceProcessor
+from process.input.create_forms.create_form import FormCreator
+from process.input.importing.import_directory import import_directory
 from general.config import config
 from data.storage.aapa_storage import AAPAStorage
-from process.scan.importing.import_excel_aanvragen import import_excel_file
+from process.input.importing.import_excel_aanvragen import import_excel_file
 
 def init_config():
     config.init('requests', 'form_template',r'.\templates\template 0.8.docx')

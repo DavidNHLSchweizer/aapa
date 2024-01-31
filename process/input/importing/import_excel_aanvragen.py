@@ -27,10 +27,10 @@ from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
 from process.general.aanvraag_processor import AanvraagCreator
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.word_processor import Word2PdfConvertor
-from process.scan.create_forms.create_form import MailMergeException
-from process.scan.importing.aanvraag_importer import AanvraagImporter
-from process.scan.importing.detect_student_from_directory import StudentDirectoryDetector
-from process.scan.importing.excel_reader import ExcelReader
+from process.input.create_forms.create_form import MailMergeException
+from process.input.importing.aanvraag_importer import AanvraagImporter
+from process.input.importing.detect_student_from_directory import StudentDirectoryDetector
+from process.input.importing.excel_reader import ExcelReader
 
 def init_config():
     config.init('import', 'xls_template', r'.\templates\2. Aanvraag goedkeuring afstudeeropdracht nieuwe vorm MAILMERGE 3.00b.docx')

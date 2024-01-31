@@ -12,7 +12,7 @@ from general.singular_or_plural import sop
 from process.general.verslag_pipeline import VerslagCreatingPipeline
 from process.general.verslag_processor import MijlpaalCreator
 from process.general.zipfile_reader import ZipFileReader
-from process.scan.importing.filename_in_zip_parser import FilenameInZipParser
+from process.input.importing.filename_in_zip_parser import FilenameInZipParser
 
 class VerlagParseException(Exception): pass
 

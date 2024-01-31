@@ -12,7 +12,7 @@ from general.preview import Preview, pva
 from general.singular_or_plural import sop
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import SingleFilePipeline
-from process.scan.importing.excel_reader import ExcelReader
+from process.input.importing.excel_reader import ExcelReader
 
 class StudentExcelMapper(ObjectMapper):
     COLUMNS =  ['achternaam', 'voornaam', 'studnr', 'email', 'status']

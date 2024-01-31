@@ -16,7 +16,7 @@ from general.fileutil import summary_string
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
 from process.general.aanvraag_processor import AanvraagCreator
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF
-from process.scan.importing.aanvraag_importer import AanvraagImporter
+from process.input.importing.aanvraag_importer import AanvraagImporter
 
 def init_config():
     config.register('import', 'skip_files', ListValueConvertor)

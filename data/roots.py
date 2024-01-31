@@ -284,7 +284,7 @@ def decode_path(path: str|Path)->str:
     """decode an encoded path (encoded with encode_path)."""
     return _roots.decode_path(path)
 def encode_path(path: str|Path, allow_single=True)->str:
-    """ encode a path (for storing in the database).
+    r""" encode a path (for storing in the database).
             replaces appropiate parts with :ROOTnn: codes as defined earlier with add_root.
         parameters:
             path: str or pathlib.Path   the path to encode

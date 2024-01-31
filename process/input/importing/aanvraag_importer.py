@@ -9,7 +9,7 @@ from general.log import log_debug, log_error, log_print, log_warning
 from process.general.base_processor import FileProcessor
 from process.general.pdf_aanvraag_reader import PDFReaderException
 from process.general.student_dir_builder import StudentDirectoryBuilder
-from process.scan.importing.aanvraag_validator import AanvraagValidator
+from process.input.importing.aanvraag_validator import AanvraagValidator
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
 class ImportException(Exception): pass
