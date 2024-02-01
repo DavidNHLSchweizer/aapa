@@ -157,7 +157,7 @@ class AapaConfigurationForm(Static):
     @params.setter
     def params(self, value: AAPATuiParams):
         self.query_one('#root', LabeledInput).input.value = value.root_directory
-        self.query_one('#bbinput', LabeledInput).input.value = 'goedemorgen', #value.bbinput_directory
+        self.query_one('#bbinput', LabeledInput).input.value = value.bbinput_directory
         self.query_one('#output', LabeledInput).input.value = value.output_directory
         self.query_one('#database', LabeledInput).input.value = value.database
         self.query_one('#input', LabeledInput).input.value = value.excel_in
@@ -167,8 +167,6 @@ class AapaConfigurationForm(Static):
         input_widget.visible = value                
     def enable_all(self):
         output_tab = self.query_one('#output_tab')
-        input = self.query_one('#input', LabeledInput)
-        bbinput = self.query_one('#bbinput', LabeledInput)
         match self._mode:
             case AapaProcessingMode.AANVRAGEN:
                 self._enable_input('input', True)
