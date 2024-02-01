@@ -13,7 +13,7 @@ from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.aanvragen import AanvraagQueries
 from data.storage.queries.studenten import StudentQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
-from general.fileutil import summary_string
+from general.fileutil import last_parts_file, summary_string, test_directory_exists
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
 from process.general.student_dir_builder import StudentDirectoryBuilder
@@ -85,29 +85,49 @@ class VerslagFromZipImporter(VerslagImporter):
 
     def get_filename_to_create(self, verslag: Verslag, original_filename: str):
         student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,verslag.student,self.root_directory))        
-        mijlpaal_directory = student_directory.joinpath(MijlpaalDirectory.directory_name(verslag.datum,verslag.mijlpaal_type))
+        mijlpaal_directory = student_directory.joinpath(MijlpaalDirectory.directory_name(verslag.mijlpaal_type, verslag.datum))
         return str(mijlpaal_directory.joinpath(original_filename))
-    def create_file(self, filename_in_zip: str, filename_to_create: str, preview=False)->File:
+    def created_directory(self, directory_path: Path)->bool:
+        if not directory_path.is_dir():
+            directory_path.mkdir()
+            return True
+        return False
+    def create_file(self, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False)->File:
+        mijlpaal_directory = Path(filename_to_create).parent
         if preview:
-            log_info(f'Ontzippen {filename_in_zip} als {filename_to_create}')
-            return File(filename)
+            if not mijlpaal_directory.is_dir() and new_student:
+                log_print(f'\tAanmaken directory {last_parts_file(mijlpaal_directory)}')
+            log_print(f'\tOntzippen {last_parts_file(filename_to_create)}')                
+            return File(filename_to_create)
         else:
-            filename = self.reader.extract_file(filename_in_zip, Path(filename_to_create).parent)
+            mijlpaal_directory = Path(filename_to_create).parent
+            if self.created_directory(mijlpaal_directory):
+                log_print(f'\tDirectory {last_parts_file(mijlpaal_directory)} aangemaakt')
+            filename = self.reader.extract_file(filename_in_zip, mijlpaal_directory)
+            log_print(f'\tBestand {last_parts_file(filename_to_create)} aangemaakt.')
             return File(filename)
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')
-        for n, verslag, filename_in_zip, original_filename in enumerate(self.get_verslagen(zip_filename)):
-            log_debug(f'{n}: {original_filename} ({filename_in_zip})')
+        current_student = None
+        for n, (verslag, filename_in_zip, original_filename) in enumerate(self.get_verslagen(zip_filename)):
+            log_debug(f'READ_VERSLAGEN {n}: {original_filename} ({filename_in_zip})')
             try:
                 filename_to_create = self.get_filename_to_create(verslag, original_filename)
-                file = self.create_file(filename_in_zip, filename_to_create, preview=preview)
-                #hier: doe hier nog  iets mee (registeren)
+                log_debug(f'filename to create: {filename_to_create}')
+                if not current_student or verslag.student != current_student:
+                    log_info(f'{verslag.student}:', to_console=True)
+                    current_student = verslag.student
+                    new_student = True
+                else:
+                    new_student = False
+                file = self.create_file(filename_in_zip, filename_to_create, new_student, preview=preview)
+                #hier: doe hier nog  iets mee (registeren)                
                 yield verslag
             except Exception as E:
                 log_debug(f'Error in read_verslagen:\n{E}')
-                sleep(.5) # hope this helps with sharepoint delays
-                yield (None,None)
+                #sleep(.5) # hope this helps with sharepoint delays
+                yield None
 
     # def process_file(self, filename: str, storage: AAPAStorage, preview=False, **kwargs)->Verslag:
     #     log_print(f'Laden uit zipfile: {summary_string(filename, maxlen=100)}')

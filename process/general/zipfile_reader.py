@@ -8,7 +8,14 @@ from typing import Tuple
 from zipfile import ZipFile
 from general.log import log_warning
 
+from general.config import ListValueConvertor, config
 from general.name_utils import Names
+
+def init_config():
+    config.register('zipfile', 'doc_suffix', ListValueConvertor)
+    #dit kan worden aangepast als bv ODF ook geaccepteerd wordt.
+    config.init('zipfile', 'doc_suffix', ['.docx', '.pdf'])    
+init_config()
 
 class BBException(Exception):pass
 
@@ -38,19 +45,12 @@ class BBFilenameInZipParser:
     def __init__(self):
         self.pattern1 = re.compile(self.PATTERN1,re.IGNORECASE)
         self.pattern2 = re.compile(self.PATTERN2,re.IGNORECASE)
-        # self.pattern3 = re.compile(self.PATTERN3,re.IGNORECASE)
-        # self.pattern4 = re.compile(self.PATTERN4,re.IGNORECASE)
     def parsed(self, filename: str)->BBFilenameInZipParser.Parsed:
         if (match:=self.pattern1.match(str(filename))) or (match:=self.pattern2.match(str(filename))):
             return self.Parsed(filename_in_zip=filename, product_type=match.group('product_type'), kans=match.group('kans'), 
                                   email=match.group('email'), 
                                   datum=datetime.datetime.strptime(match.group('datum'),'%Y-%m-%d-%H-%M-%S'),
                                   original_filename=match.group('filename'))
-        # elif (match:=self.pattern3.match(str(filename))) or (match:=self.pattern4.match(str(filename))):
-        #     return self.Parsed(product_type=match.group('product_type'), kans=match.group('kans'), 
-        #                           email=match.group('email'), 
-        #                           datum=datetime.datetime.strptime(match.group('datum'),'%Y-%m-%d-%H-%M-%S'),
-        #                           original_filename=filename, submission_text=True)
         return None
 
 class ZipFileReader:
@@ -64,7 +64,9 @@ class ZipFileReader:
             if entry['filename']==filename:
                 return entry
         return None
-    def read_info(self, zip_filename: str):
+    def read_info(self, zip_filename: str, reset=True):
+        if reset:
+            self._files_in_zip: list[dict] = []
         with ZipFile(zip_filename) as zipfile:            
             self._files_in_zip.extend([{'zip': zip_filename, 'filename': zi.filename, 'info': zi} 
                                        for zi in zipfile.infolist()])
@@ -93,27 +95,35 @@ class BBZipFileReader(ZipFileReader):
         return self._parsed_list        
     def _filenames(self, suffix: list[str])->list[str]:
         return list(filter(lambda fn: Path(fn).suffix in suffix,self.filenames))    
-    def parse(self, zip_filename: str):
-        self.read_info(zip_filename)
+    def parse(self, zip_filename: str, reset=True):
+        if reset:
+            self._parsed_list = []
+        self.read_info(zip_filename, reset)
         txts:list[str] = self._filenames(['.txt'])
-        for parsed_file in [self.parser.parsed(filename_in_zip) for filename_in_zip in self._filenames(['.docx', '.pdf'])]:            
+        doc_suffixes = config.get('zipfile', 'doc_suffix')
+        for parsed_file in [self.parser.parsed(filename_in_zip) for filename_in_zip in self._filenames(doc_suffixes)]:            
             txt_filename = f"{parsed_file.filename_in_zip[:-(len(parsed_file.original_filename)+1)]}.txt"
             if txt_filename in txts:
-                parsed_file.original_filename = self._find_original_path(zip_filename, txt_filename, parsed_file.original_filename)
+                parsed_file.original_filename = self._find_original_path(zip_filename, txt_filename, parsed_file.filename_in_zip)
             else:
                 log_warning(f'Assignment bestand {txt_filename} niet gevonden in {zip_filename}.\nHierdoor kan de oorspronkelijke bestandnaam mogelijk niet worden gereconstrueerd.')
             self._parsed_list.append(parsed_file)
-    def _find_original_path(self, zip_filename: str, txt_filename: str, default: str)->str:
+    def _find_original_files(self, zip_filename: str, txt_filename: str)->dict:
         #dit moet omdat Blackboard bestandsnamen soms op onduidelijke manier verhaspelt
         #in de assignment file (.txt) staat echter de correcte originele filename
-        PATTERN = r'.*Original filename: (?P<original_filename>.*)\n'
-        result = ''
+        #deze methode leest de assignment file en geeft een dict terug met daarin de koppeling met de originele filenaam 
+        PATTERN1 = rf'.*Original filename: (?P<original_filename>.*)\n' #de "echte" filenaam
+        PATTERN2 = rf'.*Filename: (?P<filename>.*)\n' #de filenaam zoals in de zip, soms met vreemde hex-tekens er in
+        filenames = []
+        original_filenames = []
         with ZipFile(zip_filename) as zipfile:  
+            pattern1 = re.compile(PATTERN1,re.IGNORECASE)
+            pattern2 = re.compile(PATTERN2,re.IGNORECASE)
             for line in zipfile.open(txt_filename):
-                if match:=re.match(PATTERN,str(line, 'utf-8')):
-                    result = match.group('original_filename')
-                    break
-        if not result:
-            log_warning(f'Originele bestandsnaam niet gevonden in {txt_filename}.\nHierdoor is de oorspronkelijke bestandnaam mogelijk niet correct.')
-            result = default
-        return result
+                if match:=pattern1.match(str(line, 'utf-8')):
+                    original_filenames.append(match.group('original_filename'))
+                elif match:=pattern2.match(str(line, 'utf-8')):
+                    filenames.append(match.group('filename'))
+        return {filename: original_filename for (filename,original_filename) in zip(filenames,original_filenames)}
+    def _find_original_path(self, zip_filename: str, txt_filename: str, filename_in_zip: str)->str:
+        return self._find_original_files(zip_filename, txt_filename).get(filename_in_zip,filename_in_zip)
