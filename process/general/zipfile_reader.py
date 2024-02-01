@@ -107,9 +107,13 @@ class BBZipFileReader(ZipFileReader):
         #dit moet omdat Blackboard bestandsnamen soms op onduidelijke manier verhaspelt
         #in de assignment file (.txt) staat echter de correcte originele filename
         PATTERN = r'.*Original filename: (?P<original_filename>.*)\n'
+        result = ''
         with ZipFile(zip_filename) as zipfile:  
             for line in zipfile.open(txt_filename):
                 if match:=re.match(PATTERN,str(line, 'utf-8')):
-                    return match.group('original_filename')
-        log_warning(f'Originele bestandsnaam niet gevonden in {txt_filename}.\nHierdoor is de oorspronkelijke bestandnaam mogelijk niet correct.')
-        return default
+                    result = match.group('original_filename')
+                    break
+        if not result:
+            log_warning(f'Originele bestandsnaam niet gevonden in {txt_filename}.\nHierdoor is de oorspronkelijke bestandnaam mogelijk niet correct.')
+            result = default
+        return result

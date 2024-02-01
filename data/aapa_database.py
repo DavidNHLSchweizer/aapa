@@ -15,7 +15,7 @@ from data.roots import add_root, decode_path, get_roots, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.21'
+DBVERSION = '1.22'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -118,7 +118,6 @@ class VerslagTableDefinition(MijlpaalTableDefinition):
         super().__init__('VERSLAGEN')
         self.add_column('verslag_type', dbc.INTEGER)
         self.add_column('cijfer', dbc.TEXT)
-        self.add_column('directory', dbc.TEXT)
 
 class VerslagFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
@@ -296,7 +295,6 @@ class AAPaDatabase(Database):
     def reset_keys(self):
         def is_keyed_table(table: TableDefinition)->bool:
             return len(table.keys) == 1 and table.column(table.key).type==dbc.INTEGER and table.key == 'id' 
-        # keyed_tables:list[TableDefinition] = [AanvraagTableDefinition(), VerslagTableDefinition(), UndoLogTableDefinition(), BedrijfTableDefinition(), FilesTableDefinition()]
         for table in self.schema.tables():            
             if is_keyed_table(table):
                 reset_key(table.name, self.__find_max_key(table.name))

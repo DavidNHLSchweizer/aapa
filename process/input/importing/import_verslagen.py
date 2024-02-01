@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 from time import sleep
 from typing import Iterable, Tuple
+from data.classes.bedrijven import Bedrijf
 from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
@@ -9,6 +10,7 @@ from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
+from data.storage.queries.aanvragen import AanvraagQueries
 from data.storage.queries.studenten import StudentQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.fileutil import summary_string
@@ -37,13 +39,13 @@ class VerslagFromZipImporter(VerslagImporter):
             return result
         raise VerlagParseException(f'Onbekend verslagtype: {[product_type]}')
     def _get_kans(self, kans_decription: str)->int:
-        KANSPATTERN = r'(?<n>[\d]+).*kans'
         match kans_decription:
-            case '1e kans': return 1
-            case 'herkansing': return 2
-            case re.match(KANSPATTERN, kans_decription):
-                return re.match(KANSPATTERN).group('n')
-            case _: return 0
+            case '1e kans': 
+                return 1
+            case 'herkansing'|'2e kans': 
+                return 2
+            case _: 
+                return 0                    
     def _get_student(self, student_name: str, email: str)->Student:
         storage_queries: StudentQueries = self.storage.queries('studenten')
         student = Student(full_name=student_name, email=email)
@@ -53,13 +55,33 @@ class VerslagFromZipImporter(VerslagImporter):
         log_warning(f'Student {student.full_name} is nog niet bekend in database. Dit wordt NIET verwacht!\nDefault waarden (zoals fake studentnummer) worden gebruikt,\nmaar controleer de database vóór verder te gaan!')
         student.stud_nr = storage_queries.create_unique_student_nr(student=student)
         return student            
+    def _get_bedrijf(self, student: Student)->Bedrijf:
+        aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
+        aanvraag = aanvraag_queries.find_student_aanvraag(student)
+        if not aanvraag:
+            log_warning(f'Afstudeerbedrijf kan niet worden gevonden: Geen aanvraag gevonden voor student {student}.')
+            return None
+        return aanvraag.bedrijf
     def _get_verslag_from_parsed(self, parsed: BBFilenameInZipParser.Parsed)->Verslag:
-        return Verslag(mijlpaal_type=self._get_verslag_type(parsed.product_type), student=self._get_student(parsed.student_name, email=parsed.email), 
+        mijlpaal_type=self._get_verslag_type(parsed.product_type)
+        student=self._get_student(parsed.student_name, email=parsed.email)
+        bedrijf=self._get_bedrijf(student)
+        kans=self._get_kans(parsed.kans)
+        titel=Path(parsed.original_filename).stem
+        verslag = Verslag(verslag_type=mijlpaal_type, student=student,datum=parsed.datum,bedrijf=bedrijf,kans=kans,titel=titel)
+        return verslag
+        return Verslag(verslag_type=self._get_verslag_type(parsed.product_type), student=self._get_student(parsed.student_name, email=parsed.email), 
                        datum=parsed.datum, kans=self._get_kans(parsed.kans), titel=Path(parsed.original_filename).stem)  
     def get_verslagen(self, zip_filename: str)->list[Tuple[Verslag,str,str]]:
         #return verslag object, filename in zip, original filename
-        self.reader.parse(zip_filename=zip_filename)        
-        return [(self._get_verslag_from_parsed(parsed), parsed.filename_in_zip, parsed.original_filename) for parsed in self.reader.parsed_list]
+        self.reader.parse(zip_filename=zip_filename)  
+        result = []
+        for parsed in self.reader.parsed_list:
+            verslag = self._get_verslag_from_parsed(parsed)
+            result.append((verslag,parsed.filename_in_zip, parsed.original_filename))
+        return result
+
+        # return [(self._get_verslag_from_parsed(parsed), parsed.filename_in_zip, parsed.original_filename) for parsed in self.reader.parsed_list]
 
     def get_filename_to_create(self, verslag: Verslag, original_filename: str):
         student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,verslag.student,self.root_directory))        

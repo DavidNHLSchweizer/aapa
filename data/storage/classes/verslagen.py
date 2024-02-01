@@ -9,7 +9,6 @@ from database.database import Database
 class VerslagenTableMapper(MijlpaalGradeableTableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
-            case 'directory': return FilenameColumnMapper(column_name)
             case 'verslag_type': return ColumnMapper(column_name=column_name, db_to_obj=MijlpaalType)
             case 'status': return ColumnMapper(column_name=column_name, db_to_obj=Verslag.Status)
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Verslag.Beoordeling)
