@@ -15,7 +15,7 @@ from data.roots import add_root, decode_path, get_roots, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.21'
+DBVERSION = '1.22'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -118,7 +118,6 @@ class VerslagTableDefinition(MijlpaalTableDefinition):
         super().__init__('VERSLAGEN')
         self.add_column('verslag_type', dbc.INTEGER)
         self.add_column('cijfer', dbc.TEXT)
-        self.add_column('directory', dbc.TEXT)
 
 class VerslagFilesTableDefinition(DetailTableDefinition):
     def __init__(self):

@@ -195,6 +195,10 @@ class SQLcollectors(dict):
                     for values in collector.get_values():
                         self.__execute_one(database, sql_str, values, preview)
 
+def import_json(database: Database, json_name: str):
+    sqlcolls = SQLcollectors.read_from_dump(json_name)
+    sqlcolls.execute_sql(database)
+
 if __name__=='__main__':      
     print ('--- testing single collector...')
     s = SQLcollector({
