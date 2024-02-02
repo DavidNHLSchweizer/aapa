@@ -15,7 +15,7 @@ from data.roots import add_root, decode_path, get_roots, reset_roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.22'
+DBVERSION = '1.23'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -248,7 +248,15 @@ inner join student_directories as sdd on s.id = sdd.stud_id \
 inner join basedirs as bd on sdd.basedir_id = bd.id \
 group by sdd.stud_id having max(sdd.id) order by 5,6,2'
         super().__init__('STUDENT_DIRECTORIES_OVERZICHT', query=query)
-        
+
+class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
+    def __init__(self):
+        mijlpaal_str = get_sql_cases_for_int_type('MPD.mijlpaal_type', MijlpaalType, 'mijlpaal_type') 
+        query = f'select (select full_name from studenten as S where S.id=SD.stud_id) as student, {mijlpaal_str}, MPD.directory \
+                from student_directories as SD \
+                inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.ID=SDD.stud_dir_id \
+                inner join MIJLPAAL_DIRECTORIES MPD on MPD.ID=SDD.mp_dir_id'
+        super().__init__('STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT', query=query)
 
 class AAPaSchema(Schema):
     ALL_TABLES:list[TableDefinition] = [
@@ -268,13 +276,14 @@ class AAPaSchema(Schema):
         StudentDirectoryTableDefinition,    
         StudentDirectory_DirectoriesTableDefinition, 
         MijlpaalDirectoryTableDefinition, 
-        MijlpaalDirectory_FilesTableDefinition,
+        MijlpaalDirectory_FilesTableDefinition,        
     ]
     ALL_VIEWS:list[ViewDefinition]= [ 
                 AanvragenOverzichtDefinition,
                 AanvragenFileOverzichtDefinition,
                 StudentDirectoriesFileOverzichtDefinition,
                 StudentDirectoriesOverzichtDefinition,
+                StudentMijlpaalDirectoriesOverzichtDefinition,
                 ]
     def __init__(self):
         super().__init__()

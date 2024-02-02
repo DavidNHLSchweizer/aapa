@@ -39,10 +39,11 @@ class VerslagImporter(FileProcessor):
             if self.multiple:
                 result = []
                 for verslag in self.read_verslagen(filename, preview):
-                    result.append(verslag)
+                    if verslag:
+                        result.append(verslag)
                     # if validated := self._validate(storage, verslag_filename, verslag):
                     #     result.append(validated)
         except ImportException as exception:
-            log_warning(f'{exception}.')           
+            log_warning(f'Probleem processing file {filename}:\n\t{exception}.')           
         self.after_reading(preview)
         return result

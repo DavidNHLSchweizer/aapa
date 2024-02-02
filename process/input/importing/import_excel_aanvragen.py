@@ -29,7 +29,7 @@ from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.word_processor import Word2PdfConvertor
 from process.input.create_forms.create_form import MailMergeException
 from process.input.importing.aanvraag_importer import AanvraagImporter
-from process.input.importing.detect_student_from_directory import StudentDirectoryDetector
+from process.migrate.detect_student_from_directory import StudentDirectoryDetector
 from process.input.importing.excel_reader import ExcelReader
 
 def init_config():

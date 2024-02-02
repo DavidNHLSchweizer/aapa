@@ -77,7 +77,7 @@
                 "input",
                 "-preview",
                 "-debug",
-                "--onedrive=d:\\onedrive",
+                "--onedrive=d:\\onedrive0",
                 "--processing_mode=R"
             ]
         },
@@ -172,6 +172,7 @@
             "args": [
                 "-debug",
                 "--input_options=F",
+                "--onedrive=d:\\onedrive0"
             ]
         },
         {

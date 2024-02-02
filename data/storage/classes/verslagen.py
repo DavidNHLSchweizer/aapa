@@ -1,9 +1,10 @@
 from data.classes.const import MijlpaalType
 from data.classes.verslagen import Verslag
 from data.aapa_database import VerslagTableDefinition
-from data.classes.mappers import ColumnMapper, FilenameColumnMapper
+from data.classes.mappers import ColumnMapper
 from data.storage.CRUDs import register_crud
 from data.storage.classes.mijlpaal_base import MijlpaalGradeableTableMapper
+from data.storage.queries.verslagen import VerslagQueries
 from database.database import Database
 
 class VerslagenTableMapper(MijlpaalGradeableTableMapper):
@@ -16,5 +17,7 @@ class VerslagenTableMapper(MijlpaalGradeableTableMapper):
  
 register_crud(class_type=Verslag, 
                 table=VerslagTableDefinition(), 
-                mapper_type=VerslagenTableMapper)
+                mapper_type=VerslagenTableMapper,
+                queries_type=VerslagQueries,
+                )
     

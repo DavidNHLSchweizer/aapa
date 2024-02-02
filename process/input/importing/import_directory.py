@@ -31,7 +31,7 @@ class AanvraagPDFImporter(AanvraagImporter):
     def read_aanvraag(self, filename: str)->Aanvraag:
         return AanvraagReaderFromPDF(filename).read_aanvraag()
 
-def report_imports(new_aanvragen, preview=False, verbose=False):
+def report_imports(new_aanvragen, preview=False):
     log_info('Rapportage import:', to_console=True)
     if not new_aanvragen:
         new_aanvragen = []

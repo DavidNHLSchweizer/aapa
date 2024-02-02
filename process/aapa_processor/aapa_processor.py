@@ -7,7 +7,7 @@ from process.input.importing.import_bb_directory import import_bbdirectory
 from process.migrate.import_basedir import import_basedirs_XLS
 from process.migrate.import_studenten import import_studenten_XLS
 from process.report.report_student_directory import StudentDirectoryReporter
-from process.input.importing.detect_student_from_directory import detect_from_directory
+from process.migrate.detect_student_from_directory import detect_from_directory
 from process.undo.undo_processor import undo_last
 from process.input.create_forms.create_diff_file import DifferenceProcessor
 from data.report_aanvragen import report_aanvragen_XLS

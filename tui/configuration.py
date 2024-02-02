@@ -1,5 +1,5 @@
 from textual.app import ComposeResult
-from textual.widgets import Static, Button, Switch, TabbedContent, TabPane
+from textual.widgets import Static, Button, Switch, TabbedContent, TabPane, Input
 from general.args import AAPAProcessingOptions, ArgumentOption, get_options_from_commandline
 
 from general.config import config
@@ -40,6 +40,7 @@ class AapaConfigurationForm(Static):
     scrolled = False
     def __init__(self):
         self._processing_mode = AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN
+        self._config_ids = ['root', 'output', 'input', 'scanroot', 'bbinput', 'database']
         super().__init__()
     def compose(self)->ComposeResult:
         with TabbedContent():
@@ -55,9 +56,9 @@ class AapaConfigurationForm(Static):
     def on_mount(self):
         tooltips = ToolTips.get('config', {})
         self.border_title = 'Configuratie'
-        for id in ['root', 'output', 'input', 'scanroot', 'bbinput', 'database']:
+        for id in self._config_ids:
             self.query_one(id2selector(id), LabeledInput).input.tooltip = tooltips.get(id, MISSINGHELP)
-        for id in ['root-input-button', 'database-input-button', 'bbinput-input-button', 'scanroot-input-button', 'input-input-button', 'output-input-button']:
+        for id in [f'{id}-input-button' for id in self._config_ids]:
             self.query_one(id2selector(id), Button).tooltip = tooltips.get(id, MISSINGHELP)
         for id in ['scanroot-switch', 'input-switch']:
             self.query_one(id2selector(id), Switch).tooltip = tooltips.get(id, MISSINGHELP)
@@ -65,13 +66,12 @@ class AapaConfigurationForm(Static):
         self.input_options = self._get_input_options()
         self.enable_all()
     def _load_config(self):        
-        for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
+        for id in self._config_ids:
             self.query_one(id2selector(id), LabeledInput).value = config.get('configuration', id)
-    def _store_config_id(self, id: str):
-        for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
-            config.set('configuration', id, self.query_one(id2selector(id), LabeledInput).value)
+    def _store_config_id(self, id: str):        
+        config.set('configuration', id, self.query_one(id2selector(id), LabeledInput).value)
     def _store_config(self):
-        for id in {'root', 'output', 'database', 'scanroot', 'bbinput', 'input'}:
+        for id in self._config_ids:
             self._store_config_id(id)
     def _select_directory(self, input_id: str, title: str):
         input = self.query_one(id2selector(input_id), LabeledInput).input
@@ -79,7 +79,6 @@ class AapaConfigurationForm(Static):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
-            self._store_config_id(input_id)
     def _select_file(self, input_id: str, title: str, default_file: str, default_extension: str, for_open: bool = False):
         input = self.query_one(id2selector(input_id), LabeledInput).input
         if for_open:
@@ -92,7 +91,10 @@ class AapaConfigurationForm(Static):
             input.value=result
             input.cursor_position = len(result)
             input.focus()
-            self._store_config_id(input_id)
+    def on_input_changed(self, message:Input.Changed):
+        id_map = {f'{id}-input-input':id for id in self._config_ids}
+        if message.input.id in id_map.keys():
+            self._store_config_id(id_map[message.input.id])
     def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
             case 'root-input-button': self.edit_root()
