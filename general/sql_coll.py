@@ -202,7 +202,7 @@ class SQLcollectors(dict):
         else:
             database._execute_sql_command(sql_str,parameters=values)    
     def execute_sql(self, database: Database, preview = False):
-        wrapper = TextWrapper() if preview else None    
+        wrapper = TextWrapper(width=80,subsequent_indent="   ") if preview else None
         for sql_type in SQLcollType:
             for collector in self.collectors(sql_type):
                 if collector is None or collector.get_values() == []:
