@@ -30,7 +30,7 @@ def find_custom_parser(module: ModuleType)->ParserFunc:
     return getattr(module, 'prog_parser', None)
 
 if __name__ == "__main__":
-    simple_parser = ArgumentParser(description='script om (in principe) eenmalige acties uit te voeren voor AAPA.', prog='onetime', 
+    simple_parser = ArgumentParser(description='Script om (in principe) eenmalige acties uit te voeren voor AAPA.', prog='onetime', 
                                    usage='%(prog)s module [opties]. Opties zijn alle opties die in AAPA mogelijk zijn.')
     simple_parser.add_argument('module', type=str, 
                         help='Naam module om uit voeren (wordt verwacht in directory "onetime", entry point: onetime_action)')
