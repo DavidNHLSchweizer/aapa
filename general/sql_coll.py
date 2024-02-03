@@ -3,6 +3,7 @@ from copy import deepcopy
 from enum import IntEnum, auto
 import json
 import re
+from textwrap import TextWrapper
 import numpy as np
 from typing import Any, Tuple
 
@@ -194,26 +195,28 @@ class SQLcollectors(dict):
             if key1 != key2 or collector1 != collector2:
                 return False
         return True
-    def __execute_one(self, database:Database, sql_str: str, values:list[Any], preview=False):
-        if preview:
-            print(f'{sql_str}\n{values}')
+    def __execute_one(self, database:Database, sql_str: str, values:list[Any], wrapper: TextWrapper):
+        if wrapper:
+            for line in wrapper.wrap(f'{sql_str}\n{values}'):
+                print(line)
         else:
             database._execute_sql_command(sql_str,parameters=values)    
     def execute_sql(self, database: Database, preview = False):
+        wrapper = TextWrapper() if preview else None    
         for sql_type in SQLcollType:
             for collector in self.collectors(sql_type):
                 if collector is None or collector.get_values() == []:
                     continue
                 sql_str = collector.get_sql()
                 if collector.concatenate:
-                    self.__execute_one(database, sql_str, collector.get_values(), preview)
+                    self.__execute_one(database, sql_str, collector.get_values(), wrapper)
                 else:
                     for values in collector.get_values():
                         self.__execute_one(database, sql_str, values, preview)
 
-def import_json(database: Database, json_name: str):
+def import_json(database: Database, json_name: str, preview=False):
     sqlcolls = SQLcollectors.read_from_dump(json_name)
-    sqlcolls.execute_sql(database)
+    sqlcolls.execute_sql(database, preview=preview)
 
 if __name__=='__main__':      
     print ('--- testing single collector...')
