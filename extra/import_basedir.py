@@ -1,22 +1,37 @@
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Tuple
-from enum import Enum
 from typing import Any
 
-import pandas as pd
 from data.classes.base_dirs import BaseDir
 from data.classes.mappers import ColumnMapper, FilenameColumnMapper, ObjectMapper
 from data.classes.undo_logs import UndoLog
-from migrate.sql_coll import SQLcollector, SQLcollectors
+from general.sql_coll import SQLcollector, SQLcollectors
 from data.roots import add_root, encode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
-from general.log import log_error, log_info, log_print, log_warning
+from general.log import init_logging, log_error, log_info, log_print, log_warning
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
+from process.aapa_processor.aapa_processor import AAPARunnerContext
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import SingleFilePipeline
 from process.input.importing.excel_reader import ExcelReader
+
+EXTRA_DOC = """
+
+    IMPORT_BASEDIRS
+
+    Genereert SQL-code om basedirs vanuit een Excel-sheet met kolommen 
+        'jaar', 'periode', 'forms_versie', 'directory' toe te voegen.
+
+    Kan gebruikt worden om nieuwe base directories toe te voegen aan de database.
+
+    De resultaten worden als .json  weggeschreven.
+
+    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
+
+"""
 
 class BaseDirExcelMapper(ObjectMapper):
     COLUMNS =  ['jaar', 'periode', 'forms_versie', 'directory']
@@ -92,7 +107,7 @@ class BasedirXLSImporter(FileProcessor):
                 self.__check_and_store_basedir(base_dir, storage)
         return (self.n_new,self.n_modified,self.n_already_there)
         
-def import_basedirs_XLS(xls_filename: str, storage: AAPAStorage, migrate_dir = None, preview=False):
+def import_basedirs_XLS(xls_filename: str, storage: AAPAStorage, json_filename: str = "insert_basedirs.json", preview=True):
     importer = BasedirXLSImporter()
     pipeline = SingleFilePipeline('Importeren basedirs uit XLS bestand', importer, 
                                   storage, activity=UndoLog.Action.NOLOG)
@@ -105,8 +120,21 @@ def import_basedirs_XLS(xls_filename: str, storage: AAPAStorage, migrate_dir = N
             log_print(f'{sop(n_modified, "base_dir", "basedirs")} {pva(preview, "aan te passen", "aangepast")} volgens {xls_filename}.')
             log_print(f'{sop(n_already_there, "base_dir", "basedirs")} al in database.')
             log_print(f'{sop(n_new+n_modified, "base_dir", "basedirs")} {pva(preview, "te importeren of aan te passen", "geimporteerd of aangepast")} volgens {xls_filename}.')
-            if migrate_dir:
-                filename = Path(migrate_dir).resolve().joinpath('insert_basedirs.json')
-                importer.sql.dump_to_file(filename)
-                log_print(f'SQL data dumped to file {filename}')
-            storage.commit()
+            importer.sql.dump_to_file(json_filename)
+            log_print(f'SQL data dumped to file {json_filename}')
+
+def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+    base_parser.add_argument('--json', dest='json', required=True, type=str,help='JSON filename waar SQL output wordt weggeschreven') 
+    base_parser.add_argument('--basedir', dest='basedir', required=True, type=str,help='Importeer gegevens over basedirs uit Excel-bestand') 
+    return base_parser
+
+def extra_action(context:AAPARunnerContext, namespace: Namespace):
+    context.processing_options.debug = True
+    context.processing_options.preview = True
+    init_logging('import_basedirs.log', True)
+    json_filename=namespace.json 
+    xls_filename = namespace.basedir 
+    with context:        
+        storage = context.configuration.storage
+        with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
+            import_basedirs_XLS(xls_filename,storage, json_filename=json_filename, preview=True)

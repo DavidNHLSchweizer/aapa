@@ -1,5 +1,6 @@
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any
 from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
@@ -7,31 +8,40 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from migrate.sql_coll import SQLcollector, SQLcollectors
+from general.preview import Preview
+from general.sql_coll import SQLcollector, SQLcollectors
 from data.roots import decode_path, encode_path
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.studenten import StudentQueries
 from general.fileutil import last_parts_file, test_directory_exists
-from general.config import ListValueConvertor, config
-from general.log import log_debug, log_error, log_info, log_print, log_warning
+from general.log import init_logging, log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
 from general.timeutil import TSC
+from process.aapa_processor.aapa_processor import AAPARunnerContext
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
 from process.input.importing.dirname_parser import DirectoryNameParser
 from process.input.importing.filename_parser import FileTypeDetector
 
-def init_config():
-    config.register('detect_directory', 'skip', ListValueConvertor)
-    config.init('detect_directory', 'skip', ['01 Formulieren', 'aapa', 'Beoordeling aanvragen 2023'])    
-init_config()
+EXTRA_DOC = """
+
+    DETECT_STUDENT_FROM_DIRECTORY
+
+    Genereert SQL-code om een directory te scannen en alle studentgegevens in de database 
+    te importeren. 
+        
+    De resultaten worden als .json  weggeschreven.
+
+    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
+
+"""
+SKIP_DIRECTORIES = ['01 Formulieren', 'aapa', 'Beoordeling aanvragen 2023']
 
 class DetectorException(Exception): pass
 
 class StudentDirectoryDetector(FileProcessor):
     ERRCOMMENT= 'Directory kan niet worden herkend'
-    UNKNOWN_STUDNR = 'UNKNOWN_STUDNR'
     def __init__(self):
         super().__init__(description='StudentDirectory Detector')
         self.parser = DirectoryNameParser()
@@ -278,18 +288,34 @@ class MilestoneDetectorPipeline(FilePipeline):
             return True
         return False
 
-def detect_from_directory(directory: str, storage: AAPAStorage, migrate_dir: str = None, preview=False)->int:
+def detect_from_directory(directory: str, storage: AAPAStorage, json_filename:str = None, preview=False)->int:
     directory = decode_path(directory)
     if not Path(directory).is_dir():
         log_error(f'Map {directory} bestaat niet. Afbreken.')
         return 0  
     log_info(f'Start detectie van map  {directory}...', to_console=True)
-    importer = MilestoneDetectorPipeline(f'Detectie studentgegevens uit directory {directory}', storage, skip_directories=config.get('detect_directory', 'skip'))
+    importer = MilestoneDetectorPipeline(f'Detectie studentgegevens uit directory {directory}', storage, skip_directories=SKIP_DIRECTORIES)
     (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
-    filename = f'{Path(directory).parent.name}_{Path(directory).stem}.json'
-    if migrate_dir:
-        migrate_file = Path(migrate_dir).resolve().joinpath(filename)
-        importer.sqls.dump_to_file(migrate_file)
-        log_print(f'SQL data dumped to file {migrate_file}')
+    if not json_filename:
+        json_filename= f'{Path(directory).parent.name}_{Path(directory).stem}.json'
+    importer.sqls.dump_to_file(json_filename)
+    log_print(f'SQL data dumped to file {json_filename}')
     log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix="nieuwe student-")}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
     return n_processed, n_files      
+
+def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+    base_parser.add_argument('--detect', dest='detect', type=str,help=r'Detecteer gegevens vanuit een directory bv: --detect=c:\users\david\NHL Stenden\...')
+    base_parser.add_argument('--json', dest='json', type=str,help='JSON filename waar SQL output wordt weggeschreven\nDefault: samengesteld uit de naam van de detect-diretory') 
+    return base_parser
+
+def extra_action(context:AAPARunnerContext, namespace: Namespace):
+    context.processing_options.debug = True
+    context.processing_options.preview = True
+    init_logging('detect_directory.log', True)
+    json_filename=namespace.json 
+    detect_dir = namespace.detect 
+    with context:        
+        storage = context.configuration.storage
+        with Preview(True,storage,'detect data from directory'):
+            detect_from_directory(detect_dir, storage, json_filename=json_filename, preview=True)
+            

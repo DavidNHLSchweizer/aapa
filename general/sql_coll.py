@@ -3,6 +3,7 @@ from copy import deepcopy
 from enum import IntEnum, auto
 import json
 import re
+import numpy as np
 from typing import Any, Tuple
 
 from database.database import Database
@@ -13,6 +14,21 @@ class SQLcollType(IntEnum):
     UPDATE = auto()      
     def __str__(self)->str:
         return self.name.lower()
+
+class NpEncoder(json.JSONEncoder):
+    #this is needed because json doesn't like numpy data (apparently caused by importing from Excel)
+    #and will complain about non-serializable int64. This hack helps. 
+    #https://stackoverflow.com/questions/50916422/python-typeerror-object-of-type-int64-is-not-json-serializable
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.int64):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return int(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 class SQLValuesCollector:
     def __init__(self, sql_str: str, concatenate=False):
@@ -129,7 +145,7 @@ class SQLcollector:
         return result
     def dump_to_file(self, filename: str):
         with open(filename, mode='w', encoding='utf-8') as file:
-            json.dump(self.as_dict(), file)
+            json.dump(self.as_dict(), file, cls=NpEncoder)
     @classmethod
     def read_from_dump(cls, filename: str)->SQLcollector:
         with open(filename, mode='r', encoding='utf-8') as file:
@@ -166,7 +182,7 @@ class SQLcollectors(dict):
         return result
     def dump_to_file(self, filename: str):
         with open(filename, mode='w', encoding='utf-8') as file:
-            json.dump(self.as_dict(), file)
+            json.dump(self.as_dict(), file, cls=NpEncoder)
     @classmethod
     def read_from_dump(cls, filename: str)->SQLcollectors:
         with open(filename, mode='r', encoding='utf-8') as file:

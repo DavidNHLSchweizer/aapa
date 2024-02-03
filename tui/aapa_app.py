@@ -30,7 +30,7 @@ def AAPArun_script(options: AAPAOptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
         aapa_runner = AAPARunner(options.config_options)
-        aapa_runner.process(options.processing_options, options.other_options) 
+        aapa_runner.process(options.processing_options) 
     finally:
         pop_console()
     return True

@@ -2,6 +2,8 @@ from __future__ import annotations
 from enum import IntEnum
 
 _UNKNOWN = '!unknown'
+UNKNOWN_STUDNR = 'UNKNOWN_STUDNR'
+
 class FileType(IntEnum):
     INVALID_DIR         = -4
     INVALID_DOCX        = -3

@@ -1,7 +1,7 @@
 from data.aapa_database import  StudentMijlpaalDirectoriesOverzichtDefinition
 from data.classes.studenten import Student
 from database.sql_view import SQLcreateView
-from migrate.sql_coll import import_json
+from general.sql_coll import import_json
 from database.database import Database
 from database.sql_table import SQLcreateTable
 

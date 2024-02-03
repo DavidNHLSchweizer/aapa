@@ -1,10 +1,9 @@
-
-
+from argparse import ArgumentParser, Namespace
 from data.classes.aanvragen import Aanvraag
 from data.storage.aapa_storage import AAPAStorage
 from general.log import log_print
-from migrate.sql_coll import SQLcollector, SQLcollectors
-
+from general.sql_coll import SQLcollector, SQLcollectors
+from process.aapa_processor.aapa_processor import AAPARunnerContext
 
 class RemoverException(Exception):pass
 
@@ -40,3 +39,17 @@ class AanvraagRemover:
         self.storage.commit()
         log_print(f'Removed aanvragen {aanvragen_ids}.')
 
+def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+    base_parser.add_argument('--aanvraag', nargs='+', help='Aanvraag id(s) om te verwijderen')
+    return base_parser
+
+def onetime_action(context:AAPARunnerContext, namespace: Namespace):
+    coded_list:str = namespace.aanvraag[0]
+    if ',' in coded_list:
+        aanvragen = [int(id) for id in coded_list.split(',')]
+    else:
+        aanvragen = [int(id) for id in coded_list.split()]
+    print(f'Aanvragen om te verwijderen: {aanvragen}')
+    with context:
+        remover = AanvraagRemover(context.configuration.storage)
+        remover.remove(aanvragen, context.processing_options.preview)

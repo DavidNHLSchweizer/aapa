@@ -1,11 +1,10 @@
 from time import sleep
-import datetime
 from enum import IntEnum
-import os
 from pathlib import Path
 from mailmerge import MailMerge
 from typing import Any, Iterable, Tuple
 from data.classes.bedrijven import Bedrijf
+from data.classes.const import UNKNOWN_STUDNR
 from data.classes.studenten import Student
 
 from data.classes.undo_logs import UndoLog
@@ -20,16 +19,13 @@ from general.pdutil import nrows
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.config import IntValueConvertor, config
-from general.fileutil import created_directory, last_parts_file, path_with_suffix, safe_file_name, set_file_times, test_directory_exists
+from general.fileutil import created_directory, last_parts_file, safe_file_name, set_file_times, test_directory_exists
 from general.strutil import replace_all
 from general.timeutil import TSC
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
-from process.general.aanvraag_processor import AanvraagCreator
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.word_processor import Word2PdfConvertor
-from process.input.create_forms.create_form import MailMergeException
 from process.input.importing.aanvraag_importer import AanvraagImporter
-from process.migrate.detect_student_from_directory import StudentDirectoryDetector
 from process.input.importing.excel_reader import ExcelReader
 
 def init_config():
@@ -135,7 +131,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         if (stored := student_queries.find_student_by_name_or_email_or_studnr(result)):
             result.id = stored.id
             result.status = stored.status
-            if stored.stud_nr == StudentDirectoryDetector.UNKNOWN_STUDNR:
+            if stored.stud_nr == UNKNOWN_STUDNR:
                 stored.stud_nr = result.stud_nr                
                 self.storage.update('studenten', stored)
         return result

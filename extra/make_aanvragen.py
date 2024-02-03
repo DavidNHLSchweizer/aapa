@@ -1,12 +1,27 @@
+from argparse import ArgumentParser, Namespace
 import datetime
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.const import AanvraagStatus, MijlpaalBeoordeling
 from data.storage.aapa_storage import AAPAStorage
-from general.log import log_print
+from general.log import init_logging, log_print
+from general.preview import Preview
 from general.timeutil import TSC
-from migrate.sql_coll import SQLcollector, SQLcollectors
+from general.sql_coll import SQLcollector, SQLcollectors
+from process.aapa_processor.aapa_processor import AAPARunnerContext
+
+EXTRA_DOC = """
+
+    MAKE_AANVRAGEN
+
+    Maakt een aantal aanvragen aan voor specifieke studenten. Reden: deze aanvragen zaten nog niet in de database.
+    Omdat de studenten nog niet afgestudeerd zijn worden deze verslagen met terugwerkende kracht gegenereerd. 
+    De database wordt daarmee "completer" en bepaalde problemen worden voorkomen.
+
+    De code is bedoeld voor de migratie naar database versie 1.22
+
+"""
 
 class AanvragenFabricator:
     def __init__(self, storage: AAPAStorage):
@@ -58,3 +73,17 @@ def create_aanvragen(storage: AAPAStorage, migrate_dir = None):
         filename = Path(migrate_dir).resolve().joinpath('create_aanvragen.json')
         AF.sqls.dump_to_file(filename)
         log_print(f'SQL data dumped to file {filename}')
+
+def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+    base_parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
+    return base_parser
+
+def extra_action(context:AAPARunnerContext, namespace: Namespace):
+    context.processing_options.debug = True
+    context.processing_options.preview = True
+    init_logging('make_aanvragen.log', True)
+    migrate_dir=namespace.migrate if 'migrate' in namespace else None
+    with context:        
+        storage = context.configuration.storage
+        with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
+            create_aanvragen(storage,migrate_dir=migrate_dir)

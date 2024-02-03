@@ -5,16 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python Debugger: Module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "enter-your-module-name"
+        },
+        {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "args": [
+                "remove_aanvraag",
+                "--aanvraag=456,678"
+            ]
         },
         {
             "name": "Python: info",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -27,7 +37,7 @@
         },
         {
             "name": "Python: detect",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -41,7 +51,7 @@
         },
         {
             "name": "Python: studimport",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -54,7 +64,7 @@
         },
         {
             "name": "Python: baseimport",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -68,7 +78,7 @@
         },
         {
             "name": "Python: zipimport",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -83,7 +93,7 @@
         },
         {
             "name": "Python: aapa new",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -96,7 +106,7 @@
         },
         {
             "name": "Python: aapa scan",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -111,7 +121,7 @@
         },
         {
             "name": "Python: aapa form",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -124,7 +134,7 @@
         },
         {
             "name": "Python: aapa mail",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -137,7 +147,7 @@
         },
         {
             "name": "Python: aapa undo",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -150,7 +160,7 @@
         },
         {
             "name": "Python: aapa_migrate.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa_migrate.py",
             "console": "integratedTerminal",
@@ -164,7 +174,7 @@
         },
         {
             "name": "Python: run_tui.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "run_tui.py",
             "console": "externalTerminal",
@@ -176,17 +186,18 @@
             ]
         },
         {
-            "name": "Python: remove_aanvraag",
-            "type": "python",
+            "name": "Python: run_extra",
+            "type": "debugpy",
             "request": "launch",
-            "program": "remove_aanvraag.py",
+            "program": "run_extra.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
+                "import_basedir",
+                "--basedir=migrate\\import_data\\basedirs.xlsx",
+                "--json=tempodoelo.json",
                 "-debug",
-                "-preview",
                 "--onedrive=d:\\onedrive",
-                "--aanvraag=205,206"
             ]
         },
     ]

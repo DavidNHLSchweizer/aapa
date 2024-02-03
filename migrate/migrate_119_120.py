@@ -7,7 +7,7 @@ from data.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesT
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
-from migrate.sql_coll import SQLcollectors
+from general.sql_coll import SQLcollectors
 from data.roots import OneDriveCoder, add_root, encode_path, get_onedrive_root, reset_roots
 from data.storage.aapa_storage import AAPAStorage
 from database.database import Database

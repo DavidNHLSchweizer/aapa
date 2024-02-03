@@ -1,22 +1,33 @@
 
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Tuple
 from data.classes.aanvragen import Aanvraag
-from data.classes.bedrijven import Bedrijf
+from data.classes.const import FileType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
-from data.classes.const import FileType
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.aanvragen import AanvraagQueries
-from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
-from general.log import log_error, log_info, log_print, log_warning
+from general.log import init_logging, log_info, log_print, log_warning
+from general.preview import Preview
 from general.timeutil import TSC
-from migrate.sql_coll import SQLcollector, SQLcollectors
-from process.general.student_dir_builder import StudentDirectoryBuilder
+from general.sql_coll import SQLcollector, SQLcollectors
+from process.aapa_processor.aapa_processor import AAPARunnerContext
 
+EXTRA_DOC = """
+
+    MAKE_VERSLAGEN
+
+    Maakt de verslagen aan in de al eerder gedetecteerde student-directories. De verslagen waren nog niet 
+    in de database aangemaakt.
+    Dit wordt gedaan voor alle studenten. Voor afgestudeerde studenten kan vaak de aanvraag (en daarmee het bedrijf en de titel) 
+    niet worden gevonden in de database. Omdat deze afgestudeerde studenten niet van belang zijn voor verdere processing wordt hier niets aan gedaan.
+
+    De code is bedoeld voor de migratie naar database versie 1.23
+
+"""
 
 class VerslagenReEngineeringProcessor:
     def __init__(self, storage: AAPAStorage):
@@ -71,4 +82,17 @@ class VerslagenReEngineeringProcessor:
             self.sql.dump_to_file(filename)
             log_print(f'SQL data dumped to file {filename}')
 
+def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+    base_parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
+    return base_parser
 
+def extra_action(context:AAPARunnerContext, namespace: Namespace):
+    context.processing_options.debug = True
+    context.processing_options.preview = True
+    init_logging('make_verslagen.log', True)
+    migrate_dir=namespace.migrate if 'migrate' in namespace else None
+    with context:        
+        storage = context.configuration.storage
+        with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
+            processor = VerslagenReEngineeringProcessor(storage)
+            processor.process_all(migrate_dir=migrate_dir)

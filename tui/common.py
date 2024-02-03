@@ -1,5 +1,5 @@
 from textual.message import Message
-from general.args import AAPAConfigOptions, AAPAOptions, AAPAOtherOptions, AAPAProcessingOptions, AAPAaction, ArgumentOption, get_options_from_commandline
+from general.args import AAPAConfigOptions, AAPAOptions, AAPAProcessingOptions, AAPAaction, ArgumentOption, get_options_from_commandline
 from general.log import log_debug
 
 BASE_CSS = """
@@ -83,11 +83,8 @@ class AAPATuiParams:
             result.input_options = self.input_options
             result.processing_mode = {self.processing_mode}
             return result
-        def _get_other_options()->AAPAOtherOptions:
-            return get_options_from_commandline(ArgumentOption.OTHER) 
         result= AAPAOptions(config_options=_get_config_options(report_filename),
-                           processing_options=_get_processing_options(action),
-                           other_options=_get_other_options())
+                           processing_options=_get_processing_options(action))
         log_debug(f'AAPATuiParams.get_options: {result}')
         return result
 
