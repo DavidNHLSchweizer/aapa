@@ -1,13 +1,14 @@
-from data.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentMijlpaalDirectoriesOverzichtDefinition
+from data.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
 from migrate.migrate import modify_table
 from database.sql_view import SQLcreateView
 from general.sql_coll import import_json
 from database.database import Database
 
-# add new view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT
-def add_view(database: Database):
-    print(f'adding STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT')
+# add new views
+def add_views(database: Database):
+    print(f'adding new views STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT en STUDENT_VERSLAGEN_OVERZICHT')
     database.execute_sql_command(SQLcreateView(StudentMijlpaalDirectoriesOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(StudentVerslagenOverzichtDefinition()))
     print('ready')
 
 # modify new view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT
@@ -41,7 +42,7 @@ def migrate_database(database: Database, phase = 42):
             create_mijlpaal_directories(database)
         if phase >= 2:
             create_verslagen(database)
-        add_view(database)
+        add_views(database)
 
 def after_migrate(database_name: str, debug=False, phase=42):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.

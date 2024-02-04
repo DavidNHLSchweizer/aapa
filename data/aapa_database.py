@@ -2,6 +2,7 @@ from __future__ import annotations
 from enum import IntEnum
 from data.classes.const import FileType, MijlpaalBeoordeling, MijlpaalType
 from data.classes.studenten import Student
+from data.classes.verslagen import Verslag
 from database.sql_table import SQLselect
 from database.table_def import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
@@ -258,6 +259,17 @@ class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
                 inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.ID=SDD.stud_dir_id \
                 inner join MIJLPAAL_DIRECTORIES MPD on MPD.ID=SDD.mp_dir_id order by 1,3'
         super().__init__('STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT', query=query)
+
+class StudentVerslagenOverzichtDefinition(ViewDefinition):
+    def __init__(self):
+        verslag_type_str = get_sql_cases_for_int_type('V.verslag_type', MijlpaalType, 'verslag_type') 
+        status_str = get_sql_cases_for_int_type('V.status', Verslag.Status, 'status') 
+        beoordeling = get_sql_cases_for_int_type('V.beoordeling', MijlpaalBeoordeling, 'beoordeling')
+        query = f'select (select full_name from STUDENTEN as S where S.id=V.stud_id) as student, V.datum, {verslag_type_str}, \
+            (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans,{status_str},{beoordeling} \
+            from VERSLAGEN as V order by 1,2' 
+        super().__init__('STUDENT_VERSLAGEN_OVERZICHT', query=query)
+
 
 class AAPaSchema(Schema):
     ALL_TABLES:list[TableDefinition] = [
