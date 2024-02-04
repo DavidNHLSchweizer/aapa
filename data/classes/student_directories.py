@@ -29,8 +29,11 @@ class StudentDirectory(AAPAclass):
     @property
     def directories(self)->list[MijlpaalDirectory]:
         return self._data.as_list('directories')    
-    def get_directories(self, mijlpaal_type: MijlpaalType)->list[MijlpaalDirectory]:
-        return [dir for dir in self.directories if dir.mijlpaal_type == mijlpaal_type]
+    def get_directories(self, mijlpaal_type: MijlpaalType, sorted=True)->list[MijlpaalDirectory]:
+        result = [dir for dir in self.directories if dir.mijlpaal_type == mijlpaal_type]
+        if sorted:
+            result.sort(key=lambda mpd: (mpd.mijlpaal_type,mpd.datum))
+        return result
     def get_directory(self, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->MijlpaalDirectory:
         for directory in self.get_directories(mijlpaal_type):
             if directory.datum==datum:

@@ -1,6 +1,9 @@
 import importlib
+from typing import Protocol
 from data.aapa_database import create_version_info, read_version_info
 from database.database import Database
+from database.sql_table import SQLcreateTable
+from database.table_def import TableDefinition
 from general.fileutil import file_exists
 from general.log import init_logging
 from process.aapa_processor.initialize import initialize_database
@@ -63,3 +66,13 @@ def finish_migratie(database: Database, new_version: str):
     update_versie(database, new_version)    
     database.commit()
 
+class copy_func(Protocol):
+    def __call__(database:Database, old_table_name: str, new_table_name: str)->bool:pass
+
+def modify_table(database: Database, new_table: TableDefinition, copy_data: copy_func):
+    old_table_name = f'OLD_{new_table.name}'
+    database._execute_sql_command(f'alter table {new_table.name} rename to {old_table_name}')
+    print('creating the new table')
+    database.execute_sql_command(SQLcreateTable(new_table))
+    if copy_data is None or copy_data(database, old_table_name, new_table.name):
+        database._execute_sql_command(f'drop table {old_table_name}')

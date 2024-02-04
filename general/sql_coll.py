@@ -196,7 +196,7 @@ class SQLcollectors(dict):
                 return False
         return True
     def __execute_one(self, database:Database, sql_str: str, values:list[Any], wrapper: TextWrapper):
-        if wrapper:
+        if wrapper is not None:
             for line in wrapper.wrap(f'{sql_str}\n{values}'):
                 print(line)
         else:
@@ -209,14 +209,16 @@ class SQLcollectors(dict):
                     continue
                 sql_str = collector.get_sql()
                 if collector.concatenate:
-                    self.__execute_one(database, sql_str, collector.get_values(), wrapper)
+                    self.__execute_one(database, sql_str, collector.get_values(), wrapper=wrapper)
                 else:
                     for values in collector.get_values():
-                        self.__execute_one(database, sql_str, values, preview)
+                        self.__execute_one(database, sql_str, values, wrapper=wrapper)
 
 def import_json(database: Database, json_name: str, preview=False):
     sqlcolls = SQLcollectors.read_from_dump(json_name)
     sqlcolls.execute_sql(database, preview=preview)
+    if not preview:
+        database.commit()
 
 if __name__=='__main__':      
     print ('--- testing single collector...')

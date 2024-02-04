@@ -195,6 +195,7 @@ class MijlpaalDirectoryTableDefinition(TableDefinition):
         super().__init__('MIJLPAAL_DIRECTORIES')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('mijlpaal_type', dbc.INTEGER)
+        self.add_column('kans', dbc.INTEGER)
         self.add_column('directory', dbc.TEXT)
         self.add_column('datum', dbc.TEXT)
 
@@ -252,10 +253,10 @@ group by sdd.stud_id having max(sdd.id) order by 5,6,2'
 class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
     def __init__(self):
         mijlpaal_str = get_sql_cases_for_int_type('MPD.mijlpaal_type', MijlpaalType, 'mijlpaal_type') 
-        query = f'select (select full_name from studenten as S where S.id=SD.stud_id) as student, {mijlpaal_str}, MPD.directory \
+        query = f'select (select full_name from studenten as S where S.id=SD.stud_id) as student, MPD.datum, {mijlpaal_str}, MPD.kans, MPD.directory \
                 from student_directories as SD \
                 inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.ID=SDD.stud_dir_id \
-                inner join MIJLPAAL_DIRECTORIES MPD on MPD.ID=SDD.mp_dir_id'
+                inner join MIJLPAAL_DIRECTORIES MPD on MPD.ID=SDD.mp_dir_id order by 1,3'
         super().__init__('STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT', query=query)
 
 class AAPaSchema(Schema):
