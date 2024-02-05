@@ -2,32 +2,14 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import _UNKNOWN, MijlpaalBeoordeling, MijlpaalType
+from data.classes.const import _UNKNOWN, MijlpaalBeoordeling, MijlpaalType, VerslagStatus
 from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.studenten import Student
 from database.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
 class Verslag(MijlpaalGradeable):
-    class Status(IntEnum):
-        LEGACY          = -2
-        INVALID         = -1
-        NEW             = 0
-        NEEDS_GRADING   = 1
-        MULTIPLE        = 2
-        GRADED          = 3
-        READY           = 4
-        def __str__(self):
-            STRS = {Verslag.Status.LEGACY: 'erfenis',Verslag.Status.INVALID: 'ongeldig', 
-                    Verslag.Status.NEW: 'nieuw', Verslag.Status.NEEDS_GRADING: 'te beoordelen', 
-                    Verslag.Status.MULTIPLE: 'bijlage',
-                    Verslag.Status.GRADED: 'beoordeeld', 
-                    Verslag.Status.READY: 'geheel verwerkt'}
-            return STRS.get(self, _UNKNOWN)
-        @staticmethod
-        def valid_states()->set[Verslag.Status]:
-            return {status for status in Verslag.Status} - {Verslag.Status.INVALID}
-            
+    Status = VerslagStatus            
 # def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
 #                  source_info: File = None, datum: datetime.datetime = None, 
 #                  beoordeling=Beoordeling.TE_BEOORDELEN, status=Status.NEW, id=EMPTY_ID, kans=0, versie=1):

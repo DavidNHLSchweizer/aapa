@@ -1,10 +1,7 @@
 from typing import Any, Iterable, Type
-import sqlite3 as sql3
 from data.classes.aapa_class import AAPAclass
 from data.roots import decode_path, encode_path
-from data.storage.general.storage_const import StorageException, StoredClass, DBtype
-from database.database import Database
-from database.table_def import TableDefinition
+from data.storage.general.storage_const import StoredClass, DBtype
 from general.classutil import classname
 from general.timeutil import TSC
 

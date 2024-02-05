@@ -169,6 +169,49 @@ class MijlpaalBeoordeling(IntEnum):
     def doc()->str:
         return "\n".join([f'{beoord.value:2} (MijlpaalBeoordeling.{beoord.name}): {str(beoord)}' for beoord in MijlpaalBeoordeling])
 
+class StudentStatus(IntEnum):
+    """
+    IntEnum: constanten gebruikt om de status van een student (in het afstudeertraject)
+    aan te geven.
+    Voor meer info: zie StudentStatus.doc()
+
+    """
+    UNKNOWN     = 0
+    AANVRAAG    = 1
+    BEZIG       = 2
+    AFGESTUDEERD= 3 
+    GESTOPT     = 10
+    def __str__(self):
+        STRS = {StudentStatus.UNKNOWN: 'nog niet bekend', StudentStatus.AANVRAAG: 'aanvraag gedaan',  
+                StudentStatus.BEZIG: 'bezig met afstuderen', StudentStatus.AFGESTUDEERD: 'afgestudeerd', 
+                StudentStatus.GESTOPT: 'gestopt'}
+        return STRS[self.value]
 @staticmethod
 def doc()->str:
-    return "\n----\n".join([class_type.doc() for class_type in [FileType, MijlpaalType, AanvraagStatus, MijlpaalStatus, MijlpaalBeoordeling] ])
+    return "\n".join([f'{status.value:2} (StudentStatus.{status.name}): {str(status)}' for status in StudentStatus])        
+
+class VerslagStatus(IntEnum):
+    LEGACY          = -2
+    INVALID         = -1
+    NEW             = 0
+    NEEDS_GRADING   = 1
+    MULTIPLE        = 2
+    GRADED          = 3
+    READY           = 4
+    def __str__(self):
+        STRS = {VerslagStatus.LEGACY: 'erfenis',VerslagStatus.INVALID: 'ongeldig', 
+                VerslagStatus.NEW: 'nieuw', VerslagStatus.NEEDS_GRADING: 'te beoordelen', 
+                VerslagStatus.MULTIPLE: 'bijlage',
+                VerslagStatus.GRADED: 'beoordeeld', 
+                VerslagStatus.READY: 'geheel verwerkt'}
+        return STRS.get(self, _UNKNOWN)
+    @staticmethod
+    def valid_states()->set[VerslagStatus]:
+        return {status for status in VerslagStatus} - {VerslagStatus.INVALID}
+@staticmethod
+def doc()->str:
+    return "\n".join([f'{status.value:2} (VerslagStatus.{status.name}): {str(status)}' for status in VerslagStatus])        
+
+@staticmethod
+def doc()->str:
+    return "\n----\n".join([class_type.doc() for class_type in [FileType, MijlpaalType, AanvraagStatus, MijlpaalStatus, MijlpaalBeoordeling,StudentStatus,VerslagStatus]])
