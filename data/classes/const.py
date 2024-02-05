@@ -186,9 +186,9 @@ class StudentStatus(IntEnum):
                 StudentStatus.BEZIG: 'bezig met afstuderen', StudentStatus.AFGESTUDEERD: 'afgestudeerd', 
                 StudentStatus.GESTOPT: 'gestopt'}
         return STRS[self.value]
-@staticmethod
-def doc()->str:
-    return "\n".join([f'{status.value:2} (StudentStatus.{status.name}): {str(status)}' for status in StudentStatus])        
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{status.value:2} (StudentStatus.{status.name}): {str(status)}' for status in StudentStatus])        
 
 class VerslagStatus(IntEnum):
     """
@@ -215,10 +215,11 @@ class VerslagStatus(IntEnum):
     @staticmethod
     def valid_states()->set[VerslagStatus]:
         return {status for status in VerslagStatus} - {VerslagStatus.INVALID}
-@staticmethod
-def doc()->str:
-    return "\n".join([f'{status.value:2} (VerslagStatus.{status.name}): {str(status)}' for status in VerslagStatus])        
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{status.value:2} (VerslagStatus.{status.name}): {str(status)}' for status in VerslagStatus])        
 
+#--------------------
 @staticmethod
 def doc()->str:
     return "\n----\n".join([class_type.doc() for class_type in [FileType, MijlpaalType, AanvraagStatus, MijlpaalStatus, MijlpaalBeoordeling,StudentStatus,VerslagStatus]])
