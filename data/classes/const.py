@@ -1,3 +1,8 @@
+""" data.classes.const module: Constanten en enums voor de AAPA classes 
+
+Voor meer info: zie data.classes.const.doc()
+
+"""
 from __future__ import annotations
 from enum import IntEnum
 
@@ -5,6 +10,11 @@ _UNKNOWN = '!unknown'
 UNKNOWN_STUDNR = 'UNKNOWN_STUDNR'
 
 class FileType(IntEnum):
+    """
+    IntEnum: constanten gebruikt om verschillende filetypes aan te geven.
+    Voor meer info: zie FileType.doc()
+
+    """
     INVALID_DIR         = -4
     INVALID_DOCX        = -3
     INVALID_PDF         = -2
@@ -52,8 +62,18 @@ class FileType(IntEnum):
     @staticmethod
     def invalid_file_types()->set[FileType]:
         return {FileType.INVALID_PDF, FileType.INVALID_DOCX}
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{ft.value:2} (FileType.{ft.name}): {str(ft)}' for ft in FileType])  
 
 class MijlpaalType(IntEnum):
+    """
+    IntEnum: constanten gebruikt om verschillende soorten "mijlpalen" aan te geven.
+    Wordt gebruikt om verschillende types verslagen, maar ook de bijbehorende 
+    student-directories te onderscheiden.
+    Voor meer info: zie MijlpaalType.doc()
+    
+    """
     UNKNOWN             = 0
     AANVRAAG            = 1
     PVA                 = 2
@@ -79,8 +99,16 @@ class MijlpaalType(IntEnum):
                     MijlpaalType.PRESENTATIE: 'presentatie', MijlpaalType.EINDBEOORDELING: 'eindbeoordeling', 
                     MijlpaalType.AFSTUDEERZITTING: 'afstudeerzitting' }
         return _MT_STRS.get(self, _UNKNOWN)
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{mpt.value:2} (MijlpaalType.{mpt.name}): {str(mpt)}' for mpt in MijlpaalType])
     
 class AanvraagStatus(IntEnum):
+    """
+    IntEnum: constanten gebruikt om de processing-status van een aanvraaag aan te geven.
+    Voor meer info: zie AanvraagStatus.doc()
+        
+    """
     DELETED         = -1
     NEW             = 0
     IMPORTED_PDF    = 1
@@ -101,8 +129,17 @@ class AanvraagStatus(IntEnum):
     @staticmethod
     def valid_states()->set[AanvraagStatus]:
         return {status for status in AanvraagStatus} - {AanvraagStatus.DELETED}
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{status.value:2} (AanvraagStatus.{status.name}): {str(status)}' for status in AanvraagStatus])
         
 class MijlpaalStatus(IntEnum):
+    """
+    IntEnum: constanten gebruikt om de processing-status van een verslag aan te geven.
+    #TODO: is nog niet afgerond
+    Voor meer info: zie MijlpaalStatus.doc()
+        
+    """
     NEW             = 0
     NEEDS_GRADING   = 1
     GRADED          = 2
@@ -111,11 +148,27 @@ class MijlpaalStatus(IntEnum):
         _MS_STRS = {MijlpaalStatus.NEW: 'nieuw', MijlpaalStatus.NEEDS_GRADING: 'te beoordelen', MijlpaalStatus.GRADED: 'beoordeeld', 
                 MijlpaalStatus.READY: 'geheel verwerkt'}
         return _MS_STRS.get(self, _UNKNOWN)
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{status.value:2} (MijlpaalStatus.{status.name}): {str(status)}' for status in MijlpaalStatus])
 
 class MijlpaalBeoordeling(IntEnum):
+    """
+    IntEnum: constanten gebruikt om de beoordeling van een aanvraag of een verslag aan te geven.
+    #TODO: is voor verslagen nog niet afgerond
+    Voor meer info: zie MijlpaalBeoordeling.doc()
+        
+    """
     TE_BEOORDELEN = 0
     ONVOLDOENDE   = 1
     VOLDOENDE     = 2
     def __str__(self):
         _MB_STRS = {MijlpaalBeoordeling.TE_BEOORDELEN: '', MijlpaalBeoordeling.ONVOLDOENDE: 'onvoldoende', MijlpaalBeoordeling.VOLDOENDE: 'voldoende'}
         return _MB_STRS.get(self,_UNKNOWN)
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{beoord.value:2} (MijlpaalBeoordeling.{beoord.name}): {str(beoord)}' for beoord in MijlpaalBeoordeling])
+
+@staticmethod
+def doc()->str:
+    return "\n----\n".join([class_type.doc() for class_type in [FileType, MijlpaalType, AanvraagStatus, MijlpaalStatus, MijlpaalBeoordeling] ])
