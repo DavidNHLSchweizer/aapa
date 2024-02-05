@@ -136,8 +136,9 @@ class VerslagFromZipImporter(VerslagImporter):
                     log_debug(f'filename to create: {filename_to_create}')
                     if student_entry['stored']:
                         log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\t is al in database bekend. {overgeslagen}')
-                    if student_entry['existing']:
+                    if student_entry['existing']: #not stored
                         log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
+                #hier: doe hier misschien nog iets mee (registeren?)                
                     else:
                         file = self.create_file(student_entry['filename_in_zip'], filename_to_create, new_student, preview=preview)
                 #hier: doe hier misschien nog iets mee (registeren?)                
