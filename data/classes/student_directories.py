@@ -4,6 +4,7 @@ from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.base_dirs import BaseDir
 from data.classes.const import MijlpaalType
+from data.classes.files import File
 from data.classes.mijlpaal_base import MijlpaalBase
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
@@ -39,6 +40,11 @@ class StudentDirectory(AAPAclass):
             if directory.datum==datum:
                 return directory
         return None
+    def get_files(self)->list[File]:
+        result = []
+        for directory in self.directories:
+            result.extend(directory.files_list)
+        return result
     def add(self, mijlpaal: MijlpaalBase):
         if self.get_directory(mijlpaal.datum, mijlpaal.mijlpaal_type):
             log_warning(f'Directory {mijlpaal} is al aanwezig. Wordt overgeslagen.')
