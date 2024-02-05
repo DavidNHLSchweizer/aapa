@@ -56,6 +56,5 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     else:
         aanvragen = [int(id) for id in coded_list.split()]
     print(f'Aanvragen om te verwijderen: {aanvragen}')
-    with context:
-        remover = AanvraagRemover(context.configuration.storage)
-        remover.remove(aanvragen, context.processing_options.preview)
+    remover = AanvraagRemover(context.configuration.storage)
+    remover.remove(aanvragen, context.processing_options.preview)

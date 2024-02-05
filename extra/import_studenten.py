@@ -128,10 +128,8 @@ def extra_args(base_parser: ArgumentParser)->ArgumentParser:
 def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
-    init_logging('import_studenten.log', True)
     json_filename=namespace.json 
     xls_filename = namespace.student 
-    with context:        
-        storage = context.configuration.storage
-        with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
-            import_studenten_XLS(xls_filename, storage, json_filename=json_filename, preview=True)            
+    storage = context.configuration.storage
+    with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
+        import_studenten_XLS(xls_filename, storage, json_filename=json_filename, preview=True)            

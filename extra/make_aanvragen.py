@@ -79,9 +79,7 @@ def extra_args(base_parser: ArgumentParser)->ArgumentParser:
 def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
-    init_logging('make_aanvragen.log', True)
     migrate_dir=namespace.migrate if 'migrate' in namespace else None
-    with context:        
-        storage = context.configuration.storage
-        with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
-            create_aanvragen(storage,migrate_dir=migrate_dir)
+    storage = context.configuration.storage
+    with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
+        create_aanvragen(storage,migrate_dir=migrate_dir)

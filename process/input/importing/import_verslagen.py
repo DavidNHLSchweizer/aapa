@@ -5,10 +5,12 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
+from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.aanvragen import AanvraagQueries
+from data.storage.queries.files import FilesQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from data.storage.queries.studenten import StudentQueries
 from general.fileutil import file_exists, last_parts_file
@@ -67,6 +69,7 @@ class VerslagFromZipImporter(VerslagImporter):
         result = {}
         for parsed in self.reader.parsed_list:
             verslag = self._get_verslag_from_parsed(parsed)
+            log_print(f'Student: {verslag.student.full_name}')
             student_key = verslag.student.email
             student_entries = result.get(student_key, [])
             student_entries.append({'verslag': verslag, 
@@ -74,6 +77,7 @@ class VerslagFromZipImporter(VerslagImporter):
                                   'original_filename': parsed.original_filename,
                                   'filename_to_create': self.get_filename_to_create(verslag, parsed.original_filename)
                                   })
+            log_print(f'\t{parsed.original_filename}: {verslag.mijlpaal_type}')
             result[student_key] = student_entries
         for student_entries in result.values():
             if len(student_entries)>1:
@@ -89,6 +93,9 @@ class VerslagFromZipImporter(VerslagImporter):
             directory_path.mkdir()
             return True
         return False
+    def _check_in_database(self, filename_to_create: str)->bool:
+        queries: FilesQueries = self.storage.queries('files')
+        return queries.is_known_file(filename_to_create)
     def create_file(self, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False)->File:
         mijlpaal_directory = Path(filename_to_create).parent
         if preview:
@@ -107,6 +114,7 @@ class VerslagFromZipImporter(VerslagImporter):
         previous_existing = False
         for student_entry in student_entries:
             filename_to_create = student_entry['filename_to_create']
+            student_entry['stored'] = self._check_in_database(filename_to_create=filename_to_create)
             student_entry['existing'] = file_exists(filename_to_create)
             if student_entry['existing']:
                 previous_existing = True
@@ -117,6 +125,7 @@ class VerslagFromZipImporter(VerslagImporter):
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')
+        overgeslagen = 'Wordt overgeslagen (aanname: dit verslag is al eerder op sharepoint geplaatst).'
         for student_entries in self.get_verslagen(zip_filename).values():
             try:
                 self._check_existing_files(student_entries)
@@ -125,11 +134,13 @@ class VerslagFromZipImporter(VerslagImporter):
                     verslag = student_entry['verslag']
                     filename_to_create = student_entry['filename_to_create']
                     log_debug(f'filename to create: {filename_to_create}')
+                    if student_entry['stored']:
+                        log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\t is al in database bekend. {overgeslagen}')
                     if student_entry['existing']:
-                        log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\tbestaat al. Wordt overgeslagen (aanname: dit verslag is al eerder op sharepoint geplaatst).\n\tWordt wel opgenomen in database.')
+                        log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
                     else:
                         file = self.create_file(student_entry['filename_in_zip'], filename_to_create, new_student, preview=preview)
-                #hier: doe hier nog  iets mee (registeren?)                
+                #hier: doe hier misschien nog iets mee (registeren?)                
                     new_student = False
                     yield verslag
             except Exception as E:

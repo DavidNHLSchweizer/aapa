@@ -54,13 +54,15 @@ class FileStorageAnalyzer:
 class FilesQueries(CRUDQueries):
     def __init__(self, crud: CRUD):
         super().__init__(crud)
-        self.known_files:list[File] = None
+        self.known_files:list[File] = None 
     def analyze(self, filename: str)->Tuple[FileStorageAnalyzer.Status,File]:
         return FileStorageAnalyzer(self).analyze(str(filename))
-    def is_known_file(self, filename: str)->bool: 
-        if not self.known_files:
-            self.known_files:list[File] = self.find_values(attributes='filetype', 
-                                    values=File.Type.valid_file_types(), read_many=True)
-        return filename in {file.filename for file in self.known_files} or \
-            self.find_values('files', attributes=['filename', 'filetype'], 
-                                     values=[str(filename), File.Type.invalid_file_types()], read_many=True) != []
+    def is_known_file(self, filename: str)->bool:
+        return self.find_ids_where(where_attributes=['filename', 'filetype'], where_values=[filename,File.Type.valid_file_types()]) != []
+    # def is_known_file(self, filename: str)->bool: 
+    #     if not self.known_files:
+    #         self.known_files:list[File] = self.find_values(attributes='filetype', 
+    #                                 values=File.Type.valid_file_types(), read_many=True)
+    #     return filename in {file.filename for file in self.known_files} or \
+    #         self.find_values('files', attributes=['filename', 'filetype'], 
+    #                                  values=[str(filename), File.Type.invalid_file_types()], read_many=True) != []

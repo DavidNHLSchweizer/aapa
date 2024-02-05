@@ -17,10 +17,8 @@ def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     return base_parser
 
 def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    init_logging('json.log', True)
     json_filename=namespace.json 
-    with context:        
-        storage = context.configuration.storage
-        with Preview(context.processing_options.preview,storage,'Voer JSON SQL-code uit'):
-            import_json(storage.database, json_filename, context.processing_options.preview)
+    storage = context.configuration.storage
+    with Preview(context.processing_options.preview,storage,'Voer JSON SQL-code uit'):
+        import_json(storage.database, json_filename, context.processing_options.preview)
     

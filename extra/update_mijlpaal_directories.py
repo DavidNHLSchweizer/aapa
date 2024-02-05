@@ -22,7 +22,6 @@ from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
-
 class MijlpalenKansProcessor:
     def __init__(self, storage: AAPAStorage):
         self.storage = storage
@@ -56,10 +55,8 @@ def extra_args(base_parser: ArgumentParser)->ArgumentParser:
 def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
-    init_logging('make_verslagen.log', True)
     migrate_dir=namespace.migrate if 'migrate' in namespace else None
-    with context:        
-        storage = context.configuration.storage
-        with Preview(True,storage,'Update mijlpaal_directories (voor migratie)'):
-            processor = MijlpalenKansProcessor(storage)
-            processor.process_all(migrate_dir=migrate_dir)
+    storage = context.configuration.storage
+    with Preview(True,storage,'Update mijlpaal_directories (voor migratie)'):
+        processor = MijlpalenKansProcessor(storage)
+        processor.process_all(migrate_dir=migrate_dir)

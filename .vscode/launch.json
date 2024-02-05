@@ -115,8 +115,8 @@
                 "input",
                 "-debug",
                 "-preview",
-                "--onedrive=d:\\onedrive",
-                "--input_options=F",
+                "--onedrive=d:\\onedrive0",
+                "--processing_mode=R",
             ]
         },
         {
@@ -182,7 +182,8 @@
             "args": [
                 "-debug",
                 "--input_options=F",
-                "--onedrive=d:\\onedrive0"
+                "--onedrive=d:\\onedrive0",
+                "--processing_mode=R"
             ]
         },
         {

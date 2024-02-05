@@ -310,11 +310,9 @@ def extra_args(base_parser: ArgumentParser)->ArgumentParser:
 def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
-    init_logging('detect_directory.log', True)
     json_filename=namespace.json 
     detect_dir = namespace.detect 
-    with context:        
-        storage = context.configuration.storage
-        with Preview(True,storage,'detect data from directory'):
-            detect_from_directory(detect_dir, storage, json_filename=json_filename, preview=True)
+    storage = context.configuration.storage
+    with Preview(True,storage,'detect data from directory'):
+        detect_from_directory(detect_dir, storage, json_filename=json_filename, preview=True)
             

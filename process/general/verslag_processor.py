@@ -3,7 +3,7 @@ from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists, summary_string
-from general.log import log_debug, log_error, log_print, log_warning
+from general.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.base_processor import FileProcessor
 from process.input.importing.aanvraag_importer import ImportException
 
@@ -32,7 +32,7 @@ class VerslagImporter(FileProcessor):
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
-        log_print(f'Lezen {summary_string(filename, maxlen=100)}')
+        log_info(f'Lezen {summary_string(filename, maxlen=100)}', to_console=True)
         result = None
         try:      
             self.before_reading(preview)

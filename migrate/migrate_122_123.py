@@ -17,7 +17,7 @@ def _copy_mijlpaal_data(database: Database, old_table_name: str, new_table_name:
     database._execute_sql_command(f'INSERT INTO {new_table_name} SELECT id,mijlpaal_type,0,directory,datum FROM {old_table_name}')
     # must also re-create view StudentDirectoriesFileOverzichtDefinition, because it now references OLD_TABLE_NAME
     database._execute_sql_command(f'DROP VIEW {StudentDirectoriesFileOverzichtDefinition().name}')
-    database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))    
     return True
 
 def modify_mijlpaal_directories(database: Database):
@@ -35,6 +35,26 @@ def create_verslagen(database: Database):
     import_json(database, r'.\migrate\m123\create_verslagen.json')
     print("... ready re-engineering verslagen from generated list SQL-commandos")
 
+def _correct_path(database: Database, table: str, path_column: str, path_to_correct_pattern: str, replace: str, replace_with: str):
+    rows = database._execute_sql_command(f'select id,{path_column} from {table} where {path_column} like ?', [path_to_correct_pattern],True)    
+    for row in rows:
+        new_path = str(row[path_column]).replace(replace, replace_with)
+        database._execute_sql_command(f'update {table} set {path_column}=? where id=?', [new_path, row['id']])
+
+def correct_files_for_error(database: Database):
+    print('correcting FILES errors, al gecorrigeerd IRL')
+    _correct_path(database, 'FILES', 'filename', r':ROOT12:\Cheng, Micky\2023-12-23%',  "2023-12-23", "2023-12-22")
+    _correct_path(database, 'MIJLPAAL_DIRECTORIES', 'directory', r':ROOT12:\Cheng, Micky\2023-12-23%',  "2023-12-23", "2023-12-22")
+    _correct_path(database, 'FILES', 'filename', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen ond%',  "onderzoeksverslag", "Onderzoeksverslag")
+
+    
+    _correct_path(database, 'FILES', 'filename', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen Onderzoeksverslag\5 januari 2024 2e kans Onderzoeksverslag%',  "2e kans Onderzoeksverslag", "2e kans onderzoeksverslag")
+    _correct_path(database, 'MIJLPAAL_DIRECTORIES', 'directory', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen ond%',  "onderzoeksverslag", "Onderzoeksverslag")
+    _correct_path(database, 'STUDENT_DIRECTORIES', 'directory', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen ond%',  "onderzoeksverslag", "Onderzoeksverslag")
+
+    print('... ready correcting FILES errors')
+    
+
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
         modify_mijlpaal_directories(database)
@@ -43,6 +63,7 @@ def migrate_database(database: Database, phase = 42):
         if phase >= 2:
             create_verslagen(database)
         add_views(database)
+        correct_files_for_error(database)
 
 def after_migrate(database_name: str, debug=False, phase=42):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.

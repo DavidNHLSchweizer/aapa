@@ -18,15 +18,16 @@ def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     return base_parser
 
 def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    with context:
-        """
-            entry point voor run_extra 
-            voeg hier de uit te voeren code toe
+    """
+        entry point voor run_extra 
+        voeg hier de uit te voeren code toe
 
-            de AAPA context geeft toegang tot storage en opties
+        de AAPA context geeft toegang tot storage en opties 
+        de context manager wordt al opgestart.
+        logging gaat naar "module_name".log
 
-            eventuele module-specifieke opties kunnen uit de namespace worden gehaald.
-        """
-        print('namespace:', namespace)        
-        print('configuratie:', context.configuration)
+        eventuele module-specifieke opties kunnen uit de namespace worden gehaald.
+    """
+    print('namespace:', namespace)        
+    print('configuratie:', context.configuration)
     

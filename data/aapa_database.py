@@ -140,7 +140,7 @@ class FilesTableDefinition(TableDefinition):
         self.add_column('digest', dbc.TEXT)
         self.add_column('filetype', dbc.INTEGER)
         self.add_column('mijlpaal_type', dbc.INTEGER)
-        # self.add_index('name_index', 'filename')
+        self.add_index('name_index', 'filename')
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])
 
@@ -212,6 +212,11 @@ def get_sql_cases_for_int_type(column_name: str, int_class: IntEnum, alias_name:
     all_cases = " ".join([f'when {int(elem)} then "{str(elem)}"' for elem in int_class])
     return f'(case {column_name} {all_cases} else "?" end ) as {alias_name}'
 
+def get_int_type_for_sql_cases(column_name: str, int_class: IntEnum)->str:
+    reverse_dict= {str(elem):int(elem) for elem in int_class}
+    all_cases = " ".join([f'when "{str(elem)}" then {reverse_dict[str(elem)]}' for elem in int_class])
+    return f'(case {column_name} {all_cases} else "?" end )'
+
 class AanvragenOverzichtDefinition(ViewDefinition):
     def __init__(self):
         stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
@@ -234,7 +239,7 @@ class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
         filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
         mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
         query = \
-f'select SD.id,SD.directory,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+f'select SD.id,SD.STUD_ID, SD.directory,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
 from STUDENT_DIRECTORIES as SD \
 inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id \
 inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id \
@@ -261,12 +266,15 @@ class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
         super().__init__('STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT', query=query)
 
 class StudentVerslagenOverzichtDefinition(ViewDefinition):
+    #TODO: toevoegen filename en/of datum. Wat lastiger dan gedacht, voorlopig maar even weggelaten
     def __init__(self):
         verslag_type_str = get_sql_cases_for_int_type('V.verslag_type', MijlpaalType, 'verslag_type') 
         status_str = get_sql_cases_for_int_type('V.status', Verslag.Status, 'status') 
         beoordeling = get_sql_cases_for_int_type('V.beoordeling', MijlpaalBeoordeling, 'beoordeling')
+        # mijlpaal_reverse=get_int_type_for_sql_cases('SDF.mijlpaal',MijlpaalType)
+        # file_str = f'(select filename from STUDENT_DIRECTORIES_FILE_OVERZICHT as SDF where (SDF.stud_id = V.stud_id) and ({mijlpaal_reverse}=V.verslag_type)) as filename'
         query = f'select (select full_name from STUDENTEN as S where S.id=V.stud_id) as student, V.datum, {verslag_type_str}, \
-            (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans,{status_str},{beoordeling} \
+            (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans, {status_str},{beoordeling} \
             from VERSLAGEN as V order by 1,2' 
         super().__init__('STUDENT_VERSLAGEN_OVERZICHT', query=query)
 

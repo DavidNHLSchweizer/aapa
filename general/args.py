@@ -87,7 +87,7 @@ def _get_processing_arguments(parser: argparse.ArgumentParser,include_actions=Tr
     parser.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
-    parser.add_argument('-io', '--input_options', type=str, choices=['S','F', 'SF'], default='S',help='Input opties: een of meer van "S" (scan directory [default]), "F" (Forms-Excel file).\nVoorbeeld: "--input_options=SF".')
+    parser.add_argument('-io', '--input_options', type=str, choices=['S','F', 'SF'], default='S',help='Input opties: een of meer van "S" (scan directory), "F" (Forms-Excel file [default]).\nVoorbeeld: "--input_options=SF".')
     parser.add_argument('-pm', '--processing_mode', type=str, choices=['A','R', 'AR'], default='A',help='Processing mode: een of meer van "A" (aanvragen [default]), "R" (Rapporten).\nVoorbeeld: "--processing_mode=R".')
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 
@@ -265,16 +265,21 @@ class AAPAConfigOptions:
                    config_file = args.config, report_filename = args.report_file,# migrate_dir=args.migrate, 
                    excel_in=args.excel_in)
 
+
 class AAPAOptions:
     """ De opties om het programma mee te besturen. """
-    def _recode(self, obj: object, attribute: str, onedrive_root: str):
-        # at initialization the override to the OneDrive code in the config file is decoded with the 'real' onedrive, this must be corrected
-        setattr(obj, attribute, decode_onedrive(encode_onedrive(getattr(obj,attribute)), onedrive_root))
-    def _recode_for_onedrive(self, onedrive_root: str):
-        self._recode(self.config_options, 'root_directory', onedrive_root)
-        self._recode(self.config_options, 'output_directory', onedrive_root)
-        self._recode(self.config_options, 'database_file', onedrive_root)
-        self._recode(self.config_options, 'excel_in', onedrive_root)
+    @staticmethod
+    def _recode_for_onedrive(config_options: AAPAConfigOptions, onedrive_root: str):     
+        """ Correct the onedrive-root: 
+            at initialization the override to the OneDrive code in the config file is decoded with the 'real' onedrive, this must be corrected
+        """   
+        def _recode(obj: object, attribute: str, onedrive_root: str):
+        
+            setattr(obj, attribute, decode_onedrive(encode_onedrive(getattr(obj,attribute)), onedrive_root))
+        _recode(config_options, 'root_directory', onedrive_root)
+        _recode(config_options, 'output_directory', onedrive_root)
+        _recode(config_options, 'database_file', onedrive_root)
+        _recode(config_options, 'excel_in', onedrive_root)
     def __init__(self, 
                  config_options: AAPAConfigOptions = None, 
                  processing_options: AAPAProcessingOptions = None, 
@@ -292,10 +297,10 @@ class AAPAOptions:
         Indien processing_options.onedrive: past ook de config_options aan voor deze onedrive parameter.
 
         """
+        if processing_options.onedrive: 
+            self._recode_for_onedrive(config_options, processing_options.onedrive)
         self.config_options = config_options
         self.processing_options = processing_options
-        if processing_options.onedrive: 
-            self.recode_for_onedrive(processing_options.onedrive)
     def __str__(self):
         return f'{str(self.config_options)}\n{str(self.processing_options)}'
     @classmethod

@@ -3,6 +3,7 @@ import importlib
 from types import ModuleType
 from typing import Protocol
 from general.args import aapa_parser, _get_options_from_commandline
+from general.log import init_logging
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
@@ -51,6 +52,7 @@ if __name__ == "__main__":
         exit()
     args,other_args = aapa_parser(parser, include_actions=False).parse_known_args()   
     (config_options, processing_options) = _get_options_from_commandline(args)
+    init_logging(f'{module_name}.log', processing_options.debug)
     with AAPARunnerContext(AAPAConfiguration(config_options), processing_options) as context:
         if context:
             extra_main(context, namespace= args)

@@ -1,3 +1,4 @@
+"""SQL coll: utility classes SQLCollectors """
 from __future__ import annotations
 from copy import deepcopy
 from enum import IntEnum, auto
@@ -156,6 +157,7 @@ class SQLcollector:
                 self.collectors(SQLcollType.UPDATE) == value.collectors(SQLcollType.UPDATE)
 
 class SQLcollectors(dict):
+    """Klasse"""
     def collectors(self, sql_type: SQLcollType)->list[SQLValuesCollector]:
         for description in self.keys():
             if not (collector := self._get(description)) or not (values_collector := collector.collectors(sql_type)): continue
