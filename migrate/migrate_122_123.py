@@ -45,11 +45,6 @@ def correct_files_for_error(database: Database):
     print('correcting FILES errors, al gecorrigeerd IRL')
     _correct_path(database, 'FILES', 'filename', r':ROOT12:\Cheng, Micky\2023-12-23%',  "2023-12-23", "2023-12-22")
     _correct_path(database, 'MIJLPAAL_DIRECTORIES', 'directory', r':ROOT12:\Cheng, Micky\2023-12-23%',  "2023-12-23", "2023-12-22")
-    _correct_path(database, 'FILES', 'filename', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen ond%',  "onderzoeksverslag", "Onderzoeksverslag")  
-    _correct_path(database, 'FILES', 'filename', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen Onderzoeksverslag\5 januari 2024 2e kans Onderzoeksverslag%',  "2e kans Onderzoeksverslag", "2e kans onderzoeksverslag")
-    _correct_path(database, 'MIJLPAAL_DIRECTORIES', 'directory', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen ond%',  "onderzoeksverslag", "Onderzoeksverslag")
-    _correct_path(database, 'STUDENT_DIRECTORIES', 'directory', r':ROOT12:\Cheng, Micky\2023-12-22 Beoordelen ond%',  "onderzoeksverslag", "Onderzoeksverslag")
-
     print('... ready correcting FILES errors')
     
 
