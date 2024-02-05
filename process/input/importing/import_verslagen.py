@@ -14,7 +14,7 @@ from data.storage.queries.files import FilesQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from data.storage.queries.studenten import StudentQueries
 from general.fileutil import file_exists, last_parts_file
-from general.log import log_debug, log_print, log_warning
+from general.log import log_debug, log_info, log_print, log_warning
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
@@ -93,7 +93,11 @@ class VerslagFromZipImporter(VerslagImporter):
             directory_path.mkdir()
             return True
         return False
-    def _check_in_database(self, filename_to_create: str)->bool:
+    def _check_in_database(self, student_directory:StudentDirectory, filename_to_create: str)->bool:        
+        for file in student_directory.get_files():
+            if file.filename.lower() == filename_to_create.lower():
+                return True
+        # if we get here, try a good-luck search. Hopefully the database is not out-of-sync with reality
         queries: FilesQueries = self.storage.queries('files')
         return queries.is_known_file(filename_to_create)
     def create_file(self, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False)->File:
@@ -112,11 +116,19 @@ class VerslagFromZipImporter(VerslagImporter):
             return File(filename)
     def _check_existing_files(self, student_entries: list[dict]):
         previous_existing = False
+        student_dir_queries: StudentDirectoryQueries= self.storage.queries('student_directories')       
+        # because filename comparisons are difficult to get REALLY caseinsensitive in SQLite (only works for standard ASCII, 
+        # and some students have non-ascii names
+        # we do this in python
+        if student_entries: #get the student from the first entry
+            student_directory = student_dir_queries.find_student_dir(student_entries[0]['verslag'].student)
+        else:
+            student_directory = None
         for student_entry in student_entries:
             filename_to_create = student_entry['filename_to_create']
-            student_entry['stored'] = self._check_in_database(filename_to_create=filename_to_create)
+            student_entry['stored'] = self._check_in_database(student_directory, filename_to_create=filename_to_create)
             student_entry['existing'] = file_exists(filename_to_create)
-            if student_entry['existing']:
+            if student_entry['existing'] or student_entry['stored']:
                 previous_existing = True
                 student_entry['verslag'].status = Verslag.Status.LEGACY
         if previous_existing:
@@ -126,7 +138,12 @@ class VerslagFromZipImporter(VerslagImporter):
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')
         overgeslagen = 'Wordt overgeslagen (aanname: dit verslag is al eerder op sharepoint geplaatst).'
+        created = []
+        first = True
         for student_entries in self.get_verslagen(zip_filename).values():
+            if first:
+                log_info('Start aanmaken bestanden en directories', to_console=True)
+                first = False
             try:
                 self._check_existing_files(student_entries)
                 new_student = True
@@ -134,16 +151,18 @@ class VerslagFromZipImporter(VerslagImporter):
                     verslag = student_entry['verslag']
                     filename_to_create = student_entry['filename_to_create']
                     log_debug(f'filename to create: {filename_to_create}')
-                    if student_entry['stored']:
-                        log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\t is al in database bekend. {overgeslagen}')
-                    if student_entry['existing']: #not stored
+                    if student_entry['stored'] and student_entry['existing']:
+                        log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
+                    elif student_entry['existing']:
                         log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
                 #hier: doe hier misschien nog iets mee (registeren?)                
                     else:
                         file = self.create_file(student_entry['filename_in_zip'], filename_to_create, new_student, preview=preview)
-                #hier: doe hier misschien nog iets mee (registeren?)                
+                #hier: doe hier misschien nog iets meer mee (registeren?)                
+                        created.append(file)
+                        yield verslag
                     new_student = False
-                    yield verslag
+                    # yield verslag
             except Exception as E:
                 log_debug(f'Error in read_verslagen:\n{E}')
                 sleep(.5) # hope this helps with sharepoint delays
