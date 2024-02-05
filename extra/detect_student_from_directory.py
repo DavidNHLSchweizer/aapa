@@ -1,3 +1,14 @@
+""" DETECT_STUDENT_FROM_DIRECTORY
+
+    Genereert SQL-code om een directory te scannen en alle studentgegevens in de database 
+    te importeren. 
+        
+    De resultaten worden .json  weggeschreven.
+
+    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
+
+"""
+
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Any
@@ -24,18 +35,6 @@ from process.general.pipeline import FilePipeline
 from process.input.importing.dirname_parser import DirectoryNameParser
 from process.input.importing.filename_parser import FileTypeDetector
 
-EXTRA_DOC = """
-
-    DETECT_STUDENT_FROM_DIRECTORY
-
-    Genereert SQL-code om een directory te scannen en alle studentgegevens in de database 
-    te importeren. 
-        
-    De resultaten worden als .json  weggeschreven.
-
-    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
-
-"""
 SKIP_DIRECTORIES = ['01 Formulieren', 'aapa', 'Beoordeling aanvragen 2023']
 
 class DetectorException(Exception): pass
@@ -303,12 +302,12 @@ def detect_from_directory(directory: str, storage: AAPAStorage, json_filename:st
     log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix="nieuwe student-")}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
     return n_processed, n_files      
 
-def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     base_parser.add_argument('--detect', dest='detect', type=str,help=r'Detecteer gegevens vanuit een directory bv: --detect=c:\users\david\NHL Stenden\...')
     base_parser.add_argument('--json', dest='json', type=str,help='JSON filename waar SQL output wordt weggeschreven\nDefault: samengesteld uit de naam van de detect-diretory') 
     return base_parser
 
-def extra_action(context:AAPARunnerContext, namespace: Namespace):
+def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
     init_logging('detect_directory.log', True)

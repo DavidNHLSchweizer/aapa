@@ -1,4 +1,10 @@
+""" UPDATE_MIJLPAAL_DIRECTORIES
 
+    Past de mijlpaal_directories aan door de kans toe te voegen (gedetecteerd uit wat er al is)
+
+    De code is bedoeld voor de migratie naar database versie 1.23
+
+"""
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
@@ -16,15 +22,6 @@ from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
-EXTRA_DOC = """
-
-    UPDATE_MIJLPAAL_DIRECTORIES
-
-    Past de mijlpaal_directories aan door de kans toe te voegen (gedetecteerd uit wat er al is)
-
-    De code is bedoeld voor de migratie naar database versie 1.23
-
-"""
 
 class MijlpalenKansProcessor:
     def __init__(self, storage: AAPAStorage):
@@ -52,11 +49,11 @@ class MijlpalenKansProcessor:
             self.sql.dump_to_file(filename)
             log_print(f'SQL data dumped to file {filename}')
 
-def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     base_parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
     return base_parser
 
-def extra_action(context:AAPARunnerContext, namespace: Namespace):
+def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
     init_logging('make_verslagen.log', True)

@@ -1,3 +1,17 @@
+""" IMPORT_STUDENTEN
+
+    Genereert SQL-code om studenten vanuit een Excel-sheet met kolommen 
+        'achternaam', 'voornaam', 'studnr', 'email', 'status' toe te voegen.
+
+    Kan gebruikt worden om studenten die ontbreken in de database
+    of incorrecte gegevens hebben te corrigeren.
+
+    De resultaten worden als .json  weggeschreven.
+
+    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
+
+"""
+
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Tuple
@@ -15,23 +29,6 @@ from process.aapa_processor.aapa_processor import AAPARunnerContext
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import SingleFilePipeline
 from process.input.importing.excel_reader import ExcelReader
-
-EXTRA_DOC = """
-
-    IMPORT_STUDENTEN
-
-    Genereert SQL-code om studenten vanuit een Excel-sheet met kolommen 
-        'achternaam', 'voornaam', 'studnr', 'email', 'status' toe te voegen.
-
-    Kan gebruikt worden om studenten die ontbreken in de database
-    of incorrecte gegevens hebben te corrigeren.
-
-    De resultaten worden als .json  weggeschreven.
-
-    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
-
-"""
-
 
 class StudentExcelMapper(ObjectMapper):
     COLUMNS =  ['achternaam', 'voornaam', 'studnr', 'email', 'status']
@@ -123,12 +120,12 @@ def import_studenten_XLS(xls_filename: str, storage: AAPAStorage, json_filename:
             importer.sql.dump_to_file(json_filename)
             log_print(f'SQL data dumped to file {json_filename}')
             
-def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     base_parser.add_argument('--json', dest='json', required=True, type=str,help='JSON filename waar SQL output wordt weggeschreven') 
     base_parser.add_argument('--student', dest='student', required=True, type=str,help='Importeer gegevens over studenten uit Excel-bestand') 
     return base_parser
 
-def extra_action(context:AAPARunnerContext, namespace: Namespace):
+def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
     init_logging('import_studenten.log', True)

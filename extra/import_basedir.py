@@ -1,3 +1,15 @@
+""" IMPORT_BASEDIRS
+
+    Genereert SQL-code om basedirs vanuit een Excel-sheet met kolommen 
+        'jaar', 'periode', 'forms_versie', 'directory' toe te voegen.
+
+    Kan gebruikt worden om nieuwe base directories toe te voegen aan de database.
+
+    De resultaten worden als .json  weggeschreven.
+
+    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
+
+"""
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Tuple
@@ -18,20 +30,6 @@ from process.general.base_processor import FileProcessor
 from process.general.pipeline import SingleFilePipeline
 from process.input.importing.excel_reader import ExcelReader
 
-EXTRA_DOC = """
-
-    IMPORT_BASEDIRS
-
-    Genereert SQL-code om basedirs vanuit een Excel-sheet met kolommen 
-        'jaar', 'periode', 'forms_versie', 'directory' toe te voegen.
-
-    Kan gebruikt worden om nieuwe base directories toe te voegen aan de database.
-
-    De resultaten worden als .json  weggeschreven.
-
-    De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
-
-"""
 
 class BaseDirExcelMapper(ObjectMapper):
     COLUMNS =  ['jaar', 'periode', 'forms_versie', 'directory']
@@ -123,12 +121,12 @@ def import_basedirs_XLS(xls_filename: str, storage: AAPAStorage, json_filename: 
             importer.sql.dump_to_file(json_filename)
             log_print(f'SQL data dumped to file {json_filename}')
 
-def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     base_parser.add_argument('--json', dest='json', required=True, type=str,help='JSON filename waar SQL output wordt weggeschreven') 
     base_parser.add_argument('--basedir', dest='basedir', required=True, type=str,help='Importeer gegevens over basedirs uit Excel-bestand') 
     return base_parser
 
-def extra_action(context:AAPARunnerContext, namespace: Namespace):
+def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.debug = True
     context.processing_options.preview = True
     init_logging('import_basedirs.log', True)

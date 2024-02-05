@@ -1,3 +1,9 @@
+""" REMOVE_AANVRAAG.
+
+    Verwijdert 1 of meer aanvragen uit de database.
+    Alle gerelateerde records worden ook verwijderd.
+
+"""
 from argparse import ArgumentParser, Namespace
 from data.classes.aanvragen import Aanvraag
 from data.storage.aapa_storage import AAPAStorage
@@ -5,13 +11,6 @@ from general.log import log_print
 from general.sql_coll import SQLcollector, SQLcollectors
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
-EXTRA_DOC = """ 
-        REMOVE_AANVRAAG.
-
-        Verwijdert 1 of meer aanvragen uit de database.
-        Alle gerelateerde records worden ook verwijderd.
-
-        """
 class RemoverException(Exception):pass
 
 class AanvraagRemover:
@@ -46,11 +45,11 @@ class AanvraagRemover:
         self.storage.commit()
         log_print(f'Removed aanvragen {aanvragen_ids}.')
 
-def prog_parser(base_parser: ArgumentParser)->ArgumentParser:
+def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     base_parser.add_argument('--aanvraag', nargs='+', help='Aanvraag id(s) om te verwijderen')
     return base_parser
 
-def extra_action(context:AAPARunnerContext, namespace: Namespace):
+def extra_main(context:AAPARunnerContext, namespace: Namespace):
     coded_list:str = namespace.aanvraag[0]
     if ',' in coded_list:
         aanvragen = [int(id) for id in coded_list.split(',')]

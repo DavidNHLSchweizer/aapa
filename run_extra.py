@@ -20,14 +20,14 @@ class OneTimeFunc(Protocol):
 class ParserFunc(Protocol):
     def __call__(self, base_parser: ArgumentParser)->ArgumentParser:pass
 
-def find_extra_action(module: ModuleType, module_name: str)->OneTimeFunc:
-    if not (onetime_action := getattr(module, 'extra_action', None)):
-        print(f'Entry point "extra_action" not found in {module_name}.')
+def find_extra_main(module: ModuleType, module_name: str)->OneTimeFunc:
+    if not (main := getattr(module, 'extra_main', None)):
+        print(f'Entry point "extra_main" not found in {module_name}.')
         return None
-    return onetime_action
+    return main
 
-def find_custom_parser(module: ModuleType)->ParserFunc:
-    return getattr(module, 'prog_parser', None)
+def find_extra_args(module: ModuleType)->ParserFunc:
+    return getattr(module, 'extra_args', None)
 
 if __name__ == "__main__":
     simple_parser = ArgumentParser(description='Script om (in principe) eenmalige acties uit te voeren voor AAPA.', prog='onetime', 
@@ -37,15 +37,15 @@ if __name__ == "__main__":
     simple_parser.add_argument('-module_help', action="store_true", help='Hulp voor de uit te voeren module')
     simple_args,_ = simple_parser.parse_known_args()
     module_name = simple_args.module
-    if (module := find_module(module_name)) is None or (extra_action := find_extra_action(module, module_name)) is None:
+    if (module := find_module(module_name)) is None or (extra_main := find_extra_main(module, module_name)) is None:
         print('...stopped.')  
         exit()
-    if (prog_parser:=find_custom_parser(module)):
-        parser = prog_parser(simple_parser)
+    if (extra_args:=find_extra_args(module)):
+        parser = extra_args(simple_parser)
     else:
         parser = simple_parser
     if simple_args.module_help: 
-        print(getattr(module,'EXTRA_DOC', module.__doc__))
+        print(module.__doc__)
         print('-------------------------------')
         parser.print_help()
         exit()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     (config_options, processing_options) = _get_options_from_commandline(args)
     with AAPARunnerContext(AAPAConfiguration(config_options), processing_options) as context:
         if context:
-            extra_action(context, namespace= args)
+            extra_main(context, namespace= args)
             ready=True
         else:
             ready=False
