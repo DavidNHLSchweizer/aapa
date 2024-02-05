@@ -3,7 +3,7 @@
     Voert de eerder gegenereerde sql-code uit een gedumpte JSON-file uit in de database.
     Indien -preview wordt de code niet uitgevoerd maar afgedrukt op de console.
 
-    De json-file moet gemaakt zijn met behulp van SQLCollector(s)
+    De json-file moet gemaakt zijn met behulp van SQLCollector(s) (module: general.sql_coll)
     
 """
 from argparse import ArgumentParser, Namespace

@@ -21,6 +21,25 @@ from general.config import config
 class ArgumentsException(Exception): pass
 
 class AAPAaction(Enum):
+    """ Acties om uit te voeren.
+
+    NONE: geen actie.
+    INPUT: Verwerk input. 
+        Voor aanvragen: importeer nieuwe aanvragen. 
+        Voor rapporten: importeer nieuwe rapporten.
+        Welke hiervan wordt uitgevoerd wordt bepaald door de processing_mode.
+        Zie AAPAProcessingOptions.PROCESSINGMODE voor meer info.
+    FORM: Maak nieuwe beoordelingsformulieren.
+        Ook dit kan worden gedaan voor aanvragen en/of rapporten,
+        afhankelijk van de processing_mode.
+    MAIL: Lees beoordelingen en zet concept-mails klaar.
+    FULL: combinatie van INPUT,FORM en MAIL.
+    NEW: maak een nieuwe database aan. Indien de database al bestaat: maak de database leeg.
+    INFO: druk de configuratie-informatie af op de console.
+    REPORT: maak een aanvragen-rapportage (Aanvragen.XLSX).
+    UNDO: maak de vorige actie ongedaan. 
+
+    """
     NONE      = 0
     INPUT     = auto()
     FORM      = auto()
@@ -73,7 +92,14 @@ def _get_processing_arguments(parser: argparse.ArgumentParser,include_actions=Tr
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 
 class AAPAProcessingOptions:
+    """ Processing opties, opties over welke acties uit te voeren; ook de manier waarop uit te voeren kan worden beinvloed."""
     class INPUTOPTIONS(Enum):
+        """ enum voor keuzes bij input van aanvragen 
+
+            SCAN: scan een op te geven invoerdirectory (of de root-directory) voor nieuwe aanvragen.
+            EXCEL: lees een op te geven Excel-file voor nieuwe aanvragen.
+
+        """
         SCAN= auto()
         EXCEL=auto()
         def __str__(self):
@@ -95,6 +121,12 @@ class AAPAProcessingOptions:
                         case _: log_error(f'Ongeldige waarde voor input_options: {ch}. Geldige waarden zijn S en F. Wordt genegeerd.' )
             return result
     class PROCESSINGMODE(Enum):
+        """ enum voor de processing-mode.
+
+            AANVRAGEN: verwerk aanvragen.
+            RAPPORTEN: verwerk rapporten.   
+
+        """
         AANVRAGEN= auto()
         RAPPORTEN =auto()
         def __str__(self):
@@ -116,8 +148,24 @@ class AAPAProcessingOptions:
                         case _: log_error(f'Ongeldige waarde voor processing_mode: {ch}. Geldige waarden zijn A en R. Wordt genegeerd.' )
             return result
     
-    
     def __init__(self, actions: list[AAPAaction]=[], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.EXCEL}, processing_mode = {PROCESSINGMODE.AANVRAGEN}, onedrive=None):
+        """ 
+        parameters
+        ----------
+        actions: een of meer acties om uit te voeren. Zie AAPAAction voor de mogelijkheden. 
+            Meerdere acties kunnen worden opgegeven.
+        preview: Indien True: operaties worden niet werkelijk doorgevoerd maar wel op de console aangegeven.
+        force: Indien True: reinitializatie van de database zonder verificatievraag.
+        debug: Indien True: debugging mode.
+        input_options: de input opties (zie INPUTOPTIONS voor de mogelijkheden)
+            Meerdere opties kunnen worden opgegeven.
+        processing_mode: de processing mode. (zie PROCESSINGMODE voor de mogelijkheden)
+            Meerdere opties kunnen worden opgegeven.
+        onedrive: alternatieve onedrive root. Debugging optie om op een kopie van de echte Sharepoint OneDrive te kunnen werken. 
+
+        deze parameters worden opgeslagen in de gelijknamige attributen.
+
+        """
         self.actions = actions
         self.input_options:set[self.INPUTOPTIONS] = input_options
         self.processing_mode:set[self.PROCESSINGMODE] = processing_mode
@@ -138,6 +186,7 @@ class AAPAProcessingOptions:
         return result + '.'
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAProcessingOptions:
+        """initializeer instantie vanuit een Namespace (resultaat van ArgumentParser.Parse)"""
         def _get_actions(actions: list[str])->list[AAPAaction]:
             result = []
             for action in actions: 
@@ -166,9 +215,23 @@ def _get_config_arguments(parser: argparse.ArgumentParser):
     # group.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
 
 class AAPAConfigOptions:
+    """ Configuratie-gerelateerde opties. Directories, database en dergelijke. """
     def __init__(self, root_directory: str, output_directory: str, bbinput_directory: str, database_file: str, 
-                 config_file:str=None, report_filename: str=None, #migrate_dir: str=None, 
-                 excel_in: str=None):
+                 config_file:str=None, report_filename: str=None, excel_in: str=None):
+        """      
+        parameters
+        ----------
+        root_directory: de te gebruiken root directory. Dit is de "basis-directory" voor de te verwerken aanvragen en rapporten.
+        output_directory: de directory waarin uitvoer wordt gegenereerd. Met name is dit voor beoordelingsformulieren van aanvragen.
+        database_file: de te gebruiken SQLite database file.
+        bbinput_directory: de directory waarin Blackboard zip-files met te importeren rapporten worden gezocht.
+        config_file: de configuratiefile (alternatieve aapa_config.ini).
+        report_filename: default filename voor rapportages.
+        excel_in: default filename voor excel-import van aanvragen.
+
+        deze parameters worden opgeslagen in de gelijknamige attributen.
+        
+        """
         def get_default(param: str, config_key: str)->str:
             return param if param is not None else config.get('configuration', config_key)
         self.root_directory: str = get_default(root_directory, 'root')
@@ -177,7 +240,6 @@ class AAPAConfigOptions:
         self.bbinput_directory: str = get_default(bbinput_directory, 'bbinput')
         self.config_file: str = config_file
         self.report_filename: str = get_default(report_filename, 'filename')
-        # self.migrate_dir: str = migrate_dir
         self.excel_in: str = get_default(excel_in, 'input')
     def __str__(self):
         result = f'CONFIGURATION:\n'
@@ -193,30 +255,43 @@ class AAPAConfigOptions:
             result = result + f'laad alternatieve CONFIGURATIE {self.config_file}\n'
         if self.report_filename: 
             result = result + f'FILENAME (voor REPORT): {self.report_filename}\n'
-        # if self.migrate_dir:
-        #     result = result + f'Directory voor SQL-data (gebruik in migratiescript): {self.migrate_dir}\n'
         if self.excel_in: 
             result = result + f'FILENAME (voor SCAN input): {self.excel_in}\n'
         return result + '.'
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAConfigOptions:
+        """initializeer instantie vanuit een Namespace (resultaat van ArgumentParser.Parse)"""
         return cls(root_directory = args.root, output_directory = args.output, bbinput_directory=args.bbinput, database_file = args.database, 
                    config_file = args.config, report_filename = args.report_file,# migrate_dir=args.migrate, 
                    excel_in=args.excel_in)
 
 class AAPAOptions:
-    def recode(self, obj: object, attribute: str, onedrive_root: str):
+    """ De opties om het programma mee te besturen. """
+    def _recode(self, obj: object, attribute: str, onedrive_root: str):
         # at initialization the override to the OneDrive code in the config file is decoded with the 'real' onedrive, this must be corrected
         setattr(obj, attribute, decode_onedrive(encode_onedrive(getattr(obj,attribute)), onedrive_root))
-    def recode_for_onedrive(self, onedrive_root: str):
-        self.recode(self.config_options, 'root_directory', onedrive_root)
-        self.recode(self.config_options, 'output_directory', onedrive_root)
-        self.recode(self.config_options, 'database_file', onedrive_root)
-        self.recode(self.config_options, 'excel_in', onedrive_root)
+    def _recode_for_onedrive(self, onedrive_root: str):
+        self._recode(self.config_options, 'root_directory', onedrive_root)
+        self._recode(self.config_options, 'output_directory', onedrive_root)
+        self._recode(self.config_options, 'database_file', onedrive_root)
+        self._recode(self.config_options, 'excel_in', onedrive_root)
     def __init__(self, 
                  config_options: AAPAConfigOptions = None, 
                  processing_options: AAPAProcessingOptions = None, 
                  ):
+        """ 
+        parameters
+        ----------
+        config_options: AAPAConfigOptions. 
+            Opties voor de configuratie (directories en database). Zie AAPAConfigOptions voor meer.
+        processing_options: AAPAProcessingOptions. 
+            Opties voor de processing. Zie AAPAProessingOptions voor meer.
+
+        De parameters worden opgeslagen in de gelijknamige attributen.
+
+        Indien processing_options.onedrive: past ook de config_options aan voor deze onedrive parameter.
+
+        """
         self.config_options = config_options
         self.processing_options = processing_options
         if processing_options.onedrive: 
@@ -225,6 +300,7 @@ class AAPAOptions:
         return f'{str(self.config_options)}\n{str(self.processing_options)}'
     @classmethod
     def from_args(cls, args: argparse.Namespace)->AAPAOptions:
+        """initializeer instantie vanuit een Namespace (resultaat van ArgumentParser.Parse)"""
         return cls(config_options = AAPAConfigOptions.from_args(args), 
                    processing_options = AAPAProcessingOptions.from_args(args),
                    )
@@ -267,11 +343,23 @@ def report_options(options: AAPAOptions, parts=0)->str:
 def _init_parser():
     return argparse.ArgumentParser(description=banner(), prog='aapa', usage='%(prog)s [actie(s)] [opties]', formatter_class=argparse.RawTextHelpFormatter)
 
-def aapa_parser(parser: argparse.ArgumentParser, include_actions=True)->argparse.ArgumentParser:
-    """
-    Als losse functie beschikbaar: vult een gegeven parser aan met alle parsing opties. 
-    Hiermee kunnen custom parsers gebruik maken van de standaard AAPA opties (zie remove_aanvraag.py)
-    """
+def aapa_parser(parser: argparse.ArgumentParser=None, include_actions=True)->argparse.ArgumentParser:
+    """ aapa_parser: voegt alle AAPA-opties toe aan een bestaande ArgumentParser
+
+    parameters
+    ----------
+    parser: ArgumentParser om opties aan toe te voegen, eerder geinitializeerd.
+        Als parser is None wordt een nieuwe parser aangemaakt.
+    include_actions: Indien True worden de AAPA actions (zie AAPAProcessingOptions) toegevoegd.
+        Indien False gebeurt dat niet
+
+    returns
+    -------
+    ArgumentParser met alle AAPA opties toegevoegd.
+
+    Hiermee kunnen custom parsers (zie ook module extra) gebruik maken van de standaard AAPA opties.
+
+"""
     if not parser:
         parser = _init_parser()
     _get_processing_arguments(parser, include_actions=include_actions)
@@ -292,10 +380,11 @@ class ArgumentOption(Enum):
     ALL    = auto()
 
 def _get_options_from_commandline(args: dict, which: ArgumentOption=ArgumentOption.ALL)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions]]:
-    """
-    Helper functie voor get_options_from_commandline
-    Doet het eigenlijke werk (verwerken van de met ArgumentParser.parse geparsede command-line arguments)
-    Als losse functie ook beschikbaar voor custom functionaliteit (zie remove_aanvraag.py)
+    """ Helper functie voor get_options_from_commandline.
+
+        Doet het eigenlijke werk (verwerken van de met ArgumentParser.parse geparsede command-line arguments)
+        Als losse functie ook beschikbaar voor custom functionaliteit.
+
     """
     match which:
         case ArgumentOption.CONFIG:
@@ -308,16 +397,20 @@ def _get_options_from_commandline(args: dict, which: ArgumentOption=ArgumentOpti
                     )               
 
 def get_options_from_commandline(which: ArgumentOption=ArgumentOption.ALL)->type[AAPAConfigOptions | AAPAProcessingOptions | tuple[AAPAConfigOptions,AAPAProcessingOptions]]:
-    """
-    Lees de commando-regel opties, parse deze, en geef deze terug in de vorm van AAPAoptions
+    """ Lees de commando-regel opties, parse deze, en geef deze terug in de vorm van AAPAoptions
     
-    parameters:
+    parameters
+    ----------
     which: ArgumentOption
         ArgumentOption.ALL: geef alle ingevoerde opties terug in tuple-vorm: (AAPAConfigOptions, AAPAProcessingOptions)
             deze kunnen apart worden gebruikt of voor het initialiseren van AAPAOptions 
-                (options = AAPAOptions(*get_options_from_command_line(ArgumentOption.ALL))
+            (options = AAPAOptions(*get_options_from_command_line(ArgumentOption.ALL))
         ArgumentOption.CONFIG: geef alleen de AAPAConfigOptions
         ArgumentOption.PROCES: geef alleen de AAPAProcesOptions
+
+    returns
+    -------
+    De gevraagde opties, in de vorm van een tuple indien meerdere gevraagd zijn.
     """
     try:
         args = _get_arguments()
