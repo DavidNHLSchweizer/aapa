@@ -191,6 +191,13 @@ def doc()->str:
     return "\n".join([f'{status.value:2} (StudentStatus.{status.name}): {str(status)}' for status in StudentStatus])        
 
 class VerslagStatus(IntEnum):
+    """
+    IntEnum: constanten gebruikt om de status van een verslag (in het afstudeertraject)
+    aan te geven. 
+    TODO: dit is nog niet geimplementeerd.
+    Voor meer info: zie VerslagStatus.doc()
+
+    """
     LEGACY          = -2
     INVALID         = -1
     NEW             = 0
