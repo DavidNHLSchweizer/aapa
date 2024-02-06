@@ -114,7 +114,6 @@
             "args": [
                 "input",
                 "-debug",
-                "-preview",
                 "--onedrive=d:\\onedrive0",
                 "--processing_mode=R",
             ]

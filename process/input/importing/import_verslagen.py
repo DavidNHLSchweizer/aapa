@@ -14,7 +14,7 @@ from data.storage.queries.files import FilesQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from data.storage.queries.studenten import StudentQueries
 from general.fileutil import file_exists, last_parts_file
-from general.log import log_debug, log_info, log_print, log_warning
+from general.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
@@ -111,7 +111,7 @@ class VerslagFromZipImporter(VerslagImporter):
             mijlpaal_directory = Path(filename_to_create).parent
             if self.created_directory(mijlpaal_directory):
                 log_print(f'\tDirectory {last_parts_file(mijlpaal_directory)} aangemaakt')
-            filename = self.reader.extract_file(filename_in_zip, mijlpaal_directory)
+            filename = self.reader.extract_file(filename_in_zip, mijlpaal_directory, Path(filename_to_create).name)
             log_print(f'\tBestand {last_parts_file(filename_to_create)} aangemaakt.')
             return File(filename)
     def _check_existing_files(self, student_entries: list[dict]):
@@ -137,7 +137,7 @@ class VerslagFromZipImporter(VerslagImporter):
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')
-        overgeslagen = 'Wordt overgeslagen (aanname: dit verslag is al eerder op sharepoint geplaatst).'
+        overgeslagen = 'Wordt overgeslagen.'
         created = []
         first = True
         for student_entries in self.get_verslagen(zip_filename).values():
@@ -164,6 +164,6 @@ class VerslagFromZipImporter(VerslagImporter):
                     new_student = False
                     # yield verslag
             except Exception as E:
-                log_debug(f'Error in read_verslagen:\n{E}')
+                log_error(f'Error in read_verslagen:\n{E}')
                 sleep(.5) # hope this helps with sharepoint delays
                 yield None

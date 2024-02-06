@@ -5,8 +5,8 @@ Wordt ook gebruikt bij de configuratiefile (aapa_config.ini).
 
 Doel is om paden onafhankelijk van de computer (gebruiker) te maken. 
 
-OneDrive werkt met een mapping naar een directory als c:\users\usernaam\NHL Stenden....
-Door het gedeelte "c:\users\usernaam\" te coderen als ":ONEDRIVE:\NHL Stenden...." kan bij het 
+OneDrive werkt met een mapping naar een directory als c:\\users\\usernaam\\NHL Stenden....
+Door het gedeelte "c:\\users\\usernaam\\" te coderen als ":ONEDRIVE:\\NHL Stenden...." kan bij het 
 laden van het pad de :ONEDRIVE: gedeelte worden vervangen door de juiste "root".
 
 Speciale codes
@@ -23,7 +23,7 @@ Speciale codes
         Voorbeeld
         ---------
 
-        decode_path(":ONEDRIVE:\NHL Stenden") == "c:\users\david\NHL Stenden"
+        decode_path(":ONEDRIVE:\\NHL Stenden") == "c:\\users\\david\\NHL Stenden"
 
         :DOCUMENTS:
 
@@ -324,9 +324,9 @@ class Roots:
 
             examples
             --------
-                (aanname: de onedrive_root is C:\users\david):
-                encode_onedrive("c:\users\david\padje") == ":ONEDRIVE:\padje"
-                encode_onedrive("c:\david\padje2") == "c:\david\padje2"
+                (aanname: de onedrive_root is C:\\users\\david):
+                encode_onedrive("c:\\users\\david\\padje") == ":ONEDRIVE:\\padje"
+                encode_onedrive("c:\\david\\padje2") == "c:\\david\\padje2"
 
         """
         return _roots.encode_onedrive(path)
@@ -382,9 +382,13 @@ class Roots:
                 "best possible" means: (in order of priority)
                 1) a single root code (:ROOTnn:), e.g. :ROOT42:)
                 2) the shortest string found of the form :ROOTnn:\[end_of_path]
-                    e.g. :ROOT42:\padje\file.doc
+                    e.g. :ROOT42:\\padje\\file.doc
                 3) the full pathname (if the filename is not mapped to one of the known roots).
-                The encoded path will not have more than one root code (root codes can be nested, however).          
+                The encoded path will not have more than one root code.
+                
+                Note: root codes can be nested, however. 
+                E.g. :ROOT1: == "XXXXX", :ROOT2: == :ROOT1:\\YYYY
+                a path XXXXX\\YYYY\\ZZZ would be encoded as :ROOT2:\\ZZZ
 
         """
         return _roots.encode_path(path, allow_single=allow_single)

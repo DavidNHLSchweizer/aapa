@@ -1,3 +1,4 @@
+from tempfile import TemporaryDirectory
 from time import sleep
 from enum import IntEnum
 from pathlib import Path
@@ -19,7 +20,7 @@ from general.pdutil import nrows
 from general.preview import pva
 from general.singular_or_plural import sop
 from general.config import IntValueConvertor, config
-from general.fileutil import created_directory, last_parts_file, safe_file_name, set_file_times, test_directory_exists
+from general.fileutil import created_directory, last_parts_file, safe_file_name, set_file_time, test_directory_exists
 from general.strutil import replace_all
 from general.timeutil import TSC
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
@@ -30,7 +31,6 @@ from process.input.importing.excel_reader import ExcelReader
 
 def init_config():
     config.init('import', 'xls_template', r'.\templates\2. Aanvraag goedkeuring afstudeeropdracht nieuwe vorm MAILMERGE 3.00b.docx')
-    config.init('import', 'temp_dir', r'.\temp\import')
     config.register('import', 'last_id', IntValueConvertor)
     config.init('import', 'last_id', 0)
 init_config()
@@ -109,6 +109,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         self.template = config.get('import', 'xls_template')
         self.storage = storage
         self.output_directory = output_directory
+        self.temp_path = None
         with MailMerge(self.template) as document:
             self.merge_fields = document.get_merge_fields()    
     def find_merge_field_vraag(self, merge_field: str)->str:
@@ -151,7 +152,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
     def _get_filename_stem(self, aanvraag: Aanvraag)->str:
         return safe_file_name(f'2. Aanvraag Afstuderen {aanvraag.datum}-{aanvraag.student.full_name}-{aanvraag.bedrijf.name}')       
     def get_docx_filename(self, aanvraag: Aanvraag)->str:
-        return str(Path(config.get('import', 'temp_dir')).joinpath(f'{self._get_filename_stem(aanvraag)}.docx'))
+        return str(self.temp_path.joinpath(f'{self._get_filename_stem(aanvraag)}.docx'))
     def get_pdf_filename(self, aanvraag: Aanvraag)->str:
         student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,aanvraag.student,self.output_directory))
         return str(student_directory.joinpath(f'{self._get_filename_stem(aanvraag)}.pdf'))
@@ -188,8 +189,8 @@ class AanvragenFromExcelImporter(AanvraagImporter):
                     log_error(f'Error creating directory {student_directory}')
         if not preview:
             Word2PdfConvertor().convert(docx_filename, pdf_filename)
-            set_file_times(pdf_filename, aanvraag.datum)
-            self.files_to_delete.append(Path(docx_filename))
+            set_file_time(pdf_filename, aanvraag.datum)
+            # self.files_to_delete.append(Path(docx_filename))
         return pdf_filename
     def _existing_aanvraag(self, aanvraag: Aanvraag)->bool:
         queries: AanvraagQueries = self.storage.queries('aanvragen')
@@ -245,26 +246,22 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         return all_aanvragen
     def read_aanvragen(self, filename: str, preview=False)->Iterable[Tuple[Aanvraag,str]]:
         #return form: dict[student.email] = {'aanvraag': aanvraag, 'docx_filename', 'pdf_filename': pdf_filename}
-        log_debug(f'Start read_aanvragen\n\t{filename}\n\tlast-id={self.last_id}')
-        for n, entry in enumerate(self.get_aanvragen(filename).values()):
-            log_debug(f'{n}:{entry["aanvraag"].student.full_name}')
-            try:
-                if self.create_files(entry['aanvraag'], entry['values'], entry['docx_filename'], entry['pdf_filename'], preview):
-                    self.ids_read.append(entry['id'])
-                    yield entry['aanvraag'], entry['pdf_filename']
-            except Exception as E:
-                log_debug(f'Error in read_aanvragen:\n{E}')
-                sleep(.5) # hope this helps with sharepoint delays
-                yield (None,None)
+        with TemporaryDirectory() as tmp:
+            self.temp_path = Path(tmp)
+            #temporary directory for storing .docx aanvragen
+            #these will be saved as .pdf somewhere else, the .docx can be removed after.
+            log_debug(f'Start read_aanvragen\n\t{filename}\n\tlast-id={self.last_id}')
+            for n, entry in enumerate(self.get_aanvragen(filename).values()):
+                log_debug(f'{n}:{entry["aanvraag"].student.full_name}')
+                try:
+                    if self.create_files(entry['aanvraag'], entry['values'], entry['docx_filename'], entry['pdf_filename'], preview):
+                        self.ids_read.append(entry['id'])
+                        yield entry['aanvraag'], entry['pdf_filename']
+                except Exception as E:
+                    log_debug(f'Error in read_aanvragen:\n{E}')
+                    sleep(.5) # hope this helps with sharepoint delays
+                    yield (None,None)
     def before_reading(self, preview = False):
-        temp_directory = config.get('import', 'temp_dir')
-        if not test_directory_exists(str(temp_directory)):
-            if preview:
-                log_info(f'Directory {temp_directory} aanmaken.')
-            else:
-                if created_directory(str(temp_directory)):
-                    log_info(f'Directory {temp_directory} aangemaakt.')
-        self.files_to_delete: list[Path]= [] #delete docx files after processing, otherwise sharepoint will not do it ?
         self.ids_read = []
         self.last_id = config.get('import', 'last_id')
 
@@ -273,8 +270,6 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             return
         if self.ids_read:
             config.set('import', 'last_id', max(self.ids_read))
-        for file in self.files_to_delete:
-            file.unlink()
 
 def report_imports(new_aanvragen, preview=False):
     log_info('Rapportage import:', to_console=True)

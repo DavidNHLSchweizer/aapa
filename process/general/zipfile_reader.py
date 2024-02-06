@@ -1,11 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
+import shutil
+from tempfile import TemporaryDirectory
 import datetime
 import os
 from pathlib import Path
 import re
 from typing import Tuple
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
+from general.fileutil import created_directory, set_file_time, test_directory_exists
 from general.log import log_warning
 
 from general.config import ListValueConvertor, config
@@ -18,6 +21,9 @@ def init_config():
 init_config()
 
 class BBException(Exception):pass
+
+#note: combined path length of filename and path can not exceed 259 (limitation of Win machines)
+WINDOWS_MAX_ZIPFILE_PATHLEN = 259
 
 class BBFilenameInZipParser:
     @dataclass
@@ -54,36 +60,54 @@ class BBFilenameInZipParser:
         return None
 
 class ZipFileReader:
+    @dataclass
+    class FileInfo:
+        zip_filename: str
+        filename: str
+        original_filename: str
+        info: ZipFile.ZipInfo = None
     def __init__(self):
-        self._files_in_zip: list[dict] = []
+        self._files_in_zip: list[ZipFileReader.FileInfo] = []
     @property
     def filenames(self)->list[str]:
-        return [entry['filename'] for entry in self._files_in_zip]
-    def _get_filename_entry(self, filename: str)->dict:
+        return [entry.filename for entry in self._files_in_zip]
+    def _get_filename_entry(self, filename: str)->ZipFileReader.FileInfo:
         for entry in self._files_in_zip:
-            if entry['filename']==filename:
+            if entry.filename==filename:
                 return entry
         return None
     def read_info(self, zip_filename: str, reset=True):
         if reset:
             self._files_in_zip: list[dict] = []
         with ZipFile(zip_filename) as zipfile:            
-            self._files_in_zip.extend([{'zip': zip_filename, 'filename': zi.filename, 'info': zi} 
+            self._files_in_zip.extend([ZipFileReader.FileInfo(zip_filename=zip_filename, filename=zi.filename, original_filename = zi.orig_filename, info=zi)
                                        for zi in zipfile.infolist()])
-    def extract_file(self, filename: str, path: str = None, dest_name: str = None)->str:
+    def _safe_extract(self, entry: ZipFileReader.FileInfo, destination_path: str|Path, destination_name: str|Path)->str:
+        with TemporaryDirectory() as tmp, ZipFile(entry.zip_filename) as zipfile:
+            extracted_file = Path(zipfile.extract(entry.filename, tmp))
+            if not (test_directory_exists(destination_path) or created_directory(destination_path)):
+                raise BBException(f'Can not extract to directory {destination_path}')
+            if not destination_path:
+                destination_path = Path('.').resolve()
+            if not destination_name:
+                destination_name = extracted_file.name
+            destination_filename = Path(destination_path).joinpath(destination_name) 
+            if extracted_file.drive == Path(destination_filename).drive:
+                new_path = Path(extracted_file).replace(destination_filename)
+            else:
+                new_path = shutil.copy2(extracted_file, destination_filename)
+        return new_path
+    def extract_file(self, filename_in_zip: Path|str, path: Path|str=None, destination_name: Path|str=None)->str:
+        CANNOTBEEXTRACTED = 'Can not be extracted.'
         def _restore_file_time(filename: Path, date_time_in_info: Tuple[int,int,int,int,int,int]):
-            original_date = datetime.datetime(*date_time_in_info).timestamp()
-            os.utime(filename,(original_date, original_date))
-        def _check_rename(filename: Path, new_name: str)->str:
-            if new_name: 
-                return str(filename.replace(new_name))
-            return str(filename)
-        if entry:=self._get_filename_entry(filename):
-            with ZipFile(entry['zip']) as zipfile:
-                zipfile.extract(entry['filename'], path=path)
-                _restore_file_time(entry['filename'], entry['info'].date_time)
-                return _check_rename(Path(path).joinpath(entry['filename']) if path else Path(entry['filename']), dest_name)
-        return None
+            set_file_time(filename, datetime.datetime(*date_time_in_info))
+        if entry:=self._get_filename_entry(filename_in_zip):
+            if len(filename_in_zip) >= WINDOWS_MAX_ZIPFILE_PATHLEN:
+                raise BBException(f'Filename in zip is too long {entry['filename']}.\n\tMaximum is {WINDOWS_MAX_ZIPFILE_PATHLEN}. {CANNOTBEEXTRACTED}')
+            extracted_file = self._safe_extract(entry, path, destination_name)
+            _restore_file_time(extracted_file,entry.info.date_time)
+            return extracted_file
+        return ''
 
 class BBZipFileReader(ZipFileReader):
     def __init__(self):
@@ -127,3 +151,4 @@ class BBZipFileReader(ZipFileReader):
         return {filename: original_filename for (filename,original_filename) in zip(filenames,original_filenames)}
     def _find_original_path(self, zip_filename: str, txt_filename: str, filename_in_zip: str)->str:
         return self._find_original_files(zip_filename, txt_filename).get(filename_in_zip,filename_in_zip)
+    
