@@ -92,7 +92,7 @@ class Aggregator(dict):
                 return False
         for class_type in self.class_types():
             list1 = sorted(self.as_list(class_type))
-            list2 = sorted(self.as_list(class_type))
+            list2 = sorted(value2.as_list(class_type))
             if len(list1) != len(list2):
                 return False
             for item1,item2 in zip(list1,list2):

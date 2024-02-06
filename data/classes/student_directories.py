@@ -37,7 +37,9 @@ class StudentDirectory(AAPAclass):
         return result
     def get_directory(self, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->MijlpaalDirectory:
         for directory in self.get_directories(mijlpaal_type):
-            if directory.datum==datum:
+            #er is maar 1 aanvraag directory, de datum is niet wezenlijk van belang daarvoor
+            #voor andere mijlpalen (verslagen) juist wel.
+            if mijlpaal_type == MijlpaalType.AANVRAAG or directory.datum==datum:
                 return directory
         return None
     def get_files(self)->list[File]:

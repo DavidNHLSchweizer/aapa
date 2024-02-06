@@ -51,7 +51,8 @@ class DetailRecsCRUD(CRUD):
         details_crud = self.get_crud(detail_class_type)
         for item in aggregator.as_list(detail_class_type):            
             CRUDQueries(details_crud).create_key_if_needed(item)
-            if not CRUDQueries(details_crud).check_already_there(item):
+            if not CRUDQueries(details_crud).check_already_there(item) or \
+                CRUDQueries(details_crud).is_changed(item):
                 details_crud.create(item)
             detail_items.append(detail_rec_type(main_key=main_id, detail_key=item.id))
         detail_rec_crud = self.get_crud(detail_rec_type)

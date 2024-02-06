@@ -105,7 +105,7 @@
             ]
         },
         {
-            "name": "Python: aapa scan",
+            "name": "Python: aapa input",
             "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
@@ -115,7 +115,9 @@
                 "input",
                 "-debug",
                 "--onedrive=d:\\onedrive0",
-                "--processing_mode=R",
+                "--processing_mode=A",
+                "-preview",
+                "--excel_in=D:\\klote\\spotgoedkoop.xlsx"
             ]
         },
         {

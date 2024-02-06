@@ -16,17 +16,23 @@ class ExtendedCRUD(CRUD):
     # --------------- CRUD functions ----------------
     def __db_log(self, function: str, params: str=''):
         log_debug(f'EXT-CRUD({classname(self)}): {function}{(" - " + params) if params else ""}')        
-    def create(self, aapa_obj: StoredClass):
-        self.__db_log('CREATE', f'[{classname(aapa_obj)}]')
-        self.__check_valid(aapa_obj, f"{classname(self)}.create")
-        self.create_references(aapa_obj)        
-        if CRUDQueries(self).check_already_there(aapa_obj):
-            return
-        #TODO adapt for multiple keys
+    def _create_new(self, aapa_obj):
         CRUDQueries(self).create_key_if_needed(aapa_obj)
         super().create(aapa_obj)
         if self.details:
             self.details.create(aapa_obj)
+    def create(self, aapa_obj: StoredClass):
+        self.__db_log('CREATE', f'[{classname(aapa_obj)}]')
+        self.__check_valid(aapa_obj, f"{classname(self)}.create")
+        self.create_references(aapa_obj) 
+        already_there = CRUDQueries(self).check_already_there(aapa_obj)
+        if already_there:
+            if CRUDQueries(self).is_changed(aapa_obj):
+                log_debug(f'Updating {aapa_obj}')
+                self.update(aapa_obj)
+        else:
+            log_debug(f'Creating new {aapa_obj}')
+            self._create_new(aapa_obj)
         self.__db_log('END CREATE')
     def read(self, key: KeyClass)->StoredClass|list:
         self.__db_log('READ', f'[{key}]')

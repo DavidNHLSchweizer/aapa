@@ -52,7 +52,7 @@ class AAPAaction(Enum):
     def help_str(self):
         match self:
             case AAPAaction.NONE: return 'Geen actie [DEFAULT]'
-            case AAPAaction.INPUT: return 'Vind en importeer nieuwe aanvragen of verslagen (zie ook --input_options, --input_mode)'
+            case AAPAaction.INPUT: return 'Vind en importeer nieuwe aanvragen of verslagen (zie ook --input_options, --processing_mode)'
             case AAPAaction.FORM: return 'Maak beoordelingsformulieren'
             case AAPAaction.MAIL: return 'Vind en verwerk beoordeelde aanvragen en zet feedbackmails klaar'
             case AAPAaction.FULL: return 'Volledig proces: scan + form + mail'
@@ -87,7 +87,7 @@ def _get_processing_arguments(parser: argparse.ArgumentParser,include_actions=Tr
     parser.add_argument('-preview', action='store_true', help='Preview-mode: Laat zien welke bestanden zouden worden bewerkt, maar voer de bewerkingen niet uit.\nEr worden geen nieuwe bestanden aangemaakt en de database wordt niet aangepast.')
     parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
-    parser.add_argument('-io', '--input_options', type=str, choices=['S','F', 'SF'], default='S',help='Input opties: een of meer van "S" (scan directory), "F" (Forms-Excel file [default]).\nVoorbeeld: "--input_options=SF".')
+    parser.add_argument('-io', '--input_options', type=str, choices=['S','F', 'SF'], default='F',help='Input opties: een of meer van "S" (scan directory), "F" (Forms-Excel file [default]).\nVoorbeeld: "--input_options=SF".')
     parser.add_argument('-pm', '--processing_mode', type=str, choices=['A','R', 'AR'], default='A',help='Processing mode: een of meer van "A" (aanvragen [default]), "R" (Rapporten).\nVoorbeeld: "--processing_mode=R".')
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 

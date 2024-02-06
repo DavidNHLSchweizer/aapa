@@ -164,6 +164,14 @@ class CRUDQueries:
             return True
         log_debug(f'\tCAT: not there')                
         return False
+    def is_changed(self, aapa_obj: StoredClass)->bool:
+        self.__db_log('IS_CHANGED', f'object: {aapa_obj}')
+        if stored := self.crud.read(aapa_obj.id): 
+            log_debug(f'\tSTORED ----')                
+            #TODO adapt for multiple keys 
+            return stored != aapa_obj
+        log_debug(f'\tIS_CHANGED: not there')                
+        return True
     def create_key_if_needed(self, aapa_obj: StoredClass, table: TableDefinition = None, autoID=True)->bool:
         self.__db_log('CREATE_KEY_IF_NEEDED', f'object: {aapa_obj}  table: {table.name if table else None} {autoID=}')
         autoID = autoID if autoID else self.crud.autoID
