@@ -9,7 +9,7 @@ from data.classes.base_dirs import BaseDir
 from data.storage.CRUDs import CRUD, CRUDQueries, EnsureKeyAction, create_crud, get_registered_type
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database
-from data.roots import add_root, encode_path
+from data.roots import Roots
 from general.classutil import classname, find_all_modules
 from general.log import log_debug
    
@@ -86,8 +86,8 @@ class AAPAStorage:
         if crud := self.crud(module):
             crud.delete(aapa_obj)    
     def add_file_root(self, root: str, code = None)->str:
-        encoded_root = encode_path(root)
-        code = add_root(encoded_root, code)
+        encoded_root = Roots.encode_path(root)
+        code = Roots.add_root(encoded_root, code)
         if encoded_root != code: 
         #this means the root is already registered, re-encoding causes it to reduce to just the code
             create_root(self.database, code, encoded_root)
@@ -95,7 +95,7 @@ class AAPAStorage:
         return code
     def add_basedir(self, basedir: str|Path, year: int = datetime.datetime.today().year, period: str = '1', forms_version='?'):        
         self.add_file_root(basedir)
-        new_basedir = BaseDir(year, period, forms_version, encode_path(str(basedir)))
+        new_basedir = BaseDir(year, period, forms_version, Roots.encode_path(str(basedir)))
         self.queries('base_dirs').ensure_key(new_basedir)
         self.crud('base_dirs').create(new_basedir)
     def commit(self):

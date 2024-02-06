@@ -1,6 +1,6 @@
 from pathlib import Path
 from data.classes.base_dirs import BaseDir
-from data.roots import encode_path
+from data.roots import Roots
 from data.storage.CRUDs import CRUDQueries
 from data.storage.general.storage_const import StorageException
 from general.log import log_debug
@@ -10,7 +10,7 @@ class BaseDirQueries(CRUDQueries):
         directory = str(directory)
         if not directory:
             return False        
-        encoded = encode_path(directory)
+        encoded = Roots.encode_path(directory)
         log_debug(f'BDQ: {directory}->{encoded}')
         result = self.find_values(attributes='directory', values=encoded)
         log_debug(f'is_basedir: encoded: {encoded} dus {result != []}')
@@ -19,7 +19,7 @@ class BaseDirQueries(CRUDQueries):
         if directory == '' or directory==(parent:=str(Path(directory).parent)):
             return None        
         candidate_basedir = parent if start_at_parent else directory
-        encoded = encode_path(candidate_basedir)
+        encoded = Roots.encode_path(candidate_basedir)
         log_debug(f'encoded: {encoded}')
         if stored:=self.find_values(attributes='directory', values=candidate_basedir):
             if len(stored) > 1:

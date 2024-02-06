@@ -2,8 +2,7 @@ from enum import Enum, auto
 from pathlib import Path
 import tkinter.messagebox as tkimb
 import tkinter.filedialog as tkifd
-from data.roots import decode_onedrive, encode_onedrive, get_onedrive_root, set_onedrive_root
-from data.storage.general.storage_const import StorageException
+from data.roots import Roots 
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from general.config import ValueConvertor, config
@@ -13,11 +12,11 @@ from general.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
 class OnedrivePathValueConvertor(ValueConvertor):
     def get(self, section_key: str, key_value: str, **kwargs)->str:
         if (section := self._parser[section_key]) is not None:
-            return decode_onedrive(section.get(key_value, **kwargs))
+            return Roots.decode_onedrive(section.get(key_value, **kwargs))
         return None
     def set(self, section_key: str, key_value: str, value: object):
         if (section := self._parser[section_key]) is not None:
-            section[key_value] = encode_onedrive(str(value))
+            section[key_value] = Roots.encode_onedrive(str(value))
 
 DEFAULTDATABASE = 'aapa.db'
 LOGFILENAME = 'aapa.log'
@@ -90,7 +89,7 @@ class AAPAConfiguration:
         # (stored in the output_directory) are created with the wrong root
         # this will cause problems later on
         if not preview:
-            self.storage.add_file_root(str(encode_onedrive(self.root)))
+            self.storage.add_file_root(str(Roots.encode_onedrive(self.root)))
         if created_directory(self.output_directory):
             log_print(f'Map {self.output_directory} aangemaakt.')
         self.storage.add_file_root(str(self.output_directory))
@@ -157,8 +156,8 @@ class AAPAConfiguration:
         return self.__initialize_directories(preview=processing_options.preview)
     def initialize(self, processing_options: AAPAProcessingOptions, part = PART.BOTH)->bool:
         if processing_options.onedrive:
-            set_onedrive_root(processing_options.onedrive)
-            log_debug(f'Using alternate onedrive root: [{get_onedrive_root()}]')
+            Roots.set_onedrive_root(processing_options.onedrive)
+            log_debug(f'Using alternate onedrive root: [{Roots.get_onedrive_root()}]')
         match part:
             case AAPAConfiguration.PART.DATABASE:
                 result = self.__initialize_database_part(processing_options)

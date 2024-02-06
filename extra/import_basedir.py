@@ -19,7 +19,7 @@ from data.classes.base_dirs import BaseDir
 from data.classes.mappers import ColumnMapper, FilenameColumnMapper, ObjectMapper
 from data.classes.undo_logs import UndoLog
 from general.sql_coll import SQLcollector, SQLcollectors
-from data.roots import add_root, encode_path
+from data.roots import Roots
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from general.log import init_logging, log_error, log_info, log_print, log_warning
@@ -56,11 +56,11 @@ class BasedirXLSImporter(FileProcessor):
         super().__init__(description='Importeren basedirs')
     def __add_sql(self, base_dir: BaseDir, is_new=True):
         if is_new:
-            root_code = add_root(base_dir.directory)            
+            root_code = Roots.add_root(base_dir.directory)            
             self.sql.insert('fileroot', [root_code, base_dir.directory])
             self.sql.insert('base_dirs', [base_dir.id, base_dir.year, base_dir.period, base_dir.forms_version, root_code])
         else:
-            self.sql.update('base_dirs', [base_dir.year,base_dir.period, base_dir.forms_version, encode_path(base_dir.directory), base_dir.stud_nr])
+            self.sql.update('base_dirs', [base_dir.year,base_dir.period, base_dir.forms_version, Roots.encode_path(base_dir.directory), base_dir.stud_nr])
     def __check_and_store_basedir(self, base_dir: BaseDir, storage: AAPAStorage)->Any:
         def check_diff(base_dir: BaseDir, stored: BaseDir, attrib: str)->bool:
             a1 = str(getattr(base_dir, attrib, None))

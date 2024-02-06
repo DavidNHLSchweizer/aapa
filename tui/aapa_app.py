@@ -9,7 +9,7 @@ from textual.message import Message
 from textual.widgets import Header, Footer, Button
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
-from data.roots import set_onedrive_root
+from data.roots import Roots
 from data.storage.queries.undo_logs import UndoLogQueries
 from general.args import  AAPAProcessingOptions, AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
 from general.log import log_debug, pop_console, push_console
@@ -96,7 +96,7 @@ class AAPAApp(App):
     def _init_onedrive_root(self):
         processing_options:AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
         if processing_options.onedrive:
-            set_onedrive_root(processing_options.onedrive)       
+            Roots.set_onedrive_root(processing_options.onedrive)       
     async def on_enable_buttons(self, message: EnableButtons):
         await self.enable_buttons()
     async def on_mount(self):

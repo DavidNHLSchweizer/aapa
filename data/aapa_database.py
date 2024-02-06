@@ -12,7 +12,7 @@ from general.keys import reset_key
 from general.config import config
 from general.log import log_debug, log_error, log_info, log_warning
 from general.versie import Versie
-from data.roots import add_root, decode_path, get_roots, reset_roots
+from data.roots import Roots
 
 class AAPaException(Exception): pass
 
@@ -51,15 +51,15 @@ def create_root(database: Database, code, root: str):
     database.commit()
 
 def create_roots(database: Database):
-    for code,root in get_roots():
+    for code,root in Roots.get_roots():
         create_root(database, code, root)        
             
 def load_roots(database: Database):
-    reset_roots()
+    Roots.reset_roots()
     for row in database._execute_sql_command('select code, root from fileroot', [], True): 
         if row['code'] == ':ROOT1:':
             continue # first row is already loaded, this is the NHL Stenden BASEPATH
-        add_root(decode_path(row['root']), row['code']) 
+        Roots.add_root(Roots.decode_path(row['root']), row['code']) 
             
 class DetailTableDefinition(TableDefinition):
     def __init__(self, name: str, 
@@ -380,7 +380,7 @@ class AAPaDatabase(Database):
             create_roots(self)
         else:
             load_roots(self)
-        report = '\n'.join([f'{code} = "{root}"' for (code,root) in get_roots()])
+        report = '\n'.join([f'{code} = "{root}"' for (code,root) in Roots.get_roots()])
         log_info(f'Bekende paden:\n{report}')
         log_info('--- Einde laden paden File Encoding')
 

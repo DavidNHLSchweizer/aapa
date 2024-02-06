@@ -2,7 +2,7 @@ from __future__ import annotations
 from enum import Enum, auto
 
 import gettext
-from data.roots import decode_onedrive, encode_onedrive
+from data.roots import Roots
 from general.log import log_error
 from general.versie import banner
 def __vertaling(Text):
@@ -275,7 +275,7 @@ class AAPAOptions:
         """   
         def _recode(obj: object, attribute: str, onedrive_root: str):
         
-            setattr(obj, attribute, decode_onedrive(encode_onedrive(getattr(obj,attribute)), onedrive_root))
+            setattr(obj, attribute, Roots.decode_onedrive(Roots.encode_onedrive(getattr(obj,attribute)), onedrive_root))
         _recode(config_options, 'root_directory', onedrive_root)
         _recode(config_options, 'output_directory', onedrive_root)
         _recode(config_options, 'database_file', onedrive_root)

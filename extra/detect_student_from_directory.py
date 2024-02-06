@@ -21,7 +21,7 @@ from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
-from data.roots import decode_path, encode_path
+from data.roots import Roots
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.studenten import StudentQueries
@@ -207,7 +207,7 @@ class MilestoneDetectorPipeline(FilePipeline):
             return None
         def _get_values(mijlpaal_directory: MijlpaalDirectory, id_first = True)->list[Any]:
             return self.__get_values([mijlpaal_directory.mijlpaal_type, 
-                     encode_path(mijlpaal_directory.directory), 
+                     Roots.encode_path(mijlpaal_directory.directory), 
                      TSC.timestamp_to_sortable_str(mijlpaal_directory.datum)], mijlpaal_directory.id, id_first)
         self.sqls.delete('student_directory_directories', [stud_dir_id])
         for mijlpaal_directory in mijlpaal_directory_list:
@@ -220,7 +220,7 @@ class MilestoneDetectorPipeline(FilePipeline):
             self.__get_sql_files(mijlpaal_directory.id, mijlpaal_directory.files_list, stored_files=stored_files) 
     def __get_sql_files(self, mp_dir_id: int, files_list: list[File], stored_files: list[File]):
         def _get_values(file: File, id_first = True)->list[Any]:
-            return self.__get_values([encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
+            return self.__get_values([Roots.encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
                                         file.digest,file.filetype,file.mijlpaal_type],
                                       file.id, id_first)
         def _get_stored(file: File, stored_files: list[File])->File:
@@ -241,7 +241,7 @@ class MilestoneDetectorPipeline(FilePipeline):
                   stored_mijlpaal_directories: list[MijlpaalDirectory], 
                   stored_files: list[File]):         
         def _get_values(student_directory: StudentDirectory, id_first=True):
-            return self.__get_values([student_directory.student.id, encode_path(student_directory.directory), student_directory.base_dir.id], student_directory.id, id_first)
+            return self.__get_values([student_directory.student.id, Roots.encode_path(student_directory.directory), student_directory.base_dir.id], student_directory.id, id_first)
         if stored_directory:
             if stored_directory != student_directory:
                 self.sqls.update('student_directories', _get_values(student_directory, False))
@@ -261,11 +261,11 @@ class MilestoneDetectorPipeline(FilePipeline):
     def __get_stored_mijlpaal_directories(self, student_directory: StudentDirectory)->list[MijlpaalDirectory]:       
         result = []
         for mijlpaal in student_directory.directories:
-            if stored := self.storage.find_values('mijlpaal_directories', 'directory', encode_path(mijlpaal.directory)):
+            if stored := self.storage.find_values('mijlpaal_directories', 'directory', Roots.encode_path(mijlpaal.directory)):
                 result.append(stored[0])
         return result
     def _store_new(self, student_directory: StudentDirectory):
-        if stored := self.storage.find_values('student_directories', 'directory', encode_path(student_directory.directory)):
+        if stored := self.storage.find_values('student_directories', 'directory', Roots.encode_path(student_directory.directory)):
             stored_directory = stored[0]
         else:
             stored_directory = None
@@ -288,7 +288,7 @@ class MilestoneDetectorPipeline(FilePipeline):
         return False
 
 def detect_from_directory(directory: str, storage: AAPAStorage, json_filename:str = None, preview=False)->int:
-    directory = decode_path(directory)
+    directory = Roots.decode_path(directory)
     if not Path(directory).is_dir():
         log_error(f'Map {directory} bestaat niet. Afbreken.')
         return 0  

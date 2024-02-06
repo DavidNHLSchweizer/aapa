@@ -1,6 +1,6 @@
 from typing import Any, Iterable, Type
 from data.classes.aapa_class import AAPAclass
-from data.roots import decode_path, encode_path
+from data.roots import Roots
 from data.storage.general.storage_const import StoredClass, DBtype
 from general.classutil import classname
 from general.timeutil import TSC
@@ -72,8 +72,8 @@ class TimeColumnMapper(ColumnMapper):
 class FilenameColumnMapper(ColumnMapper):
     def __init__(self, column_name: str, attribute_name:str=None):
         super().__init__(column_name=column_name, attribute_name=attribute_name, 
-                         db_to_obj=decode_path, 
-                         obj_to_db=encode_path)
+                         db_to_obj=Roots.decode_path, 
+                         obj_to_db=Roots.encode_path)
 
 class ObjectMapper:
     def __init__(self, columns: list[str], class_type: AAPAclass):

@@ -1,8 +1,42 @@
+""" ROOTS: root coding voor paden 
+
+Deze codes worden gebruikt bij opslaan van paden (files of directories) in de database.
+Wordt ook gebruikt bij de configuratiefile (aapa_config.ini). 
+
+Doel is om paden onafhankelijk van de computer (gebruiker) te maken. 
+
+OneDrive werkt met een mapping naar een directory als c:\users\usernaam\NHL Stenden....
+Door het gedeelte "c:\users\usernaam\" te coderen als ":ONEDRIVE:\NHL Stenden...." kan bij het 
+laden van het pad de :ONEDRIVE: gedeelte worden vervangen door de juiste "root".
+
+Speciale codes
+--------------
+
+        :ONEDRIVE: 
+
+        automatische substitutie voor de "root" van de OneDrive
+        op de computer waarop het draait. Daarmee zijn OneDrive paden
+        onafhankelijk van de specifieke computer. Kan ook worden gebruikt
+        om (voor debugging of testen) een alternatieve directory aan te geven
+        zodat er geen SharePoint wijzigingen hoeven te zijn.
+        
+        Voorbeeld
+        ---------
+
+        decode_path(":ONEDRIVE:\NHL Stenden") == "c:\users\david\NHL Stenden"
+
+        :DOCUMENTS:
+
+        automatische substitutie voor het "Documents/Documenten" gedeelte waarmee 
+        OneDrive de map (...)"HBO-ICT Afstuderen Documents" (mapping voor Shared Documents)
+        codeert. Dit is namelijk afhankelijk van taalinstellingen en kan zowel Documents als 
+        Documenten blijken te zijn. Het is niet gelukt om dit programmatisch te detecteren,
+        dus wordt gewoon gekeken welke van de twee het is. 
+
+"""
 from __future__ import annotations
 from pathlib import Path
 import re
-import ctypes
-import locale
 from typing import Tuple
 from general.keys import get_next_key, reset_key
 from general.log import log_debug, log_info
@@ -14,6 +48,7 @@ class RootException(Exception): pass
 BASEPATH = r'NHL Stenden'
 
 class OneDriveCoder:
+    """ Code for the OneDrive functionality, not to be called from outside this module """
     ONEDRIVE = ':ONEDRIVE:'
     DOCUMENTS = ':DOCUMENTS:'
     onedrive_root = None
@@ -67,6 +102,7 @@ class RootSorter:
         return self.pattern.match(path) is not None
 
 class PathRootConvertor:
+    """ Convertor class: the coding/decoding for one code, e.g. :ROOT12:. Used by the Roots class. """
     ROOTCODE = 'ROOT'
     KEYCODE  = 'PATHROOT'
     def __init__(self, root, expanded: str, code = None, known_codes:set[str] = set()):
@@ -102,7 +138,8 @@ class PathRootConvertor:
         if PathRootConvertor.__contains(self.expanded, str(old_onedrive)):
             self.expanded = PathRootConvertor.__substitute(self.expanded, str(old_onedrive), str(new_onedrive))
 
-class Roots(Singleton):
+class RootsCoder(Singleton):
+    """ Implements the module functionality. Should not be used from outside this module. """
     def __init__(self, base_path: str):
         self._sorter = RootSorter()
         self._initialized = False
@@ -249,59 +286,112 @@ class Roots(Singleton):
                 file.write(f'{n}:{str(converter)}\n')
 
 
-_roots = Roots(BASEPATH)
+_roots = RootsCoder(BASEPATH)
 
-def set_onedrive_root(path: str):
-    _roots.set_onedrive_root(path)
-def get_onedrive_root()->Path:
-    return _roots.get_one_drive_root()
-def decode_onedrive(path: str|Path, onedrive_root=None)->str:
-    return _roots.decode_onedrive(path, onedrive_root=onedrive_root)
-def encode_onedrive(path: str|Path)->str:
-    return _roots.encode_onedrive(path)
+class Roots:
+    """ simple interface class for the module. Static methods to access the singleton instance. """
+    @staticmethod	
+    def set_onedrive_root(path: str):
+        """ Verander het basispad voor de :ONEDRIVE: code.
 
-def get_code(code: str)->str:
-    return _roots.get_code(code)
-def get_expanded(code: str)->str:
-    return _roots.get_expanded(code)
-def get_roots(sorted=True)->list[tuple[str,str]]:
-    return _roots.get_roots(sorted)
+        Default staat het OneDrive basispad ingesteld op het door Windows gehanteerde pad 
+        op de computer (voor de ingelogde gebruiker)
+        Dit wordt uit de registry gehaald.
 
-def add_root(root_path: str|Path, code: str = None)->str:    
-    """ add a new root to the list used for encodepath/decodepath.
+        Met deze functie kan in principe op elk moment "geschakeld" worden maar 
+        normaliter wordt dit gedaan bij opstarten (--onedrive=xxxxx)
+        
+        """
+        _roots.set_onedrive_root(path)
+    @staticmethod	
+    def get_onedrive_root()->Path:
+        """ basispad voor de OneDrive code """
+        return _roots.get_one_drive_root()
+    @staticmethod	
+    def decode_onedrive(path: str|Path, onedrive_root=None)->str:
+        """ decodeer een met :ONEDRIVE: gecodeerd pad. Eventueel met een op te geven root. """
+        return _roots.decode_onedrive(path, onedrive_root=onedrive_root)
+    @staticmethod	
+    def encode_onedrive(path: str|Path)->str:
+        """ codeer een pad met :ONEDRIVE: indien mogelijk 
+        
+            returns
+            -------
+            indien de ingestelde onedrive_root aan het begin van parameter "path" staat:
+                met :ONEDRIVE: gecodeerd pad
+            anders:
+                het pad
 
-        parameters:
-            root_path: str or pathlib.Path
-                the new root path to encode.
-            code: str = None
-                the code to use for this root_path.
-                if code is None (or not given), the code value is generated.
-        returns:
-            the new root code.
-    """
-    return _roots.add(root_path, code=code)
-def decode_path(path: str|Path)->str:
-    """decode an encoded path (encoded with encode_path)."""
-    return _roots.decode_path(path)
-def encode_path(path: str|Path, allow_single=True)->str:
-    r""" encode a path (for storing in the database).
-            replaces appropiate parts with :ROOTnn: codes as defined earlier with add_root.
-        parameters:
-            path: str or pathlib.Path   the path to encode
-            allow_single=True: if False, a encoded path of just :ROOTnn: is not allowed.
-        returns: 
-            the "best possible" encoded path. 
-            "best possible" means: (in order of priority)
-            1) a single root code (:ROOTnn:), e.g. :ROOT42:)
-            2) the shortest string found of the form :ROOTnn:\[end_of_path]
-                e.g. :ROOT42:\padje\file.doc
-            3) the full pathname (if the filename is not mapped to one of the known roots).
-            The encoded path will not have more than one root code (root codes can be nested, however).           
-    """
-    return _roots.encode_path(path, allow_single=allow_single)
-def reset_roots():
-    reset_key('ROOT')
-    _roots.reset(BASEPATH)
+            examples
+            --------
+                (aanname: de onedrive_root is C:\users\david):
+                encode_onedrive("c:\users\david\padje") == ":ONEDRIVE:\padje"
+                encode_onedrive("c:\david\padje2") == "c:\david\padje2"
 
-def dump_roots(filename: str, msg = '', append = False):
-    _roots.dump(filename, msg, append)
+        """
+        return _roots.encode_onedrive(path)
+    @staticmethod	
+    def _get_code(code: str)->str:
+        """ get the string the given code codes for. For debugging """
+        return _roots.get_code(code)
+    @staticmethod	
+    def _get_expanded(code: str)->str:
+        """ get the fully expanded string the given code codes for. For debugging """
+        return _roots.get_expanded(code)
+    @staticmethod	
+    def get_roots(sorted=True)->list[tuple[str,str]]:
+        """ get all roots as (code,get_code) tuples. For storing in the database """
+        return _roots.get_roots(sorted)
+    @staticmethod	
+    def add_root(root_path: str|Path, code: str = None)->str:    
+        """ add a new root to the list used for encodepath/decodepath.
+
+            parameters
+            ----------
+                root_path: str or pathlib.Path
+                    the new root path to encode.
+                code: str = None (optional)
+                    the code to use for this root_path.
+
+            returns
+            -------
+                the new root code. 
+                if parameter code is None (or not given), the code value is generated
+                as ":ROOTnnn:" with nnn the next non-used integer in the ROOT key sequence 
+                See module keys for more details.
+
+        """
+        return _roots.add(root_path, code=code)
+    @staticmethod	
+    def decode_path(path: str|Path)->str:
+        """decode an encoded path (encoded with encode_path)."""
+        return _roots.decode_path(path)
+    @staticmethod	
+    def encode_path(path: str|Path, allow_single=True)->str:
+        r""" encode a path (for storing in the database).
+                replaces appropiate parts with :ROOTnn: codes as defined earlier with add_root.
+
+            parameters
+            ----------
+                path: str or pathlib.Path   the path to encode
+                allow_single=True: if False, a encoded path of just :ROOTnn: is not allowed.
+
+            returns
+            -------
+                the "best possible" encoded path. 
+                "best possible" means: (in order of priority)
+                1) a single root code (:ROOTnn:), e.g. :ROOT42:)
+                2) the shortest string found of the form :ROOTnn:\[end_of_path]
+                    e.g. :ROOT42:\padje\file.doc
+                3) the full pathname (if the filename is not mapped to one of the known roots).
+                The encoded path will not have more than one root code (root codes can be nested, however).          
+
+        """
+        return _roots.encode_path(path, allow_single=allow_single)
+    @staticmethod	
+    def reset_roots():
+        reset_key('ROOT')
+        _roots.reset(BASEPATH)
+    @staticmethod	
+    def dump_roots(filename: str, msg = '', append = False):
+        _roots.dump(filename, msg, append)
