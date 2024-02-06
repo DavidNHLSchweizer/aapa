@@ -189,6 +189,9 @@ class StudentStatus(IntEnum):
     @staticmethod
     def doc()->str:
         return "\n".join([f'{status.value:2} (StudentStatus.{status.name}): {str(status)}' for status in StudentStatus])        
+    @staticmethod
+    def active_states():
+        return {StudentStatus.UNKNOWN,StudentStatus.AANVRAAG,StudentStatus.BEZIG}
 
 class VerslagStatus(IntEnum):
     """

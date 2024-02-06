@@ -14,9 +14,9 @@ class MijlpaalDirectory(MijlpaalBase):
     def relevant_attributes(self) -> set[str]:
         return super().relevant_attributes() | {'directory'}
     def summary(self)->str:
-        return str(self)
+        return f'{summary_string(self.directory, maxlen=80)} [{self.mijlpaal_type}] {TSC.timestamp_to_str(self.datum)}'
     def __str__(self):        
-        s = f'{summary_string(self.directory, maxlen=80)} [{self.mijlpaal_type}] {TSC.timestamp_to_str(self.datum)}'
+        s = self.summary()
         if self.kans > 0:
             s = f'{s} (kans: {self.kans})'
         file_str = "\n\t\t".join([file.summary(name_only=True) for file in self.files_list])

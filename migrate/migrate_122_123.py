@@ -4,6 +4,21 @@ from database.sql_view import SQLcreateView
 from general.sql_coll import import_json
 from database.database import Database
 
+def _correct_email_and_delete_double(database: Database, id_keep:int, id_delete: int):
+    #dubbelingen, but keep email (correct for second email). the second entry is never used
+    #de meeste waren gedaan in 1.22, maar er is er blijkbaar nog 1!
+    database._execute_sql_command(f'update STUDENTEN set email=(select email from STUDENTEN as S2 where S2.id=?) where STUDENTEN.id = ?', 
+                                  [id_delete,id_keep]
+                                  )
+    database._execute_sql_command(f'delete from STUDENTEN where id = ?', [id_delete])
+
+def correct_student_errors(database: Database):
+    print('correcting some existing errors in STUDENTEN table')  
+    #Daan van Boven
+    _correct_email_and_delete_double(database, 54, 162)
+    print('ready correcting some existing errors in STUDENTEN table')  
+
+
 # add new views
 def add_views(database: Database):
     print(f'adding new views STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT en STUDENT_VERSLAGEN_OVERZICHT')
@@ -50,6 +65,7 @@ def correct_files_for_error(database: Database):
 
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
+        correct_student_errors(database)
         modify_mijlpaal_directories(database)
         if phase == 1:
             create_mijlpaal_directories(database)
