@@ -1,4 +1,5 @@
 from __future__ import annotations
+import datetime
 from enum import IntEnum
 from textwrap import TextWrapper
 from typing import TextIO
@@ -334,8 +335,11 @@ class AAPaSchema(Schema):
         wrapper = TextWrapper(width=120, initial_indent="  ", subsequent_indent="  ",
                               break_long_words=False)
         with open(filename, mode="w", encoding='utf-8') as file:
+            timestr = datetime.datetime.strftime(datetime.datetime.now(), f'%d-%m-%Y %H:%M:%S')
+            file.write(f'AAPA Database schema versie {DBVERSION}\n{timestr}\n\n')
             for table in AAPaSchema.ALL_TABLES:
-                AAPaSchema._dump_view_or_table_sql(table(),file, wrapper)   
+                AAPaSchema._dump_view_or_table_sql(table(),file, wrapper)  
+            file.write(f'\n')
             for view in AAPaSchema.ALL_VIEWS:
                 AAPaSchema._dump_view_or_table_sql(view(),file, wrapper)   
 

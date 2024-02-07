@@ -1,3 +1,6 @@
+AAPA Database schema versie 1.23
+07-02-2024 11:53:37
+
 table VERSIE:
   CREATE TABLE IF NOT EXISTS VERSIE (ID INTEGER PRIMARY KEY,db_versie TEXT,versie TEXT,datum TEXT);
 table FILEROOT:
@@ -57,11 +60,12 @@ table MIJLPAAL_DIRECTORY_FILES:
   CREATE TABLE IF NOT EXISTS MIJLPAAL_DIRECTORY_FILES (mp_dir_id INTEGER,file_id INTEGER,PRIMARY
   KEY(mp_dir_id,file_id),FOREIGN KEY(mp_dir_id) REFERENCES MIJLPAAL_DIRECTORIES(id) ON UPDATE CASCADE ON DELETE
   CASCADE,FOREIGN KEY(file_id) REFERENCES FILES(id) ON UPDATE CASCADE ON DELETE CASCADE);
+
 view AANVRAGEN_OVERZICHT:
   CREATE VIEW IF NOT EXISTS AANVRAGEN_OVERZICHT AS select id,(select full_name from STUDENTEN as S where S.ID =
   A.stud_id) as student,datum,(select name from BEDRIJVEN as B where B.ID = A.bedrijf_id) as
   bedrijf,titel,versie,kans,(case beoordeling when 0 then "" when 1 then "onvoldoende" when 2 then "voldoende" else "?"
-  end ) as beoordeling from AANVRAGEN as A order by 2,3
+  end ) as beoordeling from AANVRAGEN as A order by 2,3;
 view AANVRAGEN_FILE_OVERZICHT:
   CREATE VIEW IF NOT EXISTS AANVRAGEN_FILE_OVERZICHT AS select A.id as aanvraag_id,(select full_name from STUDENTEN as S
   where S.ID = A.stud_id) as student,titel, F.ID as file_id,F.filename as filename,(case F.filetype when -4 then
@@ -72,7 +76,7 @@ view AANVRAGEN_FILE_OVERZICHT:
   "Beoordelingsformulier (examinator 2)" when 8 then "Beoordelingsformulier (examinator 3 of hoger)" when 9 then "Plan
   van Aanpak" when 10 then "Onderzoeksverslag" when 11 then "Technisch verslag" when 12 then "Eindverslag" when 13 then
   "Aanvraag" else "?" end ) as filetype from AANVRAGEN as A inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id
-  inner join FILES as F on F.ID=AF.file_id order by 2
+  inner join FILES as F on F.ID=AF.file_id order by 2;
 view STUDENT_DIRECTORIES_FILE_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_FILE_OVERZICHT AS select SD.id,SD.STUD_ID,SD.directory,(case sd.status
   when 0 then "nog niet bekend" when 1 then "actief" when 42 then "gearchiveerd" else "?" end ) as dir_status,MD.id as
@@ -88,13 +92,13 @@ view STUDENT_DIRECTORIES_FILE_OVERZICHT:
   then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?" end ) as mijlpaal from
   STUDENT_DIRECTORIES as SD inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id inner join
   MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id inner join MIJLPAAL_DIRECTORY_FILES as MDF on MD.ID=MDF.mp_dir_id
-  inner join FILES as F on F.ID=MDF.file_id
+  inner join FILES as F on F.ID=MDF.file_id;
 view STUDENT_DIRECTORIES_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_OVERZICHT AS select s.id,full_name,stud_nr,(case s.status when 0 then
   "nog niet bekend" when 1 then "aanvraag gedaan" when 2 then "bezig met afstuderen" when 3 then "afgestudeerd" when 10
   then "gestopt" else "?" end ) as student_status,bd.year,bd.period,sdd.directory as "(laatste) directory" from
   studenten as s inner join student_directories as sdd on s.id = sdd.stud_id inner join basedirs as bd on sdd.basedir_id
-  = bd.id group by sdd.stud_id having max(sdd.id) order by 5,6,2
+  = bd.id group by sdd.stud_id having max(sdd.id) order by 5,6,2;
 view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT AS select (select full_name from studenten as S where
   S.id=SD.stud_id) as student, MPD.datum, (case MPD.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then
@@ -102,4 +106,4 @@ view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT:
   then "productbeoordeling" when 7 then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else
   "?" end ) as mijlpaal_type, MPD.kans, MPD.directory from student_directories as SD inner join
   STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.ID=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES MPD on
-  MPD.ID=SDD.mp_dir_id order by 1,3
+  MPD.ID=SDD.mp_dir_id order by 1,3;
