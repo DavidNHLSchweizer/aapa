@@ -1,4 +1,4 @@
-""" MAKE_VERSLAGEN
+""" M123_MAKE_VERSLAGEN
 
     Maakt de verslagen aan in de al eerder gedetecteerde student-directories. De verslagen waren nog niet 
     in de database aangemaakt.
@@ -8,7 +8,6 @@
     De code is bedoeld voor de migratie naar database versie 1.23
 
 """
-
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
@@ -25,6 +24,7 @@ from general.preview import Preview
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors
 from process.aapa_processor.aapa_processor import AAPARunnerContext
+from extra.tools import get_json_filename
 
 class VerslagenReEngineeringProcessor:
     def __init__(self, storage: AAPAStorage):
@@ -75,7 +75,8 @@ class VerslagenReEngineeringProcessor:
         for student in self.storage.queries('studenten').find_all():
             self.process_student(student, preview=True)
         if migrate_dir:
-            filename = Path(migrate_dir).resolve().joinpath('create_verslagen.json')
+            filename = Path(migrate_dir).resolve().joinpath(get_json_filename(__file__))
+
             self.sql.dump_to_file(filename)
             log_print(f'SQL data dumped to file {filename}')
 

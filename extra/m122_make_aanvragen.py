@@ -1,4 +1,4 @@
-""" MAKE_AANVRAGEN
+""" M122_MAKE_AANVRAGEN
 
     Maakt een aantal aanvragen aan voor specifieke studenten. Reden: deze aanvragen zaten nog niet in de database.
     Omdat de studenten nog niet afgestudeerd zijn worden deze verslagen met terugwerkende kracht gegenereerd. 

@@ -1,5 +1,5 @@
 AAPA Database schema versie 1.23
-07-02-2024 11:53:37
+07-02-2024 16:30:16
 
 table VERSIE:
   CREATE TABLE IF NOT EXISTS VERSIE (ID INTEGER PRIMARY KEY,db_versie TEXT,versie TEXT,datum TEXT);
@@ -78,21 +78,21 @@ view AANVRAGEN_FILE_OVERZICHT:
   "Aanvraag" else "?" end ) as filetype from AANVRAGEN as A inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id
   inner join FILES as F on F.ID=AF.file_id order by 2;
 view STUDENT_DIRECTORIES_FILE_OVERZICHT:
-  CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_FILE_OVERZICHT AS select SD.id,SD.STUD_ID,SD.directory,(case sd.status
-  when 0 then "nog niet bekend" when 1 then "actief" when 42 then "gearchiveerd" else "?" end ) as dir_status,MD.id as
-  mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,(case F.filetype when -4 then "directory (geen verdere
-  gegevens)" when -3 then "docx-bestand (geen verdere gegevens)" when -2 then "pdf-bestand (geen verdere gegevens)" when
-  -1 then "!unknown" when 0 then "PDF-file (aanvraag)" when 1 then "Beoordelingsformulier" when 2 then "Kopie van PDF-
-  file (aanvraag)" when 3 then "Verschilbestand met vorige versie aanvraag" when 5 then "Ingevuld beoordelingsformulier
-  (PDF format)" when 6 then "Beoordelingsformulier (examinator 1)" when 7 then "Beoordelingsformulier (examinator 2)"
-  when 8 then "Beoordelingsformulier (examinator 3 of hoger)" when 9 then "Plan van Aanpak" when 10 then
-  "Onderzoeksverslag" when 11 then "Technisch verslag" when 12 then "Eindverslag" when 13 then "Aanvraag" else "?" end )
-  as filetype,(case F.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then "plan van aanpak" when 3 then
-  "onderzoeksverslag" when 4 then "technisch verslag" when 5 then "eindverslag" when 6 then "productbeoordeling" when 7
-  then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?" end ) as mijlpaal from
-  STUDENT_DIRECTORIES as SD inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id inner join
-  MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id inner join MIJLPAAL_DIRECTORY_FILES as MDF on MD.ID=MDF.mp_dir_id
-  inner join FILES as F on F.ID=MDF.file_id;
+  CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_FILE_OVERZICHT AS select SD.id,SD.STUD_ID,SD.directory as
+  student_directory,(case sd.status when 0 then "nog niet bekend" when 1 then "actief" when 42 then "gearchiveerd" else
+  "?" end ) as dir_status,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,(case F.filetype when -4 then
+  "directory (geen verdere gegevens)" when -3 then "docx-bestand (geen verdere gegevens)" when -2 then "pdf-bestand
+  (geen verdere gegevens)" when -1 then "!unknown" when 0 then "PDF-file (aanvraag)" when 1 then "Beoordelingsformulier"
+  when 2 then "Kopie van PDF-file (aanvraag)" when 3 then "Verschilbestand met vorige versie aanvraag" when 5 then
+  "Ingevuld beoordelingsformulier (PDF format)" when 6 then "Beoordelingsformulier (examinator 1)" when 7 then
+  "Beoordelingsformulier (examinator 2)" when 8 then "Beoordelingsformulier (examinator 3 of hoger)" when 9 then "Plan
+  van Aanpak" when 10 then "Onderzoeksverslag" when 11 then "Technisch verslag" when 12 then "Eindverslag" when 13 then
+  "Aanvraag" else "?" end ) as filetype,(case F.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then "plan
+  van aanpak" when 3 then "onderzoeksverslag" when 4 then "technisch verslag" when 5 then "eindverslag" when 6 then
+  "productbeoordeling" when 7 then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?"
+  end ) as mijlpaal from STUDENT_DIRECTORIES as SD inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on
+  SD.id=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id inner join MIJLPAAL_DIRECTORY_FILES
+  as MDF on MD.ID=MDF.mp_dir_id inner join FILES as F on F.ID=MDF.file_id;
 view STUDENT_DIRECTORIES_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_OVERZICHT AS select s.id,full_name,stud_nr,(case s.status when 0 then
   "nog niet bekend" when 1 then "aanvraag gedaan" when 2 then "bezig met afstuderen" when 3 then "afgestudeerd" when 10

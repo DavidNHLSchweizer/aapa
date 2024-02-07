@@ -32,7 +32,7 @@ def find_extra_args(module: ModuleType)->ParserFunc:
 
 if __name__ == "__main__":
     simple_parser = ArgumentParser(description='Script om (in principe) eenmalige acties uit te voeren voor AAPA.', prog='onetime', 
-                                   usage='%(prog)s module [opties]. Opties zijn alle opties die in AAPA mogelijk zijn.')
+                                   usage='%(prog)s module [opties].\n\tOpties zijn, naast alle opties die voor de module zijn gedefinieerd,\n\talle opties die in AAPA mogelijk zijn.')
     simple_parser.add_argument('module', type=str, 
                         help='Naam module om uit voeren (wordt verwacht in directory "onetime", entry point: onetime_action)')
     simple_parser.add_argument('-module_help', action="store_true", help='Hulp voor de uit te voeren module')

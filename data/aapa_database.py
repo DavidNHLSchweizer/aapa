@@ -26,6 +26,8 @@ class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
         self.db_versie = db_versie
+    def __str__(self)->str:
+        return self.db_versie
 
 class VersionTableDefinition(TableDefinition):
     def __init__(self):
@@ -246,7 +248,7 @@ class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
         mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
         status_str = get_sql_cases_for_int_type('sd.status', StudentDirectory.Status, 'dir_status') 
         query = \
-f'select SD.id,SD.STUD_ID,SD.directory,{status_str},MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
 from STUDENT_DIRECTORIES as SD \
 inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id \
 inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id \

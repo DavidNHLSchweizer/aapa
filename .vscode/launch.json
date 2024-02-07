@@ -195,11 +195,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "import_basedir",
-                "--basedir=migrate\\import_data\\basedirs.xlsx",
-                "--json=tempodoelo.json",
+                "correct_stud_dirs",
                 "-debug",
-                "--onedrive=d:\\onedrive",
+                "-preview",
+                "--onedrive=d:\\onedrive0",
             ]
         },
     ]

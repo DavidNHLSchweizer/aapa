@@ -1,4 +1,4 @@
-""" SET_STATUS_STUDDIRS. 
+""" M123_SET_SDIR_STATUS. 
 
     aanpassen van database voor initialisatie status in student_directories.
     bedoeld voor migratie naar versie 1.23
@@ -10,6 +10,7 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.student_directories import StudentDirectoryQueries
+from extra.tools import get_json_filename
 from general.fileutil import last_parts_file
 from general.log import log_print, log_warning
 from general.preview import Preview
@@ -47,7 +48,7 @@ class StudentDirectoriesStatusProcessor:
         for student in sorted(self.storage.queries('studenten').find_all(),key=lambda s: s.full_name):
             self.process_student(student)
         if migrate_dir:            
-            filename = Path(migrate_dir).resolve().joinpath('correct_mp_dirs.json')
+            filename = Path(migrate_dir).resolve().joinpath(get_json_filename(__file__))
             self.sql.dump_to_file(filename)
             log_print(f'SQL data dumped to file {filename}')
 

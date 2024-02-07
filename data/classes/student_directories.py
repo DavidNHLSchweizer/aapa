@@ -33,9 +33,12 @@ class StudentDirectory(AAPAclass):
     def directories(self)->list[MijlpaalDirectory]:
         return self._data.as_list('directories')    
     def get_directories(self, mijlpaal_type: MijlpaalType, sorted=True)->list[MijlpaalDirectory]:
+        def get_key(mpd: MijlpaalDirectory)->(MijlpaalType,datetime.datetime):
+            # some mpd's have a "zero" datum, workaround for this
+            return (mpd.mijlpaal_type, mpd.datum if isinstance(mpd.datum,datetime.datetime) else datetime.datetime(2000,1,1))
         result = [dir for dir in self.directories if dir.mijlpaal_type == mijlpaal_type]
         if sorted:
-            result.sort(key=lambda mpd: (mpd.mijlpaal_type,mpd.datum))
+            result.sort(key=get_key)
         return result
     def get_directory(self, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->MijlpaalDirectory:
         for directory in self.get_directories(mijlpaal_type):
