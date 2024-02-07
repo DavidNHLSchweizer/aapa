@@ -19,10 +19,12 @@ class ViewFlags(dbArgParser):
 
 class ViewDefinition:
     def __init__(self,  name, column_names: list[str] = [], join_expression:SQEjoin = None, query='', **args):
+        def _remove_whitespace(s:str)->str:
+            return ' '.join(s.split())
         self.name = name
         self.column_names = column_names
         self.join_expression = join_expression
-        self.query = query
+        self.query = _remove_whitespace(query)
         self.parameters = []
         ViewFlags().execute(self, **args)
         if self.where:

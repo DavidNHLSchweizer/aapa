@@ -10,11 +10,14 @@ from pathlib import Path
 from data.classes.const import MijlpaalType
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
+from data.roots import Roots
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.student_directories import StudentDirectoryQueries
+from general.fileutil import last_parts_file
 from general.log import log_info, log_print, log_warning
 from general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
+from general.timeutil import TSC
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
 class MijlpaalDirsReEngineeringProcessor:
@@ -22,38 +25,20 @@ class MijlpaalDirsReEngineeringProcessor:
         self.storage = storage
         self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
         self.sql = SQLcollectors()
-        # self.sql.add('verslagen', SQLcollector({'insert': {'sql':'insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type) values(?,?,?,?,?,?,?,?,?)' },}))
-    # def _get_aanvraag(self, student: Student)->Aanvraag:
-    #     aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
-    #     aanvraag = aanvraag_queries.find_student_aanvraag(student)
-    #     if not aanvraag:
-    #         log_warning(f'Afstudeerbedrijf kan niet worden gevonden: Geen aanvraag gevonden voor student {student}.')
-    #     return aanvraag
-    # def create_verslag(self, mp_dir: MijlpaalDirectory, student: Student, file: File, preview=False):
-    #     if (aanvraag:= self._get_aanvraag(student)):
-    #         bedrijf = aanvraag.bedrijf
-    #         titel = aanvraag.titel
-    #     else:
-    #         bedrijf = None
-    #         titel = 'Onbekend'
-    #     verslag = Verslag(mijlpaal_type=mp_dir.mijlpaal_type, student=student, datum = file.timestamp, 
-    #                       bedrijf = bedrijf,
-    #                       kans = mp_dir.kans, status=Verslag.Status.LEGACY, titel=titel
-    #                       )
-    #     log_print(f'\tVerslag {verslag}')
-    #     self.storage.queries('verslagen').ensure_key(verslag)            
-    #     if not preview:
-    #         self.storage.crud('verslagen').create(verslag)    
-    #     self.sql.insert('verslagen', [verslag.id,TSC.timestamp_to_sortable_str(verslag.datum),verslag.student.id,
-    #                                   verslag.bedrijf.id if bedrijf else -1, titel,
-    #                                   verslag.kans,verslag.status,verslag.beoordeling,verslag.mijlpaal_type
-    #                                   ])
-    # def process_mijlpaal_directory(self, mp_dir: MijlpaalDirectory, student: Student, preview=False):
-    #     for file in mp_dir.files.files:
-    #         match file.filetype:
-    #             case FileType.PVA | FileType.ONDERZOEKS_VERSLAG | FileType.TECHNISCH_VERSLAG | FileType.EIND_VERSLAG:
-    #                 self.create_verslag(mp_dir, student, file, preview=preview)
-    #             case _: continue                    
+        self.sql.add('mijlpaal_directories', SQLcollector({'update': {'sql':'update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,kans=?,directory=?,datum=? where id=?'},
+                                                           'delete': {'sql': 'delete from MIJLPAAL_DIRECTORIES where id=?'},}))
+        self.sql.add('mijlpaal_directory_files', SQLcollector({'insert': {'sql':'insert into MIJLPAAL_DIRECTORY_FILES(mp_dir_id,file_id) values(?,?)'},
+                                                               'delete': {'sql': 'delete from MIJLPAAL_DIRECTORY_FILES where mp_dir_id=?'},}))
+    def _sql_delete_mijlpaal_directory_files(self, mp_dir: MijlpaalDirectory):
+        self.sql.delete('mijlpaal_directory_files', [mp_dir.id])
+    def _sql_delete_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
+        self._sql_delete_mijlpaal_directory_files(mp_dir)
+        self.sql.delete('mijlpaal_directories', [mp_dir.id])
+    def _sql_update_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
+        for file in mp_dir.files_list:
+            self.sql.insert('mijlpaal_directory_files', [mp_dir.id,file.id])
+        self.sql.update('mijlpaal_directories', [mp_dir.mijlpaal_type,mp_dir.kans,
+                                                 Roots.encode_path (mp_dir.directory), TSC.timestamp_to_sortable_str(mp_dir.datum), mp_dir.id])
     def process_student(self, student: Student, preview=False):      
         student_directory = self.student_dir_queries.find_student_dir(student)
         listing = {}
@@ -83,25 +68,48 @@ class MijlpaalDirsReEngineeringProcessor:
             return
         dirs = self._check_doublures(student_directory.get_directories(mijlpaal_type=MijlpaalType.AANVRAAG, sorted=False))
         if dirs and len(dirs) > 1:
-            return dirs
+            return sorted(dirs, key=lambda d: d.id)
         else:
             return None
     
     # self.process_mijlpaal_directory(dir, student, preview=preview)
-Dit geeft alvast een lijstje van studenten waar een correctie op moet komen. De correctie moet nog even wat helderder worden gechekt
-    def process_all(self,  migrate_dir = None):        
+    def _get_all_directories(self)->dict:
         listing = {}
         for student in filter(lambda s: s.status in Student.Status.active_states(), self.storage.queries('studenten').find_all()):
             print(student.full_name)
             if (dirlist := self.get_student_dirs(student)):
-                listing[student.full_name] = dirlist
-        
-        for student,listje in listing.items():
-            # print(f'{student}: {[mpd.summary() for mpd in listje]}')
-            print(f'{student}: {len(listje)}')
+                listing[student.email] = {'student': student, 'dirs': dirlist}
+        return listing
+    def _correct_student(self, student: Student, mp_dir_list: list[MijlpaalDirectory]):
+        datum = None
+        for mp_dir in mp_dir_list:
+            if mp_dir.datum != 0:
+                datum = mp_dir.datum
+                break
+        first_mp_dir = mp_dir_list[0] # the list was sorted on id`
+        first_mp_dir.datum = datum
+        self._sql_delete_mijlpaal_directory_files(first_mp_dir)
+        for mp_dir in mp_dir_list[1:]:
+            for file in mp_dir.files.files:
+                first_mp_dir.files.add(file)
+            self._sql_delete_mijlpaal_directory(mp_dir)
+            mp_dir.files.clear('files')
+        self._sql_update_mijlpaal_directory(first_mp_dir)
 
+    def process_all(self,  migrate_dir = None):        
+        print('----------------------------------')
+        for entry in self._get_all_directories().values():
+            print(f'{entry['student']}:')
+            for dir in entry['dirs']:
+                filestr = "\n\t".join([Path(file.filename).name for file in dir.files_list]) if dir.files_list else '<No files>'
+                print(f'{dir.id}-{dir.datum}: {last_parts_file(dir.directory,2)}\n\t{filestr}')
+            self._correct_student(entry['student'], entry['dirs'])
+            print('--- after ---')
+            for dir in entry['dirs']:
+                filestr = "\n\t".join([Path(file.filename).name for file in dir.files_list]) if dir.files_list else '<No files>'
+                print(f'{dir.id}-{dir.datum}: {last_parts_file(dir.directory,2)}\n\t{filestr}')
             # self.process_student(student, preview=True)
-        if migrate_dir:
+        if migrate_dir:            
             filename = Path(migrate_dir).resolve().joinpath('correct_mp_dirs.json')
             self.sql.dump_to_file(filename)
             log_print(f'SQL data dumped to file {filename}')
@@ -114,6 +122,7 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.preview = True
 
     migrate_dir=namespace.migrate if 'migrate' in namespace else None
+    print(migrate_dir)
     storage = context.configuration.storage
     with Preview(True,storage,'Corrigeer dubbelingen in mijlpaal_directories voor aanvragen (voor migratie)'):
         MijlpaalDirsReEngineeringProcessor(storage).process_all(migrate_dir)

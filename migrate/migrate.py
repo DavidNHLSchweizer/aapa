@@ -1,6 +1,6 @@
 import importlib
 from typing import Protocol
-from data.aapa_database import create_version_info, read_version_info
+from data.aapa_database import AAPaSchema, create_version_info, read_version_info
 from database.database import Database
 from database.sql_table import SQLcreateTable
 from database.table_def import TableDefinition
@@ -10,10 +10,11 @@ from process.aapa_processor.initialize import initialize_database
 
 class MigrationException(Exception): pass
 
+def _remove_dot(s: str)->str:
+    return s.replace('.', '')    
+
 def migrate_version(database_name, old_version, new_version, debug=False, phase=42)->bool:    
-    def remove_dot(s: str)->str:
-        return s.replace('.', '')    
-    migration_module_name = f'migrate.migrate_{remove_dot(old_version)}_{remove_dot(new_version)}'
+    migration_module_name = f'migrate.migrate_{_remove_dot(old_version)}_{_remove_dot(new_version)}'
     try:
         module = importlib.import_module(migration_module_name)
     except ModuleNotFoundError as E:
@@ -65,6 +66,7 @@ def finish_migratie(database: Database, new_version: str):
     print(f'Klaar!\nUpdating database version to {new_version}')
     update_versie(database, new_version)    
     database.commit()
+    AAPaSchema.dump_schema_sql(filename=f'.\\migrate\\schema_{_remove_dot(new_version)}.sql')
 
 class copy_func(Protocol):
     def __call__(database:Database, old_table_name: str, new_table_name: str)->bool:pass

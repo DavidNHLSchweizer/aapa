@@ -193,6 +193,24 @@ class StudentStatus(IntEnum):
     def active_states():
         return {StudentStatus.UNKNOWN,StudentStatus.AANVRAAG,StudentStatus.BEZIG}
 
+class StudentDirectoryStatus(IntEnum):
+    """
+    IntEnum: constanten gebruikt om de status van een student (in het afstudeertraject)
+    aan te geven.
+    Voor meer info: zie StudentStatus.doc()
+
+    """
+    UNKNOWN     = 0
+    ACTIVE      = 1
+    ARCHIVED    = 42 
+    def __str__(self):
+        STRS = {StudentDirectoryStatus.UNKNOWN: 'nog niet bekend', StudentDirectoryStatus.ACTIVE: 'actief',  
+                StudentDirectoryStatus.ARCHIVED: 'gearchiveerd'}
+        return STRS[self.value]
+    @staticmethod
+    def doc()->str:
+        return "\n".join([f'{status.value:2} (StudentDirectoryStatus.{status.name}): {str(status)}' for status in StudentDirectoryStatus])        
+
 class VerslagStatus(IntEnum):
     """
     IntEnum: constanten gebruikt om de status van een verslag (in het afstudeertraject)
@@ -225,4 +243,7 @@ class VerslagStatus(IntEnum):
 #--------------------
 @staticmethod
 def doc()->str:
-    return "\n----\n".join([class_type.doc() for class_type in [FileType, MijlpaalType, AanvraagStatus, MijlpaalStatus, MijlpaalBeoordeling,StudentStatus,VerslagStatus]])
+    return "\n----\n".join([class_type.doc() for class_type in [FileType, MijlpaalType, AanvraagStatus, MijlpaalStatus, MijlpaalBeoordeling,StudentStatus,StudentDirectoryStatus,VerslagStatus]])
+
+if __name__ == "__main__":
+    print(doc())

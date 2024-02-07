@@ -20,6 +20,8 @@ class StudentDirectoriesTableMapper(TableMapper):
                 return CRUDColumnMapper(column_name, attribute_name='student', crud=create_crud(database, Student))
             case 'basedir_id': 
                 return CRUDColumnMapper(column_name=column_name, attribute_name='base_dir', crud=create_crud(database, BaseDir))
+            case 'status': 
+                return ColumnMapper(column_name=column_name, db_to_obj=StudentDirectory.Status)
             case _: return super()._init_column_mapper(column_name, database)
 
 class StudentDirectoriesDirectoriesDetailRec(DetailRec): pass

@@ -3,7 +3,7 @@ import datetime
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
 from data.classes.base_dirs import BaseDir
-from data.classes.const import MijlpaalType
+from data.classes.const import MijlpaalType, StudentDirectoryStatus
 from data.classes.files import File
 from data.classes.mijlpaal_base import MijlpaalBase
 from data.classes.mijlpaal_directories import MijlpaalDirectory
@@ -18,11 +18,13 @@ class StudentDirectoryAggregator(Aggregator):
         self.add_class(MijlpaalDirectory, 'directories')
     
 class StudentDirectory(AAPAclass):
-    def __init__(self, student: Student, directory: str, base_dir: BaseDir = None, id: int = EMPTY_ID):
+    Status = StudentDirectoryStatus
+    def __init__(self, student: Student, directory: str, base_dir: BaseDir = None, status=Status.UNKNOWN, id: int = EMPTY_ID):
         super().__init__(id)        
         self.student = student
         self.directory = directory
-        self.base_dir = base_dir       
+        self.base_dir = base_dir   
+        self.status  = status    
         self._data = StudentDirectoryAggregator(self)
     @property
     def data(self)->Aggregator:

@@ -1,9 +1,14 @@
 from __future__ import annotations
 from enum import IntEnum
+from io import TextIOWrapper
+from textwrap import TextWrapper
+from typing import TextIO
 from data.classes.const import FileType, MijlpaalBeoordeling, MijlpaalType
+from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
-from database.sql_table import SQLselect
+from database.sql_table import SQLcreateTable, SQLselect
+from database.sql_view import SQLcreateView
 from database.table_def import ForeignKeyAction, TableDefinition
 from database.database import Database, Schema
 import database.dbConst as dbc
@@ -182,6 +187,7 @@ class StudentDirectoryTableDefinition(TableDefinition):
         self.add_column('stud_id', dbc.INTEGER)
         self.add_column('directory', dbc.TEXT)
         self.add_column('basedir_id', dbc.INTEGER)
+        self.add_column('status', dbc.INTEGER)
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
@@ -238,8 +244,9 @@ class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
     def __init__(self):
         filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
         mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
+        status_str = get_sql_cases_for_int_type('sd.status', StudentDirectory.Status, 'dir_status') 
         query = \
-f'select SD.id,SD.STUD_ID, SD.directory,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+f'select SD.id,SD.STUD_ID,SD.directory,{status_str},MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
 from STUDENT_DIRECTORIES as SD \
 inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id \
 inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id \
@@ -249,8 +256,8 @@ inner join FILES as F on F.ID=MDF.file_id'
 
 class StudentDirectoriesOverzichtDefinition(ViewDefinition):
     def __init__(self):
-        status_str = get_sql_cases_for_int_type('s.status', Student.Status, 'status') 
-        query = f'select s.id,full_name,stud_nr,{status_str},bd.year,bd.period,sdd.directory as "(laatste) directory" from studenten as s \
+        stud_status_str = get_sql_cases_for_int_type('s.status', Student.Status, 'student_status') 
+        query = f'select s.id,full_name,stud_nr,{stud_status_str},bd.year,bd.period,sdd.directory as "(laatste) directory" from studenten as s \
 inner join student_directories as sdd on s.id = sdd.stud_id \
 inner join basedirs as bd on sdd.basedir_id = bd.id \
 group by sdd.stud_id having max(sdd.id) order by 5,6,2'
@@ -312,6 +319,26 @@ class AAPaSchema(Schema):
             self.add_table(tabledef())
         for viewdef in self.ALL_VIEWS:
             self.add_view(viewdef())
+    @staticmethod
+    def _dump_view_or_table_sql(table_or_view: TableDefinition|ViewDefinition, file:TextIO, wrapper: TextWrapper=None):
+        if isinstance(table_or_view, TableDefinition):
+            file.write(f'table {table_or_view.name}:\n')
+            sql = SQLcreateTable(table_or_view)
+        else:
+            file.write(f'view {table_or_view.name}:\n')
+            sql = SQLcreateView(table_or_view)
+        if not wrapper: 
+            wrapper = TextWrapper(initial_indent="  ", subsequent_indent="  ")
+        for line in wrapper.wrap(sql.query):
+            file.write(f'{line}\n')
+    @staticmethod
+    def dump_schema_sql(filename: str):
+        wrapper = TextWrapper(width=120, initial_indent="  ", subsequent_indent="  ")
+        with open(filename, mode="w", encoding='utf-8') as file:
+            for table in AAPaSchema.ALL_TABLES:
+                AAPaSchema._dump_view_or_table_sql(table(),file, wrapper)   
+            for view in AAPaSchema.ALL_VIEWS:
+                AAPaSchema._dump_view_or_table_sql(view(),file, wrapper)   
 
 class AAPaDatabase(Database):
     def __init__(self, filename, _reset_flag = False, ignore_version=False):

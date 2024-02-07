@@ -1,4 +1,5 @@
-from data.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
+from data.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectoryTableDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
+from data.classes.student_directories import StudentDirectory
 from migrate.migrate import modify_table
 from database.sql_view import SQLcreateView
 from general.sql_coll import import_json
@@ -18,6 +19,25 @@ def correct_student_errors(database: Database):
     _correct_email_and_delete_double(database, 54, 162)
     print('ready correcting some existing errors in STUDENTEN table')  
 
+def _copy_student_directories_data(database: Database, old_table_name: str, new_table_name: str)->bool:
+    print('copying data') 
+    database._execute_sql_command(f'INSERT INTO {new_table_name}(id,stud_id,directory,basedir_id,status) SELECT id,stud_id,directory,basedir_id,{int(StudentDirectory.Status.UNKNOWN)} FROM {old_table_name}')
+    return True
+
+def modify_student_directories(database: Database):
+    print(f'adding "status" to STUDENT_DIRECTORIES')
+    #dropping referencing views first
+    database._execute_sql_command(f'DROP VIEW {StudentDirectoriesFileOverzichtDefinition().name}')
+    database._execute_sql_command(f'DROP VIEW {StudentDirectoriesOverzichtDefinition().name}')
+    modify_table(database, StudentDirectoryTableDefinition(), _copy_student_directories_data)
+    #set the status values generated with set_status_studdirs
+    print("setting status from generated list SQL-commandos")
+    import_json(database, r'.\migrate\m123\correct_mp_dirs.json')
+
+    # now re-create views STUDENT_DIRECTORIES_FILE_OVERZICHT en STUDENT_DIRECTORIES_OVERZICHT, 
+    database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))    
+    database.execute_sql_command(SQLcreateView(StudentDirectoriesOverzichtDefinition()))    
+    print('ready')    
 
 # add new views
 def add_views(database: Database):
@@ -67,6 +87,7 @@ def migrate_database(database: Database, phase = 42):
     with database.pause_foreign_keys():
         correct_student_errors(database)
         modify_mijlpaal_directories(database)
+        modify_student_directories(database)
         if phase == 1:
             create_mijlpaal_directories(database)
         if phase >= 2:

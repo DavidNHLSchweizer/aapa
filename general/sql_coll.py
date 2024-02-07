@@ -52,7 +52,7 @@ class SQLValuesCollector:
         return [value for value in self.values]
     def add(self, values: list[Any]):
         if len(values) != self._expected:
-            raise ValueError(f'not enough values in SQLValuesCollector (expected {self._expected}, got {values})')
+            raise ValueError(f'{"not enough" if len(values)<self._expected else "too many"} values in SQLValuesCollector (expected {self._expected}, got {values})')
         self.values.append(values)
     def __eq__(self, value: SQLValuesCollector)->bool:
         if self.sql_str != value.sql_str:
