@@ -1,6 +1,5 @@
 from __future__ import annotations
 from enum import IntEnum
-from io import TextIOWrapper
 from textwrap import TextWrapper
 from typing import TextIO
 from data.classes.const import FileType, MijlpaalBeoordeling, MijlpaalType
@@ -285,7 +284,6 @@ class StudentVerslagenOverzichtDefinition(ViewDefinition):
             from VERSLAGEN as V order by 1,2' 
         super().__init__('STUDENT_VERSLAGEN_OVERZICHT', query=query)
 
-
 class AAPaSchema(Schema):
     ALL_TABLES:list[TableDefinition] = [
         VersionTableDefinition,
@@ -333,7 +331,8 @@ class AAPaSchema(Schema):
             file.write(f'{line}\n')
     @staticmethod
     def dump_schema_sql(filename: str):
-        wrapper = TextWrapper(width=120, initial_indent="  ", subsequent_indent="  ")
+        wrapper = TextWrapper(width=120, initial_indent="  ", subsequent_indent="  ",
+                              break_long_words=False)
         with open(filename, mode="w", encoding='utf-8') as file:
             for table in AAPaSchema.ALL_TABLES:
                 AAPaSchema._dump_view_or_table_sql(table(),file, wrapper)   

@@ -66,7 +66,9 @@ def finish_migratie(database: Database, new_version: str):
     print(f'Klaar!\nUpdating database version to {new_version}')
     update_versie(database, new_version)    
     database.commit()
-    AAPaSchema.dump_schema_sql(filename=f'.\\migrate\\schema_{_remove_dot(new_version)}.sql')
+    dump_file = f'.\\migrate\\schema_{_remove_dot(new_version)}.sql'
+    AAPaSchema.dump_schema_sql(filename=dump_file)
+    print(f'New schema dumped to {dump_file}.')
 
 class copy_func(Protocol):
     def __call__(database:Database, old_table_name: str, new_table_name: str)->bool:pass
