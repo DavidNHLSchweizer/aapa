@@ -36,74 +36,77 @@ class StudDirsReEngineeringProcessor:
                                                                'delete': {'sql': 'delete from MIJLPAAL_DIRECTORY_FILES where mp_dir_id in (?)'},}))
         self.sql.add('mijlpaal_directories', SQLcollector({'update': {'sql':'update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,kans=?,directory=?,datum=? where id=?'},
                                                            'delete': {'sql': 'delete from MIJLPAAL_DIRECTORIES where id in (?)'},}))
-    def _sql_delete_mijlpaal_directory_files(self, mp_dir: MijlpaalDirectory):
-        self.sql.delete('mijlpaal_directory_files', [mp_dir.id])
-    def _sql_delete_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
-        self._sql_delete_mijlpaal_directory_files(mp_dir)
-        self.sql.delete('student_directory_directories', [mp_dir.id])
-        self.sql.delete('mijlpaal_directories', [mp_dir.id])
-    def _sql_update_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
-        for file in mp_dir.files_list:
-            self.sql.insert('mijlpaal_directory_files', [mp_dir.id,file.id])
-        self.sql.update('mijlpaal_directories', [mp_dir.mijlpaal_type,mp_dir.kans,
-                                                 Roots.encode_path (mp_dir.directory), TSC.timestamp_to_sortable_str(mp_dir.datum), mp_dir.id])
-    def process_student(self, student: Student):      
-        student_directory = self.student_dir_queries.find_student_dir(student)
-        listing = {}
-        if not student_directory:
-            log_warning(f'Geen directory gevonden voor student {student}.')
-            return
-        listing[student.full_name] = student_directory.get_directories(mijlpaal_type=MijlpaalType.AANVRAAG, sorted=False)
-        
-    def _check_doublures(self, dir_list: list[MijlpaalDirectory])-> list[MijlpaalDirectory]:
-        must_remove=[]
-        prv_dir = None
-        cur_cnt = 0
-        for mp_dir in dir_list:
-            if not prv_dir or prv_dir.directory != mp_dir.directory:
-                if cur_cnt == 1:
-                    must_remove.append(prv_dir)
-                prv_dir = mp_dir
-                cur_cnt = 1
-            else:
-                cur_cnt += 1
-        return [mp_dir for mp_dir in dir_list if mp_dir not in must_remove]      
-    def get_student_dirs(self, student_directory: StudentDirectory)->list[MijlpaalDirectory]:
-        dirs = self._check_doublures(student_directory.get_directories(mijlpaal_type=MijlpaalType.AANVRAAG, sorted=False))
-        if dirs and len(dirs) > 1:
-            return sorted(dirs, key=lambda d: d.id)
-        else:
-            return None
     
-    # self.process_mijlpaal_directory(dir, student, preview=preview)
-    def _get_all_directories(self)->dict:
-        listing = {}
-        for student in sorted(filter(lambda s: s.status in Student.Status.active_states(), self.storage.queries('studenten').find_all()),
-                              key = lambda s: s.full_name):
-            student_directory = self.student_dir_queries.find_student_dir(student)
-            if not student_directory:
-                log_warning(f'Geen directory gevonden voor student {student}.')
-                continue
-            if (dirlist := self.get_student_dirs(student_directory)):
-                listing[student.email] = {'student': student, 'stud_dir': student_directory, 'dirs': dirlist}
-        return listing
-    def _correct_directory(self, mp_dir_list: list[MijlpaalDirectory]):
-        datum = None
-        for mp_dir in mp_dir_list:
-            if mp_dir.datum != 0:
-                datum = mp_dir.datum
-                break
-        first_mp_dir = mp_dir_list[0] # the list was sorted on id`
-        first_mp_dir.datum = datum
-        self._sql_delete_mijlpaal_directory_files(first_mp_dir)
-        for mp_dir in mp_dir_list[1:]:
-            for file in mp_dir.files.files:
-                first_mp_dir.files.add(file)
-            self._sql_delete_mijlpaal_directory(mp_dir)
-            mp_dir.files.clear('files')
-        self._sql_update_mijlpaal_directory(first_mp_dir)
+    def create_sql(self, student_dir: StudentDirectory, mijlpaal_dir: MijlpaalDirectory):
+        hier ligt nog wat werk.
+    # def _sql_delete_mijlpaal_directory_files(self, mp_dir: MijlpaalDirectory):
+    #     self.sql.delete('mijlpaal_directory_files', [mp_dir.id])
+    # def _sql_delete_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
+    #     self._sql_delete_mijlpaal_directory_files(mp_dir)
+    #     self.sql.delete('student_directory_directories', [mp_dir.id])
+    #     self.sql.delete('mijlpaal_directories', [mp_dir.id])
+    # def _sql_update_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
+    #     for file in mp_dir.files_list:
+    #         self.sql.insert('mijlpaal_directory_files', [mp_dir.id,file.id])
+    #     self.sql.update('mijlpaal_directories', [mp_dir.mijlpaal_type,mp_dir.kans,
+    #                                              Roots.encode_path (mp_dir.directory), TSC.timestamp_to_sortable_str(mp_dir.datum), mp_dir.id])
+    # def process_student(self, student: Student):      
+    #     student_directory = self.student_dir_queries.find_student_dir(student)
+    #     listing = {}
+    #     if not student_directory:
+    #         log_warning(f'Geen directory gevonden voor student {student}.')
+    #         return
+    #     listing[student.full_name] = student_directory.get_directories(mijlpaal_type=MijlpaalType.AANVRAAG, sorted=False)
+        
+    # def _check_doublures(self, dir_list: list[MijlpaalDirectory])-> list[MijlpaalDirectory]:
+    #     must_remove=[]
+    #     prv_dir = None
+    #     cur_cnt = 0
+    #     for mp_dir in dir_list:
+    #         if not prv_dir or prv_dir.directory != mp_dir.directory:
+    #             if cur_cnt == 1:
+    #                 must_remove.append(prv_dir)
+    #             prv_dir = mp_dir
+    #             cur_cnt = 1
+    #         else:
+    #             cur_cnt += 1
+    #     return [mp_dir for mp_dir in dir_list if mp_dir not in must_remove]      
+    # def get_student_dirs(self, student_directory: StudentDirectory)->list[MijlpaalDirectory]:
+    #     dirs = self._check_doublures(student_directory.get_directories(mijlpaal_type=MijlpaalType.AANVRAAG, sorted=False))
+    #     if dirs and len(dirs) > 1:
+    #         return sorted(dirs, key=lambda d: d.id)
+    #     else:
+    #         return None
+    
+    # # self.process_mijlpaal_directory(dir, student, preview=preview)
+    # def _get_all_directories(self)->dict:
+    #     listing = {}
+    #     for student in sorted(filter(lambda s: s.status in Student.Status.active_states(), self.storage.queries('studenten').find_all()),
+    #                           key = lambda s: s.full_name):
+    #         student_directory = self.student_dir_queries.find_student_dir(student)
+    #         if not student_directory:
+    #             log_warning(f'Geen directory gevonden voor student {student}.')
+    #             continue
+    #         if (dirlist := self.get_student_dirs(student_directory)):
+    #             listing[student.email] = {'student': student, 'stud_dir': student_directory, 'dirs': dirlist}
+    #     return listing
+    # def _correct_directory(self, mp_dir_list: list[MijlpaalDirectory]):
+    #     datum = None
+    #     for mp_dir in mp_dir_list:
+    #         if mp_dir.datum != 0:
+    #             datum = mp_dir.datum
+    #             break
+    #     first_mp_dir = mp_dir_list[0] # the list was sorted on id`
+    #     first_mp_dir.datum = datum
+    #     self._sql_delete_mijlpaal_directory_files(first_mp_dir)
+    #     for mp_dir in mp_dir_list[1:]:
+    #         for file in mp_dir.files.files:
+    #             first_mp_dir.files.add(file)
+    #         self._sql_delete_mijlpaal_directory(mp_dir)
+    #         mp_dir.files.clear('files')
+    #     self._sql_update_mijlpaal_directory(first_mp_dir)
 
-    def _correction_stuff(self, student: Student, filename: str): pass
+    # def _correction_stuff(self, student: Student, filename: str): pass
         
     def process_all(self,  migrate_dir = None):        
         def dump_info(msg: str, dir_list:list[MijlpaalDirectory]):
@@ -128,9 +131,9 @@ where MPD.mijlpaal_type = ? and stud_dir <> mp_directory"
             student = self.storage.crud('studenten').read(row['stud_id'])
             file:File = self.storage.crud('files').read(row['file_id'])
             print(student,file.filename)
-            new_mp_dir = builder.register_file(student,datum=file.timestamp,filename=file.filename,filetype=file.filetype,
+            (new_stud_dir, new_mp_dir) = builder.register_file(student,datum=file.timestamp,filename=file.filename,filetype=file.filetype,
                                                mijlpaal_type=MijlpaalType.AANVRAAG)
-            print(new_mp_dir)
+            self.create_sql(new_stud_dir, new_mp_dir)
         if migrate_dir:            
             filename = Path(migrate_dir).resolve().joinpath(get_json_filename(__file__))
             self.sql.dump_to_file(filename)

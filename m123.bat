@@ -76,6 +76,5 @@ echo ---------------------------------------------
 exit /b
 
 :phase42
-pause "ready"
 set phase1=
 set phase2=

@@ -92,10 +92,22 @@ def _correct_path(database: Database, table: str, path_column: str, path_to_corr
         new_path = str(row[path_column]).replace(replace, replace_with)
         database._execute_sql_command(f'update {table} set {path_column}=? where id=?', [new_path, row['id']])
 
+def _correct_path2(database: Database, table_name: str, column_name, error: str, correct: str):
+    #lijkt erg op vorige, zo zie je maar. Kan waarschijnlijk beter, maar beide werken.
+    rows = database._execute_sql_command(f'select id,{column_name} from {table_name} where {column_name} like ?', 
+                                         [fr"%{error}%"],True)
+    for row in rows:
+        database._execute_sql_command(f'update {table_name} set {column_name}=? where id=?', 
+                                  [str(row[f'{column_name}']).replace(error, correct), row['id']])
+
 def correct_files_for_error(database: Database):
     print('correcting FILES errors, al gecorrigeerd IRL')
+    #Micky Cheng
     _correct_path(database, 'FILES', 'filename', r':ROOT12:\Cheng, Micky\2023-12-23%',  "2023-12-23", "2023-12-22")
     _correct_path(database, 'MIJLPAAL_DIRECTORIES', 'directory', r':ROOT12:\Cheng, Micky\2023-12-23%',  "2023-12-23", "2023-12-22")
+    #Jarno vd Poll
+    _correct_path2(database, 'FILES', 'filename', 'Poll, Jarno', 'Poll, van de, Jarno')
+    _correct_path2(database, 'MIJLPAAL_DIRECTORIES', 'directory',  'Poll, Jarno', 'Poll, van de, Jarno')
     print('... ready correcting FILES errors')
 
 def migrate_database(database: Database, phase = 42):    

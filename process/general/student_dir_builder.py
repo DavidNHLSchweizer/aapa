@@ -1,5 +1,6 @@
 import datetime
 from pathlib import Path
+from typing import Tuple
 from data.classes.base_dirs import BaseDir
 from data.classes.const import MijlpaalType
 from data.classes.files import File
@@ -11,12 +12,13 @@ from data.storage.general.storage_const import StorageException
 from data.storage.queries.base_dirs import BaseDirQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from data.storage.queries.studenten import StudentQueries
-from general.log import log_warning
+from general.fileutil import last_parts_file
+from general.log import log_error, log_print, log_warning
 
 class StudentDirectoryBuilder:
     def __init__(self, storage: AAPAStorage):
         self.storage = storage
-    def _create_new_student_directory(self, student: Student, filename: str)->StudentDirectory:
+    def _register_new_student_directory(self, student: Student, filename: str)->StudentDirectory:
         directory = Path(filename).parent
         basedir_queries : BaseDirQueries = self.storage.queries('base_dirs')
         if not (base_dir := basedir_queries.find_basedir(directory)):
@@ -42,26 +44,43 @@ class StudentDirectoryBuilder:
     @staticmethod
     def get_mijlpaal_directory_name(stud_dir: StudentDirectory, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->str:
         return str(Path(stud_dir.directory).joinpath(MijlpaalDirectory.directory_name(mijlpaal_type, datum)))
-    def __get_stud_dir(self, student: Student, filename: str):
-        queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+    def __check_must_register_new_student_directory(self, student: Student, target_basedir: BaseDir, filename: str)->Tuple[bool, StudentDirectory]:
+        queries: StudentDirectoryQueries = self.storage.queries('student_directories')        
         if not (stud_dir := queries.find_student_dir(student)):
-            stud_dir = self._create_new_student_directory(student, filename)
+            return (True,None)
+        elif stud_dir.base_dir != target_basedir:
+            log_warning(f'Bestand {last_parts_file(filename)}\n\tstaat niet in bekende directory voor student: {last_parts_file(stud_dir.directory)}.')
+            stud_dir.status = StudentDirectory.Status.ARCHIVED
+            self.storage.update('student_directories', stud_dir)
+            return (True,None)
+        return (False,stud_dir)
+    def __get_stud_dir(self, student: Student, filename: str)->StudentDirectory:        
+        basedir_queries: BaseDirQueries = self.storage.queries('base_dirs')
+        if not (basedir_from_file := basedir_queries.find_basedir(Path(filename).parent)):
+            log_error(f'Basisdirectory voor toe te voegen bestand kan niet worden gevonden.\n\tBestand {filename}\n\tkan niet worden geregistreerd.')
+            return None
+        (must_create,stud_dir) = self.__check_must_register_new_student_directory(student, basedir_from_file, filename)
+        if must_create:
+            stud_dir = self._register_new_student_directory(student, filename)
+            log_print(f'Nieuwe directory voor student wordt geregistreerd: {stud_dir.directory}.')
             self.storage.create('student_directories', stud_dir)
         return stud_dir
     def __get_mijlpaal_directory(self, stud_dir: StudentDirectory, directory: str, datum: datetime.datetime, mijlpaal_type)->MijlpaalDirectory:
         if not (mp_dir := stud_dir.get_directory(datum, mijlpaal_type)):
             mp_dir = MijlpaalDirectory(mijlpaal_type, directory, datum)
             stud_dir.add(mp_dir)
-        if mp_dir.directory != directory:
+        if mp_dir.directory != directory: 
             log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory is {mp_dir.directory}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
         return mp_dir
-    def register_file(self, student: Student, datum: datetime.datetime, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->MijlpaalDirectory:
+    def register_file(self, student: Student, datum: datetime.datetime, filename: str, 
+                      filetype: File.Type, mijlpaal_type: MijlpaalType)->Tuple[StudentDirectory, MijlpaalDirectory]:
         self.storage.ensure_key('studenten', student)        
-        stud_dir = self.__get_stud_dir(student, filename)
+        if not (stud_dir := self.__get_stud_dir(student, filename)):
+            raise StorageException(f'Kan studentdirectory niet vinden of aanmaken. \nStudent: {student.full_name} Filename: {filename}')       
         mp_dir = self.__get_mijlpaal_directory(stud_dir, str(Path(filename).parent), datum, mijlpaal_type)
         mp_dir.register_file(filename,filetype,mijlpaal_type)
         self.storage.update('student_directories', stud_dir)
-        return mp_dir
+        return (stud_dir,mp_dir)
     def register_basedir(self, year: int, period: str, forms_version: str, directory: str):
         if not self.storage.find_values('base_dirs', [year, period], [year,period]):
             self.storage.create('base_dirs', BaseDir(year, period, forms_version, directory))

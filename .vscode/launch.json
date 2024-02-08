@@ -195,7 +195,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "correct_stud_dirs",
+                "m123_correct_stud_dirs",
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive0",
