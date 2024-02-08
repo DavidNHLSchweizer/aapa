@@ -26,6 +26,8 @@ def migrate_version(database_name, old_version, new_version, debug=False, phase=
             return False
         if not (database := start_migratie(database_name, old_version, new_version, debug=debug)):
             return False
+        if phase < 42:
+            print(f'--- Migratie fase: {phase} ---')
         migrate_database(database, phase=phase)
         finish_migratie(database, new_version)    
         if (after_migrate:= getattr(module, 'after_migrate', None)): # to be refined later

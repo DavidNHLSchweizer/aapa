@@ -217,6 +217,8 @@ class SQLcollectors(dict):
                         self.__execute_one(database, sql_str, values, wrapper=wrapper)
 
 def import_json(database: Database, json_name: str, preview=False):
+    if not json_name:
+        raise ValueError(f'Expected a json filename, got {json_name}.')
     sqlcolls = SQLcollectors.read_from_dump(json_name)
     sqlcolls.execute_sql(database, preview=preview)
     if not preview:

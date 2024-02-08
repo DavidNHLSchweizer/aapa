@@ -61,7 +61,6 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     context.processing_options.preview = True
 
     migrate_dir=namespace.migrate if 'migrate' in namespace else None
-    print(migrate_dir)
     storage = context.configuration.storage
     with Preview(True,storage,'Initialiseer status voor student_directories'):
         StudentDirectoriesStatusProcessor(storage).process_all(migrate_dir)

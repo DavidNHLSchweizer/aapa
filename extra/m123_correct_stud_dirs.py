@@ -1,6 +1,8 @@
 """ M123_CORRECT_STUD_DIRS. 
 
-    aanpassen van database voor ontbrekende student-directory entries.
+    aanpassen van database voor verkeerde student-directory koppelingen.
+    (twee studenten: Marle Mulder, Jarno vd Poll)
+
     bedoeld voor migratie naar versie 1.23
     
 """
@@ -17,7 +19,7 @@ from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from extra.tools import get_json_filename
 from general.fileutil import last_parts_file
-from general.log import log_info, log_print, log_warning
+from general.log import log_print, log_warning
 from general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
@@ -145,5 +147,3 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     storage = context.configuration.storage
     with Preview(True,storage,'Corrigeer ontbrekende student directories en gekoppelde mijlpaal_directories (voor migratie)'):
         StudDirsReEngineeringProcessor(storage).process_all(migrate_dir)
-
-WIP!

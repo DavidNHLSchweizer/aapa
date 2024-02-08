@@ -1,4 +1,4 @@
-""" M123_MAKE_VERSLAGEN
+""" M123_CREATE_VERSLAGEN
 
     Maakt de verslagen aan in de al eerder gedetecteerde student-directories. De verslagen waren nog niet 
     in de database aangemaakt.

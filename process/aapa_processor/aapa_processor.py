@@ -49,11 +49,12 @@ class AAPAProcessor:
             log_error(f'Fout bij processing (main): {E}')
 
 class AAPARunnerContext:
-    def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions):
+    def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions, message=None):
         self.configuration = configuration
         self.processing_options = processing_options
         self.preview = self.needs_preview()
         self.valid = True
+        self.message=message
     @property
     def options(self)->AAPAOptions:
         return AAPAOptions(config_options=self.configuration.config_options, 
@@ -65,6 +66,8 @@ class AAPARunnerContext:
         else:
             return not self.processing_options.no_processing() 
     def __enter__(self):
+        if self.message:
+            log_info(self.message, to_console=True)
         log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.options)}')
         log_print(banner())
         log_info(f'+++ AAPA started +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}', to_console=True)
