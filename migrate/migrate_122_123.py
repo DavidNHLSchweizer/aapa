@@ -11,6 +11,7 @@ class JsonData:
         SET_DIR_STATUS = auto()          
         MP_DIR_DATUM = auto()
         CORRECT_STUD_DIRS = auto()
+        CORRECT_MP_DIRS = auto()
         ADAPT_MP_DIRS = auto()
         CREATE_VERSLAGEN = auto()
     
@@ -18,6 +19,7 @@ class JsonData:
                     KEY.MP_DIR_DATUM: {'filename': 'mp_dir_datum', 'phase':1, 'message': 'setting missing dates'},          
                     KEY.ADAPT_MP_DIRS: {'filename': 'adapt_mp_dirs', 'phase':2, 'message': '"re-engineering" mijlpaal_directories'},
                     KEY.CREATE_VERSLAGEN: {'filename': 'create_verslagen', 'phase':3, 'message': '"re-engineering" verslagen'},
+                    KEY.CORRECT_MP_DIRS: {'filename': 'correct_mp_dirs', 'phase':4, 'message': 'correcting double mijlpaal_directories'},
                     KEY.CORRECT_STUD_DIRS: {'filename': 'correct_stud_dirs', 'phase':4, 'message': 'correcting student directories'},
                 }
     @staticmethod
@@ -25,7 +27,7 @@ class JsonData:
         print(f'--- executing generated JSON data files (phase: {phase}) ---')
         for key,entry in JsonData.json_data.items():
             if entry['phase'] > phase:
-                return
+                continue
             print(f'\t{entry["filename"]}: {entry["message"]}')
             import_json(database, JsonData.get_filename(key))
         print('ready --- executing generated JSON data files.')       
@@ -100,6 +102,14 @@ def _correct_path2(database: Database, table_name: str, column_name, error: str,
         database._execute_sql_command(f'update {table_name} set {column_name}=? where id=?', 
                                   [str(row[f'{column_name}']).replace(error, correct), row['id']])
 
+def _correct_path3(database: Database, table_name: str, column_name, error: str, correct: str):
+    #lijkt ook erg op vorige, maar specifiek voor 1 geval.
+    rows = database._execute_sql_command(f'select id,{column_name} from {table_name} where {column_name} like ? and timestamp >?', 
+                                         [fr"%{error}%","2024"],True)
+    for row in rows:
+        database._execute_sql_command(f'update {table_name} set {column_name}=? where id=?', 
+                                  [str(row[f'{column_name}']).replace(error, correct), row['id']])
+
 def correct_files_for_error(database: Database):
     print('correcting FILES errors, al gecorrigeerd IRL')
     #Micky Cheng
@@ -108,6 +118,10 @@ def correct_files_for_error(database: Database):
     #Jarno vd Poll
     _correct_path2(database, 'FILES', 'filename', 'Poll, Jarno', 'Poll, van de, Jarno')
     _correct_path2(database, 'MIJLPAAL_DIRECTORIES', 'directory',  'Poll, Jarno', 'Poll, van de, Jarno')
+    #Merlijn Stokhorst
+    _correct_path3(database, 'FILES', 'filename', ':ROOT10:', ':ROOT9:')
+
+
     print('... ready correcting FILES errors')
 
 def migrate_database(database: Database, phase = 42):    

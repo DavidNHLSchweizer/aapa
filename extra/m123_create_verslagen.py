@@ -9,7 +9,6 @@
 
 """
 from argparse import ArgumentParser, Namespace
-from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.const import FileType
 from data.classes.files import File
@@ -19,17 +18,16 @@ from data.classes.verslagen import Verslag
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.aanvragen import AanvraagQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
-from general.log import init_logging, log_info, log_print, log_warning
+from general.log import log_info, log_warning
 from general.preview import Preview
 from general.timeutil import TSC
-from general.sql_coll import SQLcollector, SQLcollectors
+from general.sql_coll import SQLcollector
 from process.aapa_processor.aapa_processor import AAPARunnerContext
-from extra.tools import get_json_filename
+from extra.tools import BaseMigrationProcessor
 
-class VerslagenReEngineeringProcessor:
-    def __init__(self, storage: AAPAStorage):
-        self.storage = storage
-        self.sql = SQLcollectors()
+class VerslagenReEngineeringProcessor(BaseMigrationProcessor):
+    def __init__(self, storage: AAPAStorage, verbose=False):
+        super().__init__(storage, verbose)
         self.sql.add('verslagen', SQLcollector({'insert': {'sql':'insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type) values(?,?,?,?,?,?,?,?,?)' },}))
     def _get_aanvraag(self, student: Student)->Aanvraag:
         aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
@@ -48,7 +46,7 @@ class VerslagenReEngineeringProcessor:
                           bedrijf = bedrijf,
                           kans = mp_dir.kans, status=Verslag.Status.LEGACY, titel=titel
                           )
-        log_print(f'\tVerslag {verslag}')
+        self.log(f'\tVerslag {verslag}')
         self.storage.queries('verslagen').ensure_key(verslag)            
         if not preview:
             self.storage.crud('verslagen').create(verslag)    
@@ -71,17 +69,13 @@ class VerslagenReEngineeringProcessor:
         log_info(f'Student: {student}')
         for mp_dir in student_directory.directories:
             self.process_mijlpaal_directory(mp_dir, student, preview=preview)
-    def process_all(self,  migrate_dir = None):        
+    def processing(self):        
         for student in self.storage.queries('studenten').find_all():
             self.process_student(student, preview=True)
-        if migrate_dir:
-            filename = Path(migrate_dir).resolve().joinpath(get_json_filename(__file__))
-
-            self.sql.dump_to_file(filename)
-            log_print(f'SQL data dumped to file {filename}')
 
 def extra_args(base_parser: ArgumentParser)->ArgumentParser:
     base_parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
+    base_parser.add_argument('-v', '--verbose', action="store_true", help='If true: logging gaat naar de console ipv het logbestand.')
     return base_parser
 
 def extra_main(context:AAPARunnerContext, namespace: Namespace):
@@ -90,5 +84,5 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     migrate_dir=namespace.migrate if 'migrate' in namespace else None
     storage = context.configuration.storage
     with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
-        processor = VerslagenReEngineeringProcessor(storage)
+        processor = VerslagenReEngineeringProcessor(storage, namespace.verbose)
         processor.process_all(migrate_dir=migrate_dir)

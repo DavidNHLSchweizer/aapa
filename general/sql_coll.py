@@ -6,7 +6,7 @@ import json
 import re
 from textwrap import TextWrapper
 import numpy as np
-from typing import Any, Tuple
+from typing import Any, Iterable, Tuple
 
 from database.database import Database
 
@@ -36,10 +36,11 @@ class SQLValuesCollector:
     def __init__(self, sql_str: str, concatenate=False):
         self.sql_str = sql_str
         self._expected = sql_str.count('?')
-        self.values:list[list[Any]] = []
+        self.values_list:list[list[Any]] = []
         self.concatenate = concatenate
+        self.no_duplicates = True
     def as_dict(self)->dict[str,list[Any]]:
-        return {'sql': self.sql_str, 'values': self.values, 'concatenate': self.concatenate}
+        return {'sql': self.sql_str, 'values': self.values_list, 'concatenate': self.concatenate}
     @classmethod
     def from_dict(cls, dump: dict)->SQLValuesCollector:
         result = cls(dump['sql'], concatenate=dump.get('concatenate', False))
@@ -49,19 +50,34 @@ class SQLValuesCollector:
     def get_sql(self)->str:
         return self.sql_str
     def get_values(self)->list[Any]:
-        return [value for value in self.values]
+        return [value for value in self.values_list]
     def add(self, values: list[Any]):
         if len(values) != self._expected:
             raise ValueError(f'{"not enough" if len(values)<self._expected else "too many"} values in SQLValuesCollector (expected {self._expected}, got {values})')
-        self.values.append(values)
+        if not self.no_duplicates or not self._is_duplicate(values):
+            self.values_list.append(values)
+    def _is_duplicate(self, new_values: list[Any])->bool:
+        def _equal_values(values:list[Any], new_values:list[Any])->bool:
+            for value,new_value in zip(values, new_values):
+                if value != new_value:
+                    return False
+            return True
+        if not self.values_list:
+            return False
+        found_duplicate=False
+        for values in self.values_list:
+            if _equal_values(values,new_values):
+                found_duplicate = True
+                break
+        return found_duplicate
     def __eq__(self, value: SQLValuesCollector)->bool:
         if self.sql_str != value.sql_str:
             return False
         if self._expected != value._expected:
             return False
-        if len(self.values) != len(value.values):
+        if len(self.values_list) != len(value.values_list):
             return False
-        for value1, value2 in zip(self.values, value.values):
+        for value1, value2 in zip(self.values_list, value.values_list):
             if value1 != value2:
                 return False
         return True
@@ -75,14 +91,14 @@ class InsertValuesCollector(SQLValuesCollector):
             self._values_part = match.group('values')
     def get_sql(self)->str:
         if self.concatenate:
-            full_values_part = ','.join([self._values_part] * len(self.values))
+            full_values_part = ','.join([self._values_part] * len(self.values_list))
             return self.sql_str.replace(self._values_part,full_values_part)
         else:
             return super().get_sql()
     def get_values(self)->list[Any]:
         if self.concatenate:
             values = []
-            for value in self.values:
+            for value in self.values_list:
                 values.extend(value)
             return values
         else:
@@ -93,14 +109,14 @@ class DeleteValuesCollector(SQLValuesCollector):
         super().__init__(sql_str=sql_str, concatenate=concatenate)
     def get_sql(self)->str:
         if self.concatenate:
-            full_values_part = ','.join(['?']*len(self.values))
+            full_values_part = ','.join(['?']*len(self.values_list))
             return self.sql_str.replace('?',full_values_part)
         else:
             return super().get_sql()
     def get_values(self)->list[Any]:
         if self.concatenate:
             values = []
-            for value in self.values:
+            for value in self.values_list:
                 values.append(value[0])
             return values
         else:
@@ -126,7 +142,7 @@ class SQLcollector:
         self.__try_add(SQLcollType.INSERT, values)
     def update(self,  values: list[Any]):
         self.__try_add(SQLcollType.UPDATE, values)
-    def sql_params(self, sql_type: SQLcollType)->Tuple[str, list[Any]]:
+    def sql_params(self, sql_type: SQLcollType)->Iterable[str, list[Any]]:
         collector = self.collectors(sql_type)
         for value in collector.get_values():
             yield (collector.get_sql(), value)
@@ -158,7 +174,7 @@ class SQLcollector:
 
 class SQLcollectors(dict):
     """Klasse"""
-    def collectors(self, sql_type: SQLcollType)->list[SQLValuesCollector]:
+    def collectors(self, sql_type: SQLcollType)->Iterable[SQLValuesCollector]:
         for description in self.keys():
             if not (collector := self._get(description)) or not (values_collector := collector.collectors(sql_type)): continue
             yield values_collector

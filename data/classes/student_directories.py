@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ast import Tuple
 import datetime
 from data.classes.aapa_class import AAPAclass
 from data.classes.aggregator import Aggregator
@@ -16,6 +17,11 @@ class StudentDirectoryAggregator(Aggregator):
     def __init__(self, owner: StudentDirectory):
         super().__init__(owner=owner)
         self.add_class(MijlpaalDirectory, 'directories')
+    def contains(self, mp_dir: MijlpaalDirectory)->bool:
+        for dir in self.as_list('directories'):
+            if dir.id == mp_dir.id:
+                return True
+        return False
     
 class StudentDirectory(AAPAclass):
     Status = StudentDirectoryStatus
@@ -33,7 +39,7 @@ class StudentDirectory(AAPAclass):
     def directories(self)->list[MijlpaalDirectory]:
         return self._data.as_list('directories')    
     def get_directories(self, mijlpaal_type: MijlpaalType, sorted=True)->list[MijlpaalDirectory]:
-        def get_key(mpd: MijlpaalDirectory)->(MijlpaalType,datetime.datetime):
+        def get_key(mpd: MijlpaalDirectory)->Tuple[MijlpaalType,datetime.datetime]:
             # some mpd's have a "zero" datum, workaround for this
             return (mpd.mijlpaal_type, mpd.datum if isinstance(mpd.datum,datetime.datetime) else datetime.datetime(2000,1,1))
         result = [dir for dir in self.directories if dir.mijlpaal_type == mijlpaal_type]

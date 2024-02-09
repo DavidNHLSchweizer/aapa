@@ -1,7 +1,8 @@
 @echo off
-set basedir="D:\onedrive0\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw\aapa"
+set basedir="D:\onedrive\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw\aapa"
 set db0=%basedir%\aapa_122.db
 set db1=%basedir%\aapa.db
+if not exist %db0% copy /y %db1% %db0% 
 set v0=1.22
 set v1=1.23
 
@@ -44,6 +45,7 @@ if "%phase2%" LSS "3" goto :phase42
 set phase=3
 call :migrate %phase%
 call :msgnext
+call :extra correct_mp_dirs
 call :extra correct_stud_dirs
 if "%phase2%" LSS "4" goto :phase42
 
@@ -53,7 +55,7 @@ call :migrate %phase%
 goto :phase42
 
 :extra 
-python run_extra.py m123_%~1 --onedrive=d:\onedrive0 --migrate=d:\aapa\migrate\m123
+python run_extra.py m123_%~1 --onedrive=d:\onedrive0 --migrate=d:\aapa\migrate\m123 -debug 
 exit /b
 
 :reset
@@ -65,7 +67,7 @@ echo ---------------------------
 echo --- MIGRATION PHASE %~1 ---
 echo ---------------------------
 call :reset
-python aapa_migrate.py %db1% %v0% %v1% --phase=%~1
+python aapa_migrate.py %db1% %v0% %v1% --phase=%~1 -debug
 exit /b
 
 :msgnext

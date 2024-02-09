@@ -19,6 +19,8 @@ class Student(AAPAclass):
         studnr_part = f'({self.stud_nr})' if self.stud_nr else ''
         return f'{self.full_name}{studnr_part} [{str(self.status)}]'
     def __eq__(self, value: Student):
+        if not value:
+            return False
         if  self.full_name != value.full_name:
             return False
         if  self.stud_nr != value.stud_nr:

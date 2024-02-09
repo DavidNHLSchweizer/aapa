@@ -195,10 +195,12 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "m123_correct_stud_dirs",
+                "m123_correct_mp_dirs",
                 "-debug",
                 "-preview",
+                "-v",
                 "--onedrive=d:\\onedrive0",
+                "--migrate=.\\"
             ]
         },
     ]

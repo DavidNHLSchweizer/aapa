@@ -10,8 +10,8 @@ _UNKNOWN = '!unknown'
 UNKNOWN_STUDNR = 'UNKNOWN_STUDNR'
 
 class FileType(IntEnum):
-    """
-    IntEnum: constanten gebruikt om verschillende filetypes aan te geven.
+    """ constanten gebruikt om verschillende filetypes aan te geven.
+
     Voor meer info: zie FileType.doc()
 
     """
@@ -67,10 +67,11 @@ class FileType(IntEnum):
         return "\n".join([f'{ft.value:2} (FileType.{ft.name}): {str(ft)}' for ft in FileType])  
 
 class MijlpaalType(IntEnum):
-    """
-    IntEnum: constanten gebruikt om verschillende soorten "mijlpalen" aan te geven.
+    """ constanten gebruikt om verschillende soorten "mijlpalen" aan te geven.
+    
     Wordt gebruikt om verschillende types verslagen, maar ook de bijbehorende 
     student-directories te onderscheiden.
+
     Voor meer info: zie MijlpaalType.doc()
     
     """
@@ -104,8 +105,8 @@ class MijlpaalType(IntEnum):
         return "\n".join([f'{mpt.value:2} (MijlpaalType.{mpt.name}): {str(mpt)}' for mpt in MijlpaalType])
     
 class AanvraagStatus(IntEnum):
-    """
-    IntEnum: constanten gebruikt om de processing-status van een aanvraaag aan te geven.
+    """ constanten gebruikt om de processing-status van een aanvraaag aan te geven.
+    
     Voor meer info: zie AanvraagStatus.doc()
         
     """
@@ -134,9 +135,10 @@ class AanvraagStatus(IntEnum):
         return "\n".join([f'{status.value:2} (AanvraagStatus.{status.name}): {str(status)}' for status in AanvraagStatus])
         
 class MijlpaalStatus(IntEnum):
-    """
-    IntEnum: constanten gebruikt om de processing-status van een verslag aan te geven.
-    #TODO: is nog niet afgerond
+    """ constanten gebruikt om de processing-status van een verslag aan te geven.
+    
+    #TODO: het onderliggende proces is nog niet afgerond
+
     Voor meer info: zie MijlpaalStatus.doc()
         
     """
@@ -153,9 +155,10 @@ class MijlpaalStatus(IntEnum):
         return "\n".join([f'{status.value:2} (MijlpaalStatus.{status.name}): {str(status)}' for status in MijlpaalStatus])
 
 class MijlpaalBeoordeling(IntEnum):
-    """
-    IntEnum: constanten gebruikt om de beoordeling van een aanvraag of een verslag aan te geven.
-    #TODO: is voor verslagen nog niet afgerond
+    """ constanten gebruikt om de beoordeling van een aanvraag of een verslag aan te geven.
+    
+    #TODO: het onderliggende proces is voor verslagen nog niet afgerond
+
     Voor meer info: zie MijlpaalBeoordeling.doc()
         
     """
@@ -170,9 +173,8 @@ class MijlpaalBeoordeling(IntEnum):
         return "\n".join([f'{beoord.value:2} (MijlpaalBeoordeling.{beoord.name}): {str(beoord)}' for beoord in MijlpaalBeoordeling])
 
 class StudentStatus(IntEnum):
-    """
-    IntEnum: constanten gebruikt om de status van een student (in het afstudeertraject)
-    aan te geven.
+    """ constanten gebruikt om de status van een student (in het afstudeertraject) aan te geven.
+    
     Voor meer info: zie StudentStatus.doc()
 
     """
@@ -194,10 +196,9 @@ class StudentStatus(IntEnum):
         return {StudentStatus.UNKNOWN,StudentStatus.AANVRAAG,StudentStatus.BEZIG}
 
 class StudentDirectoryStatus(IntEnum):
-    """
-    IntEnum: constanten gebruikt om de status van een student (in het afstudeertraject)
-    aan te geven.
-    Voor meer info: zie StudentStatus.doc()
+    """ constanten gebruikt om de status van een studentdirectory aan te geven.
+    
+    Voor meer info: zie StudentDirectoryStatus.doc()
 
     """
     UNKNOWN     = 0
@@ -212,10 +213,10 @@ class StudentDirectoryStatus(IntEnum):
         return "\n".join([f'{status.value:2} (StudentDirectoryStatus.{status.name}): {str(status)}' for status in StudentDirectoryStatus])        
 
 class VerslagStatus(IntEnum):
-    """
-    IntEnum: constanten gebruikt om de status van een verslag (in het afstudeertraject)
-    aan te geven. 
-    TODO: dit is nog niet geimplementeerd.
+    """ constanten gebruikt om de status van een verslag (in het afstudeertraject) aan te geven.
+    
+    TODO: het onderliggende proces is nog niet geimplementeerd.
+
     Voor meer info: zie VerslagStatus.doc()
 
     """
@@ -243,6 +244,10 @@ class VerslagStatus(IntEnum):
 #--------------------
 @staticmethod
 def doc()->str:
+    """ eenvoudige manier om van alle constanten te doc() af te printen.
+        
+        python const.py is voldoende.
+    """
     return "\n----\n".join([class_type.doc() for class_type in [FileType, MijlpaalType, AanvraagStatus, MijlpaalStatus, MijlpaalBeoordeling,StudentStatus,StudentDirectoryStatus,VerslagStatus]])
 
 if __name__ == "__main__":

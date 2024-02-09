@@ -26,7 +26,7 @@ class StudentDirectoryBuilder:
         stud_dir_name = base_dir.get_student_directory(student)
         if not directory.is_relative_to(Path(stud_dir_name)):
             raise StorageException(f'Bestand {filename} staat niet op de verwachte plaats.\n\tVerwacht wordt (sub)directory {stud_dir_name}.')
-        return StudentDirectory(student, stud_dir_name, base_dir)
+        return StudentDirectory(student, stud_dir_name, base_dir, StudentDirectory.Status.ACTIVE)
     @staticmethod
     def get_student_dir_name(storage: AAPAStorage, student: Student, output_directory: str)->str:
         student_queries: StudentQueries = storage.queries('studenten')

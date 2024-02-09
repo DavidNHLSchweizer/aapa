@@ -3,7 +3,7 @@ import importlib
 from types import ModuleType
 from typing import Protocol
 from general.args import aapa_parser, _get_options_from_commandline
-from general.log import init_logging
+from general.log import init_logging, log_info
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
@@ -63,5 +63,5 @@ if __name__ == "__main__":
             ready=False
             print('...stopped.')
     if ready:
-        print('...ready.')
+        log_info('...ready')
         
