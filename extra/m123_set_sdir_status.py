@@ -9,7 +9,7 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.student_directories import StudentDirectoryQueries
-from extra.tools import BaseMigrationProcessor
+from extra.extra_base import BaseMigrationProcessor
 from general.fileutil import last_parts_file
 from general.log import log_print, log_warning
 from general.preview import Preview

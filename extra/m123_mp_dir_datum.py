@@ -7,7 +7,7 @@
 """
 from argparse import ArgumentParser, Namespace
 from data.storage.aapa_storage import AAPAStorage
-from extra.tools import BaseMigrationProcessor
+from extra.extra_base import BaseMigrationProcessor
 from general.preview import Preview
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors

@@ -23,7 +23,7 @@ from general.preview import Preview
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector
 from process.aapa_processor.aapa_processor import AAPARunnerContext
-from extra.tools import BaseMigrationProcessor
+from extra.extra_base import BaseMigrationProcessor
 
 class VerslagenReEngineeringProcessor(BaseMigrationProcessor):
     def __init__(self, storage: AAPAStorage, verbose=False):

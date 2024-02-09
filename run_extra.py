@@ -17,12 +17,12 @@ def find_module(module_name: str)->ModuleType:
         print(E)
         return None
     
-class OneTimeFunc(Protocol): 
+class ExtraModuleProcessFunc(Protocol): 
     def __call__(self, context: AAPARunnerContext, namespace: Namespace):pass
 class ParserFunc(Protocol):
     def __call__(self, base_parser: ArgumentParser)->ArgumentParser:pass
 
-def find_extra_main(module: ModuleType, module_name: str)->OneTimeFunc:
+def find_extra_main(module: ModuleType, module_name: str)->ExtraModuleProcessFunc:
     if not (main := getattr(module, 'extra_main', None)):
         print(f'Entry point "extra_main" not found in {module_name}.')
         return None

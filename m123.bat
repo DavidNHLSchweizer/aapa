@@ -1,5 +1,6 @@
 @echo off
-set basedir="D:\onedrive\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw\aapa"
+set onedrive=D:\onedrive
+set basedir="%onedrive%\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw\aapa"
 set db0=%basedir%\aapa_122.db
 set db1=%basedir%\aapa.db
 if not exist %db0% copy /y %db1% %db0% 
@@ -55,7 +56,7 @@ call :migrate %phase%
 goto :phase42
 
 :extra 
-python run_extra.py m123_%~1 --onedrive=d:\onedrive0 --migrate=d:\aapa\migrate\m123 -debug 
+python run_extra.py m123_%~1 --onedrive=%onedrive% --migrate=d:\aapa\migrate\m123 -debug 
 exit /b
 
 :reset
