@@ -39,7 +39,7 @@ from pathlib import Path
 import re
 from typing import Tuple
 from general.keys import get_next_key, reset_key
-from general.log import log_debug, log_info
+from general.log import log_debug
 from general.onedrive import find_onedrive_path
 from general.singleton import Singleton
 
@@ -139,10 +139,15 @@ class PathRootConvertor:
             self.expanded = PathRootConvertor.__substitute(self.expanded, str(old_onedrive), str(new_onedrive))
 
 class RootsCoder(Singleton):
-    """ Implements the module functionality. Should not be used from outside this module. """
-    def __init__(self, base_path: str):
+    """ Implements the module functionality. Should not be used from outside this module. 
+    
+        verbose can be set to True if debugging the functionality.
+    """
+
+    def __init__(self, base_path: str, verbose=False): 
         self._sorter = RootSorter()
         self._initialized = False
+        self.verbose=verbose
         self.reset(base_path)
     def reset(self, base_path: str):
         self._converters:list[PathRootConvertor] = []
@@ -172,7 +177,8 @@ class RootsCoder(Singleton):
         self._converters.sort(key=lambda converter: len(converter.expanded), reverse=True)
     def _add(self, root_path: str|Path, code = None)->str:
         if already_there := self.__find_expanded(root_path):
-            log_debug(f'expanded path root already there: {root_path}')
+            if self.verbose:
+                log_debug(f'expanded path root already there: {root_path}')
             return already_there.code
         odp = self._find_onedrive_path(root_path)
         if odp:
@@ -180,10 +186,12 @@ class RootsCoder(Singleton):
         else: 
             encoded_path = self.encode_path(root_path, allow_single=False)
         if already_there := self.__find_root(root_path):
-            log_debug(f'root already there: {root_path}')
+            if self.verbose:
+                log_debug(f'root already there: {root_path}')
             return already_there.code
         if already_there := self.__find_code(root_path):
-            log_debug(f'root already there: {root_path}')
+            if self.verbose:
+                log_debug(f'root already there: {root_path}')
             return already_there.code
         if self.__find_code(code):
             raise RootException(f'Duplicate code: {code}')        
@@ -192,11 +200,13 @@ class RootsCoder(Singleton):
                                      code=code, 
                                      known_codes=self.known_codes)
         if already_there := self.__find_code(new_root.root):
-            log_debug(f'root already there: {root_path}')
+            if self.verbose:
+                log_debug(f'root already there: {root_path}')
             return already_there.code
         self._converters.append(new_root)
         self._update_known()
-        log_debug(f'root added: {new_root.code}: "{new_root.root}"  ({new_root.expanded})')
+        if self.verbose:
+            log_debug(f'root added: {new_root.code}: "{new_root.root}"  ({new_root.expanded})')
         return new_root.code
     def _find_onedrive_path(self, path: str)->str:
         if not self._initialized:

@@ -87,4 +87,4 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     migrate_dir=namespace.migrate if 'migrate' in namespace else None
     storage = context.configuration.storage
     with Preview(True,storage,'Corrigeer ontbrekende student directories en gekoppelde mijlpaal_directories (voor migratie)'):
-        StudDirsReEngineeringProcessor(storage, namespace.verbose).process_all(migrate_dir)
+        StudDirsReEngineeringProcessor(storage, namespace.verbose).process_all(module_name=__file__, migrate_dir=migrate_dir)

@@ -7,6 +7,7 @@ from general.log import init_logging, log_info
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
+
 def find_module(module_name: str)->ModuleType:
     full_module_name = f'extra.{module_name}'
     try:

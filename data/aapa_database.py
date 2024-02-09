@@ -406,15 +406,16 @@ class AAPaDatabase(Database):
             if not ignore_error:
                 log_error('Deze versie van het programma kan deze database niet openen.\nGebruik commando "new" of migreer de data naar de juiste databaseversie.')
                 raise E
-    def load_file_roots(self, recreate = False):
+    def load_file_roots(self, recreate = False, verbose=False):
         log_info('--- Laden paden voor File Encoding')
         if recreate:
             create_roots(self)
         else:
             load_roots(self)
-        report = '\n'.join([f'{code} = "{root}"' for (code,root) in Roots.get_roots()])
-        log_info(f'Bekende paden:\n{report}')
-        log_info('--- Einde laden paden File Encoding')
+        if verbose:
+            report = '\n'.join([f'{code} = "{root}"' for (code,root) in Roots.get_roots()])
+            log_info(f'Bekende paden:\n{report}')
+            log_info('--- Einde laden paden File Encoding')
 
 
         

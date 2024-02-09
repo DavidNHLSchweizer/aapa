@@ -48,4 +48,4 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     storage = context.configuration.storage
     with Preview(True,storage,'Update mijlpaal_directories (voor migratie)'):
         processor = MijlpalenKansProcessor(storage, namespace.verbose)
-        processor.process_all(migrate_dir=migrate_dir)
+        processor.process_all(module_name=__file__, migrate_dir=migrate_dir)

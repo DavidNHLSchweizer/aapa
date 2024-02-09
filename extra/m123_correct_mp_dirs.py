@@ -126,6 +126,6 @@ def extra_main(context:AAPARunnerContext, namespace: Namespace):
     migrate_dir=namespace.migrate if 'migrate' in namespace else None
     storage = context.configuration.storage
     with Preview(True,storage,'Corrigeer dubbelingen in mijlpaal_directories voor aanvragen (voor migratie)'):
-        MijlpaalDirsReEngineeringProcessor(storage, namespace.verbose).process_all(migrate_dir)
+        MijlpaalDirsReEngineeringProcessor(storage, namespace.verbose).process_all(module_name=__file__, migrate_dir=migrate_dir)
 
 
