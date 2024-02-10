@@ -34,3 +34,4 @@ class MijlpalenKansProcessor(MigrationPlugin):
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:  
         for student in self.storage.queries('studenten').find_all():
             self.process_student(student)
+        return True

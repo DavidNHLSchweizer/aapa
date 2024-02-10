@@ -1,4 +1,4 @@
-""" M123_CORRECT_MP_DIRS. 
+""" CORRECT_MP_DIRS. 
 
     aanpassen van database voor dubbelingen in mijlpaal_directories voor aanvragen.
 
@@ -19,23 +19,23 @@ from data.classes.studenten import Student
 from data.roots import Roots
 from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.student_directories import StudentDirectoryQueries
-from extra.extra_base import BaseMigrationProcessor
 from general.fileutil import last_parts_file
 from general.log import log_warning
 from general.preview import Preview
-from general.sql_coll import SQLcollector
+from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
+from migrate.migration_plugin import MigrationPlugin
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
-class MijlpaalDirsReEngineeringProcessor(BaseMigrationProcessor):
-    def __init__(self, storage: AAPAStorage, verbose=False):
-        super().__init__(storage, verbose)
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
-        self.sql.add('student_directory_directories', SQLcollector({'delete': {'sql': 'delete from STUDENT_DIRECTORY_DIRECTORIES where mp_dir_id in (?)'},}))
-        self.sql.add('mijlpaal_directory_files', SQLcollector({'insert': {'sql':'insert into MIJLPAAL_DIRECTORY_FILES(mp_dir_id,file_id) values(?,?)'},
+class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
+    def init_SQLcollectors(self) -> SQLcollectors:
+        sql = super().init_SQLcollectors()
+        sql.add('student_directory_directories', SQLcollector({'delete': {'sql': 'delete from STUDENT_DIRECTORY_DIRECTORIES where mp_dir_id in (?)'},}))
+        sql.add('mijlpaal_directory_files', SQLcollector({'insert': {'sql':'insert into MIJLPAAL_DIRECTORY_FILES(mp_dir_id,file_id) values(?,?)'},
                                                                'delete': {'sql': 'delete from MIJLPAAL_DIRECTORY_FILES where mp_dir_id in (?)'},}))
-        self.sql.add('mijlpaal_directories', SQLcollector({'update': {'sql':'update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,kans=?,directory=?,datum=? where id=?'},
+        sql.add('mijlpaal_directories', SQLcollector({'update': {'sql':'update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,kans=?,directory=?,datum=? where id=?'},
                                                            'delete': {'sql': 'delete from MIJLPAAL_DIRECTORIES where id in (?)'},}))
+        return sql
     def _sql_delete_mijlpaal_directory_files(self, mp_dir: MijlpaalDirectory):
         self.sql.delete('mijlpaal_directory_files', [mp_dir.id])
     def _sql_delete_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
@@ -100,7 +100,12 @@ class MijlpaalDirsReEngineeringProcessor(BaseMigrationProcessor):
             self._sql_delete_mijlpaal_directory(mp_dir)
             mp_dir.files.clear('files')
         self._sql_update_mijlpaal_directory(first_mp_dir)
-    def processing(self):        
+    def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
+        if not super().before_process(context, **kwdargs):
+            return False
+        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        return True
+    def process(self, context: AAPARunnerContext, **kwdargs)->bool:        
         def dump_info(msg: str, dir_list:list[MijlpaalDirectory]):
             self.log(f'\t--- {msg} ---')
             for dir in dir_list:
@@ -113,19 +118,4 @@ class MijlpaalDirsReEngineeringProcessor(BaseMigrationProcessor):
             dump_info('before', entry['dirs'])
             self._correct_directory(entry['dirs'])
             dump_info('after', entry['dirs'])
-
-def extra_args(base_parser: ArgumentParser)->ArgumentParser:
-    base_parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
-    base_parser.add_argument('-v', '--verbose', action="store_true", help='If true: logging gaat naar de console ipv het logbestand.')
-    return base_parser
-
-def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    context.processing_options.debug = True
-    context.processing_options.preview = True
-
-    migrate_dir=namespace.migrate if 'migrate' in namespace else None
-    storage = context.configuration.storage
-    with Preview(True,storage,'Corrigeer dubbelingen in mijlpaal_directories voor aanvragen (voor migratie)'):
-        MijlpaalDirsReEngineeringProcessor(storage, namespace.verbose).process_all(module_name=__file__, migrate_dir=migrate_dir)
-
-
+        return True

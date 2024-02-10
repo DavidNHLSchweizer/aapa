@@ -1,4 +1,4 @@
-""" M123_CORRECT_STUD_DIRS. 
+""" CORRECT_STUD_DIRS. 
 
     aanpassen van database voor verkeerde student-directory koppelingen.
     (twee studenten: Marle Mulder, Jarno vd Poll)
@@ -6,34 +6,31 @@
     bedoeld voor migratie naar versie 1.23
     
 """
-from argparse import ArgumentParser, Namespace
 from data.classes.files import File
 from data.classes.const import MijlpaalType
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.roots import Roots
-from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.student_directories import StudentDirectoryQueries
-from extra.extra_base import BaseMigrationProcessor
 from general.fileutil import last_parts_file
 from general.log import log_info
-from general.preview import Preview
-from general.sql_coll import SQLcollector
+from general.sql_coll import SQLcollector, SQLcollectors
+from migrate.migration_plugin import MigrationPlugin
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 from process.general.student_dir_builder import StudentDirectoryBuilder
 
-class StudDirsReEngineeringProcessor(BaseMigrationProcessor):
-    def __init__(self, storage: AAPAStorage, verbose=False):
-        super().__init__(storage,verbose)
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
-        self.sql.add('student_directories', SQLcollector({'insert': {'sql': 'insert into STUDENT_DIRECTORIES(id,stud_id,directory,basedir_id,status) values(?,?,?,?,?)'},
+class StudDirsReEngineeringProcessor(MigrationPlugin):
+    def init_SQLcollectors(self) -> SQLcollectors:
+        sql = super().init_SQLcollectors()
+        sql.add('student_directories', SQLcollector({'insert': {'sql': 'insert into STUDENT_DIRECTORIES(id,stud_id,directory,basedir_id,status) values(?,?,?,?,?)'},
                                                           'update': {'sql': 'update STUDENT_DIRECTORIES set status=? where id=?'},                                                          
                                                           }))
         
-        self.sql.add('student_directory_directories', SQLcollector({'delete': {'sql': 'delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id=? and mp_dir_id=?', 'concatenate':False},
+        sql.add('student_directory_directories', SQLcollector({'delete': {'sql': 'delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id=? and mp_dir_id=?', 'concatenate':False},
                                                                     'insert': {'sql':'insert into STUDENT_DIRECTORY_DIRECTORIES(stud_dir_id, mp_dir_id) values(?,?)'},                                                                    
                                                                     }))
+        return sql
     def create_sql_incorrect_mijlpaal_directories(self, old_student_dir: StudentDirectory, new_student_dir: StudentDirectory, new_mijlpaal_dir: MijlpaalDirectory):
         if old_student_dir.id != new_student_dir.id:
             self.sql.update('student_directories', [StudentDirectory.Status.ARCHIVED, old_student_dir.id])
@@ -71,20 +68,12 @@ where (MPD.mijlpaal_type = ? and stud_dir <> mp_directory) or \
             (new_stud_dir, new_mp_dir) = builder.register_file(student,datum=file.timestamp,filename=file.filename,filetype=file.filetype,
                                                mijlpaal_type=MijlpaalType.AANVRAAG)
             self.create_sql_incorrect_mijlpaal_directories(old_stud_dir, new_stud_dir, new_mp_dir)
-
-    def processing(self):        
+    def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
+        if not super().before_process(context, **kwdargs):
+            return False
+        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        return True
+    def process(self, context: AAPARunnerContext, **kwdargs)->bool:        
         self._process_incorrect_mijlpaal_directories()
+        return True
 
-def extra_args(base_parser: ArgumentParser)->ArgumentParser:
-    base_parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
-    base_parser.add_argument('-v', '--verbose', action="store_true", help='If true: logging gaat naar de console ipv het logbestand.')
-    return base_parser
-
-def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    context.processing_options.debug = True
-    context.processing_options.preview = True
-
-    migrate_dir=namespace.migrate if 'migrate' in namespace else None
-    storage = context.configuration.storage
-    with Preview(True,storage,'Corrigeer ontbrekende student directories en gekoppelde mijlpaal_directories (voor migratie)'):
-        StudDirsReEngineeringProcessor(storage, namespace.verbose).process_all(module_name=__file__, migrate_dir=migrate_dir)

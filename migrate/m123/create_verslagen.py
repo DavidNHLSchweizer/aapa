@@ -1,4 +1,4 @@
-""" M123_CREATE_VERSLAGEN
+""" CREATE_VERSLAGEN
 
     Maakt de verslagen aan in de al eerder gedetecteerde student-directories. De verslagen waren nog niet 
     in de database aangemaakt.
@@ -8,27 +8,25 @@
     De code is bedoeld voor de migratie naar database versie 1.23
 
 """
-from argparse import ArgumentParser, Namespace
 from data.classes.aanvragen import Aanvraag
 from data.classes.const import FileType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
-from data.storage.aapa_storage import AAPAStorage
 from data.storage.queries.aanvragen import AanvraagQueries
 from data.storage.queries.student_directories import StudentDirectoryQueries
 from general.log import log_info, log_warning
-from general.preview import Preview
 from general.timeutil import TSC
-from general.sql_coll import SQLcollector
+from general.sql_coll import SQLcollector, SQLcollectors
+from migrate.migration_plugin import MigrationPlugin
 from process.aapa_processor.aapa_processor import AAPARunnerContext
-from extra.extra_base import BaseMigrationProcessor
 
-class VerslagenReEngineeringProcessor(BaseMigrationProcessor):
-    def __init__(self, storage: AAPAStorage, verbose=False):
-        super().__init__(storage, verbose)
-        self.sql.add('verslagen', SQLcollector({'insert': {'sql':'insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type) values(?,?,?,?,?,?,?,?,?)' },}))
+class VerslagenReEngineeringProcessor(MigrationPlugin):
+    def init_SQLcollectors(self)->SQLcollectors:
+        sql = super().init_SQLcollectors()
+        sql.add('verslagen', SQLcollector({'insert': {'sql':'insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type) values(?,?,?,?,?,?,?,?,?)' },}))
+        return sql
     def _get_aanvraag(self, student: Student)->Aanvraag:
         aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
         aanvraag = aanvraag_queries.find_student_aanvraag(student)
@@ -69,20 +67,7 @@ class VerslagenReEngineeringProcessor(BaseMigrationProcessor):
         log_info(f'Student: {student}')
         for mp_dir in student_directory.directories:
             self.process_mijlpaal_directory(mp_dir, student, preview=preview)
-    def processing(self):        
+    def process(self, context: AAPARunnerContext, **kwdargs)->bool:          
         for student in self.storage.queries('studenten').find_all():
             self.process_student(student, preview=True)
-
-def extra_args(base_parser: ArgumentParser)->ArgumentParser:
-    base_parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
-    base_parser.add_argument('-v', '--verbose', action="store_true", help='If true: logging gaat naar de console ipv het logbestand.')
-    return base_parser
-
-def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    context.processing_options.debug = True
-    context.processing_options.preview = True
-    migrate_dir=namespace.migrate if 'migrate' in namespace else None
-    storage = context.configuration.storage
-    with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
-        processor = VerslagenReEngineeringProcessor(storage, namespace.verbose)
-        processor.process_all(module_name=__file__, migrate_dir=migrate_dir)
+        return True

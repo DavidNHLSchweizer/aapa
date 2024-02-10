@@ -6,19 +6,19 @@
     De json-file moet gemaakt zijn met behulp van SQLCollector(s) (module: general.sql_coll)
     
 """
-from argparse import ArgumentParser, Namespace
-from general.log import init_logging
-from general.preview import Preview
+from argparse import ArgumentParser
 from general.sql_coll import import_json
+from plugins.plugin import PluginBase
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
-def extra_args(base_parser: ArgumentParser)->ArgumentParser:
-    base_parser.add_argument('--json', dest='json', required=True, type=str,help='JSON filename om uit te voeren.') 
-    return base_parser
-
-def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    json_filename=namespace.json 
-    storage = context.configuration.storage
-    with Preview(context.processing_options.preview,storage,'Voer JSON SQL-code uit'):
+class JSONprocessor(PluginBase):
+    def get_parser(self) -> ArgumentParser:
+        parser = super().get_parser()
+        parser.add_argument('--json', dest='json', required=True, type=str,help='JSON filename om uit te voeren.') 
+        return parser
+    def process(self, context: AAPARunnerContext, **kwdargs)->bool:
+        json_filename=kwdargs.get('json', None)
+        storage = context.configuration.storage
         import_json(storage.database, json_filename, context.processing_options.preview)
+        return True
     
