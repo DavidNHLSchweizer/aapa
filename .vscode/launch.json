@@ -18,8 +18,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "remove_aanvraag",
-                "--aanvraag=456,678"
+                "migrate.m_text",
+                "-debug",
+                "--onedrive=d:\\onedrive",                
             ]
         },
         {
@@ -188,14 +189,15 @@
             ]
         },
         {
-            "name": "Python: run_extra",
+            "name": "Python: run_plugin",
             "type": "debugpy",
             "request": "launch",
-            "program": "run_extra.py",
+            "program": "run_plugin.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "m123_correct_mp_dirs",
+                "migrate.m123.adapt_mp_dirs",
+                "-tering",
                 "-debug",
                 "-preview",
                 "-v",
