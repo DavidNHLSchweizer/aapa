@@ -9,7 +9,7 @@
 
     De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
 """
-#TODO: overzetten naar Plugin. Heeft geen haast
+#TODO: testen na overzetten naar Plugin. Heeft geen haast
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Tuple
@@ -25,6 +25,7 @@ from data.storage.queries.base_dirs import BaseDirQueries
 from general.log import init_logging, log_error, log_info, log_print, log_warning
 from general.preview import Preview, pva
 from general.singular_or_plural import sop
+from plugins.plugin import PluginBase
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import SingleFilePipeline
@@ -104,33 +105,35 @@ class BasedirXLSImporter(FileProcessor):
             else:
                 self.__check_and_store_basedir(base_dir, storage)
         return (self.n_new,self.n_modified,self.n_already_there)
-        
-def import_basedirs_XLS(xls_filename: str, storage: AAPAStorage, json_filename: str = "insert_basedirs.json", preview=True):
-    importer = BasedirXLSImporter()
-    pipeline = SingleFilePipeline('Importeren basedirs uit XLS bestand', importer, 
-                                  storage, activity=UndoLog.Action.NOLOG)
-    with Preview(preview,storage, 'Importeren basedirs'):
-        (n_new,n_modified,n_already_there)=pipeline.process(xls_filename, preview=preview)
-        if n_new == 0:
-            log_print(f'Geen nieuwe basedirs om te importeren ({n_already_there} al in database, {n_modified} aangepast met nieuwe gegevens).')
-        else:
-            log_print(f'{sop(n_new, "base_dir", "basedirs", prefix="nieuwe ")} {pva(preview, "te importeren", "geimporteerd")} uit {xls_filename}.')
-            log_print(f'{sop(n_modified, "base_dir", "basedirs")} {pva(preview, "aan te passen", "aangepast")} volgens {xls_filename}.')
-            log_print(f'{sop(n_already_there, "base_dir", "basedirs")} al in database.')
-            log_print(f'{sop(n_new+n_modified, "base_dir", "basedirs")} {pva(preview, "te importeren of aan te passen", "geimporteerd of aangepast")} volgens {xls_filename}.')
-            importer.sql.dump_to_file(json_filename)
-            log_print(f'SQL data dumped to file {json_filename}')
 
-def extra_args(base_parser: ArgumentParser)->ArgumentParser:
-    base_parser.add_argument('--json', dest='json', required=True, type=str,help='JSON filename waar SQL output wordt weggeschreven') 
-    base_parser.add_argument('--basedir', dest='basedir', required=True, type=str,help='Importeer gegevens over basedirs uit Excel-bestand') 
-    return base_parser
-
-def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    context.processing_options.debug = True
-    context.processing_options.preview = True
-    json_filename=namespace.json 
-    xls_filename = namespace.basedir 
-    storage = context.configuration.storage
-    with Preview(True,storage,'Maak extra aanvragen (voor migratie)'):
-        import_basedirs_XLS(xls_filename,storage, json_filename=json_filename, preview=True)
+class BaseDirsExcelImporter(PluginBase):
+    def get_parser(self) -> ArgumentParser:
+        parser = super().get_parser()
+        parser.add_argument('--json', dest='json', required=True, type=str,help='JSON filename waar SQL output wordt weggeschreven') 
+        parser.add_argument('--basedir', dest='basedir', required=True, type=str,help='Importeer gegevens over basedirs uit Excel-bestand') 
+    def before_process(self, context: AAPARunnerContext, **kwdargs) -> bool:
+        context.processing_options.debug = True
+        context.processing_options.preview = True
+        self.json_filename=kwdargs.get('json', '')
+        self.xls_filename = kwdargs.get('basedir') 
+        self.storage = context.configuration.storage
+        self.importer = BasedirXLSImporter()
+        self.pipeline = SingleFilePipeline('Importeren basedirs uit XLS bestand', self.importer, 
+                                  self.storage, activity=UndoLog.Action.NOLOG)
+        return True
+    def process(self, context: AAPARunnerContext, **kwdargs) -> bool:
+        with Preview(context.preview):
+            (n_new,n_modified,n_already_there)=self.pipeline.process(self.xls_filename, preview=context.preview)
+            if n_new == 0:
+                log_print(f'Geen nieuwe basedirs om te importeren ({n_already_there} al in database, {n_modified} aangepast met nieuwe gegevens).')
+            else:
+                log_print(f'{sop(n_new, "base_dir", "basedirs", prefix="nieuwe ")} {pva(context.preview, "te importeren", "geimporteerd")} uit {self.xls_filename}.')
+                log_print(f'{sop(n_modified, "base_dir", "basedirs")} {pva(context.preview, "aan te passen", "aangepast")} volgens {self.xls_filename}.')
+                log_print(f'{sop(n_already_there, "base_dir", "basedirs")} al in database.')
+                log_print(f'{sop(n_new+n_modified, "base_dir", "basedirs")} {pva(context.preview, "te importeren of aan te passen", "geimporteerd of aangepast")} volgens {self.xls_filename}.')
+        return True
+    def after_process(self, context: AAPARunnerContext, process_result: bool):
+        if not process_result:
+            return False
+        self.importer.sql.dump_to_file(self.json_filename)
+        log_print(f'SQL data dumped to file {self.json_filename}')

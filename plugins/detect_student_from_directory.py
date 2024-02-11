@@ -8,7 +8,7 @@
     De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
 
 """
-#TODO: overzetten naar Plugin. Heeft geen haast
+#TODO: testen na overzetten Plugin. Heeft geen haast
 
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -30,6 +30,7 @@ from general.fileutil import last_parts_file, test_directory_exists
 from general.log import init_logging, log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
 from general.timeutil import TSC
+from plugins.plugin import PluginBase
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
@@ -288,32 +289,35 @@ class MilestoneDetectorPipeline(FilePipeline):
             return True
         return False
 
-def detect_from_directory(directory: str, storage: AAPAStorage, json_filename:str = None, preview=False)->int:
-    directory = Roots.decode_path(directory)
-    if not Path(directory).is_dir():
-        log_error(f'Map {directory} bestaat niet. Afbreken.')
-        return 0  
-    log_info(f'Start detectie van map  {directory}...', to_console=True)
-    importer = MilestoneDetectorPipeline(f'Detectie studentgegevens uit directory {directory}', storage, skip_directories=SKIP_DIRECTORIES)
-    (n_processed, n_files) = importer.process([dir for dir in Path(directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=preview)
-    if not json_filename:
-        json_filename= f'{Path(directory).parent.name}_{Path(directory).stem}.json'
-    importer.sqls.dump_to_file(json_filename)
-    log_print(f'SQL data dumped to file {json_filename}')
-    log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix="nieuwe student-")}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
-    return n_processed, n_files      
-
-def extra_args(base_parser: ArgumentParser)->ArgumentParser:
-    base_parser.add_argument('--detect', dest='detect', type=str,help=r'Detecteer gegevens vanuit een directory bv: --detect=c:\users\david\NHL Stenden\...')
-    base_parser.add_argument('--json', dest='json', type=str,help='JSON filename waar SQL output wordt weggeschreven\nDefault: samengesteld uit de naam van de detect-diretory') 
-    return base_parser
-
-def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    context.processing_options.debug = True
-    context.processing_options.preview = True
-    json_filename=namespace.json 
-    detect_dir = namespace.detect 
-    storage = context.configuration.storage
-    with Preview(True,storage,'detect data from directory'):
-        detect_from_directory(detect_dir, storage, json_filename=json_filename, preview=True)
-            
+class DirectoryDetectorPlugin(PluginBase):
+    def get_parser(self)->ArgumentParser:
+        parser = super().get_parser()
+        parser.add_argument('--directory', dest='directory', type=str,help=r'Detecteer gegevens vanuit een directory bv: --directory=c:\users\david\NHL Stenden\...')
+        parser.add_argument('--json', dest='json', type=str,help='JSON filename waar SQL output wordt weggeschreven\nDefault: samengesteld uit de naam van de detect-diretory') 
+        return parser
+    
+    def before_process(self, context: AAPARunnerContext, **kwdargs) -> bool:
+        self.json_filename = kwdargs.get('json_filename', None)
+        directory = Roots.decode_path(kwdargs.get('directory', ''))
+        if not Path(directory).is_dir():
+            log_error(f'Map {directory} bestaat niet. Afbreken.')
+            return False
+        self.directory = directory        
+        context.processing_options.debug = True
+        context.processing_options.preview = True
+        self.storage = context.configuration.storage
+        log_info(f'Start detectie van map  {directory}...', to_console=True)
+        return True
+    def process(self, context: AAPARunnerContext, **kwdargs) -> bool:
+        self.importer = MilestoneDetectorPipeline(f'Detectie studentgegevens uit directory {self.directory}', self.storage, 
+                                             skip_directories=SKIP_DIRECTORIES)
+        (n_processed, n_files) = self.importer.process([dir for dir in Path(self.directory).glob('*') if (dir.is_dir() and str(dir).find('.git') ==-1)], preview=context.preview)
+        log_info(f'...Detectie afgerond ({sop(n_processed, "directory", "directories", prefix="nieuwe student-")}. In directory: {sop(n_files, "subdirectory", "subdirectories")})', to_console=True)
+        return True
+    def after_process(self, context: AAPARunnerContext, process_result: bool):
+        if not process_result:
+            return
+        if not self.json_filename:
+            json_filename= f'{Path(self.directory).parent.name}_{Path(self.directory).stem}.json'
+        self.importer.sqls.dump_to_file(json_filename)
+        log_print(f'SQL data dumped to file {json_filename}')
