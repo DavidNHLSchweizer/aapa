@@ -58,6 +58,11 @@ class StudentDirectory(AAPAclass):
         for directory in self.directories:
             result.extend(directory.files_list)
         return result
+    def get_file_directory(self, file: File)->MijlpaalDirectory:
+        for directory in self.directories:
+            if file in directory.files_list:
+                return directory
+        return None
     def add(self, mijlpaal: MijlpaalBase):
         if self.get_directory(mijlpaal.datum, mijlpaal.mijlpaal_type):
             log_warning(f'Directory {mijlpaal} is al aanwezig. Wordt overgeslagen.')

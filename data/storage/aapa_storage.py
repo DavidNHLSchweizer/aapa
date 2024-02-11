@@ -6,6 +6,7 @@ from typing import Any
 from data.aapa_database import create_root
 from data.classes.aapa_class import AAPAclass
 from data.classes.base_dirs import BaseDir
+from data.classes.detail_rec import DetailRec
 from data.storage.CRUDs import CRUD, CRUDQueries, EnsureKeyAction, create_crud, get_registered_type
 from data.storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.database import Database

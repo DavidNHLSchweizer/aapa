@@ -196,11 +196,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "migrate.m123.adapt_mp_dirs",
+                "migrate.m123.correct_stud_dirs",
                 "-debug",
                 "-preview",
                 "-v",
-                "--onedrive=d:\\onedrive0",
+                "--onedrive=d:\\onedrive",
                 "-json",
             ]
         },

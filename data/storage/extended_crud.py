@@ -15,7 +15,7 @@ class ExtendedCRUD(CRUD):
             raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')    
     # --------------- CRUD functions ----------------
     def __db_log(self, function: str, params: str=''):
-        log_debug(f'EXT-CRUD({classname(self)}): {function}{(" - " + params) if params else ""}')        
+        log_debug(f'EXT-CRUD({classname(self)}): {function}{(" - " + params) if params else ""}') 
     def _create_new(self, aapa_obj):
         CRUDQueries(self).create_key_if_needed(aapa_obj)
         super().create(aapa_obj)

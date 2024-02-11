@@ -17,35 +17,34 @@ if "%1"=="" (
    set msg=All phases
 )
 @echo AAPA MIGRATION SCRIPT %v0% to %v1%. %msg%
-
 goto :phase%phase1%
 
 :phase0
 set phase=0
 call :migrate %phase%
 call :msgnext
-call :plugin set_sdir_status mp_dir_datum
+call :plugin migrate.m123.set_sdir_status migrate.m123.mp_dir_datum
 if "%phase2%" LSS "1" goto :phase42
 
 :phase1
 set phase=1
 call :migrate %phase%
 call :msgnext
-call :plugin adapt_mp_dirs
+call :plugin migrate.m123.adapt_mp_dirs
 if "%phase2%" LSS "2" goto :phase42
 
 :phase2
 set phase=2
 call :migrate %phase%
 call :msgnext
-call :plugin create_verslagen
+call :plugin migrate.m123.create_verslagen
 if "%phase2%" LSS "3" goto :phase42
 
 :phase3
 set phase=3
 call :migrate %phase%
 call :msgnext
-call :plugin correct_mp_dirs correct_stud_dirs
+call :plugin migrate.m123.correct_mp_dirs migrate.m123.correct_stud_dirs
 if "%phase2%" LSS "4" goto :phase42
 
 :phase4
@@ -54,8 +53,7 @@ call :migrate %phase%
 goto :phase42
 
 :plugin
- 
-python run_extra.py m123_%~1 --onedrive=%onedrive% --migrate=d:\aapa\migrate\m123 -debug 
+python run_plugin.py %~1 %~2 %~3 %~4 %~5 --onedrive=%onedrive% -json -debug
 exit /b
 
 :reset
@@ -80,4 +78,4 @@ exit /b
 :phase42
 set phase1=
 set phase2=
-exit
+
