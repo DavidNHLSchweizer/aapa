@@ -24,30 +24,28 @@ goto :phase%phase1%
 set phase=0
 call :migrate %phase%
 call :msgnext
-call :extra set_sdir_status
-call :extra mp_dir_datum
+call :plugin set_sdir_status mp_dir_datum
 if "%phase2%" LSS "1" goto :phase42
 
 :phase1
 set phase=1
 call :migrate %phase%
 call :msgnext
-call :extra adapt_mp_dirs
+call :plugin adapt_mp_dirs
 if "%phase2%" LSS "2" goto :phase42
 
 :phase2
 set phase=2
 call :migrate %phase%
 call :msgnext
-call :extra create_verslagen
+call :plugin create_verslagen
 if "%phase2%" LSS "3" goto :phase42
 
 :phase3
 set phase=3
 call :migrate %phase%
 call :msgnext
-call :extra correct_mp_dirs
-call :extra correct_stud_dirs
+call :plugin correct_mp_dirs correct_stud_dirs
 if "%phase2%" LSS "4" goto :phase42
 
 :phase4
@@ -55,7 +53,8 @@ set phase=4
 call :migrate %phase%
 goto :phase42
 
-:extra 
+:plugin
+ 
 python run_extra.py m123_%~1 --onedrive=%onedrive% --migrate=d:\aapa\migrate\m123 -debug 
 exit /b
 
@@ -81,3 +80,4 @@ exit /b
 :phase42
 set phase1=
 set phase2=
+exit

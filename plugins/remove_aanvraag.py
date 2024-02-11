@@ -4,18 +4,18 @@
     Alle gerelateerde records worden ook verwijderd.
 
 """
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 from data.classes.aanvragen import Aanvraag
-from data.storage.aapa_storage import AAPAStorage
 from general.log import log_print
 from general.sql_coll import SQLcollector, SQLcollectors
+from plugins.plugin import PluginBase
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
 class RemoverException(Exception):pass
 
-class AanvraagRemover:
-    def __init__(self, storage: AAPAStorage):
-        self.storage = storage
+class AanvraagRemover(PluginBase):
+    def before_process(self, context: AAPARunnerContext, **kwdargs) -> bool:
+        super().before_process(context, **kwdargs)
         self.sql = self.init_sql()
     def init_sql(self)->SQLcollectors:
         sql = SQLcollectors()
@@ -45,16 +45,19 @@ class AanvraagRemover:
         self.storage.commit()
         log_print(f'Removed aanvragen {aanvragen_ids}.')
 
-def extra_args(base_parser: ArgumentParser)->ArgumentParser:
-    base_parser.add_argument('--aanvraag', nargs='+', help='Aanvraag id(s) om te verwijderen')
-    return base_parser
-
-def extra_main(context:AAPARunnerContext, namespace: Namespace):
-    coded_list:str = namespace.aanvraag[0]
-    if ',' in coded_list:
-        aanvragen = [int(id) for id in coded_list.split(',')]
-    else:
-        aanvragen = [int(id) for id in coded_list.split()]
-    print(f'Aanvragen om te verwijderen: {aanvragen}')
-    remover = AanvraagRemover(context.configuration.storage)
-    remover.remove(aanvragen, context.processing_options.preview)
+    def get_parser(self) -> ArgumentParser:
+        parser = super().get_parser()
+        parser.add_argument('--aanvraag', nargs='+', help='Aanvraag id(s) om te verwijderen')
+        return parser
+    def process(self, context: AAPARunnerContext, **kwdargs)->bool:
+        coded_list:str = kwdargs.get('aanvraag')
+        if not coded_list:
+            print('Geen aanvragen ingevoerd.')
+            return False
+        if ',' in coded_list:
+            aanvragen = [int(id) for id in coded_list.split(',')]
+        else:
+            aanvragen = [int(id) for id in coded_list.split()]
+        print(f'Aanvragen om te verwijderen: {aanvragen}')
+        self.remove(aanvragen, context.processing_options.preview)
+        return True

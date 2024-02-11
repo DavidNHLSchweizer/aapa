@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from argparse import ArgumentParser
 from pathlib import Path
-import re
 from types import ModuleType
 from general.log import log_info, log_print
 from general.sql_coll import SQLcollectors
@@ -9,20 +8,21 @@ from plugins.plugin import PluginBase
 from process.aapa_processor.aapa_processor import AAPARunnerContext
 
 class MigrationPlugin(PluginBase):
+    def __init__(self, module: ModuleType):
+        super().__init__(module)
+        self.module_path = Path(self.module.__name__.replace('.','\\')).parent
     def log(self, msg: str):
         if self.verbose:
             log_print(msg)
         else:
             log_info(msg)
     def get_json_filename(self, module_file: str)->str:
-        MnnnPATTERN = r"^m\d\d\d_(?P<module>.*)" 
         base = Path(module_file).stem
-        if match := re.match(MnnnPATTERN, base, re.IGNORECASE):
-            base = match.group('module')
         return f'{base}.json'
     def get_parser(self)->ArgumentParser:
         parser = super().get_parser()
-        parser.add_argument('--migrate', dest='migrate', type=str,help='create SQL output from e.g. detect or student in this directory') 
+        parser.add_argument('-json', action='store_true',help='if True: create SQL output for later execution.') 
+        parser.add_argument('--json_directory', type=str,dest='json_directory', help='Alternate directory for json output. If not set, the .JSON file will be in the same directory as the plugin module') 
         parser.add_argument('-v', '--verbose', action="store_true", help='If true: logging gaat naar de console ipv het logbestand.')
         return parser
     def init_SQLcollectors(self)->SQLcollectors:
@@ -33,11 +33,14 @@ class MigrationPlugin(PluginBase):
         log_print('------------------')
         self.storage = context.configuration.storage
         self.verbose=kwdargs.get('verbose', False)
-        self.migrate_dir = kwdargs.get('migrate', None)
+        self.json = kwdargs.get('json', False)
+        self.json_path = kwdargs.get('json_directory', None)
+        if not self.json_path:
+            self.json_path = self.module_path
         self.sql=self.init_SQLcollectors()
         return True
     def after_process(self, context: AAPARunnerContext, process_result: bool):        
-        if self.migrate_dir:
-            filename = Path(self.migrate_dir).resolve().joinpath(self.get_json_filename(self.module_name))
+        if self.json:
+            filename = self.json_path.joinpath(self.get_json_filename(self.module_name))
             self.sql.dump_to_file(filename)
             log_print(f'SQL data dumped to file {filename}')      

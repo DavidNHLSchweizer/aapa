@@ -239,6 +239,7 @@ def import_json(database: Database, json_name: str, preview=False):
     sqlcolls.execute_sql(database, preview=preview)
     if not preview:
         database.commit()
+        
 
 if __name__=='__main__':      
     print ('--- testing single collector...')

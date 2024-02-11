@@ -8,8 +8,8 @@
     De resultaten worden als .json  weggeschreven.
 
     De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
-
 """
+#TODO: overzetten naar Plugin. Heeft geen haast
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Tuple

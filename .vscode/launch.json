@@ -197,12 +197,11 @@
             "justMyCode": true,
             "args": [
                 "migrate.m123.adapt_mp_dirs",
-                "-tering",
                 "-debug",
                 "-preview",
                 "-v",
                 "--onedrive=d:\\onedrive0",
-                "--migrate=.\\"
+                "-json",
             ]
         },
     ]
