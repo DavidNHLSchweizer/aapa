@@ -1,7 +1,7 @@
 from __future__ import annotations
 import gettext
-from main.options import AAPAaction
 from main.versie import banner
+from process.general.const import AAPAaction
 def __vertaling(Text):
     # dit is de enige manier (voor zover bekend) om teksten in de 'usage' aanroep (aapa.py --help)
     # in het Nederlands te vertalen
@@ -67,9 +67,6 @@ def _get_arguments(command_line_arguments:list[str]=None):
     parser = _init_parser()
     aapa_parser(parser)
     return parser.parse_args(command_line_arguments)
-
-def get_debug()->bool:
-    return _get_arguments().debug
 
 if __name__=="__main__":
     args = _get_arguments()

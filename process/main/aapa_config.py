@@ -6,8 +6,9 @@ from data.general.roots import Roots
 from general.fileutil import created_directory, file_exists, from_main_path, path_with_suffix, test_directory_exists
 from main.log import log_debug, log_error, log_info, log_print, log_warning
 from main.config import ValueConvertor, config
+from process.general.const import AAPAaction
 from process.main.initialize import initialize_database, initialize_storage
-from main.options import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
+from main.options import AAPAConfigOptions, AAPAProcessingOptions
 
 class OnedrivePathValueConvertor(ValueConvertor):
     def get(self, section_key: str, key_value: str, **kwargs)->str:

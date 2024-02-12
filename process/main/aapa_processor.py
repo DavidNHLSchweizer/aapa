@@ -1,13 +1,14 @@
 from datetime import datetime
 from general.fileutil import path_with_suffix
 from main.log import log_error, log_info, log_print, log_warning
+from process.general.const import AAPAaction
 from process.main.aapa_config import AAPAConfiguration
 from process.input.importing.import_bb_directory import import_bbdirectory
 from process.undo.undo_processor import undo_last
 from process.general.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.input.scan import process_directory, process_excel_file, process_forms
-from main.options import AAPAOptions, AAPAProcessingOptions, AAPAaction, report_options
+from main.options import AAPAOptions, AAPAProcessingOptions, report_options
 from main.versie import banner
 from main.config import config
 

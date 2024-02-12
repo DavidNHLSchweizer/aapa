@@ -10,8 +10,9 @@ from textual.widgets import Header, Footer, Button
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
 from data.general.roots import Roots
+from process.general.const import AAPAaction
 from storage.queries.undo_logs import UndoLogQueries
-from main.options import  AAPAProcessingOptions, AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
+from main.options import  AAPAProcessingOptions, AAPAOptions, ArgumentOption, get_options_from_commandline
 from main.log import log_debug, pop_console, push_console
 from main.versie import BannerPart, banner
 from process.main.aapa_config import AAPAConfiguration
