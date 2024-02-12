@@ -1,9 +1,9 @@
 import importlib
 from typing import Protocol
-from data.aapa_database import AAPaSchema, create_version_info, read_version_info
-from database.database import Database
-from database.sql_table import SQLcreateTable
-from database.table_def import TableDefinition
+from database.aapa_database import AAPaSchema, create_version_info, read_version_info
+from database.classes.database import Database
+from database.classes.sql_table import SQLcreateTable
+from database.classes.table_def import TableDefinition
 from general.fileutil import file_exists
 from general.log import init_logging
 from process.aapa_processor.initialize import initialize_database

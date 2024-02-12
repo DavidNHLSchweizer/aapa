@@ -4,7 +4,7 @@ from general.log import log_error, log_info, log_print, log_warning
 from process.aapa_processor.aapa_config import AAPAConfiguration
 from process.input.importing.import_bb_directory import import_bbdirectory
 from process.undo.undo_processor import undo_last
-from data.report_aanvragen import report_aanvragen_XLS
+from process.general.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.input.scan import process_directory, process_excel_file, process_forms
 from general.args import AAPAOptions, AAPAProcessingOptions, AAPAaction, report_options

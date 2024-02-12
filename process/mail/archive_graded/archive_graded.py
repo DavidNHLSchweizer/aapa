@@ -1,8 +1,8 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
-from data.storage.aapa_storage import AAPAStorage
+from storage.aapa_storage import AAPAStorage
 from general.fileutil import path_with_suffix, summary_string
 from general.log import log_error, log_print, log_warning
 from general.preview import pva

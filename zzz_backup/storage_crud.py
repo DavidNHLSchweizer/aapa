@@ -6,10 +6,10 @@ from data.storage.mappers import ColumnMapper, TableMapper
 from data.storage.query_builder import QIF, QueryBuilder
 from data.storage.table_registry import _class_data
 from data.storage.storage_const import DBtype, StorageException, StoredClass, KeyClass
-from database.database import Database
-from database.dbConst import EMPTY_ID
-from database.sql_expr import SQE, Ops
-from database.table_def import TableDefinition
+from database.classes.database import Database
+from database.classes.dbConst import EMPTY_ID
+from database.classes.sql_expr import SQE, Ops
+from database.classes.table_def import TableDefinition
 from general.classutil import classname
 from general.keys import get_next_key
 from general.log import log_debug

@@ -1,9 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
 import re
-from data.classes.aapa_class import AAPAclass
+from data.general.aapa_class import AAPAclass
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.name_utils import Names
 
 class BaseDir(AAPAclass):

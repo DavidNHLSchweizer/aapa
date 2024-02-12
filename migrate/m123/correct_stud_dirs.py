@@ -7,13 +7,13 @@
     
 """
 from data.classes.files import File
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
-from data.roots import Roots
-from data.storage.detail_rec_crud import DetailRecsCRUD
-from data.storage.queries.student_directories import StudentDirectoryQueries
+from data.general.roots import Roots
+from storage.general.detail_rec_crud import DetailRecsCRUD
+from storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file
 from general.log import log_info
 from general.sql_coll import SQLcollector, SQLcollectors

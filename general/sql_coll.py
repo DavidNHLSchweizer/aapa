@@ -8,7 +8,7 @@ from textwrap import TextWrapper
 import numpy as np
 from typing import Any, Iterable, Tuple
 
-from database.database import Database
+from database.classes.database import Database
 
 class SQLcollType(IntEnum):
     DELETE = auto()

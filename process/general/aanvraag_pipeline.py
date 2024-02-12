@@ -5,7 +5,7 @@ from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.undo_logs import UndoLog
 from data.classes.files import File
-from data.storage.aapa_storage import AAPAStorage
+from storage.aapa_storage import AAPAStorage
 from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_info
 from general.preview import Preview

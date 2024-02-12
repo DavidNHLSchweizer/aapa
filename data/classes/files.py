@@ -1,10 +1,10 @@
 from __future__ import annotations 
 import datetime
 from pathlib import Path
-from data.classes.aapa_class import AAPAclass
-from data.classes.aggregator import Aggregator
-from data.classes.const import FileType, MijlpaalType
-from database.dbConst import EMPTY_ID
+from data.general.aapa_class import AAPAclass
+from data.general.aggregator import Aggregator
+from data.general.const import FileType, MijlpaalType
+from database.classes.dbConst import EMPTY_ID
 from general.filehash import hash_file_digest
 from general.fileutil import summary_string
 from general.timeutil import TSC

@@ -10,7 +10,7 @@
 import datetime
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import AanvraagStatus, MijlpaalBeoordeling
+from data.general.const import AanvraagStatus, MijlpaalBeoordeling
 from general.log import log_print
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors

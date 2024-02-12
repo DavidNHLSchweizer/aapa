@@ -13,7 +13,7 @@
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Any
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
@@ -22,10 +22,10 @@ from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
-from data.roots import Roots
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.base_dirs import BaseDirQueries
-from data.storage.queries.studenten import StudentQueries
+from data.general.roots import Roots
+from storage.aapa_storage import AAPAStorage
+from storage.queries.base_dirs import BaseDirQueries
+from storage.queries.studenten import StudentQueries
 from general.fileutil import last_parts_file, test_directory_exists
 from general.log import init_logging, log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop

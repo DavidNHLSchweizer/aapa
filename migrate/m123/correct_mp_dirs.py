@@ -12,13 +12,13 @@
 
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
-from data.roots import Roots
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.student_directories import StudentDirectoryQueries
+from data.general.roots import Roots
+from storage.aapa_storage import AAPAStorage
+from storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file
 from general.log import log_warning
 from general.preview import Preview
@@ -112,7 +112,7 @@ class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
                 filestr = "\n\t\t".join([Path(file.filename).name for file in dir.files_list]) if dir.files_list else '<No files>'
                 self.log(f'\t{dir.id}-{dir.datum}: {last_parts_file(dir.directory,2)}\n\t\t{filestr}')
         for entry in self._get_all_directories().values():
-            self.log(f'{entry['student']}:')
+            self.log(f'{entry["student"]}:')
             stud_dir: StudentDirectory = entry['stud_dir']
             self.log(f'\tStudent Directory ({stud_dir.id}): {last_parts_file(stud_dir.directory)} ({stud_dir.status}).')
             dump_info('before', entry['dirs'])

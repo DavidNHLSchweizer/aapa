@@ -1,5 +1,5 @@
 
-from data.classes.const import FileType, MijlpaalType
+from data.general.const import FileType, MijlpaalType
 from process.input.importing.filename_parser import AanvraagDetector, EindBeoordelingDetector, EindVerslagDetector, FileTypeDetector, FilenameDetector, OnderzoeksVerslagDetector, PlanVanAanpakDetector, PresentatieBeoordelingDetector, ProductBeoordelingDetector, TechnischVerslagDetector
 
 # deze testcases komen allemaal voor in de huidige directories

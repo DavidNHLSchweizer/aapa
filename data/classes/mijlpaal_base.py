@@ -1,11 +1,11 @@
 from __future__ import annotations
 import datetime
-from data.classes.aapa_class import AAPAclass
+from data.general.aapa_class import AAPAclass
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import MijlpaalType, MijlpaalBeoordeling
+from data.general.const import MijlpaalType, MijlpaalBeoordeling
 from data.classes.files import File, Files
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
 class MijlpaalBase(AAPAclass):            

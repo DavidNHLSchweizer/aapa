@@ -1,6 +1,6 @@
 from __future__ import annotations
-from data.classes.aapa_class import AAPAclass
-from database.dbConst import EMPTY_ID
+from data.general.aapa_class import AAPAclass
+from database.classes.dbConst import EMPTY_ID
 
 class Bedrijf(AAPAclass):        
     def __init__(self, name: str, id = EMPTY_ID):

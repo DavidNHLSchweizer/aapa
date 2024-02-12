@@ -1,9 +1,9 @@
 from typing import Iterable, Tuple
 from data.classes.aanvragen import Aanvraag
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.files import FileStorageAnalyzer, FilesQueries
+from storage.aapa_storage import AAPAStorage
+from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists, summary_string
 from general.log import log_debug, log_error, log_print, log_warning
 from process.general.base_processor import FileProcessor

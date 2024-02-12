@@ -1,9 +1,9 @@
 from __future__ import annotations
 import datetime
 
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.mijlpaal_base import MijlpaalBase
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 from general.timeutil import TSC
 

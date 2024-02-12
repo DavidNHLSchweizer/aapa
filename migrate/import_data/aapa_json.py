@@ -1,5 +1,5 @@
 import argparse
-from data.aapa_database import DBVERSION
+from database.aapa_database import DBVERSION
 from migrate.migrate import init_database
 from general.sql_coll import SQLcollectors
 from general.log import init_logging

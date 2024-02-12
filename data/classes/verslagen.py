@@ -2,10 +2,10 @@ from __future__ import annotations
 import datetime
 from enum import IntEnum
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import _UNKNOWN, MijlpaalBeoordeling, MijlpaalType, VerslagStatus
+from data.general.const import _UNKNOWN, MijlpaalBeoordeling, MijlpaalType, VerslagStatus
 from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
 class Verslag(MijlpaalGradeable):

@@ -16,12 +16,12 @@ from typing import Tuple
 from typing import Any
 
 from data.classes.base_dirs import BaseDir
-from data.classes.mappers import ColumnMapper, FilenameColumnMapper, ObjectMapper
+from storage.general.mappers import ColumnMapper, FilenameColumnMapper, ObjectMapper
 from data.classes.undo_logs import UndoLog
 from general.sql_coll import SQLcollector, SQLcollectors
-from data.roots import Roots
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.base_dirs import BaseDirQueries
+from data.general.roots import Roots
+from storage.aapa_storage import AAPAStorage
+from storage.queries.base_dirs import BaseDirQueries
 from general.log import init_logging, log_error, log_info, log_print, log_warning
 from general.preview import Preview, pva
 from general.singular_or_plural import sop

@@ -4,10 +4,10 @@
     De code is bedoeld voor de migratie naar database versie 1.23
 
 """
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.studenten import Student
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.student_directories import StudentDirectoryQueries
+from storage.aapa_storage import AAPAStorage
+from storage.queries.student_directories import StudentDirectoryQueries
 from general.log import log_warning
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin

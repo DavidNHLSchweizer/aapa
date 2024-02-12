@@ -1,7 +1,7 @@
 from pathlib import Path
-import data.aapa_database as db
-from database.database import Database
-from data.storage.aapa_storage import AAPAStorage
+import database.aapa_database as db
+from database.classes.database import Database
+from storage.aapa_storage import AAPAStorage
 from general.fileutil import file_exists
 from general.log import log_error
 

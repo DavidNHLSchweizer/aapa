@@ -1,15 +1,15 @@
 from __future__ import annotations
 from ast import Tuple
 import datetime
-from data.classes.aapa_class import AAPAclass
-from data.classes.aggregator import Aggregator
+from data.general.aapa_class import AAPAclass
+from data.general.aggregator import Aggregator
 from data.classes.base_dirs import BaseDir
-from data.classes.const import MijlpaalType, StudentDirectoryStatus
+from data.general.const import MijlpaalType, StudentDirectoryStatus
 from data.classes.files import File
 from data.classes.mijlpaal_base import MijlpaalBase
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.log import log_warning
 
 

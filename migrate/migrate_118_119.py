@@ -1,14 +1,14 @@
 from enum import IntEnum
-from data.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, FilesTableDefinition, \
+from database.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, FilesTableDefinition, \
                             StudentTableDefinition, UndoLogTableDefinition
-from data.classes.const import AanvraagStatus, MijlpaalType
+from data.general.const import AanvraagStatus, MijlpaalType
 from data.classes.files import File
-from database.sql_table import SQLcreateTable
-from database.database import Database
-from database.sql_view import SQLcreateView
-from database.table_def import TableDefinition
+from database.classes.sql_table import SQLcreateTable
+from database.classes.database import Database
+from database.classes.sql_view import SQLcreateView
+from database.classes.table_def import TableDefinition
 from general.name_utils import Names
-import database.dbConst as dbc
+import database.classes.dbConst as dbc
 from general.timeutil import TSC
 
 # Wijzigingen in 1.19 voor migratie:

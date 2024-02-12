@@ -6,7 +6,7 @@
 """
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
-from data.storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file
 from general.log import log_warning
 from general.sql_coll import SQLcollector, SQLcollectors

@@ -3,7 +3,7 @@ from ast import Tuple
 
 from pathlib import Path
 import re
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
 
 class FilenameDetector:

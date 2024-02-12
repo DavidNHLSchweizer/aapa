@@ -1,7 +1,7 @@
 from pathlib import Path
 from data.classes.verslagen import Verslag
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.verslagen import VerslagQueries
+from storage.aapa_storage import AAPAStorage
+from storage.queries.verslagen import VerslagQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.log import log_debug, log_error, log_print, log_info
 from general.preview import pva

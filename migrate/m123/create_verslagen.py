@@ -9,13 +9,13 @@
 
 """
 from data.classes.aanvragen import Aanvraag
-from data.classes.const import FileType
+from data.general.const import FileType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
-from data.storage.queries.aanvragen import AanvraagQueries
-from data.storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.student_directories import StudentDirectoryQueries
 from general.log import log_info, log_warning
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors

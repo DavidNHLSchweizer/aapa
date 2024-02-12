@@ -1,9 +1,9 @@
 from enum import IntEnum
-from data.aapa_database import ActionLogFilesTableDefinition
+from database.aapa_database import ActionLogFilesTableDefinition
 from data.classes.files import File
-from database.sql_table import SQLcreateTable
-from database.database import Database
-from database.table_def import ForeignKeyAction
+from database.classes.sql_table import SQLcreateTable
+from database.classes.database import Database
+from database.classes.table_def import ForeignKeyAction
 from data.classes.aanvragen import Aanvraag
 
 # Wijzigingen in 1.18 voor migratie:

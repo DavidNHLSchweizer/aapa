@@ -1,9 +1,9 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.aanvragen import AanvraagQueries
+from storage.aapa_storage import AAPAStorage
+from storage.queries.aanvragen import AanvraagQueries
 from general.fileutil import file_exists, safe_file_name, summary_string
 from general.log import log_print
 from general.preview import pva

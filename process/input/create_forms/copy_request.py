@@ -1,7 +1,7 @@
 from pathlib import Path
 import shutil
 from data.classes.aanvragen import Aanvraag
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
 from general.fileutil import file_exists, safe_file_name, summary_string
 from general.log import log_debug, log_print

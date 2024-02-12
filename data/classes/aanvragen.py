@@ -2,11 +2,11 @@ from __future__ import annotations
 import datetime
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import AanvraagStatus, MijlpaalType
+from data.general.const import AanvraagStatus, MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 
 class Aanvraag(MijlpaalGradeable):
     Beoordeling = MijlpaalGradeable.Beoordeling

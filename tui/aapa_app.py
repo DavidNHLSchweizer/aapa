@@ -9,8 +9,8 @@ from textual.message import Message
 from textual.widgets import Header, Footer, Button
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
-from data.roots import Roots
-from data.storage.queries.undo_logs import UndoLogQueries
+from data.general.roots import Roots
+from storage.queries.undo_logs import UndoLogQueries
 from general.args import  AAPAProcessingOptions, AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
 from general.log import log_debug, pop_console, push_console
 from general.versie import BannerPart, banner

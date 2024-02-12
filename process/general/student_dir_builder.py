@@ -2,16 +2,16 @@ import datetime
 from pathlib import Path
 from typing import Tuple
 from data.classes.base_dirs import BaseDir
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.general.storage_const import StorageException
-from data.storage.queries.base_dirs import BaseDirQueries
-from data.storage.queries.student_directories import StudentDirectoryQueries
-from data.storage.queries.studenten import StudentQueries
+from storage.aapa_storage import AAPAStorage
+from storage.general.storage_const import StorageException
+from storage.queries.base_dirs import BaseDirQueries
+from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.studenten import StudentQueries
 from general.fileutil import last_parts_file
 from general.log import log_error, log_print, log_warning
 

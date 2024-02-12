@@ -1,7 +1,7 @@
 from __future__ import annotations
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.storage.aapa_storage import AAPAStorage
+from storage.aapa_storage import AAPAStorage
 from process.general.base_processor import BaseProcessor, FileProcessor
 
 class AanvraagProcessor(BaseProcessor):

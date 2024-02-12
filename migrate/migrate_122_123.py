@@ -1,10 +1,10 @@
 from enum import Enum, auto
-from data.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectoryTableDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
+from database.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectoryTableDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
 from data.classes.student_directories import StudentDirectory
 from migrate.migrate import modify_table
-from database.sql_view import SQLcreateView
+from database.classes.sql_view import SQLcreateView
 from general.sql_coll import import_json
-from database.database import Database
+from database.classes.database import Database
 
 class JsonData:
     class KEY(Enum):

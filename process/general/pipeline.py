@@ -4,8 +4,8 @@ from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.undo_logs import UndoLog
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.general.storage_const import StoredClass
+from storage.aapa_storage import AAPAStorage
+from storage.general.storage_const import StoredClass
 from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
 from general.fileutil import summary_string
 from general.log import log_debug, log_error

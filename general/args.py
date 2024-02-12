@@ -2,7 +2,7 @@ from __future__ import annotations
 from enum import Enum, auto
 
 import gettext
-from data.roots import Roots
+from data.general.roots import Roots
 from general.log import log_error
 from general.versie import banner
 def __vertaling(Text):

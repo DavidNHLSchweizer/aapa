@@ -2,17 +2,17 @@ from pathlib import Path
 from time import sleep
 from typing import Iterable
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.aanvragen import AanvraagQueries
-from data.storage.queries.files import FilesQueries
-from data.storage.queries.student_directories import StudentDirectoryQueries
-from data.storage.queries.studenten import StudentQueries
+from storage.aapa_storage import AAPAStorage
+from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.files import FilesQueries
+from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.studenten import StudentQueries
 from general.fileutil import file_exists, last_parts_file
 from general.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.student_dir_builder import StudentDirectoryBuilder

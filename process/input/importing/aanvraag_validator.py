@@ -3,9 +3,9 @@ from copy import deepcopy
 import tkinter.simpledialog as tksimp
 from data.classes.aanvragen import Aanvraag
 from data.classes.studenten import Student
-from data.storage.aapa_storage import AAPAStorage
-from data.storage.queries.aanvragen import AanvraagQueries
-from data.storage.queries.studenten import StudentQueries
+from storage.aapa_storage import AAPAStorage
+from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.studenten import StudentQueries
 from general.log import log_error, log_warning
 from general.valid_email import is_valid_email, try_extract_email
 from process.general.pdf_aanvraag_reader import is_valid_title

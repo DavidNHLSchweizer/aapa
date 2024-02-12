@@ -1,5 +1,5 @@
 from pathlib import Path
-from data.roots import BASEPATH, OneDriveCoder, Roots
+from data.general.roots import BASEPATH, OneDriveCoder, Roots
 
 onedrive_root = Roots.get_onedrive_root()
 onedrive_base = onedrive_root.joinpath(BASEPATH)

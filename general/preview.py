@@ -1,4 +1,4 @@
-from data.storage.aapa_storage import AAPAStorage
+from storage.aapa_storage import AAPAStorage
 from general.log import console_info
 class Preview:
     # preview context manager, may be nested

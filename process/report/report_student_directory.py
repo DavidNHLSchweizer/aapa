@@ -1,5 +1,5 @@
 from data.classes.student_directories import StudentDirectory
-from data.storage.aapa_storage import AAPAStorage
+from storage.aapa_storage import AAPAStorage
 
 
 class StudentDirectoryReporter:
