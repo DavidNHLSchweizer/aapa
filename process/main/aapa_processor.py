@@ -7,7 +7,7 @@ from process.undo.undo_processor import undo_last
 from process.general.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.input.scan import process_directory, process_excel_file, process_forms
-from main.args import AAPAOptions, AAPAProcessingOptions, AAPAaction, report_options
+from main.options import AAPAOptions, AAPAProcessingOptions, AAPAaction, report_options
 from main.versie import banner
 from main.config import config
 

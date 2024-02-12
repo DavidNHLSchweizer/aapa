@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.widgets import Static, RadioSet, RadioButton
 from textual.containers import Horizontal
-from main.args import AAPAProcessingOptions
+from main.options import AAPAProcessingOptions
 from tui.general.utils import id2selector
 from tui.common import BASE_CSS, MISSINGHELP, ProcessingModeChanged, ToolTips
 

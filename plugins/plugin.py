@@ -29,7 +29,7 @@ import sys
 from types import ModuleType
 from typing import Type
 
-from main.args import AAPAConfigOptions, AAPAProcessingOptions, _get_options_from_commandline, aapa_parser
+from main.options import AAPAConfigOptions, AAPAProcessingOptions, _get_options_from_commandline, aapa_parser
 from main.log import init_logging, log_warning
 from process.main.aapa_config import AAPAConfiguration
 from process.main.aapa_processor import AAPARunnerContext

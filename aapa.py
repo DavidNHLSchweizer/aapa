@@ -1,4 +1,4 @@
-from main.args import AAPAConfigOptions, AAPAProcessingOptions, ArgumentOption, get_options_from_commandline, get_debug
+from main.options import AAPAConfigOptions, AAPAProcessingOptions, ArgumentOption, get_options_from_commandline, get_debug
 from main.log import init_logging
 from process.general.preview import Preview
 from process.main.aapa_config import AAPAConfiguration, LOGFILENAME

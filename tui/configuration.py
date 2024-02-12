@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.widgets import Static, Button, Switch, TabbedContent, TabPane, Input
-from main.args import AAPAProcessingOptions, ArgumentOption, get_options_from_commandline
+from main.options import AAPAProcessingOptions, ArgumentOption, get_options_from_commandline
 
 from main.config import config
 from tui.general.labeled_input import LabeledInput

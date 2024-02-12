@@ -7,7 +7,7 @@ from general.fileutil import created_directory, file_exists, from_main_path, pat
 from main.log import log_debug, log_error, log_info, log_print, log_warning
 from main.config import ValueConvertor, config
 from process.main.initialize import initialize_database, initialize_storage
-from main.args import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
+from main.options import AAPAConfigOptions, AAPAProcessingOptions, AAPAaction
 
 class OnedrivePathValueConvertor(ValueConvertor):
     def get(self, section_key: str, key_value: str, **kwargs)->str:

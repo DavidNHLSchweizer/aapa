@@ -136,18 +136,24 @@ class BBZipFileReader(ZipFileReader):
         #dit moet omdat Blackboard bestandsnamen soms op onduidelijke manier verhaspelt
         #in de assignment file (.txt) staat echter de correcte originele filename
         #deze methode leest de assignment file en geeft een dict terug met daarin de koppeling met de originele filenaam 
-        PATTERN1 = rf'.*Original filename: (?P<original_filename>.*)\n' #de "echte" filenaam
-        PATTERN2 = rf'.*Filename: (?P<filename>.*)\n' #de filenaam zoals in de zip, soms met vreemde hex-tekens er in
+        ori_names = ['Original filename', 'Oorspronkelijke bestandsnaam']
+        def get_pattern1(ori_name: str)->str:
+            return rf'.*{ori_name}: (?P<original_filename>.*)\n' #de "echte" filenaam
+        def get_pattern2(ori_name: str)->str:
+            name = ori_name.split()[-1]
+            return rf'.*{name}: (?P<filename>.*)\n' #de filenaam zoals in de zip, soms met vreemde hex-tekens er in
+
         filenames = []
         original_filenames = []
         with ZipFile(zip_filename) as zipfile:  
-            pattern1 = re.compile(PATTERN1,re.IGNORECASE)
-            pattern2 = re.compile(PATTERN2,re.IGNORECASE)
-            for line in zipfile.open(txt_filename):
-                if match:=pattern1.match(str(line, 'utf-8')):
-                    original_filenames.append(match.group('original_filename'))
-                elif match:=pattern2.match(str(line, 'utf-8')):
-                    filenames.append(match.group('filename'))
+            for ori_name in ori_names:
+                pattern1 = re.compile(get_pattern1(ori_name),re.IGNORECASE)
+                pattern2 = re.compile(get_pattern2(ori_name),re.IGNORECASE)
+                for line in zipfile.open(txt_filename):
+                    if match:=pattern1.match(str(line, 'utf-8')):
+                        original_filenames.append(match.group('original_filename'))
+                    elif match:=pattern2.match(str(line, 'utf-8')):
+                        filenames.append(match.group('filename'))
         return {filename: original_filename for (filename,original_filename) in zip(filenames,original_filenames)}
     def _find_original_path(self, zip_filename: str, txt_filename: str, filename_in_zip: str)->str:
         return self._find_original_files(zip_filename, txt_filename).get(filename_in_zip,filename_in_zip)
