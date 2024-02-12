@@ -1,3 +1,10 @@
+""" DetailRec: uniform definition of detail records 
+
+    Maps any detail table (with only [master_id,detail_id]) to a datarecord
+
+    Used for storage.details_crud en storage.extended_crud to read/write any 
+    AAPA objects stored in an Aggregator from/to the database
+"""
 from dataclasses import dataclass
 from typing import Type
 

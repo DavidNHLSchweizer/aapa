@@ -6,7 +6,7 @@ from data.general.detail_rec import DetailRecData
 from storage.general.mappers import ColumnMapper
 from storage.general.table_mapper import TableMapper
 from storage.general.query_builder import QIF, QueryBuilder
-from storage.general.storage_const import DBtype, KeyClass, StorageException, StoredClass
+from storage.general.storage_const import DATA_CLASSES, STORAGE_CLASSES, DBtype, KeyClass, StorageException, StoredClass
 from database.classes.database import Database
 from database.classes.dbConst import EMPTY_ID
 from database.classes.sql_expr import SQE, Ops
@@ -345,7 +345,7 @@ class CRUDRegistry(Singleton):
                         autoID=True, 
                         main=True):
         self.__check_valid(class_type, False)
-        module_name = classmodule(class_type).replace('data.classes','storage.classes') if main else ''            
+        module_name = classmodule(class_type).replace(DATA_CLASSES,STORAGE_CLASSES) if main else ''            
         self._registered_data[class_type] = ClassRegistryData(table=table,                                                                
                                                               mapper_type = mapper_type, 
                                                               crud=crud,  

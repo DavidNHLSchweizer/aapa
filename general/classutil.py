@@ -4,6 +4,8 @@ from typing import Any, Tuple, Type
 import importlib
 from pathlib import Path
 
+from storage.general.storage_const import STORAGE_CLASSES
+
 def __parse_class(o: object)->Tuple[str,str]:
     CLASSPATTERN = r"\<class '(?P<root>.*)\.(?P<CLS>.*)'\>"
     type_str = str(o) if isinstance(o,type) else str(o.__class__)
@@ -73,10 +75,10 @@ def find_all_modules(root: str, import_as_well = False)->list[str]:
 
 
 if __name__ == "__main__":
-    for full_module_name in find_all_modules("data.storage.classes", False):
+    for full_module_name in find_all_modules(STORAGE_CLASSES, False):
         module_name = full_module_name.split(".")[-1]        
         print(module_name)
         x = getattr(full_module_name, 'register_crud', None)
         print(x)
 
-        # print(find_all_modules("data.storage.classes"))
+        # print(find_all_modules(STORAGE_CLASSES))

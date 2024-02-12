@@ -7,3 +7,5 @@ KeyClass = int|str
 
 class StorageException(Exception): pass
 
+STORAGE_CLASSES='storage.classes'
+DATA_CLASSES='data.classes'

@@ -6,9 +6,8 @@ from typing import Any
 from database.aapa_database import create_root
 from data.general.aapa_class import AAPAclass
 from data.classes.base_dirs import BaseDir
-from data.general.detail_rec import DetailRec
 from storage.general.CRUDs import CRUD, CRUDQueries, EnsureKeyAction, create_crud, get_registered_type
-from storage.general.storage_const import KeyClass, StorageException, StoredClass
+from storage.general.storage_const import STORAGE_CLASSES, KeyClass, StorageException, StoredClass
 from database.classes.database import Database
 from data.general.roots import Roots
 from general.classutil import classname, find_all_modules
@@ -22,12 +21,12 @@ class AAPAStorage:
         self._class_index: dict[AAPAclass,CRUD] = {}
         self.__init_modules()
     def __init_modules(self):
-        #initialize the crud variables from the actual modules in the storage.classes directory
+        #initialize the crud variables from the actual modules in the STORAGE_CLASSES directory
         #uses some neat tricks with python types, if load_as_well is not set to True the module loading order is 
         #f'ed up and we get unwanted errors. 
         # NOTE: its looks like force-importing the modules takes a relatively long time, 
         # but this can't be helped easily and anyway, they must be loaded at some point
-        for full_module_name in find_all_modules("storage.classes", True):
+        for full_module_name in find_all_modules(STORAGE_CLASSES, True):
             module_name = full_module_name.split(".")[-1]
             if (class_type := get_registered_type(full_module_name)):
                 crud = create_crud(self.database, class_type)
