@@ -4,7 +4,7 @@ import datetime
 from dataclasses import dataclass
 from enum import Enum
 
-from general.config import config
+from main.config import config
 
 AAPAVERSION = '1.34'
 @dataclass

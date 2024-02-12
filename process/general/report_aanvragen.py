@@ -3,13 +3,13 @@ from enum import Enum
 import pandas as pd
 from data.classes.undo_logs import UndoLog
 from general.deep_attr import get_deep_attr
-from general.log import log_print
+from main.log import log_print
 from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.general.aanvraag_processor import AanvraagProcessor
 from data.classes.aanvragen import Aanvraag
 from storage.aapa_storage import AAPAStorage
 from general.fileutil import writable_filename
-from general.config import config
+from main.config import config
 
 DEFAULTFILENAME = 'aanvragen.xlsx'
 def init_config():

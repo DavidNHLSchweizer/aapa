@@ -7,8 +7,8 @@ from data.classes.undo_logs import UndoLog
 from data.classes.files import File
 from storage.aapa_storage import AAPAStorage
 from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
-from general.log import log_debug, log_error, log_info
-from general.preview import Preview
+from main.log import log_debug, log_error, log_info
+from process.general.preview import Preview
 from process.general.aanvraag_processor import AanvraagCreator, AanvraagProcessor
 from process.general.pipeline import FilePipeline, Pipeline
 

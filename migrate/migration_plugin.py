@@ -2,10 +2,10 @@ from abc import abstractmethod
 from argparse import ArgumentParser
 from pathlib import Path
 from types import ModuleType
-from general.log import log_info, log_print
+from main.log import log_info, log_print
 from general.sql_coll import SQLcollectors
 from plugins.plugin import PluginBase
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class MigrationPlugin(PluginBase):
     def __init__(self, module: ModuleType):

@@ -39,7 +39,7 @@ from pathlib import Path
 import re
 from typing import Tuple
 from general.keys import get_next_key, reset_key
-from general.log import log_debug
+from main.log import log_debug
 from general.onedrive import find_onedrive_path
 from general.singleton import Singleton
 

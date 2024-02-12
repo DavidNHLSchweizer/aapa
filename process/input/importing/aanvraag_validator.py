@@ -6,7 +6,7 @@ from data.classes.studenten import Student
 from storage.aapa_storage import AAPAStorage
 from storage.queries.aanvragen import AanvraagQueries
 from storage.queries.studenten import StudentQueries
-from general.log import log_error, log_warning
+from main.log import log_error, log_warning
 from general.valid_email import is_valid_email, try_extract_email
 from process.general.pdf_aanvraag_reader import is_valid_title
 

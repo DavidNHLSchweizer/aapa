@@ -1,5 +1,5 @@
 from storage.aapa_storage import AAPAStorage
-from general.log import console_info
+from main.log import console_info
 class Preview:
     # preview context manager, may be nested
     level = 0

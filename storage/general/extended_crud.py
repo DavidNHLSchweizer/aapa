@@ -3,7 +3,7 @@ from storage.general.detail_rec_crud import DetailRecsCRUD
 from storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.classes.database import Database
 from general.classutil import classname
-from general.log import log_debug
+from main.log import log_debug
 
 class ExtendedCRUD(CRUD):
     def __init__(self, database: Database, class_type: StoredClass):

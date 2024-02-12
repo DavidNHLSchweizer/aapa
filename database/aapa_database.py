@@ -14,9 +14,9 @@ from database.classes.database import Database, Schema
 import database.classes.dbConst as dbc
 from database.classes.view_def import ViewDefinition
 from general.keys import reset_key
-from general.config import config
-from general.log import log_debug, log_error, log_info, log_warning
-from general.versie import Versie
+from main.config import config
+from main.log import log_debug, log_error, log_info, log_warning
+from main.versie import Versie
 from data.general.roots import Roots
 
 class AAPaException(Exception): pass

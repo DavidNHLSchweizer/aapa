@@ -15,11 +15,11 @@ from data.classes.files import File
 from storage.queries.aanvragen import AanvraagQueries
 from storage.queries.studenten import StudentQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
-from general.log import log_debug, log_error, log_print, log_warning, log_info
+from main.log import log_debug, log_error, log_print, log_warning, log_info
 from general.pdutil import nrows
-from general.preview import pva
+from process.general.preview import pva
 from general.singular_or_plural import sop
-from general.config import IntValueConvertor, config
+from main.config import IntValueConvertor, config
 from general.fileutil import created_directory, last_parts_file, safe_file_name, set_file_time, test_directory_exists
 from general.strutil import replace_all
 from general.timeutil import TSC

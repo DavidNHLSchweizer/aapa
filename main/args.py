@@ -3,8 +3,8 @@ from enum import Enum, auto
 
 import gettext
 from data.general.roots import Roots
-from general.log import log_error
-from general.versie import banner
+from main.log import log_error
+from main.versie import banner
 def __vertaling(Text):
     # dit is de enige manier (voor zover bekend) om teksten in de 'usage' aanroep (aapa.py --help)
     # in het Nederlands te vertalen
@@ -16,7 +16,7 @@ def __vertaling(Text):
 gettext.gettext = __vertaling
 import argparse
 
-from general.config import config
+from main.config import config
 
 class ArgumentsException(Exception): pass
 

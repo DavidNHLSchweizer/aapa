@@ -5,7 +5,7 @@ from data.classes.files import File
 from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists, summary_string
-from general.log import log_debug, log_error, log_print, log_warning
+from main.log import log_debug, log_error, log_print, log_warning
 from process.general.base_processor import FileProcessor
 from process.general.pdf_aanvraag_reader import PDFReaderException
 from process.general.student_dir_builder import StudentDirectoryBuilder

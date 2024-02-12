@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import re
-from general.config import config
+from main.config import config
 from general.singleton import Singleton
 
 @dataclass

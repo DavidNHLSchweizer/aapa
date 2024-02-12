@@ -3,7 +3,7 @@ from data.classes.verslagen import Verslag
 from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists, summary_string
-from general.log import log_debug, log_error, log_info, log_print, log_warning
+from main.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.base_processor import FileProcessor
 from process.input.importing.aanvraag_importer import ImportException
 

@@ -1,6 +1,6 @@
 from textual.message import Message
-from general.args import AAPAConfigOptions, AAPAOptions, AAPAProcessingOptions, AAPAaction, ArgumentOption, get_options_from_commandline
-from general.log import log_debug
+from main.args import AAPAConfigOptions, AAPAOptions, AAPAProcessingOptions, AAPAaction, ArgumentOption, get_options_from_commandline
+from main.log import log_debug
 
 BASE_CSS = """
     $BARBIE: rgb(224,33,138); /* e0218a */

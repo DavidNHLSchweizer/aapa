@@ -7,10 +7,10 @@
     
 """
 from argparse import ArgumentParser
-from general.log import log_error, log_print
+from main.log import log_error, log_print
 from general.sql_coll import import_json
 from plugins.plugin import PluginBase
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class JSONprocessor(PluginBase):
     def get_parser(self) -> ArgumentParser:

@@ -9,7 +9,7 @@ from database.classes.sql_view import SQLcreateView, SQLdropView, SQLselectView
 from database.classes.sql_table import SQLTablebase, SQLdelete, SQLinsert, SQLselect, SQLupdate, SQLcreateTable, SQLdropTable
 from database.classes.sql_expr import Ops, SQE
 from general.fileutil import file_exists
-from general.log import log_debug, log_error, log_exception, log_info
+from main.log import log_debug, log_error, log_exception, log_info
 from general.singular_or_plural import sop
 
 class DatabaseException(Exception): pass

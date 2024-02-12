@@ -2,7 +2,7 @@ from textual.app import ComposeResult
 from textual.widgets import Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal
 from data.classes.undo_logs import UndoLog
-from general.log import log_debug
+from main.log import log_debug
 
 from tui.general.button_bar import ButtonBar, ButtonDef
 from tui.general.utils import id2selector

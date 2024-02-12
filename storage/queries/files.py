@@ -4,7 +4,7 @@ from enum import Enum, auto
 from data.classes.files import File
 from storage.general.CRUDs import CRUD, CRUDQueries
 from storage.general.storage_const import StorageException
-from general.log import log_debug
+from main.log import log_debug
 
 class FileStorageAnalyzer:
     class Status(Enum):

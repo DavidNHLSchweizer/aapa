@@ -8,10 +8,10 @@ from data.general.const import MijlpaalType
 from data.classes.studenten import Student
 from storage.aapa_storage import AAPAStorage
 from storage.queries.student_directories import StudentDirectoryQueries
-from general.log import log_warning
+from main.log import log_warning
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class MijlpalenKansProcessor(MigrationPlugin):
     def init_SQLcollectors(self)->SQLcollectors:

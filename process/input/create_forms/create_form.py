@@ -2,10 +2,10 @@ from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.general.const import MijlpaalType
 from data.classes.files import File
-from general.log import log_error, log_exception, log_print
+from main.log import log_error, log_exception, log_print
 from general.fileutil import file_exists, safe_file_name
 from mailmerge import MailMerge
-from general.preview import pva
+from process.general.preview import pva
 from general.timeutil import TSC
 from process.general.aanvraag_processor import AanvraagProcessor
 

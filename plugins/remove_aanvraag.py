@@ -6,10 +6,10 @@
 """
 from argparse import ArgumentParser
 from data.classes.aanvragen import Aanvraag
-from general.log import log_print
+from main.log import log_print
 from general.sql_coll import SQLcollector, SQLcollectors
 from plugins.plugin import PluginBase
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class RemoverException(Exception):pass
 

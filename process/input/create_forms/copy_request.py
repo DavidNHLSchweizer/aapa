@@ -4,8 +4,8 @@ from data.classes.aanvragen import Aanvraag
 from data.general.const import MijlpaalType
 from data.classes.files import File
 from general.fileutil import file_exists, safe_file_name, summary_string
-from general.log import log_debug, log_print
-from general.preview import pva
+from main.log import log_debug, log_print
+from process.general.preview import pva
 from process.general.aanvraag_processor import AanvraagProcessor
 
 

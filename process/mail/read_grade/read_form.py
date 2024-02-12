@@ -2,7 +2,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.studenten import Student
 from general.fileutil import file_exists, summary_string
-from general.log import log_error, log_print, log_warning
+from main.log import log_error, log_print, log_warning
 from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.beoordeling import GradeForm, aanvraag_beoordeling
 

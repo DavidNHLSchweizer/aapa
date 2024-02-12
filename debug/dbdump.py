@@ -3,7 +3,7 @@ from typing import Any
 from database.classes.database import Database, Schema
 from database.classes.sql_table import SQLselect
 from database.classes.table_def import TableDefinition
-from general.log import log_info
+from main.log import log_info
 
 class DatabaseDumper:
     def __init__(self, database: Database):

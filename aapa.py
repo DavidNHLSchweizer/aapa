@@ -1,8 +1,8 @@
-from general.args import AAPAConfigOptions, AAPAProcessingOptions, ArgumentOption, get_options_from_commandline, get_debug
-from general.log import init_logging
-from general.preview import Preview
-from process.aapa_processor.aapa_config import AAPAConfiguration, LOGFILENAME
-from process.aapa_processor.aapa_processor import AAPAProcessor, AAPARunnerContext
+from main.args import AAPAConfigOptions, AAPAProcessingOptions, ArgumentOption, get_options_from_commandline, get_debug
+from main.log import init_logging
+from process.general.preview import Preview
+from process.main.aapa_config import AAPAConfiguration, LOGFILENAME
+from process.main.aapa_processor import AAPAProcessor, AAPARunnerContext
 
 class AAPARunner:
     def __init__(self, config_options: AAPAConfigOptions):

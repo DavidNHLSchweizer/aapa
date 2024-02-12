@@ -11,11 +11,11 @@ import datetime
 from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.general.const import AanvraagStatus, MijlpaalBeoordeling
-from general.log import log_print
+from main.log import log_print
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class AanvragenFabricator(MigrationPlugin):
     def init_SQLcollectors(self) -> SQLcollectors:

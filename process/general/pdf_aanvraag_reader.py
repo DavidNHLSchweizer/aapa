@@ -5,8 +5,8 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
 from data.classes.files import File
 from data.classes.studenten import Student
-from general.config import  IntValueConvertor, ListValueConvertor, ValueConvertor, config
-from general.log import log_debug
+from main.config import  IntValueConvertor, ListValueConvertor, ValueConvertor, config
+from main.log import log_debug
 
 class TitleRegexConvertor(ValueConvertor):
 # De titel vd aanvraag is te bepalen door een pattern aan het begin en eind te matchen.

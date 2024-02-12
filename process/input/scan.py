@@ -2,15 +2,15 @@ from data.classes.undo_logs import UndoLog
 from storage.queries.base_dirs import BaseDirQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from general.fileutil import created_directory, from_main_path, test_directory_exists
-from general.log import log_debug, log_error, log_info, log_print, log_warning
-from general.preview import Preview, pva
+from main.log import log_debug, log_error, log_info, log_print, log_warning
+from process.general.preview import Preview, pva
 from general.singular_or_plural import sop
 from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.input.create_forms.copy_request import CopyAanvraagProcessor
 from process.input.create_forms.create_diff_file import DifferenceProcessor
 from process.input.create_forms.create_form import FormCreator
 from process.input.importing.import_directory import import_directory
-from general.config import config
+from main.config import config
 from storage.aapa_storage import AAPAStorage
 from process.input.importing.import_excel_aanvragen import import_excel_file
 

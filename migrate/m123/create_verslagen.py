@@ -16,11 +16,11 @@ from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from storage.queries.aanvragen import AanvraagQueries
 from storage.queries.student_directories import StudentDirectoryQueries
-from general.log import log_info, log_warning
+from main.log import log_info, log_warning
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class VerslagenReEngineeringProcessor(MigrationPlugin):
     def init_SQLcollectors(self)->SQLcollectors:

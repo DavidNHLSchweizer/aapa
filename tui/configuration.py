@@ -1,8 +1,8 @@
 from textual.app import ComposeResult
 from textual.widgets import Static, Button, Switch, TabbedContent, TabPane, Input
-from general.args import AAPAProcessingOptions, ArgumentOption, get_options_from_commandline
+from main.args import AAPAProcessingOptions, ArgumentOption, get_options_from_commandline
 
-from general.config import config
+from main.config import config
 from tui.general.labeled_input import LabeledInput
 from tui.general.utils import Required
 from tui.general.utils import id2selector

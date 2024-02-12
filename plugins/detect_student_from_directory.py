@@ -20,18 +20,18 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from general.preview import Preview
+from process.general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
 from data.general.roots import Roots
 from storage.aapa_storage import AAPAStorage
 from storage.queries.base_dirs import BaseDirQueries
 from storage.queries.studenten import StudentQueries
 from general.fileutil import last_parts_file, test_directory_exists
-from general.log import init_logging, log_debug, log_error, log_info, log_print, log_warning
+from main.log import init_logging, log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
 from general.timeutil import TSC
 from plugins.plugin import PluginBase
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 from process.general.base_processor import FileProcessor
 from process.general.pipeline import FilePipeline
 from process.input.importing.dirname_parser import DirectoryNameParser

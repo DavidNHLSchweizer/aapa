@@ -12,7 +12,7 @@ from database.classes.sql_expr import SQE, Ops
 from database.classes.table_def import TableDefinition
 from general.classutil import classname
 from general.keys import get_next_key
-from general.log import log_debug
+from main.log import log_debug
 
 class CRUDColumnMapper(ColumnMapper):
     def __init__(self, column_name: str, attribute_name:str, crud: CRUD, attribute_key:str='id'):

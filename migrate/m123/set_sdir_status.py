@@ -8,10 +8,10 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file
-from general.log import log_warning
+from main.log import log_warning
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class StudentDirectoriesStatusProcessor(MigrationPlugin):
     def init_SQLcollectors(self) -> SQLcollectors:

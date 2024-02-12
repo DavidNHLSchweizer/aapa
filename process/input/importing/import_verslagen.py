@@ -14,7 +14,7 @@ from storage.queries.files import FilesQueries
 from storage.queries.student_directories import StudentDirectoryQueries
 from storage.queries.studenten import StudentQueries
 from general.fileutil import file_exists, last_parts_file
-from general.log import log_debug, log_error, log_info, log_print, log_warning
+from main.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader

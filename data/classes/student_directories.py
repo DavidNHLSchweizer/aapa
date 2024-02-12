@@ -10,7 +10,7 @@ from data.classes.mijlpaal_base import MijlpaalBase
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
 from database.classes.dbConst import EMPTY_ID
-from general.log import log_warning
+from main.log import log_warning
 
 
 class StudentDirectoryAggregator(Aggregator):

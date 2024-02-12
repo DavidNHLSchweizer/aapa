@@ -115,10 +115,9 @@
             "args": [
                 "input",
                 "-debug",
-                "--onedrive=d:\\onedrive0",
+                "--onedrive=c:\\onedrive",
                 "--processing_mode=A",
                 "-preview",
-                "--excel_in=D:\\klote\\spotgoedkoop.xlsx"
             ]
         },
         {

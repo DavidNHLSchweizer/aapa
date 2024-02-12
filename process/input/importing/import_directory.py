@@ -8,10 +8,10 @@ from data.classes.files import File
 from storage.queries.aanvragen import AanvraagQueries
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
-from general.log import log_debug, log_error, log_print, log_warning, log_info
-from general.preview import pva
+from main.log import log_debug, log_error, log_print, log_warning, log_info
+from process.general.preview import pva
 from general.singular_or_plural import sop
-from general.config import ListValueConvertor, config
+from main.config import ListValueConvertor, config
 from general.fileutil import summary_string
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
 from process.general.aanvraag_processor import AanvraagCreator

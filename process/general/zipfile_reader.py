@@ -9,9 +9,9 @@ import re
 from typing import Tuple
 from zipfile import ZipFile, ZipInfo
 from general.fileutil import created_directory, set_file_time, test_directory_exists
-from general.log import log_warning
+from main.log import log_warning
 
-from general.config import ListValueConvertor, config
+from main.config import ListValueConvertor, config
 from general.name_utils import Names
 
 def init_config():
@@ -103,7 +103,7 @@ class ZipFileReader:
             set_file_time(filename, datetime.datetime(*date_time_in_info))
         if entry:=self._get_filename_entry(filename_in_zip):
             if len(filename_in_zip) >= WINDOWS_MAX_ZIPFILE_PATHLEN:
-                raise BBException(f'Filename in zip is too long {entry['filename']}.\n\tMaximum is {WINDOWS_MAX_ZIPFILE_PATHLEN}. {CANNOTBEEXTRACTED}')
+                raise BBException(f'Filename in zip is too long {entry["filename"]}.\n\tMaximum is {WINDOWS_MAX_ZIPFILE_PATHLEN}. {CANNOTBEEXTRACTED}')
             extracted_file = self._safe_extract(entry, path, destination_name)
             _restore_file_time(extracted_file,entry.info.date_time)
             return extracted_file

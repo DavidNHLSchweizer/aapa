@@ -15,11 +15,11 @@ from data.general.roots import Roots
 from storage.general.detail_rec_crud import DetailRecsCRUD
 from storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file
-from general.log import log_info
+from main.log import log_info
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
 from migrate.migration_plugin import MigrationPlugin
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 from process.general.student_dir_builder import StudentDirectoryBuilder
 
 class StudDirsReEngineeringProcessor(MigrationPlugin):

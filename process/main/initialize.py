@@ -3,7 +3,7 @@ import database.aapa_database as db
 from database.classes.database import Database
 from storage.aapa_storage import AAPAStorage
 from general.fileutil import file_exists
-from general.log import log_error
+from main.log import log_error
 
 class AAPAInitializationError(Exception):pass
 def __create_database(name, recreate = False, ignore_version=False)->Database:    

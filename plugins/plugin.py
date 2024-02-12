@@ -29,10 +29,10 @@ import sys
 from types import ModuleType
 from typing import Type
 
-from general.args import AAPAConfigOptions, AAPAProcessingOptions, _get_options_from_commandline, aapa_parser
-from general.log import init_logging, log_warning
-from process.aapa_processor.aapa_config import AAPAConfiguration
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from main.args import AAPAConfigOptions, AAPAProcessingOptions, _get_options_from_commandline, aapa_parser
+from main.log import init_logging, log_warning
+from process.main.aapa_config import AAPAConfiguration
+from process.main.aapa_processor import AAPARunnerContext
 
 class PluginException(Exception):pass
 

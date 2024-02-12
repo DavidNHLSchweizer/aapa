@@ -7,7 +7,7 @@
 """
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 
 class MijlpalenDatumProcessor(MigrationPlugin):

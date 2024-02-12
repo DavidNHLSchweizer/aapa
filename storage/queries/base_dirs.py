@@ -3,7 +3,7 @@ from data.classes.base_dirs import BaseDir
 from data.general.roots import Roots
 from storage.general.CRUDs import CRUDQueries
 from storage.general.storage_const import StorageException
-from general.log import log_debug
+from main.log import log_debug
 
 class BaseDirQueries(CRUDQueries):
     def is_basedir(self, directory: str|Path)->bool:    

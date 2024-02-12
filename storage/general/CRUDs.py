@@ -13,7 +13,7 @@ from database.classes.sql_expr import SQE, Ops
 from database.classes.table_def import TableDefinition
 from general.classutil import classmodule, classname
 from general.keys import get_next_key
-from general.log import log_debug
+from main.log import log_debug
 from general.singleton import Singleton
 
 class CRUDs(dict):
@@ -345,7 +345,7 @@ class CRUDRegistry(Singleton):
                         autoID=True, 
                         main=True):
         self.__check_valid(class_type, False)
-        module_name = classmodule(class_type).replace('data.classes','data.storage.classes') if main else ''            
+        module_name = classmodule(class_type).replace('data.classes','storage.classes') if main else ''            
         self._registered_data[class_type] = ClassRegistryData(table=table,                                                                
                                                               mapper_type = mapper_type, 
                                                               crud=crud,  

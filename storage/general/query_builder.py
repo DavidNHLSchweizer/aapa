@@ -8,7 +8,7 @@ from database.classes.database import Database
 from database.classes.sql_expr import SQE, Ops
 from database.classes.sql_table import SQLselect
 from general.classutil import classname
-from general.log import log_debug
+from main.log import log_debug
 
 class QueryInfo:
     class Flags(Enum):

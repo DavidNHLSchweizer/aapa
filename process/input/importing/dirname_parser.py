@@ -6,7 +6,7 @@ from typing import Tuple
 
 from data.classes.base_dirs import BaseDir
 from general.fileutil import summary_string
-from general.log import log_warning
+from main.log import log_warning
 from general.name_utils import Names
 
 class DirectoryNameParser:

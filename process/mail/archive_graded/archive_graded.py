@@ -4,8 +4,8 @@ from data.general.const import MijlpaalType
 from data.classes.files import File
 from storage.aapa_storage import AAPAStorage
 from general.fileutil import path_with_suffix, summary_string
-from general.log import log_error, log_print, log_warning
-from general.preview import pva
+from main.log import log_error, log_print, log_warning
+from process.general.preview import pva
 from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.word_processor import Word2PdfConvertor
 

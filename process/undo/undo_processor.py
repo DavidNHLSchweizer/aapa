@@ -5,7 +5,7 @@ from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from storage.aapa_storage import AAPAStorage
 from storage.queries.undo_logs import UndoLogQueries
 from general.fileutil import delete_if_exists, file_exists, summary_string
-from general.log import log_error, log_info, log_print, log_warning
+from main.log import log_error, log_info, log_print, log_warning
 from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.general.aanvraag_processor import AanvraagProcessor
 class UndoException(Exception): pass

@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from general.log import init_logging, log_info
+from main.log import init_logging, log_info
 from plugins.plugin import PluginRunner
 
 if __name__ == "__main__":   

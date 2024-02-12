@@ -7,7 +7,7 @@ from textual.containers import Center
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Static
 from textual.message import Message
-from general.log import log_debug
+from main.log import log_debug
 from tui.general.button_bar import ButtonBar, ButtonDef
 
 class DialogStringBuilder:

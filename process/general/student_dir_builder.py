@@ -13,7 +13,7 @@ from storage.queries.base_dirs import BaseDirQueries
 from storage.queries.student_directories import StudentDirectoryQueries
 from storage.queries.studenten import StudentQueries
 from general.fileutil import last_parts_file
-from general.log import log_error, log_print, log_warning
+from main.log import log_error, log_print, log_warning
 
 class StudentDirectoryBuilder:
     def __init__(self, storage: AAPAStorage):

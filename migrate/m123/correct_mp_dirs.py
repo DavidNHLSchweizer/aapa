@@ -20,12 +20,12 @@ from data.general.roots import Roots
 from storage.aapa_storage import AAPAStorage
 from storage.queries.student_directories import StudentDirectoryQueries
 from general.fileutil import last_parts_file
-from general.log import log_warning
-from general.preview import Preview
+from main.log import log_warning
+from process.general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
 from migrate.migration_plugin import MigrationPlugin
-from process.aapa_processor.aapa_processor import AAPARunnerContext
+from process.main.aapa_processor import AAPARunnerContext
 
 class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
     def init_SQLcollectors(self) -> SQLcollectors:

@@ -5,8 +5,8 @@ from database.classes.database import Database
 from database.classes.sql_table import SQLcreateTable
 from database.classes.table_def import TableDefinition
 from general.fileutil import file_exists
-from general.log import init_logging
-from process.aapa_processor.initialize import initialize_database
+from main.log import init_logging
+from process.main.initialize import initialize_database
 
 class MigrationException(Exception): pass
 

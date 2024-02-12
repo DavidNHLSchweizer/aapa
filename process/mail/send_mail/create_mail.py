@@ -1,11 +1,11 @@
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from general.config import ListValueConvertor, config
+from main.config import ListValueConvertor, config
 from general.fileutil import file_exists, from_main_path, summary_string
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.mail_sender import OutlookMail, OutlookMailDef
-from general.log import log_error, log_print
+from main.log import log_error, log_print
 
 def init_config():
     config.register('mail', 'feedback_mail_templates', ListValueConvertor)

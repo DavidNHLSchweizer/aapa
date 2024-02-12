@@ -11,7 +11,7 @@ from storage.general.storage_const import StoredClass
 from database.classes.database import Database
 from database.classes.table_def import TableDefinition
 from general.classutil import classname
-from general.log import log_debug
+from main.log import log_debug
 
 class DetailRecsTableMapper(TableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec], 
