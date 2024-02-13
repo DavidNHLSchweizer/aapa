@@ -12,9 +12,7 @@ from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.general.roots import Roots
-from storage.general.detail_rec_crud import DetailRecsCRUD
 from storage.queries.student_directories import StudentDirectoryQueries
-from general.fileutil import last_parts_file
 from main.log import log_info
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
@@ -79,7 +77,7 @@ where (MPD.mijlpaal_type = ? and stud_dir <> mp_directory) or \
         for row in rows:
             student:Student = self.storage.crud('studenten').read(row['stud_id'])
             file:File = self.storage.crud('files').read(row['file_id'])
-            log_info(f'Correcting for {student.full_name}: {last_parts_file(file.filename)}', self.verbose)
+            log_info(f'Correcting for {student.full_name}: {File.display_file(file.filename)}', self.verbose)
             if student != old_student:
                 old_stud_dir = student_dir_queries.find_student_dir(student)
                 old_student = student   

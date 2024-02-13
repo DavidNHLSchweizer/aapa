@@ -4,7 +4,7 @@ from data.classes.files import File
 from data.classes.undo import UndoRecipe, UndoRecipeFactory
 from storage.aapa_storage import AAPAStorage
 from storage.queries.undo_logs import UndoLogQueries
-from general.fileutil import delete_if_exists, file_exists, summary_string
+from general.fileutil import delete_if_exists, file_exists
 from main.log import log_error, log_info, log_print, log_warning
 from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.general.aanvraag_processor import AanvraagProcessor
@@ -21,9 +21,9 @@ class UndoRecipeProcessor(AanvraagProcessor):
             return
         if file.filename is None or not file_exists(file.filename):            
             if not file.filetype in self.recipe.optional_files:
-                log_warning(f'\t\tBestand {summary_string(file.filename)} ({file.filetype}) niet aangemaakt of niet gevonden.')
+                log_warning(f'\t\tBestand {File.display_file(file.filename)} ({file.filetype}) niet aangemaakt of niet gevonden.')
             return   
-        log_print(f'\t\t{summary_string(file.filename)}')
+        log_print(f'\t\t{File.display_file(file.filename)}')
         self.files_to_forget.append(file)
         if not preview:
             delete_if_exists(file.filename)
@@ -40,7 +40,7 @@ class UndoRecipeProcessor(AanvraagProcessor):
             return
         log_info(f'\tBepalen te verwijderen bestanden uit database:', to_console=True)
         for filetype in self.recipe.files_to_forget:
-            log_print(f'\t\t{summary_string(aanvraag.files.get_filename(filetype))}')
+            log_print(f'\t\t{File.display_file(aanvraag.files.get_filename(filetype))}')
             self.files_to_forget.append(aanvraag.files.get_file(filetype))
             aanvraag.unregister_file(filetype) 
         log_info(f'\tEinde bepalen te verwijderen bestanden uit database', to_console=True)
@@ -70,7 +70,7 @@ def _process_delete_aanvragen(aanvragen: list[Aanvraag], storage: AAPAStorage):
     log_info(f'\tEinde verwijderen aanvragen uit database.', to_console=True)
 
 def __delete_file(file: File, storage: AAPAStorage):
-    log_print(f'\t\t{summary_string(file.filename, maxlen=90, initial=16)}')
+    log_print(f'\t\t{File.display_file(file.filename)}')
     storage.delete('files', file)
 
 def _process_forget_invalid_files(undo_log: UndoLog, storage: AAPAStorage):

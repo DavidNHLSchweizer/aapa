@@ -7,7 +7,6 @@ from data.classes.undo_logs import UndoLog
 from storage.aapa_storage import AAPAStorage
 from storage.general.storage_const import StoredClass
 from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
-from general.fileutil import summary_string
 from main.log import log_debug, log_error
 from process.general.preview import Preview
 from general.timeutil import TSC
@@ -73,7 +72,7 @@ class FilePipeline(Pipeline):
                 self.storage.commit()
                 return True
             except Exception as E:
-                log_error(f'Fout bij processing file ({self.description})\n\t{summary_string(filename, maxlen=96)}:\n\t{E}')
+                log_error(f'Fout bij processing file ({self.description})\n\t{File.display_file(filename)}:\n\t{E}')
         return False
     def _process_file(self, filename: Path, preview=False, **kwargs ):
         for processor in self.processors:
@@ -133,7 +132,7 @@ class SingleFilePipeline(Pipeline):
             try:
                 return self.processor.process_file(filename, self.storage, preview, **kwargs)
             except Exception as E:
-                log_error(f'Fout bij processing file ({self.description}) {summary_string(filename, maxlen=96)}:\n\t{E}')
+                log_error(f'Fout bij processing file ({self.description}) {File.display_file(filename)}:\n\t{E}')
         return 0
     def _process_file(self, filename: Path, preview=False, **kwargs )->int:
         log_debug(f'processor: {self.processor.__class__} {filename} {kwargs}  {self.processor.must_process_file(str(filename), self.storage, **kwargs)}')

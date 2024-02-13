@@ -12,7 +12,6 @@ from main.log import log_debug, log_error, log_print, log_warning, log_info
 from process.general.preview import pva
 from general.singular_or_plural import sop
 from main.config import ListValueConvertor, config
-from general.fileutil import summary_string
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
 from process.general.aanvraag_processor import AanvraagCreator
 from process.general.pdf_aanvraag_reader import AanvraagReaderFromPDF
@@ -65,16 +64,16 @@ class DirectoryImporter(AanvraagCreatorPipeline):
         status,stored_file = queries.analyze(filename)
         match status:
             case FileStorageAnalyzer.Status.STORED_INVALID_COPY:
-                skip_msg = f'Overslaan: bestand {summary_string(filename, maxlen=100, initial=16)}\n\t is kopie van {summary_string(stored_file.filename, maxlen=100, initial=16)}'
+                skip_msg = f'Overslaan: bestand {File.display_file(filename)}\n\t is kopie van {File.display_file(stored_file.filename)}'
                 warning = True
             case FileStorageAnalyzer.Status.STORED_INVALID: 
                 pass
             case FileStorageAnalyzer.Status.DUPLICATE:
-                skip_msg = f'Bestand {summary_string(filename, maxlen=100, initial=16)} is kopie van\n\tbestand in database: {summary_string(stored_file.filename, maxlen=100, initial=16)}'          
+                skip_msg = f'Bestand {File.display_file(filename)} is kopie van\n\tbestand in database: {File.display_file(stored_file.filename)}'          
                 warning = True
             case _: 
                 if self._skip_file(filename):
-                    skip_msg = f'Overslaan: {summary_string(filename, maxlen=100)}'               
+                    skip_msg = f'Overslaan: {File.display_file(filename)}'               
         if skip_msg:
             if warning:
                 log_warning(skip_msg, to_console=True)
@@ -94,7 +93,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
         return 0  
     log_info(f'Start import van map {directory}...', to_console=True)
     if Path(output_directory).is_relative_to(directory):
-        log_warning(f'Directory {summary_string(output_directory)}\n\tis onderdeel van {summary_string(directory)}.\n\tWordt overgeslagen.', to_console=True)           
+        log_warning(f'Directory {File.display_file(output_directory)}\n\tis onderdeel van {File.display_file(directory)}.\n\tWordt overgeslagen.', to_console=True)           
         skip_directories = {Path(output_directory)}
     else:
         skip_directories = set()

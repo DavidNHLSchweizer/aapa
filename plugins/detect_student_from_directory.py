@@ -20,14 +20,13 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.undo_logs import UndoLog
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from process.general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
 from data.general.roots import Roots
 from storage.aapa_storage import AAPAStorage
 from storage.queries.base_dirs import BaseDirQueries
 from storage.queries.studenten import StudentQueries
-from general.fileutil import last_parts_file, test_directory_exists
-from main.log import init_logging, log_debug, log_error, log_info, log_print, log_warning
+from general.fileutil import test_directory_exists
+from main.log import log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
 from general.timeutil import TSC
 from plugins.plugin import PluginBase
@@ -53,7 +52,7 @@ class StudentDirectoryDetector(FileProcessor):
     
     def _get_student(self, student_directory: str, storage: AAPAStorage)->Student:
         if not (parsed := self.parser.parsed(student_directory)):
-            raise DetectorException(f'directory {last_parts_file(student_directory)} kan niet worden herkend.')
+            raise DetectorException(f'directory {File.display_file(student_directory)} kan niet worden herkend.')
         student = Student(full_name=parsed.student,email=parsed.email())
         queries: StudentQueries = storage.queries('studenten')
         if storage and (stored := queries.find_student_by_name_or_email_or_studnr(student)):
@@ -110,7 +109,7 @@ class StudentDirectoryDetector(FileProcessor):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
             return None
         if not (mijlpaal_type := self._parse_type(subdirectory, parsed.type)):
-            log_error(f'\tDirectory {last_parts_file(subdirectory, 4)} wordt overgeslagen. Kan niet worden herkend.')
+            log_error(f'\tDirectory {File.display_file(subdirectory)} wordt overgeslagen. Kan niet worden herkend.')
             return None
         new_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=subdirectory, datum=parsed.datum)
         log_debug(f'\tGedetecteerd: {new_dir}')
@@ -135,9 +134,9 @@ class StudentDirectoryDetector(FileProcessor):
         if not test_directory_exists(dirname):
             log_error(f'Directory {dirname} niet gevonden.')
             return None
-        log_print(f'Verwerken {last_parts_file(dirname, 4)}')
+        log_print(f'Verwerken {File.display_file(dirname)}')
         if not self._get_basedir(dirname, storage):
-            log_error(f'Directory {last_parts_file(dirname, 4)} kan niet worden gelinkt met bekende basisdirectory.')
+            log_error(f'Directory {File.display_file(dirname)} kan niet worden gelinkt met bekende basisdirectory.')
             return None
         try:    
             student = self._get_student(dirname, storage)

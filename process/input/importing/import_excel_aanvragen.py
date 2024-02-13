@@ -20,7 +20,7 @@ from general.pdutil import nrows
 from process.general.preview import pva
 from general.singular_or_plural import sop
 from main.config import IntValueConvertor, config
-from general.fileutil import created_directory, last_parts_file, safe_file_name, set_file_time, test_directory_exists
+from general.fileutil import created_directory, safe_file_name, set_file_time, test_directory_exists
 from general.strutil import replace_all
 from general.timeutil import TSC
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
@@ -202,7 +202,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             if not preview:
                 sleep(0.3) #small pause, to maybe help sharepoint 
             self.create_pdf_file(aanvraag, docx_filename, pdf_filename, preview)
-            log_print(f'Aanvraagbestand {last_parts_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
+            log_print(f'Aanvraagbestand {File.display_file(pdf_filename)} {pva(preview, "aanmaken", "aangemaakt")}.')
             return True
         except Exception as E:
             log_debug(f'Error in create_files: {E}')

@@ -9,19 +9,15 @@
     bedoeld voor migratie db naar versie 1.23
     
 """
-
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
+from data.classes.files import File
 from data.general.const import MijlpaalType
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.general.roots import Roots
-from storage.aapa_storage import AAPAStorage
 from storage.queries.student_directories import StudentDirectoryQueries
-from general.fileutil import last_parts_file
 from main.log import log_warning
-from process.general.preview import Preview
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
 from migrate.migration_plugin import MigrationPlugin
@@ -110,11 +106,11 @@ class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
             self.log(f'\t--- {msg} ---')
             for dir in dir_list:
                 filestr = "\n\t\t".join([Path(file.filename).name for file in dir.files_list]) if dir.files_list else '<No files>'
-                self.log(f'\t{dir.id}-{dir.datum}: {last_parts_file(dir.directory,2)}\n\t\t{filestr}')
+                self.log(f'\t{dir.id}-{dir.datum}: {File.display_file(dir.directory)}\n\t\t{filestr}')
         for entry in self._get_all_directories().values():
             self.log(f'{entry["student"]}:')
             stud_dir: StudentDirectory = entry['stud_dir']
-            self.log(f'\tStudent Directory ({stud_dir.id}): {last_parts_file(stud_dir.directory)} ({stud_dir.status}).')
+            self.log(f'\tStudent Directory ({stud_dir.id}): {File.display_file(stud_dir.directory)} ({stud_dir.status}).')
             dump_info('before', entry['dirs'])
             self._correct_directory(entry['dirs'])
             dump_info('after', entry['dirs'])

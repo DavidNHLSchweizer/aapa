@@ -12,7 +12,6 @@ from storage.general.storage_const import StorageException
 from storage.queries.base_dirs import BaseDirQueries
 from storage.queries.student_directories import StudentDirectoryQueries
 from storage.queries.studenten import StudentQueries
-from general.fileutil import last_parts_file
 from main.log import log_error, log_print, log_warning
 
 class StudentDirectoryBuilder:
@@ -49,7 +48,7 @@ class StudentDirectoryBuilder:
         if not (stud_dir := queries.find_student_dir(student)):
             return (True,None)
         elif stud_dir.base_dir != target_basedir:
-            log_warning(f'Bestand {last_parts_file(filename)}\n\tstaat niet in bekende directory voor student: {last_parts_file(stud_dir.directory)}.')
+            log_warning(f'Bestand {File.display_file(filename)}\n\tstaat niet in bekende directory voor student: {File.display_file(stud_dir.directory)}.')
             stud_dir.status = StudentDirectory.Status.ARCHIVED
             self.storage.update('student_directories', stud_dir)
             return (True,None)

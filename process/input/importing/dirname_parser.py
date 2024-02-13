@@ -5,7 +5,7 @@ import re
 from typing import Tuple
 
 from data.classes.base_dirs import BaseDir
-from general.fileutil import summary_string
+from data.classes.files import File
 from main.log import log_warning
 from general.name_utils import Names
 
@@ -36,7 +36,7 @@ class DirectoryNameParser:
     def parse_non_standard(self, directory_name: str, directory_part: str)->str:
         if match := self.pattern_non_standard.match(directory_part):
             type_str = match.group('part')
-            log_warning(f'Niet-standaard naamgeving in directory {summary_string(directory_name, maxlen=80)}\n'+
+            log_warning(f'Niet-standaard naamgeving in directory {File.display_file(directory_name, maxlen=80)}\n'+
                         f'\twordt geinterpreteerd als {type_str}'
                         )
             return type_str

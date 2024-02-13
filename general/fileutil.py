@@ -124,7 +124,7 @@ def summary_string(s: str, initial=INITIAL, maxlen = MAXLEN):
     
     """
     s = str(s)
-    if len(s) <= maxlen:
+    if maxlen == 0 or len(s) <= maxlen:
         return s
     else:
         return f'{s[0:initial]}...{s[len(s)- maxlen+initial+3:]}'

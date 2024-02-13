@@ -4,7 +4,7 @@ from data.general.const import MijlpaalType
 from data.classes.files import File
 from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
-from general.fileutil import file_exists, summary_string
+from general.fileutil import file_exists
 from main.log import log_debug, log_error, log_print, log_warning
 from process.general.base_processor import FileProcessor
 from process.general.pdf_aanvraag_reader import PDFReaderException
@@ -51,7 +51,7 @@ class AanvraagImporter(FileProcessor):
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
-        log_print(f'Lezen {summary_string(filename, maxlen=100)}')
+        log_print(f'Lezen {File.display_file(filename)}')
         result = None
         try:      
             self.before_reading(preview)

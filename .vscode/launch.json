@@ -88,7 +88,7 @@
                 "input",
                 "-preview",
                 "-debug",
-                "--onedrive=c:\\onedrive",
+                "--onedrive=d:\\onedrive",
                 "--processing_mode=R"
             ]
         },

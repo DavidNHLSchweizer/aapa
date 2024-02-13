@@ -4,10 +4,10 @@
     bedoeld voor migratie naar versie 1.23
     
 """
+from data.classes.files import File
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from storage.queries.student_directories import StudentDirectoryQueries
-from general.fileutil import last_parts_file
 from main.log import log_warning
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
@@ -36,7 +36,7 @@ class StudentDirectoriesStatusProcessor(MigrationPlugin):
                 self._sql_set_status(stud_dir,StudentDirectory.Status.ARCHIVED)
             self._sql_set_status(student_directories[-1],StudentDirectory.Status.ACTIVE)
         for stud_dir in student_directories:
-            self.log(f'{last_parts_file(stud_dir.directory)}: {stud_dir.status}')
+            self.log(f'{File.display_file(stud_dir.directory)}: {stud_dir.status}')
 
         self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:

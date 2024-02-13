@@ -1,10 +1,10 @@
 from __future__ import annotations
 import datetime
+from data.classes.files import File
 
 from data.general.const import MijlpaalType
 from data.classes.mijlpaal_base import MijlpaalBase
 from database.classes.dbConst import EMPTY_ID
-from general.fileutil import summary_string
 from general.timeutil import TSC
 
 class MijlpaalDirectory(MijlpaalBase):    
@@ -14,7 +14,7 @@ class MijlpaalDirectory(MijlpaalBase):
     def relevant_attributes(self) -> set[str]:
         return super().relevant_attributes() | {'directory'}
     def summary(self)->str:
-        return f'{summary_string(self.directory, maxlen=80)} [{self.mijlpaal_type}] {TSC.timestamp_to_str(self.datum)}'
+        return f'{File.display_file(self.directory)} [{self.mijlpaal_type}] {TSC.timestamp_to_str(self.datum)}'
     def __str__(self):        
         s = self.summary()
         if self.kans > 0:

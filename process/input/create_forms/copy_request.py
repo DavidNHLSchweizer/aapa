@@ -3,7 +3,7 @@ import shutil
 from data.classes.aanvragen import Aanvraag
 from data.general.const import MijlpaalType
 from data.classes.files import File
-from general.fileutil import file_exists, safe_file_name, summary_string
+from general.fileutil import file_exists, safe_file_name
 from main.log import log_debug, log_print
 from process.general.preview import pva
 from process.general.aanvraag_processor import AanvraagProcessor
@@ -37,6 +37,6 @@ class CopyAanvraagProcessor(AanvraagProcessor):
             shutil.copy2(aanvraag_filename, copy_filename)
         log_debug(f'registeringing file {copy_filename}')
         aanvraag.register_file(copy_filename, File.Type.COPIED_PDF, MijlpaalType.AANVRAAG)
-        log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {summary_string(aanvraag_filename)} naar\n\t\t{summary_string(copy_filename)}.')      
+        log_print(f'\t{pva(preview, "Te kopiëren", "Gekopiëerd")}: aanvraag {File.display_file(aanvraag_filename)} naar\n\t\t{File.display_file(copy_filename)}.')      
         return True
 

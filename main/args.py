@@ -68,6 +68,7 @@ def _get_arguments(command_line_arguments:list[str]=None):
     aapa_parser(parser)
     return parser.parse_args(command_line_arguments)
 
+
 def get_debug()->bool:
     return _get_arguments().debug
 

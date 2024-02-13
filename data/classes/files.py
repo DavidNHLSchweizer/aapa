@@ -1,12 +1,13 @@
 from __future__ import annotations 
 import datetime
 from pathlib import Path
+import re
 from data.general.aapa_class import AAPAclass
 from data.general.aggregator import Aggregator
 from data.general.const import FileType, MijlpaalType
 from database.classes.dbConst import EMPTY_ID
 from general.filehash import hash_file_digest
-from general.fileutil import summary_string
+from general.fileutil import last_parts_file, summary_string
 from general.timeutil import TSC
 
 class FilesException(Exception): pass
@@ -19,6 +20,17 @@ class File(AAPAclass):
     @staticmethod
     def get_digest(filename: str)->str:
         return hash_file_digest(filename)
+    @staticmethod
+    def display_file(filename: str)->str:
+        """ returns shortened filename starting with the year-part of the file (e.g. 2022-2023). """
+        def __compute_min_parts(filename: str)->int:
+            pattern = re.compile(r'\d{4,4}\-\d{4,4}')
+            parts = Path(filename).parts
+            for n,part in enumerate(parts):
+                if pattern.match(part):
+                    return len(parts)-n
+            return 3
+        return last_parts_file(filename,__compute_min_parts(filename))
     def __init__(self, filename: str, timestamp: datetime.datetime = TSC.AUTOTIMESTAMP, digest = AUTODIGEST, 
                  filetype=Type.UNKNOWN, mijlpaal_type = MijlpaalType.UNKNOWN, id=EMPTY_ID):
         super().__init__(id)
@@ -43,7 +55,7 @@ class File(AAPAclass):
         if name_only:
             return f'{Path(self.filename).name}: {str(self.filetype)}-{self.mijlpaal_type} [{TSC.timestamp_to_str(self.timestamp)}]'     
         else:
-            return f'{summary_string(self.filename, maxlen=len_filename)}: {str(self.filetype)}-{self.mijlpaal_type} [{TSC.timestamp_to_str(self.timestamp)}]'
+            return f'{File.display_file(self.filename)}: {str(self.filetype)}-{self.mijlpaal_type} [{TSC.timestamp_to_str(self.timestamp)}]'
     @property    
     def timestamp(self): return self._timestamp
     @timestamp.setter

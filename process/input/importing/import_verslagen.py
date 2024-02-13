@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from time import sleep
 from typing import Iterable
 from data.classes.bedrijven import Bedrijf
@@ -13,7 +14,7 @@ from storage.queries.aanvragen import AanvraagQueries
 from storage.queries.files import FilesQueries
 from storage.queries.student_directories import StudentDirectoryQueries
 from storage.queries.studenten import StudentQueries
-from general.fileutil import file_exists, last_parts_file
+from general.fileutil import file_exists
 from main.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
@@ -104,15 +105,15 @@ class VerslagFromZipImporter(VerslagImporter):
         mijlpaal_directory = Path(filename_to_create).parent
         if preview:
             if not mijlpaal_directory.is_dir() and new_student:
-                log_print(f'\tAanmaken directory {last_parts_file(mijlpaal_directory)}')
-            log_print(f'\tOntzippen {last_parts_file(filename_to_create)}')                
+                log_print(f'\tAanmaken directory {File.display_file(mijlpaal_directory)}')
+            log_print(f'\tOntzippen {File.display_file(filename_to_create)}')                
             return File(filename_to_create)
         else:
             mijlpaal_directory = Path(filename_to_create).parent
             if self.created_directory(mijlpaal_directory):
-                log_print(f'\tDirectory {last_parts_file(mijlpaal_directory)} aangemaakt')
+                log_print(f'\tDirectory {File.display_file(mijlpaal_directory)} aangemaakt')
             filename = self.reader.extract_file(filename_in_zip, mijlpaal_directory, Path(filename_to_create).name)
-            log_print(f'\tBestand {last_parts_file(filename_to_create)} aangemaakt.')
+            log_print(f'\tBestand {File.display_file(filename_to_create)} aangemaakt.')
             return File(filename)
     def _check_existing_files(self, student_entries: list[dict]):
         previous_existing = False
@@ -148,22 +149,22 @@ class VerslagFromZipImporter(VerslagImporter):
                 self._check_existing_files(student_entries)
                 new_student = True
                 for student_entry in student_entries:                    
-                    verslag = student_entry['verslag']
+                    verslag:Verslag = student_entry['verslag']
                     filename_to_create = student_entry['filename_to_create']
-                    log_debug(f'filename to create: {filename_to_create}')
+                    log_debug(f'filename to create: {filename_to_create}')                    
                     if student_entry['stored'] and student_entry['existing']:
-                        log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
+                        log_warning(f'Bestand {File.display_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
                     elif student_entry['existing']:
-                        log_warning(f'Bestand {last_parts_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
-                #hier: doe hier misschien nog iets mee (registeren?)                
+                        log_warning(f'Bestand {File.display_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
+                #TODO: doe hier nog iets meer mee (registeren)                
                     else:
                         file = self.create_file(student_entry['filename_in_zip'], filename_to_create, new_student, preview=preview)
-                #hier: doe hier misschien nog iets meer mee (registeren?)                
+                #TODO: doe hier nog iets meer mee (registeren)                
                         created.append(file)
                         yield verslag
                     new_student = False
                     # yield verslag
             except Exception as E:
                 log_error(f'Error in read_verslagen:\n{E}')
-                sleep(.5) # hope this helps with sharepoint delays
+                sleep(.25) # hope this helps with sharepoint delays
                 yield None

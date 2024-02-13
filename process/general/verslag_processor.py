@@ -1,9 +1,10 @@
 from typing import Iterable, Tuple
+from data.classes.files import File
 from data.classes.verslagen import Verslag
 from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
-from general.fileutil import file_exists, summary_string
-from main.log import log_debug, log_error, log_info, log_print, log_warning
+from general.fileutil import file_exists
+from main.log import log_debug, log_error, log_info, log_warning
 from process.general.base_processor import FileProcessor
 from process.input.importing.aanvraag_importer import ImportException
 
@@ -32,7 +33,7 @@ class VerslagImporter(FileProcessor):
         if not file_exists(filename):
             log_error(f'Bestand {filename} niet gevonden.')
             return None
-        log_info(f'Lezen {summary_string(filename, maxlen=100)}', to_console=True)
+        log_info(f'Lezen {File.display_file(filename)}', to_console=True)
         result = None
         try:      
             self.before_reading(preview)

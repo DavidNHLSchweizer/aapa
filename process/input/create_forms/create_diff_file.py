@@ -4,7 +4,7 @@ from data.general.const import MijlpaalType
 from data.classes.files import File
 from storage.aapa_storage import AAPAStorage
 from storage.queries.aanvragen import AanvraagQueries
-from general.fileutil import file_exists, safe_file_name, summary_string
+from general.fileutil import file_exists, safe_file_name
 from main.log import log_print
 from process.general.preview import pva
 from process.general.difference import DifferenceGenerator
@@ -28,7 +28,7 @@ class DifferenceProcessor(AanvraagProcessor):
             if not preview:
                 DifferenceGenerator(version1, version2).generate_html(difference_filename)                
             aanvraag.register_file(difference_filename, File.Type.DIFFERENCE_HTML, MijlpaalType.AANVRAAG)
-            log_print(f'\tVerschil-bestand "{summary_string(difference_filename)}" {pva(preview, "aan te maken", "aangemaakt")}.')
+            log_print(f'\tVerschil-bestand "{File.display_file(difference_filename)}" {pva(preview, "aan te maken", "aangemaakt")}.')
             log_print(f'\t\tNieuwste versie "{aanvraag.summary()} ({aanvraag.kans})" {pva(preview, "te vergelijken", "vergeleken")} met\n\t\tvorige versie "{previous_aanvraag.summary()} ({previous_aanvraag.kans})".')
     def process(self, aanvraag: Aanvraag, preview = False, output_directory='.')->bool:
         if (previous_aanvraag := self.find_previous_aanvraag(aanvraag)):
