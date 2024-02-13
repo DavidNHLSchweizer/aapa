@@ -5,6 +5,9 @@ class TimeStringConversion:
     DATE_FORMAT = '%d-%m-%Y'
     SORTABLE_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
     @staticmethod
+    def round_to_day(value: datetime.datetime)->datetime:
+        return datetime.datetime(value.year, value.month, value.day)
+    @staticmethod
     def rounded_timestamp(value)->datetime:
         #remove possible milliseconds so that the string can be read uniformly from the database if needed
         return TSC.str_to_timestamp(TSC.timestamp_to_str(value)) if value != TSC.AUTOTIMESTAMP else TSC.AUTOTIMESTAMP

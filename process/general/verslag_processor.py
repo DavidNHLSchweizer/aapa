@@ -1,6 +1,8 @@
 from typing import Iterable, Tuple
 from data.classes.files import File
 from data.classes.verslagen import Verslag
+from data.general.const import MijlpaalType, SuffixType
+from process.general.student_dir_builder import StudentDirectoryBuilder
 from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists
@@ -42,8 +44,6 @@ class VerslagImporter(FileProcessor):
                 for verslag in self.read_verslagen(filename, preview):
                     if verslag:
                         result.append(verslag)
-                    # if validated := self._validate(storage, verslag_filename, verslag):
-                    #     result.append(validated)
         except ImportException as exception:
             log_warning(f'Probleem processing file {filename}:\n\t{exception}.')           
         self.after_reading(preview)

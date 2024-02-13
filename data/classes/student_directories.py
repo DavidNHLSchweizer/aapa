@@ -10,6 +10,7 @@ from data.classes.mijlpaal_base import MijlpaalBase
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
 from database.classes.dbConst import EMPTY_ID
+from general.timeutil import TSC
 from main.log import log_warning
 
 
@@ -49,8 +50,8 @@ class StudentDirectory(AAPAclass):
     def get_directory(self, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->MijlpaalDirectory:
         for directory in self.get_directories(mijlpaal_type):
             #er is maar 1 aanvraag directory, de datum is niet wezenlijk van belang daarvoor
-            #voor andere mijlpalen (verslagen) juist wel.
-            if mijlpaal_type == MijlpaalType.AANVRAAG or directory.datum==datum:
+            #voor andere mijlpalen (verslagen) juist wel, maar niet tot in de milliseconden. 
+            if mijlpaal_type == MijlpaalType.AANVRAAG or TSC.round_to_day(directory.datum)==TSC.round_to_day(datum):
                 return directory
         return None
     def get_files(self)->list[File]:

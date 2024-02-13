@@ -4,11 +4,32 @@ Voor meer info: zie data.classes.const.doc()
 
 """
 from __future__ import annotations
-from enum import IntEnum
+from enum import Enum, IntEnum, auto
+from pathlib import Path
 
 _UNKNOWN = '!unknown'
 UNKNOWN_STUDNR = 'UNKNOWN_STUDNR'
 
+class SuffixType(Enum):
+    """ real world file types. FileType is already something else. """
+    UNKNOWN = auto()
+    NONE    = auto()    
+    DOCX    = auto()
+    PDF     = auto()
+    HTML    = auto()
+    JSON    = auto()
+    XLSX    = auto()
+    @staticmethod
+    def from_filename(filename: str)->SuffixType:
+        match(Path(filename).suffix.lower()):
+            case '.docx'|'.doc': return SuffixType.DOCX
+            case '.pdf': return SuffixType.PDF
+            case '.htm' | '.html': return SuffixType.HTML
+            case '.json': return SuffixType.JSON
+            case '.xlsx'|'.xls': return SuffixType.XLSX
+            case '': return SuffixType.NONE
+            case _: return SuffixType.UNKNOWN
+    
 class FileType(IntEnum):
     """ constanten gebruikt om verschillende filetypes aan te geven.
 
@@ -32,6 +53,8 @@ class FileType(IntEnum):
     TECHNISCH_VERSLAG   = 11       
     EIND_VERSLAG        = 12
     AANVRAAG_OTHER      = 13
+    GENERAL_PDF         = 20
+    GENERAL_DOCX        = 21    
     def __str__(self):
         _FT_STRS = {FileType.UNKNOWN: _UNKNOWN, 
                     FileType.INVALID_DIR: 'directory (geen verdere gegevens)',
@@ -49,7 +72,9 @@ class FileType(IntEnum):
                     FileType.ONDERZOEKS_VERSLAG: 'Onderzoeksverslag',
                     FileType.TECHNISCH_VERSLAG: 'Technisch verslag',
                     FileType.EIND_VERSLAG: 'Eindverslag',
-                    FileType.AANVRAAG_OTHER: 'Aanvraag'
+                    FileType.AANVRAAG_OTHER: 'Aanvraag',
+                    FileType.GENERAL_DOCX:'Microsoft Word bestand',
+                    FileType.GENERAL_PDF:'PDF bestand'
                     }
         return _FT_STRS.get(self, _UNKNOWN)
     @staticmethod

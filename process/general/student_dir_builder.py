@@ -2,6 +2,7 @@ import datetime
 from pathlib import Path
 from typing import Tuple
 from data.classes.base_dirs import BaseDir
+from data.classes.verslagen import Verslag
 from data.general.const import MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
@@ -61,15 +62,16 @@ class StudentDirectoryBuilder:
         (must_create,stud_dir) = self.__check_must_register_new_student_directory(student, basedir_from_file, filename)
         if must_create:
             stud_dir = self._register_new_student_directory(student, filename)
-            log_print(f'Nieuwe directory voor student wordt geregistreerd: {stud_dir.directory}.')
+            log_print(f'Nieuwe directory voor student wordt geregistreerd: {File.display_file(stud_dir.directory)}.')
             self.storage.create('student_directories', stud_dir)
         return stud_dir
     def __get_mijlpaal_directory(self, stud_dir: StudentDirectory, directory: str, datum: datetime.datetime, mijlpaal_type)->MijlpaalDirectory:
         if not (mp_dir := stud_dir.get_directory(datum, mijlpaal_type)):
-            mp_dir = MijlpaalDirectory(mijlpaal_type, directory, datum)
+            kans = len(stud_dir.get_directories(mijlpaal_type))+1
+            mp_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=directory, datum=datum, kans = kans)
             stud_dir.add(mp_dir)
         if mp_dir.directory != directory: 
-            log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory is {mp_dir.directory}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
+            log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory is {File.display_file(mp_dir.directory)}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
         return mp_dir
     def register_file(self, student: Student, datum: datetime.datetime, filename: str, 
                       filetype: File.Type, mijlpaal_type: MijlpaalType)->Tuple[StudentDirectory, MijlpaalDirectory]:
@@ -80,6 +82,13 @@ class StudentDirectoryBuilder:
         mp_dir.register_file(filename,filetype,mijlpaal_type)
         self.storage.update('student_directories', stud_dir)
         return (stud_dir,mp_dir)
+    def _register_file(self, student: Student, file: File)->Tuple[StudentDirectory, MijlpaalDirectory]:
+        return self.register_file(student, file.timestamp, file.filename, file.filetype, file.mijlpaal_type)
+    # def register_verslag(self, verslag: Verslag):
+    #     self.storage.ensure_key('verslagen', verslag)
+    #     self.storage.create('verslagen', verslag)
+    #     for file in verslag.files_list:
+    #         self.register_file(verslag.student, file)            
     def register_basedir(self, year: int, period: str, forms_version: str, directory: str):
         if not self.storage.find_values('base_dirs', [year, period], [year,period]):
             self.storage.create('base_dirs', BaseDir(year, period, forms_version, directory))

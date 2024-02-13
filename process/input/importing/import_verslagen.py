@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 from time import sleep
 from typing import Iterable
 from data.classes.bedrijven import Bedrijf
@@ -20,7 +19,7 @@ from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
 
-class VerlagParseException(Exception): pass
+class VerslagParseException(Exception): pass
 
 class VerslagFromZipImporter(VerslagImporter):
     def __init__(self, root_directory: str, storage: AAPAStorage):
@@ -36,7 +35,7 @@ class VerslagFromZipImporter(VerslagImporter):
                         'eindverslag': MijlpaalType.EIND_VERSLAG}
         if (result := VerslagTypes.get(product_type.lower(), None)):
             return result
-        raise VerlagParseException(f'Onbekend verslagtype: {[product_type]}')
+        raise VerslagParseException(f'Onbekend verslagtype: {[product_type]}')
     def _get_kans(self, student: Student, mijlpaal_type: MijlpaalType)->int:
         storage_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
         mijlpalen = storage_queries.find_student_mijlpaal_dir(student, mijlpaal_type)
@@ -68,7 +67,7 @@ class VerslagFromZipImporter(VerslagImporter):
         #return per student (indexed on email): list of {verslag object, filename in zip, original filename}
         self.reader.parse(zip_filename=zip_filename)  
         result = {}
-        for parsed in self.reader.parsed_list:
+        for parsed in sorted(self.reader.parsed_list,key=lambda p: p.student_name):
             verslag = self._get_verslag_from_parsed(parsed)
             log_print(f'Student: {verslag.student.full_name}')
             student_key = verslag.student.email
@@ -89,8 +88,10 @@ class VerslagFromZipImporter(VerslagImporter):
         student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,verslag.student,self.root_directory))        
         mijlpaal_directory = student_directory.joinpath(MijlpaalDirectory.directory_name(verslag.mijlpaal_type, verslag.datum))
         return str(mijlpaal_directory.joinpath(original_filename))
-    def created_directory(self, directory_path: Path)->bool:
-        if not directory_path.is_dir():
+    def created_directory(self, directory_path: Path, preview: bool)->bool:
+        if preview:
+            return True
+        elif not directory_path.is_dir():
             directory_path.mkdir()
             return True
         return False
@@ -101,20 +102,27 @@ class VerslagFromZipImporter(VerslagImporter):
         # if we get here, try a good-luck search. Hopefully the database is not out-of-sync with reality
         queries: FilesQueries = self.storage.queries('files')
         return queries.is_known_file(filename_to_create)
-    def create_file(self, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False)->File:
+    
+    def _register_verslag(self, verslag: Verslag, filename: str):
+        file = verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
+        StudentDirectoryBuilder(self.storage).register_file(student=verslag.student, 
+                                                       datum=file.timestamp if file_exists(filename) else verslag.datum,
+                                                       filename=filename, 
+                                                       filetype=file.filetype, mijlpaal_type=file.mijlpaal_type)
+
+    def _create_file(self, verslag: Verslag, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
         mijlpaal_directory = Path(filename_to_create).parent
         if preview:
             if not mijlpaal_directory.is_dir() and new_student:
                 log_print(f'\tAanmaken directory {File.display_file(mijlpaal_directory)}')
             log_print(f'\tOntzippen {File.display_file(filename_to_create)}')                
-            return File(filename_to_create)
         else:
             mijlpaal_directory = Path(filename_to_create).parent
-            if self.created_directory(mijlpaal_directory):
+            if self.created_directory(mijlpaal_directory, preview):
                 log_print(f'\tDirectory {File.display_file(mijlpaal_directory)} aangemaakt')
-            filename = self.reader.extract_file(filename_in_zip, mijlpaal_directory, Path(filename_to_create).name)
+            self.reader.extract_file(filename_in_zip, mijlpaal_directory, Path(filename_to_create).name)
             log_print(f'\tBestand {File.display_file(filename_to_create)} aangemaakt.')
-            return File(filename)
+        self._register_verslag(verslag, filename_to_create)
     def _check_existing_files(self, student_entries: list[dict]):
         previous_existing = False
         student_dir_queries: StudentDirectoryQueries= self.storage.queries('student_directories')       
@@ -135,11 +143,27 @@ class VerslagFromZipImporter(VerslagImporter):
         if previous_existing:
             for student_entry in student_entries:
                 student_entry['verslag'].kans -= 1
+    def _process_student_entry(self, current_verslag: Verslag, student_entry: dict, preview=False)->Verslag:
+        overgeslagen = 'Wordt overgeslagen.'
+        new_verslag:Verslag = student_entry['verslag']
+        if current_verslag and new_verslag.mijlpaal_type == current_verslag.mijlpaal_type and current_verslag.student==new_verslag.student:
+            new_verslag = current_verslag
+        filename_to_create = student_entry['filename_to_create']
+        log_debug(f'filename to create: {filename_to_create}')                    
+        if student_entry['stored'] and student_entry['existing']:
+            log_warning(f'Bestand {File.display_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
+            return None
+        elif student_entry['existing']:
+            log_warning(f'Bestand {File.display_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
+            return None
+        else:
+            self._create_file(new_verslag, student_entry['filename_in_zip'], filename_to_create,  
+                                    current_verslag is None, preview=preview)
+            return new_verslag
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')
         overgeslagen = 'Wordt overgeslagen.'
-        created = []
         first = True
         for student_entries in self.get_verslagen(zip_filename).values():
             if first:
@@ -147,23 +171,11 @@ class VerslagFromZipImporter(VerslagImporter):
                 first = False
             try:
                 self._check_existing_files(student_entries)
-                new_student = True
+                verslag = None
                 for student_entry in student_entries:                    
-                    verslag:Verslag = student_entry['verslag']
-                    filename_to_create = student_entry['filename_to_create']
-                    log_debug(f'filename to create: {filename_to_create}')                    
-                    if student_entry['stored'] and student_entry['existing']:
-                        log_warning(f'Bestand {File.display_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
-                    elif student_entry['existing']:
-                        log_warning(f'Bestand {File.display_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
-                #TODO: doe hier nog iets meer mee (registeren)                
-                    else:
-                        file = self.create_file(student_entry['filename_in_zip'], filename_to_create, new_student, preview=preview)
-                #TODO: doe hier nog iets meer mee (registeren)                
-                        created.append(file)
-                        yield verslag
-                    new_student = False
-                    # yield verslag
+                    verslag = self._process_student_entry(verslag, student_entry, preview)
+                if verslag:
+                    yield verslag
             except Exception as E:
                 log_error(f'Error in read_verslagen:\n{E}')
                 sleep(.25) # hope this helps with sharepoint delays

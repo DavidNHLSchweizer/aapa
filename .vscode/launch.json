@@ -86,8 +86,8 @@
             "justMyCode": true,
             "args": [
                 "input",
-                "-preview",
                 "-debug",
+                "-preview",
                 "--onedrive=d:\\onedrive",
                 "--processing_mode=R"
             ]

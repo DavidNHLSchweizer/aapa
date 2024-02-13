@@ -25,11 +25,6 @@ class AanvraagImporter(FileProcessor):
             return None
         else:
             log_print(f'\t{str(validator.validated_aanvraag)}')
-            validator.validated_aanvraag.register_file(filename, File.Type.AANVRAAG_PDF, MijlpaalType.AANVRAAG)
-            StudentDirectoryBuilder(storage).register_file(student=validator.validated_aanvraag.student, 
-                                                            datum=File.get_timestamp(filename) if file_exists(filename) else aanvraag.datum,
-                                                            filename=filename, 
-                                                            filetype=File.Type.AANVRAAG_PDF,mijlpaal_type=MijlpaalType.AANVRAAG)
             return validator.validated_aanvraag
     def must_process_file(self, filename: str, storage: AAPAStorage, **kwargs)->bool:        
         queries: FilesQueries = storage.queries('files')
@@ -41,6 +36,12 @@ class AanvraagImporter(FileProcessor):
             case _: return True
     def read_aanvraag(self, filename: str)->Aanvraag:
         return None # implement in subclass
+    def _register_aanvraag(self, aanvraag: Aanvraag, filename: str, storage: AAPAStorage):
+        aanvraag.register_file(filename, File.Type.AANVRAAG_PDF, MijlpaalType.AANVRAAG)
+        StudentDirectoryBuilder(storage).register_file(student=aanvraag.student, 
+                                                            datum=File.get_timestamp(filename) if file_exists(filename) else aanvraag.datum,
+                                                            filename=filename, 
+                                                            filetype=File.Type.AANVRAAG_PDF,mijlpaal_type=MijlpaalType.AANVRAAG)
     def before_reading(self, preview = False):
         pass
     def after_reading(self, preview = False):
@@ -60,8 +61,11 @@ class AanvraagImporter(FileProcessor):
                 for (aanvraag,aanvraag_filename) in self.read_aanvragen(filename, preview):
                     if validated := self._validate(storage, aanvraag_filename, aanvraag):
                         result.append(validated)
+                        self._register_aanvraag(validated, aanvraag_filename, storage)
             elif (aanvraag := self.read_aanvraag(filename)):
                 result = self._validate(storage, filename, aanvraag)
+                if result: 
+                    self._register_aanvraag(result, filename, storage)
         except (ImportException,PDFReaderException) as exception:
             log_warning(f'{exception}\n\t{ERRCOMMENT}.')           
         self.after_reading(preview)

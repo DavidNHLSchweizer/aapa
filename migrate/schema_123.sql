@@ -1,5 +1,5 @@
 AAPA Database schema versie 1.23
-12-02-2024 11:20:59
+13-02-2024 15:32:36
 
 table VERSIE:
   CREATE TABLE IF NOT EXISTS VERSIE (ID INTEGER PRIMARY KEY,db_versie TEXT,versie TEXT,datum TEXT);
@@ -75,8 +75,8 @@ view AANVRAGEN_FILE_OVERZICHT:
   "Ingevuld beoordelingsformulier (PDF format)" when 6 then "Beoordelingsformulier (examinator 1)" when 7 then
   "Beoordelingsformulier (examinator 2)" when 8 then "Beoordelingsformulier (examinator 3 of hoger)" when 9 then "Plan
   van Aanpak" when 10 then "Onderzoeksverslag" when 11 then "Technisch verslag" when 12 then "Eindverslag" when 13 then
-  "Aanvraag" else "?" end ) as filetype from AANVRAGEN as A inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id
-  inner join FILES as F on F.ID=AF.file_id order by 2;
+  "Aanvraag" when 20 then "PDF bestand" when 21 then "Microsoft Word bestand" else "?" end ) as filetype from AANVRAGEN
+  as A inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id inner join FILES as F on F.ID=AF.file_id order by 2;
 view STUDENT_DIRECTORIES_FILE_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_FILE_OVERZICHT AS select SD.id,SD.STUD_ID,SD.directory as
   student_directory,(case sd.status when 0 then "nog niet bekend" when 1 then "actief" when 42 then "gearchiveerd" else
@@ -87,12 +87,13 @@ view STUDENT_DIRECTORIES_FILE_OVERZICHT:
   "Ingevuld beoordelingsformulier (PDF format)" when 6 then "Beoordelingsformulier (examinator 1)" when 7 then
   "Beoordelingsformulier (examinator 2)" when 8 then "Beoordelingsformulier (examinator 3 of hoger)" when 9 then "Plan
   van Aanpak" when 10 then "Onderzoeksverslag" when 11 then "Technisch verslag" when 12 then "Eindverslag" when 13 then
-  "Aanvraag" else "?" end ) as filetype,(case F.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then "plan
-  van aanpak" when 3 then "onderzoeksverslag" when 4 then "technisch verslag" when 5 then "eindverslag" when 6 then
-  "productbeoordeling" when 7 then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?"
-  end ) as mijlpaal from STUDENT_DIRECTORIES as SD inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on
-  SD.id=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id inner join MIJLPAAL_DIRECTORY_FILES
-  as MDF on MD.ID=MDF.mp_dir_id inner join FILES as F on F.ID=MDF.file_id;
+  "Aanvraag" when 20 then "PDF bestand" when 21 then "Microsoft Word bestand" else "?" end ) as filetype,(case
+  F.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then "plan van aanpak" when 3 then "onderzoeksverslag"
+  when 4 then "technisch verslag" when 5 then "eindverslag" when 6 then "productbeoordeling" when 7 then "presentatie"
+  when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?" end ) as mijlpaal from STUDENT_DIRECTORIES as SD
+  inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MD on
+  MD.id=SDD.mp_dir_id inner join MIJLPAAL_DIRECTORY_FILES as MDF on MD.ID=MDF.mp_dir_id inner join FILES as F on
+  F.ID=MDF.file_id;
 view STUDENT_DIRECTORIES_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_OVERZICHT AS select s.id,full_name,stud_nr,(case s.status when 0 then
   "nog niet bekend" when 1 then "aanvraag gedaan" when 2 then "bezig met afstuderen" when 3 then "afgestudeerd" when 10

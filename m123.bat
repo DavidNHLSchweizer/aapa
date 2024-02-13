@@ -1,5 +1,5 @@
 @echo off
-set onedrive=C:\onedrive
+set onedrive=D:\onedrive
 set basedir="%onedrive%\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw\aapa"
 set db0=%basedir%\aapa_122.db
 set db1=%basedir%\aapa.db
