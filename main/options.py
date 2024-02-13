@@ -2,7 +2,7 @@ from __future__ import annotations
 from argparse import Namespace
 from enum import Enum, auto
 from data.general.roots import Roots
-from main.args import _get_arguments, _init_parser, aapa_parser
+from main.args import _get_arguments
 from main.log import log_error
 from main.config import config
 from process.general.const import AAPAaction
@@ -249,8 +249,6 @@ def report_options(options: AAPAOptions, parts=0)->str:
             result += _report_str('load alternative configuration file', config_options.config_file)
     return result
 
-def get_debug()->bool:
-    return _get_arguments().debug
 
 class ArgumentOption(Enum):
     CONFIG = auto()

@@ -40,6 +40,7 @@ def verifyRecreate():
     return tkimb.askyesno('Vraagje', 'Alle data wordt verwijderd. Is dat echt wat je wilt?', default = tkimb.NO, icon=tkimb.WARNING) 
 
 class AAPAConfiguration:
+    
     class PART(Enum):
         DATABASE = auto()
         DIRECTORIES = auto()     

@@ -50,12 +50,43 @@ class AAPAProcessor:
             log_error(f'Fout bij processing (main): {E}')
 
 class AAPARunnerContext:
+    """ AAPA context: provides access to storage and options. 
+    
+        By using this as a ContextManager you can access the storage and options.
+        AAPARunnerContext takes care of all initialization. 
+        
+        If the context is valid, (valid property) everything is initialized correctly.
+
+        attributes
+        ----------
+        configuration: AAPAConfiguration object. Contains storage, direct access to database, and config options.
+        processing_options: AAPAProcessing object. The processing options.
+        preview: if True it should be a preview run 
+            #TODO: this could probably be included in the __enter__ method. Preview is now done separately.
+        valid: Check validity. If valid is False, there was a problem initializing.     
+             
+        example use
+        ----------- 
+            with AAPARunnerContext(configuration, processing_options) as context:
+            
+    """
     def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions, message=None):
+        """ 
+        parameters
+        ---------- 
+        configuration: the configuration object, based on the AAPAConfigOptions. 
+            Contains database and key directories.
+        processing_options: AAPAProcessingOptions.
+            Contains actions and options for processing. 
+        options (property): AAPAOptions object combining config_options and processing_options.
+        message: optional message. displayed and logged at start of contextmanager.
+        
+        """
         self.configuration = configuration
         self.processing_options = processing_options
         self.preview = self.needs_preview()
         self.valid = True
-        self.message=message
+        self._message=message
     @property
     def options(self)->AAPAOptions:
         return AAPAOptions(config_options=self.configuration.config_options, 
@@ -67,8 +98,8 @@ class AAPARunnerContext:
         else:
             return not self.processing_options.no_processing() 
     def __enter__(self):
-        if self.message:
-            log_info(self.message, to_console=True)
+        if self._message:
+            log_info(self._message, to_console=True)
         log_info(f'COMMAND LINE OPTIONS:\n{report_options(self.options)}')
         log_print(banner())
         log_info(f'+++ AAPA started +++ {datetime.strftime(datetime.now(), "%d-%m-%Y, %H:%M:%S")}', to_console=True)
