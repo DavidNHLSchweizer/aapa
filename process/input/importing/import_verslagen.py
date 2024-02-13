@@ -15,7 +15,7 @@ from storage.queries.student_directories import StudentDirectoryQueries
 from storage.queries.studenten import StudentQueries
 from general.fileutil import file_exists
 from main.log import log_debug, log_error, log_info, log_print, log_warning
-from process.general.student_dir_builder import StudentDirectoryBuilder
+from process.general.student_dir_builder import SDB
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
 
@@ -25,6 +25,7 @@ class VerslagFromZipImporter(VerslagImporter):
     def __init__(self, root_directory: str, storage: AAPAStorage):
         super().__init__(f'import from zip-file', multiple=True)
         self.storage = storage
+        self.sdb = SDB(storage)
         self.reader = BBZipFileReader()
         self.root_directory = root_directory
 
@@ -85,9 +86,14 @@ class VerslagFromZipImporter(VerslagImporter):
                     entry['verslag'].status = Verslag.Status.MULTIPLE
         return result
     def get_filename_to_create(self, verslag: Verslag, original_filename: str):
-        student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,verslag.student,self.root_directory))        
-        mijlpaal_directory = student_directory.joinpath(MijlpaalDirectory.directory_name(verslag.mijlpaal_type, verslag.datum))
-        return str(mijlpaal_directory.joinpath(original_filename))
+        student_directory = SDB.get_student_dir(self.storage,verslag.student,self.root_directory)
+        mp_dir_name = SDB.get_mijlpaal_directory_name(stud_dir=student_directory, datum=verslag.datum,mijlpaal_type=verslag.mijlpaal_type)
+
+        mijlpaal_directory:MijlpaalDirectory = self.sdb.get_mijlpaal_directory(stud_dir=student_directory, directory=mp_dir_name, 
+                                                                          datum=verslag.datum, mijlpaal_type=verslag.mijlpaal_type, 
+                                                                          error_margin=4.0)
+        # mijlpaal_directory = student_directory.joinpath(MijlpaalDirectory.directory_name(verslag.mijlpaal_type, verslag.datum))
+        return str(Path(mijlpaal_directory.directory).joinpath(original_filename))
     def created_directory(self, directory_path: Path, preview: bool)->bool:
         if preview:
             return True
@@ -105,10 +111,8 @@ class VerslagFromZipImporter(VerslagImporter):
     
     def _register_verslag(self, verslag: Verslag, filename: str):
         file = verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
-        StudentDirectoryBuilder(self.storage).register_file(student=verslag.student, 
-                                                       datum=file.timestamp if file_exists(filename) else verslag.datum,
-                                                       filename=filename, 
-                                                       filetype=file.filetype, mijlpaal_type=file.mijlpaal_type)
+        self.sdb.register_file(student=verslag.student, datum=file.timestamp if file_exists(filename) else verslag.datum,
+                                        filename=filename, filetype=file.filetype, mijlpaal_type=file.mijlpaal_type)
 
     def _create_file(self, verslag: Verslag, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
         mijlpaal_directory = Path(filename_to_create).parent
@@ -163,7 +167,6 @@ class VerslagFromZipImporter(VerslagImporter):
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')
-        overgeslagen = 'Wordt overgeslagen.'
         first = True
         for student_entries in self.get_verslagen(zip_filename).values():
             if first:

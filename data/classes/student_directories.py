@@ -47,11 +47,31 @@ class StudentDirectory(AAPAclass):
         if sorted:
             result.sort(key=get_key)
         return result
-    def get_directory(self, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->MijlpaalDirectory:
+    def get_directory(self, datum: datetime.datetime, mijlpaal_type: MijlpaalType, error_margin = 0.0)->MijlpaalDirectory:
+        """ Geeft mijlpaal_directory voor dit mijlpaal_type en deze datum
+
+            voor aanvragen is er 1 aanvraag directory, de datum is niet wezenlijk van belang daarvoor
+
+            voor andere mijlpalen (verslagen) juist wel, maar niet tot in de milliseconden. 
+            De praktijk is ook dat er soms al een directory is die bv 1 dag afwijkt. Vandaar error_margin.
+            
+            parameters
+            ----------
+            datum: De datum waarop naar een mijlpaaldirectory wordt gezocht. Waarschijnlijk de timestamp van een file  die geplaatst moet worden 
+            mijlpaal_type: De soort mijlpaal
+            error_margin: range van dagen waarin gezocht wordt. Als er een mijlpaaldirectory bestaat waarvan de timestamp tussen 
+            datum-error_margin/2 en datum+error_margin/2 ligt wordt deze teruggegeven.
+
+            returns
+            -------
+            de mijlpaaldirectory waarbij deze datum/mijlpaal_type hoort.
+            None als er nog geen bestaat.
+
+        """
         for directory in self.get_directories(mijlpaal_type):
-            #er is maar 1 aanvraag directory, de datum is niet wezenlijk van belang daarvoor
-            #voor andere mijlpalen (verslagen) juist wel, maar niet tot in de milliseconden. 
-            if mijlpaal_type == MijlpaalType.AANVRAAG or TSC.round_to_day(directory.datum)==TSC.round_to_day(datum):
+            (min_date,max_date) = TSC.date_range(directory.datum, error_margin)
+            new_date = TSC.round_to_day(datum)
+            if mijlpaal_type == MijlpaalType.AANVRAAG or (new_date >= min_date and new_date <= max_date):
                 return directory
         return None
     def get_files(self)->list[File]:

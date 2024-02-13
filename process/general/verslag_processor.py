@@ -2,7 +2,7 @@ from typing import Iterable, Tuple
 from data.classes.files import File
 from data.classes.verslagen import Verslag
 from data.general.const import MijlpaalType, SuffixType
-from process.general.student_dir_builder import StudentDirectoryBuilder
+from process.general.student_dir_builder import SDB
 from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists

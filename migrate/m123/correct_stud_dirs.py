@@ -18,7 +18,7 @@ from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
 from migrate.migration_plugin import MigrationPlugin
 from process.main.aapa_processor import AAPARunnerContext
-from process.general.student_dir_builder import StudentDirectoryBuilder
+from process.general.student_dir_builder import SDB
 
 class StudDirsReEngineeringProcessor(MigrationPlugin):
     def init_SQLcollectors(self) -> SQLcollectors:
@@ -70,7 +70,7 @@ where (MPD.mijlpaal_type = ? and stud_dir <> mp_directory) or \
 #wrong directory in RL.
         
         database = self.storage.database
-        builder = StudentDirectoryBuilder(self.storage)
+        builder = SDB(self.storage)
         student_dir_queries:StudentDirectoryQueries = self.storage.queries('student_directories')
         rows = database._execute_sql_command(query, [int(MijlpaalType.AANVRAAG),StudentDirectory.Status.ACTIVE],True)
         old_student = None

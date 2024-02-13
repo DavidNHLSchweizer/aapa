@@ -24,7 +24,7 @@ from general.fileutil import created_directory, safe_file_name, set_file_time, t
 from general.strutil import replace_all
 from general.timeutil import TSC
 from process.general.aanvraag_pipeline import AanvraagCreatorPipeline
-from process.general.student_dir_builder import StudentDirectoryBuilder
+from process.general.student_dir_builder import SDB
 from process.general.word_processor import Word2PdfConvertor
 from process.input.importing.aanvraag_importer import AanvraagImporter
 from process.input.importing.excel_reader import ExcelReader
@@ -154,7 +154,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
     def get_docx_filename(self, aanvraag: Aanvraag)->str:
         return str(self.temp_path.joinpath(f'{self._get_filename_stem(aanvraag)}.docx'))
     def get_pdf_filename(self, aanvraag: Aanvraag)->str:
-        student_directory = Path(StudentDirectoryBuilder.get_student_dir_name(self.storage,aanvraag.student,self.output_directory))
+        student_directory = Path(SDB.get_student_dir_name(self.storage,aanvraag.student,self.output_directory))
         return str(student_directory.joinpath(f'{self._get_filename_stem(aanvraag)}.pdf'))
     def convert_values(self, values: dict[str, Any])->Tuple[Aanvraag,str,str]:
         #return (aanvraag, docx_filename, pdf_filename)

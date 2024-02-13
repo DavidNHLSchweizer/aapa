@@ -8,7 +8,7 @@ from general.fileutil import file_exists
 from main.log import log_debug, log_error, log_print, log_warning
 from process.general.base_processor import FileProcessor
 from process.general.pdf_aanvraag_reader import PDFReaderException
-from process.general.student_dir_builder import StudentDirectoryBuilder
+from process.general.student_dir_builder import SDB
 from process.input.importing.aanvraag_validator import AanvraagValidator
 
 ERRCOMMENT = 'Waarschijnlijk niet een aanvraagformulier'
@@ -38,7 +38,7 @@ class AanvraagImporter(FileProcessor):
         return None # implement in subclass
     def _register_aanvraag(self, aanvraag: Aanvraag, filename: str, storage: AAPAStorage):
         aanvraag.register_file(filename, File.Type.AANVRAAG_PDF, MijlpaalType.AANVRAAG)
-        StudentDirectoryBuilder(storage).register_file(student=aanvraag.student, 
+        SDB(storage).register_file(student=aanvraag.student, 
                                                             datum=File.get_timestamp(filename) if file_exists(filename) else aanvraag.datum,
                                                             filename=filename, 
                                                             filetype=File.Type.AANVRAAG_PDF,mijlpaal_type=MijlpaalType.AANVRAAG)

@@ -22,6 +22,7 @@ from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from general.sql_coll import SQLcollector, SQLcollectors
 from data.general.roots import Roots
+from process.general.student_dir_builder import SDB
 from storage.aapa_storage import AAPAStorage
 from storage.queries.base_dirs import BaseDirQueries
 from storage.queries.studenten import StudentQueries
@@ -42,11 +43,12 @@ class DetectorException(Exception): pass
 
 class StudentDirectoryDetector(FileProcessor):
     ERRCOMMENT= 'Directory kan niet worden herkend'
-    def __init__(self):
+    def __init__(self, storage: AAPAStorage):
         super().__init__(description='StudentDirectory Detector')
         self.parser = DirectoryNameParser()
         self.filetype_detector = FileTypeDetector()
         self.base_dir: BaseDir = None
+        self.sdb = SDB(storage)
         self.current_student_directory: StudentDirectory = None
         self.new_students:dict[int:Student] = {}
     
@@ -138,15 +140,16 @@ class StudentDirectoryDetector(FileProcessor):
         if not self._get_basedir(dirname, storage):
             log_error(f'Directory {File.display_file(dirname)} kan niet worden gelinkt met bekende basisdirectory.')
             return None
-        try:    
+        try:    HMMMMMMMM
             student = self._get_student(dirname, storage)
             log_print(f'Student: {student}')
             if student in self.new_students.values():
                 log_warning(f'Student {student} nog niet in database. Wordt toegevoegd.\n\tLET OP: controleer het berekende email-adres {student.email}.')
             elif not student.valid():
                 log_warning(f'Gegevens student {student} zijn niet compleet.')
-            student_directory = StudentDirectory(student, dirname, self.base_dir)
-            new_dir = MijlpaalDirectory(mijlpaal_type=MijlpaalType.AANVRAAG, directory=dirname, datum=TSC.AUTOTIMESTAMP)
+            student_directory = self.sdb.get_student_dir(storage,student,dirname)
+            new_dir = self.sdb.get_mijlpaal_directory(
+            MijlpaalDirectory(mijlpaal_type=MijlpaalType.AANVRAAG, directory=dirname, datum=TSC.AUTOTIMESTAMP)
             self._collect_files(new_dir)
             if new_dir.files.nr_files() > 0:
                 student_directory.add(new_dir)
@@ -164,7 +167,7 @@ class StudentDirectoryDetector(FileProcessor):
     
 class MilestoneDetectorPipeline(FilePipeline):
     def __init__(self, description: str, storage: AAPAStorage, skip_directories:list[str]=[]):
-        super().__init__(description, StudentDirectoryDetector(), storage, activity=UndoLog.Action.DETECT)
+        super().__init__(description, StudentDirectoryDetector(storage), storage, activity=UndoLog.Action.DETECT)
         self._processor:StudentDirectoryDetector = self.processors[0]
         self.skip_directories=skip_directories
         self.sqls = self.__init_sql_collectors()

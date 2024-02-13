@@ -195,12 +195,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "migrate.m123.correct_stud_dirs",
+                "plugins.detect_student_from_directory",
                 "-debug",
                 "-preview",
-                "-v",
                 "--onedrive=d:\\onedrive",
-                "-json",
+                "--directory=D:\\onedrive\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2022-2023\\Periode 3\\",
             ]
         },
     ]
