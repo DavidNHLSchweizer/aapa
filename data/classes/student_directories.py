@@ -14,12 +14,7 @@ from database.classes.dbConst import EMPTY_ID
 from general.timeutil import TSC
 from main.log import log_warning
 
-
 class StudentDirectoryAggregator(Aggregator):
-    class DIFF(Enum):
-        EXTRA   = auto()
-        DIFFERENT = auto()
-        MISSING = auto()
     def __init__(self, owner: StudentDirectory):
         super().__init__(owner=owner)
         self.add_class(MijlpaalDirectory, 'directories')
@@ -35,34 +30,9 @@ class StudentDirectoryAggregator(Aggregator):
             if str(mp_dir.directory) == str(value.directory):
                 return mp_dir 
         return None
-    def difference(self, value2: StudentDirectoryAggregator)->dict:
-        result = {SDA.DIFF.DIFFERENT: [], SDA.DIFF.EXTRA:[], SDA.DIFF.MISSING: []}
-        value2_handled = []
-        # print('------SELF:')
-        # print(self)
-        # print('--------value2:')
-        # print(value2)
-        for dir in self.as_list('directories'):
-            if (mp_dir2 := value2._find(dir)):
-                value2_handled.append(mp_dir2)
-                mp_dir_diff = dir.difference(mp_dir2)
-                if mp_dir_diff:
-                    result[SDA.DIFF.DIFFERENT].append(mp_dir_diff)
-                continue
-            result[SDA.DIFF.MISSING].append(dir)
-        for dir2 in value2.as_list('directories'):
-            if not dir2 in value2_handled:
-                result[SDA.DIFF.EXTRA].append(dir2)       
-        return result 
 SDA = StudentDirectoryAggregator
     
 class StudentDirectory(AAPAclass):
-    class DIFF(Enum):
-        STUDENT  = auto()
-        DIRECTORY= auto()
-        BASEDIR  = auto()
-        STATUS   = auto()
-        DIRS     = auto()
     Status = StudentDirectoryStatus
     def __init__(self, student: Student, directory: str, base_dir: BaseDir = None, status=Status.UNKNOWN, id: int = EMPTY_ID):
         super().__init__(id)        
@@ -72,7 +42,7 @@ class StudentDirectory(AAPAclass):
         self.status  = status    
         self._data = StudentDirectoryAggregator(self)
     @property
-    def data(self)->Aggregator:
+    def data(self)->SDA:
         return self._data
     @property
     def directories(self)->list[MijlpaalDirectory]:
@@ -132,19 +102,6 @@ class StudentDirectory(AAPAclass):
         dir_str = "\n\t".join(str(directory) for directory in self.directories)
         if dir_str:
             result = result + '\n\t' + dir_str 
-        return result
-    def difference(self, value2: StudentDirectory)->dict:
-        result = {}
-        if self.student != value2.student:
-            result[StudentDirectory.DIFF.STUDENT] = value2.student
-        if str(self.directory) != str(value2.directory):
-            result[StudentDirectory.DIFF.DIRECTORY] = value2.directory
-        if self.base_dir != value2.base_dir:
-            result[StudentDirectory.DIFF.BASEDIR] = value2.base_dir
-        # if self.status != value2.status:
-        #     result[StudentDirectory.DIFF.STATUS] = value2.status
-        if (diff_data := self._data.difference(value2._data)):
-            result[StudentDirectory.DIFF.DIRS] = diff_data
         return result
     def __eq__(self, value2: StudentDirectory)->bool:
         if not value2:

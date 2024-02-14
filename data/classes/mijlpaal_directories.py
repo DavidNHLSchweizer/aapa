@@ -1,6 +1,5 @@
 from __future__ import annotations
 import datetime
-from enum import Enum, auto
 from data.classes.files import File
 
 from data.general.const import MijlpaalType
@@ -9,12 +8,6 @@ from database.classes.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
 class MijlpaalDirectory(MijlpaalBase):    
-    class DIFF(Enum):
-        MIJLPAAL    = auto()
-        KANS        = auto()
-        DIRECTORY   = auto()
-        DATUM       = auto()
-        FILES       = auto()
     def __init__(self, mijlpaal_type: MijlpaalType, directory: str, datum: datetime.datetime, kans=0, id=EMPTY_ID):
         super().__init__(mijlpaal_type=mijlpaal_type, datum=datum, kans=kans, id=id)
         self.directory = directory
@@ -38,19 +31,6 @@ class MijlpaalDirectory(MijlpaalBase):
         return True
     def __gt__(self, value2: MijlpaalDirectory)->bool:
         return value2 is not None and self.directory > value2.directory
-    def difference(self, value2: MijlpaalDirectory)->dict:
-        result = {}
-        # if self.mijlpaal_type != value2.mijlpaal_type:
-        #     result[MijlpaalDirectory.DIFF.MIJLPAAL] = value2.mijlpaal_type
-        # if self.kans != value2.kans:
-        #     result[MijlpaalDirectory.DIFF.KANS] = value2.kans
-        if self.directory != value2.directory:
-            result[MijlpaalDirectory.DIFF.DIRECTORY] = value2.directory
-        # if self.datum != value2.datum:
-        #     result[MijlpaalDirectory.DIFF.DATUM] = value2.datum
-        if (diff_files := self.files.difference(value2.files)):
-            result[MijlpaalDirectory.DIFF.FILES] = diff_files
-        return result
     @staticmethod
     def directory_name(mijlpaal_type: MijlpaalType, datum: datetime.datetime)->str:
         beoordelen = ' Beoordelen' if not mijlpaal_type  in [MijlpaalType.PRODUCT_BEOORDELING, MijlpaalType.EINDBEOORDELING, MijlpaalType.AFSTUDEERZITTING] else ""
