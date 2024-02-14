@@ -3,15 +3,13 @@ from argparse import ArgumentParser
 from enum import Enum, auto
 from pathlib import Path
 from data.classes.base_dirs import BaseDir
-from data.classes.files import File, Files
+from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import SDA, StudentDirectory
 from data.general.aapa_class import AAPAclass
 from main.log import log_info, log_print
 from plugins.plugin import PluginBase
 from process.general.student_directory_detector import StudentDirectoryDetector
-from process.input.importing.dirname_parser import DirectoryNameParser
-from process.input.importing.filename_parser import FileTypeDetector
 from process.main.aapa_processor import AAPARunnerContext
 from storage.aapa_storage import AAPAStorage
 from storage.queries.base_dirs import BaseDirQueries
@@ -79,7 +77,7 @@ class StudentDirectoryCompareProcessor:
                 self.problems.add(SDC.NEW_FILE, actual_file)
 
     def _log_student_directory(self, stud_dir: StudentDirectory, msg=''):
-        log_print(f'\t{File.display_file(stud_dir.directory)} {stud_dir.status}')
+        log_print(f'\t{File.display_file(stud_dir.directory)} [{stud_dir.status}]')
     def _log_mijlpaal_directory(self, mp_dir: MijlpaalDirectory, msg=''):
         log_print(f'\t{msg}{File.display_file(mp_dir.directory)} ({mp_dir.mijlpaal_type})  kans={mp_dir.kans} datum={mp_dir.datum}')
     def _log_file(self, file: File, msg=''):
