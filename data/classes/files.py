@@ -1,5 +1,6 @@
 from __future__ import annotations 
 import datetime
+from enum import Enum, auto
 from pathlib import Path
 import re
 from data.general.aapa_class import AAPAclass
@@ -65,6 +66,14 @@ class File(AAPAclass):
         return self.filename==''
     def relevant_attributes(self)->set[str]:
         return {'filename', 'timestamp', 'digest'}
+    def equal_relevant_attributes(self, value: File)->bool:
+        if  self.filename != value.filename:
+            return False
+        if  self.timestamp != value.timestamp:            
+            return False
+        if  self.digest != value.digest:            
+            return False
+        return True
     def __eq__(self, value: File):
         if  self.filename != value.filename:
             return False
@@ -81,6 +90,10 @@ class File(AAPAclass):
         return value2 is not None and self.filename > value2.filename
     
 class Files(Aggregator):
+    class DIFF(Enum):
+        EXTRA   = auto()
+        MISSING = auto()
+        DIFFERENT= auto()
     def __init__(self, owner: AAPAclass, allow_multiple = True):
         super().__init__(owner=owner)
         self.allow_multiple = allow_multiple
@@ -124,3 +137,24 @@ class Files(Aggregator):
         return ''
     def summary(self)->str:
         return "\n".join([f'{file.summary()}' for file in self.files])
+    def _find(self, value: File)->File:
+        for file in self.files:
+            if str(file.filename) == str(value.filename):
+                return file 
+        return None
+    def difference(self, value2: Files)->dict:
+        result = {Files.DIFF.EXTRA:[], Files.DIFF.DIFFERENT: [], Files.DIFF.MISSING: []}
+        files2_handled = []
+        for file in self.files:
+            if file2 := value2._find(file):
+                if not file.equal_relevant_attributes(file2):
+                    result[Files.DIFF.DIFFERENT].append(file)
+                files2_handled.append(file2)
+                continue
+            result[Files.DIFF.MISSING].append(file)
+        for file2 in value2.files:
+            if not file2 in files2_handled:
+                if self._find(file2):
+                    continue
+                result[Files.DIFF.EXTRA].append(file2)
+        return result 

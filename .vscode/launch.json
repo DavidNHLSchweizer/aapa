@@ -195,11 +195,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "plugins.detect_student_from_directory",
+                "plugins.sync_basedir",
+                "\"D:\\onedrive\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2022-2023\\Periode 3\"",
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive",
-                "--directory=D:\\onedrive\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2022-2023\\Periode 3\\",
             ]
         },
     ]

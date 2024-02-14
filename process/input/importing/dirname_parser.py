@@ -36,7 +36,7 @@ class DirectoryNameParser:
     def parse_non_standard(self, directory_name: str, directory_part: str)->str:
         if match := self.pattern_non_standard.match(directory_part):
             type_str = match.group('part')
-            log_warning(f'Niet-standaard naamgeving in directory {File.display_file(directory_name, maxlen=80)}\n'+
+            log_warning(f'Niet-standaard naamgeving in directory {File.display_file(directory_name)}\n'+
                         f'\twordt geinterpreteerd als {type_str}'
                         )
             return type_str
