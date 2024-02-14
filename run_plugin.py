@@ -15,7 +15,7 @@ if __name__ == "__main__":
             return "\n".join(lines)
 
         simple_parser = ArgumentParser(description='Script om (in principe) eenmalige acties uit te voeren voor AAPA.', 
-                                       prog='run_plugin', usage=_usage_str())
+                                       prog='run_plugin', usage=_usage_str(), fromfile_prefix_chars='@')
         simple_parser.add_argument('modules', metavar='module(s)', type=str,
                             help='Module of modules om uit voeren.')
         simple_args,unknown_arguments = simple_parser.parse_known_args()
