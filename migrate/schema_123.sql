@@ -1,5 +1,5 @@
 AAPA Database schema versie 1.23
-15-02-2024 16:19:44
+15-02-2024 18:13:01
 
 table VERSIE:
   CREATE TABLE IF NOT EXISTS VERSIE (ID INTEGER PRIMARY KEY,db_versie TEXT,versie TEXT,datum TEXT);

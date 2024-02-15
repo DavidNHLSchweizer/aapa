@@ -195,7 +195,8 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "plugins.orphan_files",
+                "plugins.sync_basedir",
+                "--basedir=ntb"
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive",

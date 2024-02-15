@@ -14,6 +14,7 @@ class JsonData:
         CORRECT_MP_DIRS = auto()
         ADAPT_MP_DIRS = auto()
         CREATE_VERSLAGEN = auto()
+        REUNITE_ORPHANS  = auto()
     
     json_data = {   KEY.SET_DIR_STATUS: {'filename': 'set_sdir_status', 'phase':1, 'message': 'setting (computed) status'},
                     KEY.MP_DIR_DATUM: {'filename': 'mp_dir_datum', 'phase':1, 'message': 'setting missing dates'},          
@@ -21,6 +22,7 @@ class JsonData:
                     KEY.CREATE_VERSLAGEN: {'filename': 'create_verslagen', 'phase':3, 'message': '"re-engineering" verslagen'},
                     KEY.CORRECT_MP_DIRS: {'filename': 'correct_mp_dirs', 'phase':4, 'message': 'correcting double mijlpaal_directories'},
                     KEY.CORRECT_STUD_DIRS: {'filename': 'correct_stud_dirs', 'phase':4, 'message': 'correcting student directories'},
+                    KEY.REUNITE_ORPHANS: {'filename': 'reunite_orphans', 'phase':5, 'message': 'reuniting orphan files'},
                 }
     @staticmethod
     def execute(database: Database, phase = 0):
@@ -126,8 +128,13 @@ def correct_files_for_error(database: Database):
     _correct_path(database, 'FILES', 'filename', r':ROOT7:\Wilde, Fabian%',  "Wilde, Fabian", "Wilde, de, Fabian")
     #Johan van der Meer
     _correct_path(database, 'FILES', 'filename', r':ROOT7:\Meer, Johan van der%',  "Meer, Johan van der", "Meer, van der, Johan")
-    \
-    
+    #Erik Langendijk
+    _correct_path(database, 'FILES', 'filename', r':ROOT7:\Langendijk, Erik (dt)%',  "Langendijk, Erik (dt)", "Langendijk, Erik")
+    #Samuel Jansen  
+    _correct_path(database, 'FILES', 'filename', r':ROOT9:\Jansen, samuel%',  "Jansen, samuel", "Jansen, Samuel")
+    #Luke Glas  
+    _correct_path(database, 'FILES', 'filename', r':ROOT7:\Glas, Luke%',  ":ROOT7:", ":ROOT9:")
+   
 
     print('... ready correcting FILES errors')
 
