@@ -2,24 +2,28 @@ from __future__ import annotations
 from argparse import ArgumentParser
 from enum import Enum, auto
 from pathlib import Path
+import re
 from data.classes.base_dirs import BaseDir
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import SDA, StudentDirectory
+from data.classes.studenten import Student
 from data.general.aapa_class import AAPAclass
 from data.general.roots import Roots
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
-from main.log import log_info, log_print
+from main.log import log_error, log_info, log_print
 from plugins.plugin import PluginBase
 from process.general.student_directory_detector import StudentDirectoryDetector
+from process.input.importing.dirname_parser import DirectoryNameParser
 from process.main.aapa_processor import AAPARunnerContext
 from storage.aapa_storage import AAPAStorage
 from storage.queries.base_dirs import BaseDirQueries
 from storage.queries.files import FilesQueries
 from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.studenten import StudentQueries
 
-class SyncException(Exception): pass
+class OrphanException(Exception): pass
 
 
 class StudentDirectoryCompare(dict):
@@ -211,74 +215,70 @@ class StudentDirectoryCompareProcessor:
                 case SDC.CHANGED_FILE:
                     dump_files(items, 'Veranderde files:')
 
-class BasedirSyncProcessor:
+class OrphanFileProcessor:
     def __init__(self, storage: AAPAStorage):
         self.storage = storage
-        self.stud_dir_queries:StudentDirectoryQueries = self.storage.queries('student_directories')
-        self.detector = StudentDirectoryDetector()
-        self.compare_processor = StudentDirectoryCompareProcessor(storage)
+        self.database = storage.database
+        self.file_queries: FilesQueries = self.storage.queries('files')
+        self.student_queries: StudentQueries = self.storage.queries('studenten')
         self.sql_processor = StudentDirectorySQL(storage)
-    def _init_basedir(self, directory: str)->BaseDir:
-        queries: BaseDirQueries = self.storage.queries('base_dirs')
-        return queries.find_basedir(directory, start_at_parent=False)
-    def compare_with_database(self, actual_student_directory: StudentDirectory):
-        stored = self.stud_dir_queries.find_student_dir_for_directory(actual_student_directory.student, actual_student_directory.directory)
-        self.compare_processor.compare(stored_stud_dir=stored, actual_stud_dir=actual_student_directory)       
-        self.sql_processor.process(self.compare_processor.differences)
-        
-    def sync_student_dir(self, directory: str, preview=False)->bool:
-        log_info(f'Synchonisatie {File.display_file(directory)}')
-        actual_student_dir = self.detector.process(directory,self.storage,True)
-        self.compare_with_database(actual_student_dir)
-    def sync_basedir(self, directory: str, preview=False)->bool:
-        if not (basedir := self._init_basedir(directory)):
+        self.skip_pattern = re.compile(r"Beoordeling aanvragen 2023\\Week\s\d")
+        self.parser = DirectoryNameParser()
+    def _get_student(self,filename: str)->Student:
+        if not (parsed := self.parser.parsed(Path(filename).parent)):
+            raise OrphanException(f'directory {File.display_file(filename)} kan niet worden geanalyseerd.')
+        tem_student = Student(full_name=parsed.student,email=parsed.email())
+        if not (stored := self.student_queries.find_student_by_name_or_email_or_studnr(tem_student)):
+            raise OrphanException(f'Student kan niet worden gevonden voor wees-file {File.display_file(filename)}')
+        return stored
+    def _get_mijlpaal_dir(self, filename: str)->MijlpaalDirectory:
+        if (rows:=self.storage.queries('mijlpaal_directories').find_values('directory', Roots.encode_path(Path(filename).parent))):
+            return rows[0]
+        return None
+    def _is_in_beoordeling_aanvraag_directory_2023(self, filename: str)->bool:
+        return self.skip_pattern.search(filename) is not None
+    def handle_file(self, file: File)->bool:
+        if self._is_in_beoordeling_aanvraag_directory_2023(file.filename):
+            return True
+        try:
+            student = self._get_student(file.filename)
+            if student.status in {Student.Status.AFGESTUDEERD,Student.Status.GESTOPT}:
+                return True
+            mijlpaal_dir = self._get_mijlpaal_dir(file.filename)
+            print(f'{student}:{File.display_file(file.filename)}')
+            if not mijlpaal_dir: 
+                print('no shit')
+            else:
+                print(f'\t{File.display_file(mijlpaal_dir.directory)}')
+            return True
+        except OrphanException as E:
+            log_error(f'Bestand {File.display_file(file.filename)} kan niet aan student worden gekoppeld.')    
             return False
-        log_info(f'Synchroniseren basisdirectory {File.display_file(directory)}', to_console=True)        
-        for directory in Path(basedir.directory).glob('*'):
-            if not directory.is_dir() or (not BaseDir.is_student_directory_name(directory)):
-                continue
-            self.sync_student_dir(directory)
-        print('-------------------')
         
-    def process(self, directory: str|list[str], preview=False)->bool:
-        if isinstance(directory,str):
-            result = self.sync_basedir(directory, preview)
-        elif isinstance(directory,list):
-            result = True
-            for dir in directory:
-                if not self.sync_basedir(dir, preview):
-                    result = False
-            self.compare_processor.dump()
-
+    def process(self, preview=False)->bool:
+        query = f'select id from FILES as F where not exists (select * from MIJLPAAL_DIRECTORY_FILES where file_id = F.id) and not F.filetype in (?,?,?,?,?)'        
+        if rows:=self.database._execute_sql_command(query, [File.Type.INVALID_DOCX, File.Type.INVALID_PDF, File.Type.COPIED_PDF,File.Type.DIFFERENCE_HTML, File.Type.GRADE_FORM_DOCX], True):
+            orphan_files = list(filter(lambda f: Roots.is_on_onedrive(f.filename), self.storage.read_many('files', {row['id'] for row in rows})))
         else:
-            raise SyncException(f'Invalid call to process: {directory} must be str or list[str]')
-        return result   
+            orphan_files = []
+        for orphan in orphan_files:             
+            self.handle_file(orphan)
+        print(f'{len(orphan_files)} files')
+        return True
 
-class SyncBaseDirPlugin(PluginBase):
+class OrphanFilesPlugin(PluginBase):
     def get_parser(self)->ArgumentParser:
         parser = super().get_parser()
         parser.add_argument('--json', dest='json', type=str,help='JSON filename waar SQL output wordt weggeschreven') 
-        parser.add_argument('--basedir', nargs='+', action='append', type=str, help='De basisdirectory (of -directories) om te synchroniseren') 
         return parser
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        def _unlistify(basedirs:list[list[str]])->list[str]:
-            """ Converts basedirs arguments from argument parser to simple list of strings 
-            
-                action='append' produces every --basedir=xxx argument as [xxx],
-                so we get [[xxx1],[xxx2]...]. This "unlists" this to a simple list of strings.
-
-            """
-            if not basedirs:
-                return []
-            return [as_list[0] for as_list in basedirs]
-        self.processor = BasedirSyncProcessor(context.configuration.storage)
-        self.basedirs = _unlistify(kwdargs.get('basedir'))
+        self.processor = OrphanFileProcessor(context.configuration.storage)
         self.json = kwdargs.get('json')
         if not self.json:
-            self.json = 'sync_basedir.json'
+            self.json = 'orphan_files.json'
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        print('Start running basedir-sync')
-        self.processor.process(self.basedirs, context.preview)
+        print('Start running orphan-files')
+        self.processor.process(context.preview)
         self.processor.sql_processor.sql.dump_to_file(self.json)
         print(f'sql dumped to {self.json}')

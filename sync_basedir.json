@@ -1,0 +1,909 @@
+{
+    "student_directories": {
+        "insert": {
+            "sql": "insert into STUDENT_DIRECTORIES (id,stud_id,directory,basedir_id,status) values(?,?,?,?)",
+            "values": [],
+            "concatenate": true
+        }
+    },
+    "mijlpaal_directories": {
+        "insert": {
+            "sql": "insert into MIJLPAAL_DIRECTORIES (id,mijlpaal_type,kans=?,directory,datum) values(?,?,?,?)",
+            "values": [
+                [
+                    949,
+                    3,
+                    1,
+                    ":ROOT7:\\Bouwer, Eugene\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    954,
+                    3,
+                    1,
+                    ":ROOT7:\\Drost, Jeffrey\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    961,
+                    3,
+                    1,
+                    ":ROOT7:\\Holwerda, Jan Minne\\2024-01-22 Beoordeling onderzoek",
+                    "2024-01-22 00:00:00"
+                ],
+                [
+                    963,
+                    3,
+                    1,
+                    ":ROOT7:\\Hulshoff, Wytze\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    966,
+                    3,
+                    1,
+                    ":ROOT7:\\Kooistra, Yannick\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    968,
+                    3,
+                    1,
+                    ":ROOT7:\\Langendijk, Erik\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    970,
+                    3,
+                    1,
+                    ":ROOT7:\\Meer, van der, Johan\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    974,
+                    3,
+                    1,
+                    ":ROOT7:\\Nguyen, Sang\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    977,
+                    3,
+                    1,
+                    ":ROOT7:\\Piebenga, Jesse\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    984,
+                    3,
+                    1,
+                    ":ROOT7:\\Vlasman, Jan\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ],
+                [
+                    991,
+                    3,
+                    1,
+                    ":ROOT7:\\Wolthuizen, Kleis Auke\\2024-01-19 Beoordeling Onderzoek",
+                    "2024-01-19 00:00:00"
+                ]
+            ],
+            "concatenate": true
+        },
+        "update": {
+            "sql": "update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,kans=?,directory=?,datum=? WHERE id=?",
+            "values": [],
+            "concatenate": false
+        }
+    },
+    "student_directory_directories": {
+        "delete": {
+            "sql": "delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id=? and mp_dir_id=?",
+            "values": [],
+            "concatenate": false
+        },
+        "insert": {
+            "sql": "insert into STUDENT_DIRECTORY_DIRECTORIES (stud_dir_id,mp_dir_id) values(?,?)",
+            "values": [
+                [
+                    254,
+                    949
+                ],
+                [
+                    257,
+                    954
+                ],
+                [
+                    263,
+                    961
+                ],
+                [
+                    264,
+                    963
+                ],
+                [
+                    266,
+                    966
+                ],
+                [
+                    267,
+                    968
+                ],
+                [
+                    268,
+                    970
+                ],
+                [
+                    270,
+                    974
+                ],
+                [
+                    272,
+                    977
+                ],
+                [
+                    277,
+                    984
+                ],
+                [
+                    282,
+                    991
+                ]
+            ],
+            "concatenate": true
+        }
+    },
+    "files": {
+        "delete": {
+            "sql": "delete from FILES WHERE id in (?)",
+            "values": [],
+            "concatenate": true
+        },
+        "insert": {
+            "sql": "insert into FILES (id,filename,timestamp,digest,filetype,mijlpaal_type) values(?,?,?,?,?,?)",
+            "values": [
+                [
+                    4625,
+                    ":ROOT7:\\Azawi, Musaab\\Beoordeling aanvraag Musaab Azawi(4585259) [bezig met afstuderen] (Centraal Justitieel Incassobureau)-1.pdf",
+                    "2024-02-01 14:34:56",
+                    "29da9228b4863e77010b1063c5701291f8c83b6c527a148aeb03bfa16bc80f90",
+                    5,
+                    1
+                ],
+                [
+                    4713,
+                    ":ROOT7:\\Bouwer, Eugene\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2023-01-30 08:47:44",
+                    "f35e55629636df776262bc5a010d8fb5c260ee75594db7b180d8dc8ec6057fe5",
+                    1,
+                    3
+                ],
+                [
+                    4711,
+                    ":ROOT7:\\Bouwer, Eugene\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-01-26 09:37:14",
+                    "c1652d747b86368e75fd304c1921d0f364294eae8c5300656d17d35cc15a2a1d",
+                    6,
+                    3
+                ],
+                [
+                    4712,
+                    ":ROOT7:\\Bouwer, Eugene\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-02-02 16:33:33",
+                    "665c964e2c5d247ae28880deee70ad7d2ddd12421f28eae7e3e57b65dd93e4b5",
+                    7,
+                    3
+                ],
+                [
+                    4535,
+                    ":ROOT7:\\Bouwer, Eugene\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag+1.0.pdf",
+                    "2024-01-19 17:59:34",
+                    "689661a7d2d9cb58de95d4f3e75792a220b4923cb281ffc38c9776506308cb4f",
+                    10,
+                    3
+                ],
+                [
+                    4703,
+                    ":ROOT7:\\Dijkstra, Sidney\\Beoordeling aanvraag Sidney Dijkstra(4549538) [aanvraag gedaan] (Essity)-1.pdf",
+                    "2024-02-09 09:51:38",
+                    "0aa904ab077d88a4d3e70697e216bb6f5567b60b789ae290748347156bc9e87c",
+                    5,
+                    1
+                ],
+                [
+                    4716,
+                    ":ROOT7:\\Drost, Jeffrey\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-01-31 10:27:03",
+                    "492db520f4e57de79d4ac0ef2e0a4b415d29588f806ac51d0c90c58657695020",
+                    1,
+                    3
+                ],
+                [
+                    4671,
+                    ":ROOT7:\\Drost, Jeffrey\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-02-05 09:32:11",
+                    "ac4396671995669f0193f126c116c62a2fa30aec423ef58da5cf6d9d496838b3",
+                    5,
+                    3
+                ],
+                [
+                    4714,
+                    ":ROOT7:\\Drost, Jeffrey\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-01-21 18:41:22",
+                    "83e0b08137082335a2386fe94dfd9a3478be4fb12c3fbe8bae93421023e4aaff",
+                    6,
+                    3
+                ],
+                [
+                    4715,
+                    ":ROOT7:\\Drost, Jeffrey\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-01-31 10:00:17",
+                    "55a17b7de597aaa6ea4c753984375c483fe5eeeed759e765310229a0e83b90ff",
+                    7,
+                    3
+                ],
+                [
+                    4534,
+                    ":ROOT7:\\Drost, Jeffrey\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag+Jeffrey+Drost+-+Definitief.pdf",
+                    "2024-01-19 17:59:20",
+                    "1b8fbb159e2a291ab78b9fe89b66c5d3cecc761aa0fd416753a676c1f4c3a780",
+                    10,
+                    3
+                ],
+                [
+                    4537,
+                    ":ROOT7:\\Holwerda, Jan Minne\\2024-01-22 Beoordeling onderzoek\\v1.0 Onderzoeksverslag - ING Baserates.pdf",
+                    "2024-01-22 00:30:15",
+                    "16674c82175fb3b866a7f8717da2955bbb8850fe7863db0f5e3b78944ae61d83",
+                    10,
+                    3
+                ],
+                [
+                    4719,
+                    ":ROOT7:\\Hulshoff, Wytze\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-02-02 12:02:37",
+                    "ef29860d2c6a9f454f6cc1adb620babda0e56c1f44f74d55506fe2a85f6c6eb2",
+                    1,
+                    3
+                ],
+                [
+                    4669,
+                    ":ROOT7:\\Hulshoff, Wytze\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-02-02 13:22:29",
+                    "8343f3015c1c54283140b8638093546e2453fa7ee8c960d6043ddb75667c94d0",
+                    5,
+                    3
+                ],
+                [
+                    4717,
+                    ":ROOT7:\\Hulshoff, Wytze\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-02-02 11:56:01",
+                    "6314f380f2225ead838df2817af66d9ff050f614d380b926d483c3e8c3d3d9c2",
+                    6,
+                    3
+                ],
+                [
+                    4718,
+                    ":ROOT7:\\Hulshoff, Wytze\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-02-02 11:59:37",
+                    "07dea4fd7a10703e53fb7d17c0c4a44eda7880ce5093d9d7b2faa7dd2603f156",
+                    7,
+                    3
+                ],
+                [
+                    4532,
+                    ":ROOT7:\\Hulshoff, Wytze\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag.pdf",
+                    "2024-01-19 17:58:45",
+                    "d7fb9fed54a673251e61836447f85717d3dcfed49ec455e6762cdd7ce44068d7",
+                    10,
+                    3
+                ],
+                [
+                    4722,
+                    ":ROOT7:\\Kooistra, Yannick\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-02-02 11:26:07",
+                    "5be20334a3d611752515ba7b080f91bffde9156701f6d0b1b88e16e069555ef8",
+                    1,
+                    3
+                ],
+                [
+                    4670,
+                    ":ROOT7:\\Kooistra, Yannick\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-02-02 13:23:39",
+                    "42f31f8e21b65f2d1255e50f46aadefe643fe292b91bfa6b3e9de20c2d31202b",
+                    5,
+                    3
+                ],
+                [
+                    4720,
+                    ":ROOT7:\\Kooistra, Yannick\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-02-02 11:18:35",
+                    "2fc8f55f33f3849cf8bf7b39f96e6e73cb883566e7f8327923d3516dcad1503d",
+                    6,
+                    3
+                ],
+                [
+                    4721,
+                    ":ROOT7:\\Kooistra, Yannick\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-02-02 11:22:06",
+                    "1c13a2caaf312976ea89a61a2c45d52ceb4d7cb59c49a9f7bf87e0330dc35de4",
+                    7,
+                    3
+                ],
+                [
+                    4530,
+                    ":ROOT7:\\Kooistra, Yannick\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag+Afstuderen+-+Yannick+Kooistra.pdf",
+                    "2024-01-19 17:57:51",
+                    "7a95de5f61210e8391b95b9d13d62a510be68f0559f7aae6ffb7d58ea13811ca",
+                    10,
+                    3
+                ],
+                [
+                    4725,
+                    ":ROOT7:\\Langendijk, Erik\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk Erik.docx",
+                    "2024-02-02 11:59:58",
+                    "c190c3de23cdfdae67bae336125b8ff30367d2329d88d151d07992237d43432e",
+                    1,
+                    3
+                ],
+                [
+                    4668,
+                    ":ROOT7:\\Langendijk, Erik\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk Erik.pdf",
+                    "2024-02-02 13:20:27",
+                    "c6da41fc85e5d38d296cebe82bca37479a4e3685a5b956d3267e353e9da0494d",
+                    5,
+                    3
+                ],
+                [
+                    4723,
+                    ":ROOT7:\\Langendijk, Erik\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-01-22 16:33:37",
+                    "08f7bf46e980963ef7706e9295c134db7f02b727ad6c785599679f26206abc35",
+                    6,
+                    3
+                ],
+                [
+                    4724,
+                    ":ROOT7:\\Langendijk, Erik\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-01-30 16:41:15",
+                    "de9ea04278dde3eb0e18d26dcc047c0584e6a900ac71de04a89483c2f2aa1029",
+                    7,
+                    3
+                ],
+                [
+                    4528,
+                    ":ROOT7:\\Langendijk, Erik\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag+Verniewing+Erfpacht+Administratie+Def.pdf",
+                    "2024-01-19 17:56:42",
+                    "418f2090f106a2bc98d4cdbb2110db4a2c74a21758291957eb6d504a8d6082ae",
+                    10,
+                    3
+                ],
+                [
+                    4728,
+                    ":ROOT7:\\Meer, van der, Johan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-01-29 14:58:06",
+                    "600eb828be765e09b5ea573d81b1bf24051da520f2cdd2640ccebfe59d33aa9a",
+                    1,
+                    3
+                ],
+                [
+                    4664,
+                    ":ROOT7:\\Meer, van der, Johan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-02-01 09:18:55",
+                    "39fb48efebb9bb1c6b18db4ed818b37f739b11ab0c91c32305036332b55b56cf",
+                    5,
+                    3
+                ],
+                [
+                    4726,
+                    ":ROOT7:\\Meer, van der, Johan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-01-21 11:28:16",
+                    "2bd98e45edb226ef061f0dfbc6373b27b08dd1821b61320c3a837ae93e5976d9",
+                    6,
+                    3
+                ],
+                [
+                    4727,
+                    ":ROOT7:\\Meer, van der, Johan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-01-23 14:11:53",
+                    "804d1c8ecaf9fffe9a92e58ae20c65d0bb4bd3dce4f4e3dae51e94d986004110",
+                    7,
+                    3
+                ],
+                [
+                    4533,
+                    ":ROOT7:\\Meer, van der, Johan\\2024-01-19 Beoordeling Onderzoek\\onderzoeksverslag.pdf",
+                    "2024-01-19 17:59:02",
+                    "197ea8321ffac96491d135e237cc089dc6b38ac671277b53401cac49ab3d6c13",
+                    10,
+                    3
+                ],
+                [
+                    4511,
+                    ":ROOT7:\\Mulder, Marle\\Beoordeling aanvraag Marle Mulder(4610873) [bezig met afstuderen] (Remote Engineer B.V.)-1.pdf",
+                    "2024-01-17 16:17:55",
+                    "f3409d0601245223bd7d33b74b88bb7a71aad2c78a7096acf001315dc69dac93",
+                    5,
+                    1
+                ],
+                [
+                    4560,
+                    ":ROOT7:\\Mulder, Marle\\Beoordeling aanvraag Marle Mulder(4610873) [bezig met afstuderen] (Remote Engineer B.V.)-2.pdf",
+                    "2024-01-26 13:56:11",
+                    "16ee9df07837973de97f7160d47c530c6f7360e26c362aabebf152799da27fd2",
+                    5,
+                    1
+                ],
+                [
+                    4731,
+                    ":ROOT7:\\Nguyen, Sang\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-01-29 15:18:48",
+                    "edb7528ad034b8d42763684bc40aa1821f8aac2016a9db5e7a4a4297f68945df",
+                    1,
+                    3
+                ],
+                [
+                    4666,
+                    ":ROOT7:\\Nguyen, Sang\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-02-01 09:21:59",
+                    "917306a41f634fd35cd9871b4560ec97c86cfeecd94a2679d38dddafd41362eb",
+                    5,
+                    3
+                ],
+                [
+                    4729,
+                    ":ROOT7:\\Nguyen, Sang\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-01-29 15:09:27",
+                    "da9fad5e7f4504b06796a21af04c2ada62ee5105a7a2f53253a672f5d0b4f5ab",
+                    6,
+                    3
+                ],
+                [
+                    4730,
+                    ":ROOT7:\\Nguyen, Sang\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-01-22 12:42:59",
+                    "249737846c93268c78bb19696738750ac2c7869de1bc90d6812ca5f335d38f60",
+                    7,
+                    3
+                ],
+                [
+                    4531,
+                    ":ROOT7:\\Nguyen, Sang\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag+Sang+Nguyen(4621042)+-+V1.0.pdf",
+                    "2024-01-19 17:58:26",
+                    "6e2e43c0847fbd2f80b30d296295dee7ee43588826a24013c9273672de86df3f",
+                    10,
+                    3
+                ],
+                [
+                    4732,
+                    ":ROOT7:\\Oosterwegel, Jorunn\\Oosterwegel, J.D. - Aanvraag afstudeeropdracht Batenburg Beenen v3.pdf",
+                    "2023-06-21 06:20:20",
+                    "0733e38d0a7ca2e3ba66e3ce6757e200726301d180a9a5deccf85d9413f25c87",
+                    0,
+                    1
+                ],
+                [
+                    4735,
+                    ":ROOT7:\\Piebenga, Jesse\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-01-24 11:27:02",
+                    "a2f6041579e85de4f210d6a30026102428f888d182374d879d2f15a7cbdc8d02",
+                    1,
+                    3
+                ],
+                [
+                    4585,
+                    ":ROOT7:\\Piebenga, Jesse\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-01-26 10:16:14",
+                    "90b662c7e4e23438f98764e5067be20f2ebdef18f7a753538fd881b842d2cb0f",
+                    5,
+                    3
+                ],
+                [
+                    4733,
+                    ":ROOT7:\\Piebenga, Jesse\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-01-22 14:30:32",
+                    "2d6fab58f7c6f8ec28102a1f4315fad8e4758ca29334119e2223c4218118eb17",
+                    6,
+                    3
+                ],
+                [
+                    4734,
+                    ":ROOT7:\\Piebenga, Jesse\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-01-23 10:23:21",
+                    "b72bc05017e4cc12bde80afbbd8ede2878a9d461aaef101571ac46c657df2f26",
+                    7,
+                    3
+                ],
+                [
+                    4536,
+                    ":ROOT7:\\Piebenga, Jesse\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag+V1.0.pdf",
+                    "2024-01-19 17:59:53",
+                    "03c98cf4b2496ca0ae3d074aa3e58374141af48fc8d634b75c3f2b0746ce56cc",
+                    10,
+                    3
+                ],
+                [
+                    4627,
+                    ":ROOT7:\\Poll, van de, Jarno\\Beoordeling aanvraag Jarno van de Poll(4699475) [bezig met afstuderen] (Tres)-1.pdf",
+                    "2024-02-01 14:35:13",
+                    "169c59fdf15e8584cbee80fcb63feac9ac4492da565714c8464c42737c48144c",
+                    5,
+                    1
+                ],
+                [
+                    4709,
+                    ":ROOT7:\\Poll, van de, Jarno\\Beoordeling aanvraag Jarno van de Poll(4699475) [bezig met afstuderen] (Tres)-2.pdf",
+                    "2024-02-09 10:29:07",
+                    "38690f16818ac0cf637556acea587437151b9be59e80a2b8e327cd3a1fa3dd32",
+                    5,
+                    1
+                ],
+                [
+                    4564,
+                    ":ROOT7:\\Sprenger, Redmar\\Beoordeling aanvraag Redmar Sprenger(4670183) [aanvraag gedaan] (Speak)-3.pdf",
+                    "2024-01-26 13:56:49",
+                    "15a270a8a78036c74adf93937b038c50f847ba2027a23cf5c129e12cb2302396",
+                    5,
+                    1
+                ],
+                [
+                    4738,
+                    ":ROOT7:\\Vlasman, Jan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-02-02 11:19:51",
+                    "3804fed2144d9d8bb50b45459c6a4c5a5ac606160dc534cde23e960457df0368",
+                    1,
+                    3
+                ],
+                [
+                    4667,
+                    ":ROOT7:\\Vlasman, Jan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-02-02 11:19:56",
+                    "f63b134a65c31c79e00ff322c4e28bc1b3759ca42d963e4c7326883e2783bb71",
+                    5,
+                    3
+                ],
+                [
+                    4736,
+                    ":ROOT7:\\Vlasman, Jan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-02-02 08:23:20",
+                    "eab6e1bd181383128e9c03641450832d35ba8a119b81f81c0f5bc0030061f3fd",
+                    6,
+                    3
+                ],
+                [
+                    4737,
+                    ":ROOT7:\\Vlasman, Jan\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-02-02 11:19:34",
+                    "9f655b9b6f81cf786d48c28975441a95a7cf4174f99507e485ed7aafd4f01bef",
+                    7,
+                    3
+                ],
+                [
+                    4584,
+                    ":ROOT7:\\Vlasman, Jan\\2024-01-19 Beoordeling Onderzoek\\20240118-Onderzoek.pdf",
+                    "2024-01-19 17:58:08",
+                    "672231ed54b0b26c133c586ea225a53bc9b8021e3eebe4b1e2980fb1863e3bb1",
+                    10,
+                    3
+                ],
+                [
+                    4612,
+                    ":ROOT7:\\Vries, de, Johannes\\Aanvraag toelating afstuderen Johannes de Vries.pdf",
+                    "2024-01-29 13:47:42",
+                    "05a2ca1216136f26bbe37e7dc9e4c01086ebda9b35912464b307a144e20ee6cf",
+                    0,
+                    1
+                ],
+                [
+                    4622,
+                    ":ROOT7:\\Vries, de, Johannes\\Beoordeling aanvraag Johannes de Vries(3443050) [aanvraag gedaan] (BD Kiestra BD)-1.pdf",
+                    "2024-02-01 14:34:31",
+                    "320dd0cdeeca15710640c58663619b830bef5171ff6859fb3e63389924b21b0e",
+                    5,
+                    1
+                ],
+                [
+                    4741,
+                    ":ROOT7:\\Wolthuizen, Kleis Auke\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.docx",
+                    "2024-01-30 05:35:03",
+                    "f4603e9cd4b79dbb002c4581aa0e00b5e70dd8e0f81d0805861de0a6c6e7efa6",
+                    1,
+                    3
+                ],
+                [
+                    4665,
+                    ":ROOT7:\\Wolthuizen, Kleis Auke\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag gezamenlijk.pdf",
+                    "2024-02-01 09:21:20",
+                    "3e1be4b837c19369cbdb473a4f69a8c4b5604d008b1e99d58176cbdfdfbb1844",
+                    5,
+                    3
+                ],
+                [
+                    4739,
+                    ":ROOT7:\\Wolthuizen, Kleis Auke\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex1.docx",
+                    "2024-01-29 12:05:24",
+                    "16bd2b3753519668573ac7796ccdc1a2ae7135be35e9766c8efeccf0734530f9",
+                    6,
+                    3
+                ],
+                [
+                    4740,
+                    ":ROOT7:\\Wolthuizen, Kleis Auke\\2024-01-19 Beoordeling Onderzoek\\4. Beoordeling onderzoeksverslag ex2.docx",
+                    "2024-01-21 19:38:13",
+                    "dc11e8a2c94450182dc88369ef1b246690b32a91200e7a00f00411d8fce44045",
+                    7,
+                    3
+                ],
+                [
+                    4529,
+                    ":ROOT7:\\Wolthuizen, Kleis Auke\\2024-01-19 Beoordeling Onderzoek\\Onderzoeksverslag.pdf",
+                    "2024-01-19 17:57:34",
+                    "96e3f7d93971b1ae02263ac3457c5f60531eaa174166cc9ea2a89c7605314c23",
+                    10,
+                    3
+                ]
+            ],
+            "concatenate": true
+        },
+        "update": {
+            "sql": "update FILES set filename=?,timestamp=?,digest=?,filetype=?,mijlpaal_type=? WHERE id = ?",
+            "values": [],
+            "concatenate": false
+        }
+    },
+    "mijlpaal_directory_files": {
+        "insert": {
+            "sql": "insert into MIJLPAAL_DIRECTORY_FILES (mp_dir_id,file_id) values(?,?)",
+            "values": [
+                [
+                    820,
+                    4625
+                ],
+                [
+                    949,
+                    4711
+                ],
+                [
+                    949,
+                    4712
+                ],
+                [
+                    949,
+                    4713
+                ],
+                [
+                    949,
+                    4535
+                ],
+                [
+                    942,
+                    4703
+                ],
+                [
+                    954,
+                    4714
+                ],
+                [
+                    954,
+                    4715
+                ],
+                [
+                    954,
+                    4716
+                ],
+                [
+                    954,
+                    4671
+                ],
+                [
+                    954,
+                    4534
+                ],
+                [
+                    961,
+                    4537
+                ],
+                [
+                    963,
+                    4717
+                ],
+                [
+                    963,
+                    4718
+                ],
+                [
+                    963,
+                    4719
+                ],
+                [
+                    963,
+                    4669
+                ],
+                [
+                    963,
+                    4532
+                ],
+                [
+                    966,
+                    4720
+                ],
+                [
+                    966,
+                    4721
+                ],
+                [
+                    966,
+                    4722
+                ],
+                [
+                    966,
+                    4670
+                ],
+                [
+                    966,
+                    4530
+                ],
+                [
+                    968,
+                    4723
+                ],
+                [
+                    968,
+                    4724
+                ],
+                [
+                    968,
+                    4725
+                ],
+                [
+                    968,
+                    4668
+                ],
+                [
+                    968,
+                    4528
+                ],
+                [
+                    970,
+                    4726
+                ],
+                [
+                    970,
+                    4727
+                ],
+                [
+                    970,
+                    4728
+                ],
+                [
+                    970,
+                    4664
+                ],
+                [
+                    970,
+                    4533
+                ],
+                [
+                    904,
+                    4511
+                ],
+                [
+                    904,
+                    4560
+                ],
+                [
+                    974,
+                    4729
+                ],
+                [
+                    974,
+                    4730
+                ],
+                [
+                    974,
+                    4731
+                ],
+                [
+                    974,
+                    4666
+                ],
+                [
+                    974,
+                    4531
+                ],
+                [
+                    853,
+                    4732
+                ],
+                [
+                    977,
+                    4733
+                ],
+                [
+                    977,
+                    4734
+                ],
+                [
+                    977,
+                    4735
+                ],
+                [
+                    977,
+                    4585
+                ],
+                [
+                    977,
+                    4536
+                ],
+                [
+                    929,
+                    4627
+                ],
+                [
+                    929,
+                    4709
+                ],
+                [
+                    858,
+                    4564
+                ],
+                [
+                    984,
+                    4584
+                ],
+                [
+                    984,
+                    4736
+                ],
+                [
+                    984,
+                    4737
+                ],
+                [
+                    984,
+                    4738
+                ],
+                [
+                    984,
+                    4667
+                ],
+                [
+                    927,
+                    4612
+                ],
+                [
+                    927,
+                    4622
+                ],
+                [
+                    991,
+                    4739
+                ],
+                [
+                    991,
+                    4740
+                ],
+                [
+                    991,
+                    4741
+                ],
+                [
+                    991,
+                    4665
+                ],
+                [
+                    991,
+                    4529
+                ]
+            ],
+            "concatenate": true
+        }
+    },
+    "mijlpaal_directory_files2": {
+        "delete": {
+            "sql": "delete from MIJLPAAL_DIRECTORY_FILES where mp_dir_id=? and file_id=?",
+            "values": [],
+            "concatenate": false
+        }
+    }
+}

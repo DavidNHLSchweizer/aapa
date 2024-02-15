@@ -195,8 +195,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "plugins.sync_basedir",
-                "\"D:\\onedrive\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2022-2023\\Periode 3\"",
+                "plugins.orphan_files",
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive",

@@ -18,8 +18,8 @@ from storage.queries.studenten import StudentQueries
 from main.log import log_error, log_print, log_warning
 
 def init_config():
-    config.register('student_directories', 'error_margin_date', FloatValueConvertor)
-    config.init('student_directories', 'error_margin_date', 3.0)
+    config.register('directories', 'error_margin_date', FloatValueConvertor)
+    config.init('directories', 'error_margin_date', 3.0)
 init_config()
 
 

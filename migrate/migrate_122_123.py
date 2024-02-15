@@ -120,7 +120,14 @@ def correct_files_for_error(database: Database):
     _correct_path2(database, 'MIJLPAAL_DIRECTORIES', 'directory',  'Poll, Jarno', 'Poll, van de, Jarno')
     #Merlijn Stokhorst
     _correct_path3(database, 'FILES', 'filename', ':ROOT10:', ':ROOT9:')
-
+    #Cassandra van Oosten (Jimi)
+    _correct_path(database, 'FILES', 'filename', r':ROOT14:\Oosten, van, Jimi%',  "Jimi", "Cassandra")
+    #Fabian de Wilde 
+    _correct_path(database, 'FILES', 'filename', r':ROOT7:\Wilde, Fabian%',  "Wilde, Fabian", "Wilde, de, Fabian")
+    #Johan van der Meer
+    _correct_path(database, 'FILES', 'filename', r':ROOT7:\Meer, Johan van der%',  "Meer, Johan van der", "Meer, van der, Johan")
+    \
+    
 
     print('... ready correcting FILES errors')
 

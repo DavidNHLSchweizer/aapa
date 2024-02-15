@@ -41,11 +41,11 @@ class StudentDirectoryDetector:
     def _parse_type(self, subdirectory:str, parsed_type: str)->MijlpaalType:
         match parsed_type.lower():
             case 'pva' | 'plan van aanpak': return MijlpaalType.PVA
-            case 'onderzoeksverslag': return MijlpaalType.ONDERZOEKS_VERSLAG
+            case 'onderzoeksverslag'|'onderzoek': return MijlpaalType.ONDERZOEKS_VERSLAG
             case 'technisch verslag': return MijlpaalType.TECHNISCH_VERSLAG
             case 'eindverslag': return MijlpaalType.EIND_VERSLAG
             case 'product' | 'productbeoordeling': return MijlpaalType.PRODUCT_BEOORDELING
-            case 'afstudeerzitting': return MijlpaalType.EINDBEOORDELING
+            case 'afstudeerzitting' | 'zitting afstuderen': return MijlpaalType.EINDBEOORDELING
             case _:                 
                 if parsed_type:
                     if type_str := self.parser.parse_non_standard(subdirectory, parsed_type):
@@ -85,6 +85,12 @@ class StudentDirectoryDetector:
         self._collect_files(new_dir)
         log_debug('ready detecting')
         return new_dir
+    def __ensure_keys(self, student_directory: StudentDirectory, storage: AAPAStorage):
+        storage.ensure_key('student_directories', student_directory)
+        for mp_dir in student_directory.directories:
+            storage.ensure_key('mijlpaal_directories', mp_dir)
+            for file in mp_dir.files_list:
+                storage.ensure_key('files', file)
     def __update_kansen(self, student_directory: StudentDirectory):
         cur_type = MijlpaalType.UNKNOWN
         cur_kans = 1
@@ -127,6 +133,7 @@ class StudentDirectoryDetector:
             for subdirectory in Path(dirname).glob('*'):
                 if subdirectory.is_dir() and (new_item := self._process_subdirectory(subdirectory, student)):                    
                     student_directory.add(new_item)
+            self.__ensure_keys(student_directory,storage)
             self.__update_kansen(student_directory)
             self.report_directory('Student directory:', student_directory)
             return student_directory

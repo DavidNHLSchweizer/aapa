@@ -317,6 +317,9 @@ class Roots:
     def get_onedrive_root()->Path:
         """ basispad voor de OneDrive code """
         return _roots.get_one_drive_root()
+    @staticmethod
+    def is_on_onedrive(filename: str|Path)->bool:
+        return Roots.encode_onedrive(filename) != str(filename)
     @staticmethod	
     def decode_onedrive(path: str|Path, onedrive_root=None)->str:
         """ decodeer een met :ONEDRIVE: gecodeerd pad. Eventueel met een op te geven root. """

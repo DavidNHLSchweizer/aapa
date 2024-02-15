@@ -72,7 +72,7 @@ class StudentDirectoryDetector(FileProcessor):
     def _parse_type(self, subdirectory:str, parsed_type: str)->MijlpaalType:
         match parsed_type.lower():
             case 'pva' | 'plan van aanpak': return MijlpaalType.PVA
-            case 'onderzoeksverslag': return MijlpaalType.ONDERZOEKS_VERSLAG
+            case 'onderzoeksverslag'|'onderzoek': return MijlpaalType.ONDERZOEKS_VERSLAG
             case 'technisch verslag': return MijlpaalType.TECHNISCH_VERSLAG
             case 'eindverslag': return MijlpaalType.EIND_VERSLAG
             case 'product' | 'productbeoordeling': return MijlpaalType.PRODUCT_BEOORDELING
@@ -109,7 +109,7 @@ class StudentDirectoryDetector(FileProcessor):
             log_warning(f'Onverwachte directory ({Path(subdirectory).stem})')
             return None
         if not (mijlpaal_type := self._parse_type(subdirectory, parsed.type)):
-            log_error(f'\tDirectory {File.display_file(subdirectory)} wordt overgeslagen. Kan niet worden herkend.')
+            log_warning(f'\tDirectory {File.display_file(subdirectory)} wordt overgeslagen. Kan niet worden herkend.')
             return None
         new_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=subdirectory, datum=parsed.datum)
         log_debug(f'\tGedetecteerd: {new_dir}')

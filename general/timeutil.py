@@ -8,10 +8,14 @@ class TimeStringConversion:
     def round_to_day(value: datetime.datetime)->datetime:
         return datetime.datetime(value.year, value.month, value.day)
     @staticmethod
-    def date_range(value: datetime.datetime, delta: float)->tuple[datetime.datetime, datetime.datetime]:
+    def date_range(value: datetime.datetime, delta_days: float)->tuple[datetime.datetime, datetime.datetime]:
         """ returns a range of dates spanning delta days around the value """
-        d_delta = datetime.timedelta(delta * .5)
+        d_delta = datetime.timedelta(delta_days * .5)
         return (value - d_delta, value + d_delta)
+    @staticmethod
+    def equal_in_range(value1: datetime.datetime, value2: datetime.datetime, delta_days: float)->bool:
+        min, max = TSC.date_range(value1,delta_days)
+        return value2 >= min and value2 <= max
     @staticmethod
     def rounded_timestamp(value)->datetime:
         #remove possible milliseconds so that the string can be read uniformly from the database if needed

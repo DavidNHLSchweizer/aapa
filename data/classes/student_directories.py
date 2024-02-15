@@ -25,9 +25,15 @@ class StudentDirectoryAggregator(Aggregator):
             if dir.id == mp_dir.id:
                 return True
         return False
-    def _find(self, value: MijlpaalDirectory):
+    def _find(self, value: MijlpaalDirectory)->MijlpaalDirectory:
+        """ Returns mijlpaaldirectory with the same name.
+
+            Note: search is case-insensitive, since there is a bit of inconsistency in the real world 
+            and Windows-paths are case-insensitive anyway.
+
+        """
         for mp_dir in self.as_list('directories'):
-            if str(mp_dir.directory) == str(value.directory):
+            if str(mp_dir.directory).lower() == str(value.directory.lower()):
                 return mp_dir 
         return None
 SDA = StudentDirectoryAggregator
@@ -77,9 +83,8 @@ class StudentDirectory(AAPAclass):
 
         """
         for directory in self.get_directories(mijlpaal_type):
-            (min_date,max_date) = TSC.date_range(directory.datum, error_margin)
             new_date = TSC.round_to_day(datum)
-            if mijlpaal_type == MijlpaalType.AANVRAAG or (new_date >= min_date and new_date <= max_date):
+            if mijlpaal_type == MijlpaalType.AANVRAAG or TSC.equal_in_range(directory.datum, new_date, error_margin):
                 return directory
         return None
     def get_files(self)->list[File]:

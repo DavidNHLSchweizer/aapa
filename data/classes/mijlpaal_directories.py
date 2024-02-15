@@ -6,6 +6,7 @@ from data.general.const import MijlpaalType
 from data.classes.mijlpaal_base import MijlpaalBase
 from database.classes.dbConst import EMPTY_ID
 from general.timeutil import TSC
+from main.config import config
 
 class MijlpaalDirectory(MijlpaalBase):    
     def __init__(self, mijlpaal_type: MijlpaalType, directory: str, datum: datetime.datetime, kans=0, id=EMPTY_ID):
@@ -13,6 +14,17 @@ class MijlpaalDirectory(MijlpaalBase):
         self.directory = directory
     def relevant_attributes(self) -> set[str]:
         return super().relevant_attributes() | {'directory'}
+    def equal_relevant_attributes(self, value: MijlpaalDirectory)->bool:
+        if  str(self.directory).lower() != str(value.directory).lower():
+            return False        
+        # if  TSC.equal_in_range(self.datum, value.datum, config.get('directories', 'error_margin_date')):            
+        #     return False NOTE: this is a problem with copies.
+        if  self.mijlpaal_type != value.mijlpaal_type:            
+            return False
+        return True
+    def ensure_datum(self):
+        if self.datum == TSC.AUTOTIMESTAMP:
+            self.datum = File.get_timestamp(self.directory)
     def summary(self)->str:
         return f'{File.display_file(self.directory)} [{self.mijlpaal_type}] {TSC.timestamp_to_str(self.datum)}'
     def __str__(self):        

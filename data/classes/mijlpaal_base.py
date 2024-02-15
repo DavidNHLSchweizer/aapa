@@ -16,7 +16,8 @@ class MijlpaalBase(AAPAclass):
         self.kans = kans
         self._files = Files(owner=self)
     def relevant_attributes(self)->set[str]:
-        return {'datum', 'mijlpaal_type', 'kans'}
+        return {'datum', 'mijlpaal_type'}
+        # return {'datum', 'mijlpaal_type', 'kans'} 
     @property
     def files(self)->Files: return self._files
     @property
