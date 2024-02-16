@@ -1,1 +1,64 @@
-{"studenten": {"insert": {"sql": "insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)", "values": [], "concatenate": true}}, "student_directories": {"insert": {"sql": "insert into STUDENT_DIRECTORIES (id,stud_id,directory,basedir_id) values(?,?,?,?)", "values": [], "concatenate": true}, "update": {"sql": "update STUDENT_DIRECTORIES set stud_id=?,directory=?,basedir_id=? WHERE id = ?", "values": [], "concatenate": false}}, "mijlpaal_directories": {"insert": {"sql": "insert into MIJLPAAL_DIRECTORIES (id,mijlpaal_type,directory,datum) values(?,?,?,?)", "values": [], "concatenate": true}, "update": {"sql": "update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,directory=?,datum=? WHERE id = ?", "values": [], "concatenate": false}}, "student_directory_directories": {"delete": {"sql": "delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id in (?)", "values": [], "concatenate": true}, "insert": {"sql": "insert into STUDENT_DIRECTORY_DIRECTORIES (stud_dir_id,mp_dir_id) values(?,?)", "values": [], "concatenate": true}}, "files": {"insert": {"sql": "insert into FILES (id,filename,timestamp,digest,filetype,mijlpaal_type) values(?,?,?,?,?,?)", "values": [], "concatenate": true}, "update": {"sql": "update FILES set filename=?,timestamp=?,digest=?,filetype=?,mijlpaal_type=? WHERE id = ?", "values": [], "concatenate": false}}, "mijlpaal_directory_files": {"insert": {"sql": "insert into MIJLPAAL_DIRECTORY_FILES (mp_dir_id,file_id) values(?,?)", "values": [], "concatenate": true}}}
+{
+    "studenten": {
+        "insert": {
+            "sql": "insert into STUDENTEN (id,stud_nr,full_name,first_name,email,status) values(?,?,?,?,?,?)",
+            "values": [],
+            "concatenate": true
+        }
+    },
+    "student_directories": {
+        "insert": {
+            "sql": "insert into STUDENT_DIRECTORIES (id,stud_id,directory,basedir_id) values(?,?,?,?)",
+            "values": [],
+            "concatenate": true
+        },
+        "update": {
+            "sql": "update STUDENT_DIRECTORIES set stud_id=?,directory=?,basedir_id=? WHERE id = ?",
+            "values": [],
+            "concatenate": false
+        }
+    },
+    "mijlpaal_directories": {
+        "insert": {
+            "sql": "insert into MIJLPAAL_DIRECTORIES (id,mijlpaal_type,directory,datum) values(?,?,?,?)",
+            "values": [],
+            "concatenate": true
+        },
+        "update": {
+            "sql": "update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,directory=?,datum=? WHERE id = ?",
+            "values": [],
+            "concatenate": false
+        }
+    },
+    "student_directory_directories": {
+        "delete": {
+            "sql": "delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id in (?)",
+            "values": [],
+            "concatenate": true
+        },
+        "insert": {
+            "sql": "insert into STUDENT_DIRECTORY_DIRECTORIES (stud_dir_id,mp_dir_id) values(?,?)",
+            "values": [],
+            "concatenate": true
+        }
+    },
+    "files": {
+        "insert": {
+            "sql": "insert into FILES (id,filename,timestamp,digest,filetype,mijlpaal_type) values(?,?,?,?,?,?)",
+            "values": [],
+            "concatenate": true
+        },
+        "update": {
+            "sql": "update FILES set filename=?,timestamp=?,digest=?,filetype=?,mijlpaal_type=? WHERE id = ?",
+            "values": [],
+            "concatenate": false
+        }
+    },
+    "mijlpaal_directory_files": {
+        "insert": {
+            "sql": "insert into MIJLPAAL_DIRECTORY_FILES (mp_dir_id,file_id) values(?,?)",
+            "values": [],
+            "concatenate": true
+        }
+    }
+}

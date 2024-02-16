@@ -17,8 +17,6 @@ class MijlpaalDirectory(MijlpaalBase):
     def equal_relevant_attributes(self, value: MijlpaalDirectory)->bool:
         if  str(self.directory).lower() != str(value.directory).lower():
             return False        
-        # if  TSC.equal_in_range(self.datum, value.datum, config.get('directories', 'error_margin_date')):            
-        #     return False NOTE: this is a problem with copies.
         if  self.mijlpaal_type != value.mijlpaal_type:            
             return False
         return True

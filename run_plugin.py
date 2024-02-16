@@ -1,6 +1,10 @@
-from argparse import ArgumentParser
+from argparse import SUPPRESS, ArgumentParser
 from main.log import init_logging, log_info
 from plugins.plugin import PluginRunner
+
+# use this as first argument to signal the end of the modules
+# stop will be ignored.
+STOP = '-stop'
 
 if __name__ == "__main__":   
 
@@ -19,6 +23,8 @@ if __name__ == "__main__":
         simple_parser.add_argument('modules', metavar='module(s)', nargs='*', type=str,
                             help='Module of modules om uit voeren.')
         simple_args,unknown_arguments = simple_parser.parse_known_args()
+        if unknown_arguments[0] == STOP:
+            unknown_arguments.remove(STOP)
         modules:list[str] = simple_args.__dict__.get('modules', [])
         if not modules:
             print('Geen modules ingevoerd.')

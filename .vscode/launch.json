@@ -196,10 +196,11 @@
             "justMyCode": true,
             "args": [
                 "plugins.sync_basedir",
-                "--basedir=ntb"
+                "-stop",
+                "--basedir=:ONEDRIVE:\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2023-2024 Oud",
                 "-debug",
                 "-preview",
-                "--onedrive=d:\\onedrive",
+                "--onedrive=d:\\onedrive0",
             ]
         },
     ]

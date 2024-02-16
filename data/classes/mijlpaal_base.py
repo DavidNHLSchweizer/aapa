@@ -25,7 +25,7 @@ class MijlpaalBase(AAPAclass):
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
         result = File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, mijlpaal_type=mijlpaal_type)
         self.files.add(result)
-        return result
+        return result    
     def unregister_file(self, filetype: File.Type):
         self.files.remove_filetype(filetype)
     def __eq__(self, value2: MijlpaalBase)->bool:

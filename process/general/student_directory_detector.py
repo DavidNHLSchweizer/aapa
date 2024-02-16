@@ -110,6 +110,8 @@ class StudentDirectoryDetector:
             log_print(message)
         else:
             log_info(message)
+    def is_new_student(self, student: Student)->bool:
+        return student in self.new_students.values()
     def process(self, dirname: str, storage: AAPAStorage = None, preview=False)->StudentDirectory:
         if not test_directory_exists(dirname):
             log_error(f'Directory {dirname} niet gevonden.')
@@ -121,8 +123,8 @@ class StudentDirectoryDetector:
         try:    
             student = self._get_student(dirname, storage)
             log_print(f'Student: {student}')
-            if student in self.new_students.values():
-                log_warning(f'Student {student} nog niet in database. Wordt toegevoegd.\n\tLET OP: controleer het berekende email-adres {student.email}.')
+            if self.is_new_student(student):
+                log_warning(f'Student {student} nog niet in database. Wordt toegevoegd.\n\tLET OP: controleer het berekende email-adres {student.email} en voeg het juiste studentnummer toe.')
             elif not student.valid():
                 log_warning(f'Gegevens student {student} zijn niet compleet.')
             student_directory = StudentDirectory(student, dirname, self.base_dir)

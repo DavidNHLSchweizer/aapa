@@ -10,6 +10,8 @@ class StudentDirectoryQueries(CRUDQueries):
         if stored_id := self.find_max_value('id', where_attributes='student', where_values=student.id):
             return self.crud.read(stored_id)
         return None
+    def find_student_dirs(self, student: Student)->list[StudentDirectory]:
+        return self.find_values(attributes='student', values=student.id, map_values=False)
     def find_student_dir_for_directory(self, student: Student, directory: str)->StudentDirectory:
         if stored := self.find_values(attributes=['student','directory'], values=[student,directory]):
             return stored[0]
