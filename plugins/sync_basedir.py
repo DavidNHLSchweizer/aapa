@@ -142,14 +142,14 @@ class StudentDirectoryCompareProcessor:
     def _file_is_already_known(self, file: File)->bool:
         #there are some files in the system that are not coupled to a MijlpaalDirectory
         queries: FilesQueries = self.storage.queries('files')
-        return not queries.find_values('filename', Roots.encode_path(file.filename)) is []
+        return queries.find_values('filename', Roots.encode_path(file.filename)) != []
     def _add_new_files(self, actual_mp_dir: MijlpaalDirectory, store_in_dir: MijlpaalDirectory, handled: list[File] = []):
         for actual_file in actual_mp_dir.files.files:
             if actual_file in handled:
                 continue
             if self._file_is_already_known(actual_file):
                 #this could happen if the file was already known but not coupled to the mp_dir
-                self._log_file(actual_file, 'Veranderde file: ')
+                self._log_file(actual_file, 'Veranderde file (in mijlpaaldirectory): ')
                 self.differences.add(SDC.CHANGED_FILE, actual_file, store_in_dir)                
             else:
                 self._log_file(actual_file, 'Nieuwe file: ')

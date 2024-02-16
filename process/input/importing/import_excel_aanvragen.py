@@ -135,6 +135,8 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             if stored.stud_nr == UNKNOWN_STUDNR:
                 stored.stud_nr = result.stud_nr                
                 self.storage.update('studenten', stored)
+        else:
+            log_info(f'Student {result} is nog niet in database bekend. Wordt nieuw geregistreerd.', to_console=True)
         return result
     def _get_bedrijf(self, values: dict[str,Any])->Bedrijf:
         return Bedrijf(self.__get_value(values, self.ColNr.BEDRIJF))

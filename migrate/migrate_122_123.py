@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from data.classes.studenten import Student
 from database.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectoryTableDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
 from data.classes.student_directories import StudentDirectory
 from migrate.migrate import modify_table
@@ -54,6 +55,13 @@ def correct_student_errors(database: Database):
     #Daan van Boven
     _correct_email_and_delete_double(database, 54, 162)
     print('ready correcting some existing errors in STUDENTEN table')  
+
+def correct_student_status(database: Database):
+    print('correcting some modified status STUDENTEN table')  
+    #jorn postma
+    database._execute_sql_command(f'update STUDENTEN set status=? where id = ?', 
+                                  [Student.Status.AFGESTUDEERD, 18])
+    print('ready correcting some modified status STUDENTEN table')  
 
 def _copy_student_directories_data(database: Database, old_table_name: str, new_table_name: str)->bool:
     print('copying data') 
@@ -143,6 +151,7 @@ def correct_files_for_error(database: Database):
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
         correct_student_errors(database)
+        correct_student_status(database)
         modify_mijlpaal_directories(database)
         modify_student_directories(database)
         add_views(database)
