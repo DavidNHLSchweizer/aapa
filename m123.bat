@@ -58,6 +58,13 @@ if "%phase2%" LSS "5" goto :phase42
 :phase5
 set phase=5
 call :migrate %phase%
+call :msgnext
+call :plugin %mxx%.sync_basedir -stop @migrate\m123\sync_basedir.txt
+if "%phase2%" LSS "6" goto :phase42
+
+:phase6
+set phase=6
+call :migrate %phase%
 goto :phase42
 
 :plugin

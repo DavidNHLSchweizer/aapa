@@ -59,13 +59,13 @@ class StudentDirectorySQL:
                  'update':{'sql':'update STUDENT_DIRECTORIES set stud_id=?,directory=?,basedir_id=?,status=? WHERE id=?'}}))
         sql.add('mijlpaal_directories', 
                  SQLcollector
-                 ({'insert':{'sql':'insert into MIJLPAAL_DIRECTORIES (id,mijlpaal_type,kans=?,directory,datum) values(?,?,?,?)'},
+                 ({'insert':{'sql':'insert into MIJLPAAL_DIRECTORIES (id,mijlpaal_type,kans,directory,datum) values(?,?,?,?,?)'},
                    'update':{'sql':'update MIJLPAAL_DIRECTORIES set mijlpaal_type=?,kans=?,directory=?,datum=? WHERE id=?'}}))
         sql.add('student_directory_directories', SQLcollector(
             {'insert': {'sql':'insert into STUDENT_DIRECTORY_DIRECTORIES (stud_dir_id,mp_dir_id) values(?,?)'},
              'delete': {'sql':'delete from STUDENT_DIRECTORY_DIRECTORIES where stud_dir_id=? and mp_dir_id=?','concatenate':False}}))
         sql.add('files', SQLcollector(
-             {'insert': {'sql':'insert into FILES (id,filename,timestamp,digest,filetype,mijlpaal_type) values(?,?,?,?,?,?)'},
+             {'insert': {'sql':'insert into FILES (id,filename,timestamp,digest,filetype,mijlpaal_type) values(?,?,?,?,?,?)', 'concatenate':False},
               'update': {'sql':'update FILES set filename=?,timestamp=?,digest=?,filetype=?,mijlpaal_type=? WHERE id = ?'},
               'delete': {'sql':'delete from FILES WHERE id in (?)'}}))
         sql.add('mijlpaal_directory_files', SQLcollector(
@@ -92,7 +92,7 @@ class StudentDirectorySQL:
                     case SDC.DELETED_FILE:
                         self._handle_deleted_file(item, owner)
                     case SDC.CHANGED_FILE:
-                        self._handle_changed_file(item)
+                        self._handle_changed_file(item, owner)
                     case SDC.NEW_FILE:
                         self._handle_new_file(item, owner)
                     case _: raise SyncException('Vergeten dit ook op te geven....')
@@ -122,9 +122,12 @@ class StudentDirectorySQL:
         self.sql.insert('files', [file.id, Roots.encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
                                   file.digest,file.filetype,file.mijlpaal_type])
         self.sql.insert('mijlpaal_directory_files', [owner_mp_dir.id,file.id])
-    def _handle_changed_file(self, file: File):
+    def _handle_changed_file(self, file: File, owner_mp_dir:MijlpaalDirectory):        
         self.sql.update('files', [Roots.encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
                                   file.digest,file.filetype,file.mijlpaal_type,file.id])
+        if owner_mp_dir:
+            self.sql.insert('mijlpaal_directory_files', [owner_mp_dir.id,file.id])
+
     def _handle_deleted_file(self, file: File, owner_mp_dir: MijlpaalDirectory):
         self.sql.delete('files', [file.id])
         self.sql.delete('mijlpaal_directory_files2', [owner_mp_dir.id, file.id])
@@ -139,10 +142,16 @@ class StudentDirectoryCompareProcessor:
     def _file_is_already_known(self, file: File)->bool:
         #there are some files in the system that are not coupled to a MijlpaalDirectory
         queries: FilesQueries = self.storage.queries('files')
-        return queries.find_values('filename', Roots.encode_path(file.filename)) is []
+        return not queries.find_values('filename', Roots.encode_path(file.filename)) is []
     def _add_new_files(self, actual_mp_dir: MijlpaalDirectory, store_in_dir: MijlpaalDirectory, handled: list[File] = []):
         for actual_file in actual_mp_dir.files.files:
-            if not (actual_file in handled or self._file_is_already_known(actual_file)):
+            if actual_file in handled:
+                continue
+            if self._file_is_already_known(actual_file):
+                #this could happen if the file was already known but not coupled to the mp_dir
+                self._log_file(actual_file, 'Veranderde file: ')
+                self.differences.add(SDC.CHANGED_FILE, actual_file, store_in_dir)                
+            else:
                 self._log_file(actual_file, 'Nieuwe file: ')
                 self.differences.add(SDC.NEW_FILE, actual_file, store_in_dir)
     def _add_new_student_directory(self, stud_dir: StudentDirectory):            
@@ -197,7 +206,7 @@ class StudentDirectoryCompareProcessor:
                 else:
                     self._log_file(stored_file, 'Veranderde file: ')
                     actual_file.id=stored_file.id # actual file might have new id
-                    self.differences.add(SDC.CHANGED_FILE, actual_file, stored_mp_dir)
+                    self.differences.add(SDC.CHANGED_FILE, actual_file, None)
             else:
                 self._log_file(stored_file, 'Verwijderde file: ')
                 self.differences.add(SDC.DELETED_FILE, stored_file, stored_mp_dir)
@@ -283,7 +292,7 @@ class BasedirSyncProcessor:
                 continue
             self.sync_student_dir(directory)
         print('-------------------')        
-    def process(self, directory: str|list[str], preview=False)->bool:
+    def process(self, directory: str|list[str], preview=False, verbose=False)->bool:
         if isinstance(directory,str):
             result = self.sync_basedir(directory, preview)
         elif isinstance(directory,list):
@@ -291,7 +300,8 @@ class BasedirSyncProcessor:
             for dir in directory:
                 if not self.sync_basedir(dir, preview):
                     result = False
-            self.compare_processor.dump(self.new_students)
+            if verbose:
+                self.compare_processor.dump(self.new_students)
         else:
             raise SyncException(f'Invalid call to process: {directory} must be str or list[str]')
         return result   

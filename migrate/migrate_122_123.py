@@ -15,6 +15,7 @@ class JsonData:
         ADAPT_MP_DIRS = auto()
         CREATE_VERSLAGEN = auto()
         REUNITE_ORPHANS  = auto()
+        SYNC_BASEDIRS  = auto()
     
     json_data = {   KEY.SET_DIR_STATUS: {'filename': 'set_sdir_status', 'phase':1, 'message': 'setting (computed) status'},
                     KEY.MP_DIR_DATUM: {'filename': 'mp_dir_datum', 'phase':1, 'message': 'setting missing dates'},          
@@ -23,6 +24,7 @@ class JsonData:
                     KEY.CORRECT_MP_DIRS: {'filename': 'correct_mp_dirs', 'phase':4, 'message': 'correcting double mijlpaal_directories'},
                     KEY.CORRECT_STUD_DIRS: {'filename': 'correct_stud_dirs', 'phase':4, 'message': 'correcting student directories'},
                     KEY.REUNITE_ORPHANS: {'filename': 'reunite_orphans', 'phase':5, 'message': 'reuniting orphan files'},
+                    KEY.SYNC_BASEDIRS: {'filename': 'sync_basedir', 'phase':6, 'message': 'Synchronizing database with base directories'},
                 }
     @staticmethod
     def execute(database: Database, phase = 0):

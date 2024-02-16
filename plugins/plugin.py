@@ -181,6 +181,8 @@ class PluginBase(ABC):
                 return False
             if self.before_process(context, **self.module_options):
                 result = self.process(context, **self.module_options)
+            else:
+                print('SHIT!')
             self.after_process(context, result)
         return result
 
