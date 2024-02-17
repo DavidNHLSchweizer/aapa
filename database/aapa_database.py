@@ -15,7 +15,7 @@ import database.classes.dbConst as dbc
 from database.classes.view_def import ViewDefinition
 from general.keys import reset_key
 from main.config import config
-from main.log import log_debug, log_error, log_info, log_warning
+from main.log import log_error, log_info, log_warning
 from main.versie import Versie
 from data.general.roots import Roots
 
