@@ -1,16 +1,20 @@
 import importlib
-from data.aapa_database import create_version_info, read_version_info
-from database.database import Database
+from typing import Protocol
+from database.aapa_database import AAPaSchema, create_version_info, read_version_info
+from database.classes.database import Database
+from database.classes.sql_table import SQLcreateTable
+from database.classes.table_def import TableDefinition
 from general.fileutil import file_exists
-from general.log import init_logging
-from process.aapa_processor.initialize import initialize_database
+from main.log import init_logging
+from process.main.initialize import initialize_database
 
 class MigrationException(Exception): pass
 
+def _remove_dot(s: str)->str:
+    return s.replace('.', '')    
+
 def migrate_version(database_name, old_version, new_version, debug=False, phase=42)->bool:    
-    def remove_dot(s: str)->str:
-        return s.replace('.', '')    
-    migration_module_name = f'migrate.migrate_{remove_dot(old_version)}_{remove_dot(new_version)}'
+    migration_module_name = f'migrate.migrate_{_remove_dot(old_version)}_{_remove_dot(new_version)}'
     try:
         module = importlib.import_module(migration_module_name)
     except ModuleNotFoundError as E:
@@ -22,6 +26,8 @@ def migrate_version(database_name, old_version, new_version, debug=False, phase=
             return False
         if not (database := start_migratie(database_name, old_version, new_version, debug=debug)):
             return False
+        if phase < 42:
+            print(f'--- Migratie fase: {phase} ---')
         migrate_database(database, phase=phase)
         finish_migratie(database, new_version)    
         if (after_migrate:= getattr(module, 'after_migrate', None)): # to be refined later
@@ -62,4 +68,17 @@ def finish_migratie(database: Database, new_version: str):
     print(f'Klaar!\nUpdating database version to {new_version}')
     update_versie(database, new_version)    
     database.commit()
+    dump_file = f'.\\migrate\\schema_{_remove_dot(new_version)}.sql'
+    AAPaSchema.dump_schema_sql(filename=dump_file)
+    print(f'New schema dumped to {dump_file}.')
 
+class copy_func(Protocol):
+    def __call__(database:Database, old_table_name: str, new_table_name: str)->bool:pass
+
+def modify_table(database: Database, new_table: TableDefinition, copy_data: copy_func):
+    old_table_name = f'OLD_{new_table.name}'
+    database._execute_sql_command(f'alter table {new_table.name} rename to {old_table_name}')
+    print('creating the new table')
+    database.execute_sql_command(SQLcreateTable(new_table))
+    if copy_data is None or copy_data(database, old_table_name, new_table.name):
+        database._execute_sql_command(f'drop table {old_table_name}')

@@ -1,5 +1,5 @@
 import pytest
-from database.dbargparser import dbArgParser
+from database.classes.dbargparser import dbArgParser
 
 class DemoFlags(dbArgParser):
     SINGLE_BOOL     = 1

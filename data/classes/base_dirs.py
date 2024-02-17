@@ -1,9 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
 import re
-from data.classes.aapa_class import AAPAclass
+from data.general.aapa_class import AAPAclass
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.name_utils import Names
 
 class BaseDir(AAPAclass):
@@ -48,5 +48,10 @@ class BaseDir(AAPAclass):
         if tussen := Names.tussen(student.full_name):
             result += f', {tussen}'
         return result + f', {Names.first_name(student.full_name)}'
-    def get_student_directory(self, student: Student)->str:
+    @staticmethod
+    def is_student_directory_name(directory: str|Path)->bool:
+        """ Returns true if this (in form) a valid student directory name"""
+        PATTERN = re.compile(r'^[a-zA-Z]+\,[a-zA-Z\s\,]+')
+        return PATTERN.match(Path(directory).name) is not None        
+    def get_student_directory_name(self, student: Student)->str:
         return str(Path(self.directory).joinpath(self.get_directory_name(student)))

@@ -1,5 +1,5 @@
 import winreg
-from general.log import log_error
+from main.log import log_error
 
 def find_onedrive_path(resource_value: str)->str:
     NAMESPACE=r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace"

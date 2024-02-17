@@ -1,11 +1,11 @@
 from __future__ import annotations
 import datetime
-from data.classes.aapa_class import AAPAclass
+from data.general.aapa_class import AAPAclass
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import MijlpaalType, MijlpaalBeoordeling
+from data.general.const import MijlpaalType, MijlpaalBeoordeling
 from data.classes.files import File, Files
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
 class MijlpaalBase(AAPAclass):            
@@ -16,7 +16,8 @@ class MijlpaalBase(AAPAclass):
         self.kans = kans
         self._files = Files(owner=self)
     def relevant_attributes(self)->set[str]:
-        return {'datum', 'mijlpaal_type', 'kans'}
+        return {'datum', 'mijlpaal_type'}
+        # return {'datum', 'mijlpaal_type', 'kans'} 
     @property
     def files(self)->Files: return self._files
     @property
@@ -24,7 +25,7 @@ class MijlpaalBase(AAPAclass):
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
         result = File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, mijlpaal_type=mijlpaal_type)
         self.files.add(result)
-        return result
+        return result    
     def unregister_file(self, filetype: File.Type):
         self.files.remove_filetype(filetype)
     def __eq__(self, value2: MijlpaalBase)->bool:

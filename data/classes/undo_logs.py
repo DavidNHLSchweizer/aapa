@@ -4,13 +4,13 @@ from enum import IntEnum
 import os
 from typing import Type
 from data.classes.aanvragen import Aanvraag
-from data.classes.aapa_class import AAPAclass
-from data.classes.aggregator import Aggregator
+from data.general.aapa_class import AAPAclass
+from data.general.aggregator import Aggregator
 from data.classes.files import File
-from general.log import log_debug, log_warning
+from main.log import log_debug, log_warning
 from general.singular_or_plural import sop
 from general.timeutil import TSC
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 from general.fileutil import summary_string
 
 UndoLogData=Type[Aanvraag|File]       

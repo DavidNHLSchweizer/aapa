@@ -4,19 +4,28 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-        
+        {
+            "name": "Python Debugger: Module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "enter-your-module-name"
+        },
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "args": [
+                "migrate.m_text",
+                "-debug",
+                "--onedrive=d:\\onedrive",                
+            ]
         },
         {
             "name": "Python: info",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -29,7 +38,7 @@
         },
         {
             "name": "Python: detect",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -37,13 +46,13 @@
             "args": [
                 "--detect=C:\\Users\\david\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2023-2024 Nieuw",
                 "-preview",
-                "-debug",     
+                "-debug",
                 "--migrate=data\\migrate\\m119",
             ]
         },
         {
             "name": "Python: studimport",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -56,7 +65,7 @@
         },
         {
             "name": "Python: baseimport",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -70,20 +79,22 @@
         },
         {
             "name": "Python: zipimport",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "zipimport",
-                "-preview",
+                "input",
                 "-debug",
+                "-preview",
+                "--onedrive=d:\\onedrive",
+                "--processing_mode=R"
             ]
         },
         {
             "name": "Python: aapa new",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -95,8 +106,8 @@
             ]
         },
         {
-            "name": "Python: aapa scan",
-            "type": "python",
+            "name": "Python: aapa input",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -104,14 +115,15 @@
             "args": [
                 "input",
                 "-debug",
+                "--onedrive=d:\\onedrive",
+                "--processing_mode=A",
+                "--input_options=F",
                 "-preview",
-                "--onedrive=d:\\onedrive", 
-                "--input_options=F",               
             ]
         },
         {
             "name": "Python: aapa form",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -124,7 +136,7 @@
         },
         {
             "name": "Python: aapa mail",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -137,7 +149,7 @@
         },
         {
             "name": "Python: aapa undo",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa.py",
             "console": "integratedTerminal",
@@ -150,7 +162,7 @@
         },
         {
             "name": "Python: aapa_migrate.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "aapa_migrate.py",
             "console": "integratedTerminal",
@@ -164,28 +176,32 @@
         },
         {
             "name": "Python: run_tui.py",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "run_tui.py",
             "console": "externalTerminal",
             "justMyCode": true,
             "args": [
                 "-debug",
-                "--input_options=FB",
+                "--input_options=F",
+                "--onedrive=d:\\onedrive",
+                "--processing_mode=A"
             ]
         },
         {
-            "name": "Python: remove_aanvraag",
-            "type": "python",
+            "name": "Python: run_plugin",
+            "type": "debugpy",
             "request": "launch",
-            "program": "remove_aanvraag.py",
+            "program": "run_plugin.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
+                "migrate.m123.sync_basedir",
+                "-stop",
+                "--basedir=:ONEDRIVE:\\NHL Stenden\\HBO-ICT Afstuderen - Software Engineering\\2023-2024 Oud",
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive",
-                "--aanvraag=205,206"
             ]
         },
     ]

@@ -1,7 +1,7 @@
 from pathlib import Path
 from data.classes.files import File
-from data.storage.aapa_storage import AAPAStorage
-from database.database import Database
+from storage.aapa_storage import AAPAStorage
+from database.classes.database import Database
 
 def migrate_database(database: Database):
     storage = AAPAStorage(database)    

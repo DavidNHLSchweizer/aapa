@@ -2,11 +2,12 @@ from __future__ import annotations
 import datetime
 from pathlib import Path
 from data.classes.bedrijven import Bedrijf
-from data.classes.const import AanvraagStatus, MijlpaalType
+from data.general.const import AanvraagStatus, MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.studenten import Student
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
+from general.fileutil import summary_string
 
 class Aanvraag(MijlpaalGradeable):
     Beoordeling = MijlpaalGradeable.Beoordeling
@@ -30,8 +31,8 @@ class Aanvraag(MijlpaalGradeable):
         return Path(self.files.get_filename(File.Type.AANVRAAG_PDF))
     def source_file_name(self)->str:
         return str(self.aanvraag_source_file_path())
-    def summary(self)->str:
-        return f'{str(self.student)} ({self.bedrijf.name})-{self.titel}'    
+    def summary(self, maxlen=0)->str:
+        return summary_string(f'{str(self.student)} ({self.bedrijf.name})-{self.titel}',maxlen=maxlen)
     def file_summary(self)->str:
         return self.summary() + "-files:\n" + self.files.summary()
     def __str__(self):

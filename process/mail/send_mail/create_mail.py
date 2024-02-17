@@ -1,11 +1,11 @@
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from general.config import ListValueConvertor, config
-from general.fileutil import file_exists, from_main_path, summary_string
+from main.config import ListValueConvertor, config
+from general.fileutil import file_exists, from_main_path
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.general.aanvraag_processor import AanvraagProcessor
 from process.general.mail_sender import OutlookMail, OutlookMailDef
-from general.log import log_error, log_print
+from main.log import log_error, log_print
 
 def init_config():
     config.register('mail', 'feedback_mail_templates', ListValueConvertor)
@@ -60,7 +60,7 @@ class FeedbackMailProcessor(AanvraagProcessor):
     def process(self, aanvraag: Aanvraag, preview=False)->bool:
         filename = aanvraag.files.get_filename(File.Type.GRADE_FORM_PDF)
         if preview:
-            log_print(f'\tKlaarzetten feedbackmail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{summary_string(filename)}')
+            log_print(f'\tKlaarzetten feedbackmail ({str(aanvraag.beoordeling)}) aan "{aanvraag.student.email}" met als attachment:\n\t\t{File.display_file(filename)}')
         else:
             if not filename or not file_exists(filename):
                 log_error(f'Kan feedbackmail voor {aanvraag} niet maken:\n\tbeoordelingbestand "{filename}" ontbreekt.')

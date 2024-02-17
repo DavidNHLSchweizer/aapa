@@ -3,11 +3,11 @@ import datetime
 from enum import IntEnum
 from pathlib import Path
 from typing import Iterable
-from database.dbConst import EMPTY_ID
+from database.classes.dbConst import EMPTY_ID
 
 from general.filehash import hash_file_digest
 from general.fileutil import summary_string
-from general.log import log_debug
+from main.log import log_debug
 from general.timeutil import TSC
 
 class File:

@@ -1,6 +1,6 @@
 from data.classes.aanvragen import Aanvraag
-from general.config import config, IntValueConvertor
-from general.log import log_exception
+from main.config import config, IntValueConvertor
+from main.log import log_exception
 from process.general.word_processor import DocxWordDocument, WordReaderException
 
 def init_config():

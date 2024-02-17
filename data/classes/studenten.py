@@ -1,23 +1,12 @@
 from __future__ import annotations
-from enum import IntEnum
-from data.classes.aapa_class import AAPAclass
-from database.dbConst import EMPTY_ID
+from data.general.aapa_class import AAPAclass
+from data.general.const import StudentStatus
+from database.classes.dbConst import EMPTY_ID
 from general.name_utils import Names
 from general.valid_email import is_valid_email
 
 class Student(AAPAclass):
-    class Status(IntEnum):
-        UNKNOWN     = 0
-        AANVRAAG    = 1
-        BEZIG       = 2
-        AFGESTUDEERD= 3 
-        GESTOPT     = 10
-        def __str__(self):
-            STRS = {Student.Status.UNKNOWN: 'nog niet bekend', Student.Status.AANVRAAG: 'aanvraag gedaan',  
-                    Student.Status.BEZIG: 'bezig met afstuderen', Student.Status.AFGESTUDEERD: 'afgestudeerd', 
-                    Student.Status.GESTOPT: 'gestopt'}
-            return STRS[self.value]
-
+    Status = StudentStatus
     def __init__(self, full_name='', first_name = '', last_name = '', stud_nr='', 
                  email='', status = Status.UNKNOWN, id=EMPTY_ID):        
         super().__init__(id)
@@ -30,6 +19,8 @@ class Student(AAPAclass):
         studnr_part = f'({self.stud_nr})' if self.stud_nr else ''
         return f'{self.full_name}{studnr_part} [{str(self.status)}]'
     def __eq__(self, value: Student):
+        if not value:
+            return False
         if  self.full_name != value.full_name:
             return False
         if  self.stud_nr != value.stud_nr:

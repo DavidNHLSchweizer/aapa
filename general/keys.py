@@ -1,5 +1,18 @@
 from general.singleton import Singleton
+"""
+    KEYS module
+    ----
 
+    classes to create unique keys
+
+    interface functions are: 
+    
+    get_next_key
+    and
+    reset_key
+
+
+"""
 class Sequence:
     def __init__(self):
         self.__current = 0
@@ -10,7 +23,7 @@ class Sequence:
     def reset(self, value):
         self.__current = value
 
-class KeysForRoot:
+class _KeysForRoot:
     def __init__(self, root:str):
         self.__root = root
         self.__sequence = Sequence()
@@ -24,12 +37,12 @@ class KeysForRoot:
 
 class Keys(Singleton):
     def __init__(self):
-        self.__generators: list[KeysForRoot] = []
+        self.__generators: list[_KeysForRoot] = []
     def __add_root(self, root):
-        result = KeysForRoot(root)
+        result = _KeysForRoot(root)
         self.__generators.append(result)
         return result
-    def __find_root(self, root)->KeysForRoot:
+    def __find_root(self, root)->_KeysForRoot:
         for generator in self.__generators:
             if generator.root==root:
                 return generator
@@ -41,8 +54,28 @@ class Keys(Singleton):
 
 _keys = Keys()
 def get_next_key(root='key')->int:
+    """
+    Returns next key in the sequence defined by parameter root.
+
+    parameters:
+        root: str:
+            the "root" of the sequence. Default is "key". 
+            If more than one sequence is needed, different root identifiers can be used for each sequence
+
+    return value:
+        integer. Each call will return the previous value incremented by one.
+    """
     return _keys.new_key(root)
-def reset_key(root, value=0):
+def reset_key(root='key', value=0):
+    """
+    Resets key in sequence defined by parameter root.
+
+    parameters:
+        root: str
+            the "root" of the sequence. Default is "key". 
+        value: int
+            the value to reset the sequence to. Default = 0 (meaning next call to get_next_key() will return 1).        
+    """
     _keys.reset(root, value)
 
 

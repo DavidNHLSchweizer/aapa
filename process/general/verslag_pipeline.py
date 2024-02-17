@@ -1,12 +1,12 @@
 from data.classes.undo_logs import UndoLog
 from data.classes.verslagen import Verslag
-from data.storage.aapa_storage import AAPAStorage
+from storage.aapa_storage import AAPAStorage
 from process.general.pipeline import FilePipeline
-from process.general.verslag_processor import MijlpaalCreator
+from process.general.verslag_processor import VerslagImporter
 
 
 class VerslagCreatingPipeline(FilePipeline):
-    def __init__(self, description: str, processor: MijlpaalCreator, storage: AAPAStorage, activity: UndoLog.Action):
+    def __init__(self, description: str, processor: VerslagImporter, storage: AAPAStorage, activity: UndoLog.Action):
         super().__init__(description, processor, storage, activity=activity, invalid_filetype=None)  
     def _store_new(self, verslag: Verslag):
         self.storage.create('verslagen', verslag)

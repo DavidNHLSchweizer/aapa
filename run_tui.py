@@ -1,6 +1,6 @@
-from general.args import get_debug
-from process.aapa_processor.aapa_config import LOGFILENAME
-from general.log import init_logging
+from main.args import get_debug
+from process.main.aapa_config import LOGFILENAME
+from main.log import init_logging
 
 from tui.aapa_app import AAPAApp
 if __name__ == "__main__":

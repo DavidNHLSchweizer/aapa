@@ -1,8 +1,22 @@
-from data.aapa_database import VerslagTableDefinition
+import datetime
+import re
+from typing import Tuple
+from database.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
+        StudentDirectoryTableDefinition, UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
+        create_roots
+from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
-from migrate.sql_coll import  import_json
-from database.database import Database
-from database.sql_table import SQLcreateTable
+from migrate.m119.old_roots import old_add_root, old_decode_path, old_reset_roots
+from general.sql_coll import SQLcollectors, import_json
+from data.general.roots import OneDriveCoder, add_root, encode_path, get_onedrive_root, reset_roots
+from storage.aapa_storage import AAPAStorage
+from database.classes.database import Database
+from database.classes.sql_table import SQLcreateTable
+from database.classes.sql_view import SQLcreateView
+from database.classes.table_def import TableDefinition
+import database.classes.dbConst as dbc
+from general.keys import reset_key
+from general.timeutil import TSC
 
 # remove directory column from VERSLAGEN table
 def modify_VERSLAGEN(database: Database):

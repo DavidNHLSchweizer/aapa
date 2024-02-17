@@ -1,14 +1,14 @@
 from enum import Enum, auto
 from data.classes.undo_logs import UndoLog
 from debug.debug import MAJOR_DEBUG_DIVIDER
-from general.log import log_debug, log_info
-from general.preview import Preview, pva
+from main.log import log_debug, log_info
+from process.general.preview import Preview, pva
 from general.singular_or_plural import sop
 from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.mail.archive_graded.archive_graded import ArchiveGradedFileProcessor
 from process.mail.read_grade.read_form import ReadFormGradeProcessor
 from process.mail.send_mail.create_mail import FeedbackMailProcessor
-from data.storage.aapa_storage import AAPAStorage
+from storage.aapa_storage import AAPAStorage
 
 def process_graded(storage: AAPAStorage, filter_func = None, preview=False)->int:
     class RappPva(Enum):

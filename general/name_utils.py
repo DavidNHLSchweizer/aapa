@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import re
-from general.config import config
+from main.config import config
 from general.singleton import Singleton
 
 @dataclass
@@ -61,6 +61,9 @@ class Names:
             return __title(name, '-')
         else:
             return __title(name, ' ')
+    @staticmethod
+    def is_tussen(w: str)->bool:
+        return re.match(Names.TUSSEN_PATTERN, w, re.IGNORECASE) is not None
     @staticmethod
     def parsed(full_name: str)->ParsedName:
         if special_cases.contains(full_name):

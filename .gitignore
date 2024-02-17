@@ -13,7 +13,8 @@
 *.ini
 *.zip
 *.out
-*.db-journal    
+*.db-journal
+!aapa_config.ini
 !ini/*.ini
 !template*.docx
 !template*.htm

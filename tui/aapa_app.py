@@ -1,3 +1,4 @@
+""" main Textual User Interface App. Run this from run_tui.py. """
 import random
 import logging
 from textual.screen import Screen
@@ -8,19 +9,20 @@ from textual.message import Message
 from textual.widgets import Header, Footer, Button
 from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
-from data.roots import set_onedrive_root
-from data.storage.queries.undo_logs import UndoLogQueries
-from general.args import  AAPAaction, AAPAOptions, ArgumentOption, get_options_from_commandline
-from general.log import log_debug, pop_console, push_console
-from general.versie import BannerPart, banner
-from process.aapa_processor.aapa_config import AAPAConfiguration
-from tui.aapa_buttons import AapaButtonsPanel
-from tui.aapa_config import AapaConfigurationForm
-from tui.aapa_processing import AapaProcessingForm
-from general.config import config
-from tui.common.terminal import  TerminalScreen
-from tui.common.verify import DialogMessage, verify
-from tui.const import BASE_CSS, AAPATuiParams, ProcessingModeChanged, windows_style
+from data.general.roots import Roots
+from process.general.const import AAPAaction
+from storage.queries.undo_logs import UndoLogQueries
+from main.options import  AAPAProcessingOptions, AAPAOptions, ArgumentOption, get_options_from_commandline
+from main.log import log_debug, pop_console, push_console
+from main.versie import BannerPart, banner
+from process.main.aapa_config import AAPAConfiguration
+from tui.buttons import AapaButtonsPanel
+from tui.configuration import AapaConfigurationForm
+from tui.processing import AapaProcessingForm
+from main.config import config
+from tui.general.terminal import  TerminalScreen
+from tui.general.verify import DialogMessage, verify
+from tui.common import BASE_CSS, AAPATuiParams, ProcessingModeChanged, windows_style
 from tui.terminal_console import init_console, show_console
 import tkinter.filedialog as tkifd
 
@@ -30,7 +32,7 @@ def AAPArun_script(options: AAPAOptions)->bool:
     try:
         push_console(TerminalConsoleFactory().create())
         aapa_runner = AAPARunner(options.config_options)
-        aapa_runner.process(options.processing_options, options.other_options) 
+        aapa_runner.process(options.processing_options) 
     finally:
         pop_console()
     return True
@@ -72,18 +74,37 @@ class AAPAApp(App):
             global_terminal = self._terminal
         return self._terminal
     def callback(self, result: bool):
-        log_debug('enabelcalbak')
         self.post_message(EnableButtons())
+    def _sync_app_with_commandline(self):
+        processing_options:AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
+        if processing_options.processing_mode == {AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN}:
+            self.processing_mode = AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN
+        else:
+            self.processing_mode = AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN        
+        self.input_options = processing_options.input_options
+    @property
+    def input_options(self)->AAPAProcessingOptions.INPUTOPTIONS:
+        return self.config_form.input_options
+    @input_options.setter
+    def input_options(self,value: AAPAProcessingOptions.INPUTOPTIONS):
+        self.config_form.input_options= value
+    @property
+    def processing_mode(self)->AAPAProcessingOptions.PROCESSINGMODE:
+        return self.process_form.processing_mode
+    @processing_mode.setter
+    def processing_mode(self,value: AAPAProcessingOptions.PROCESSINGMODE):
+        self.process_form.processing_mode = value
     def _init_onedrive_root(self):
-        processing_options = get_options_from_commandline(ArgumentOption.PROCES)
+        processing_options:AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
         if processing_options.onedrive:
-            set_onedrive_root(processing_options.onedrive)
+            Roots.set_onedrive_root(processing_options.onedrive)       
     async def on_enable_buttons(self, message: EnableButtons):
         await self.enable_buttons()
     async def on_mount(self):
         self.title = banner(BannerPart.BANNER_TITLE)
         self.sub_title = banner(BannerPart.BANNER_VERSION)
         await init_console(self, self.callback)
+        self._sync_app_with_commandline()
         self.post_message(EnableButtons())
     async def on_button_pressed(self, message: Button.Pressed):
         match message.button.id:
@@ -141,16 +162,21 @@ class AAPAApp(App):
     def config_form(self)->AapaConfigurationForm:
         return self.query_one(AapaConfigurationForm)
     @property 
+    def process_form(self)->AapaProcessingForm:
+        return self.query_one(AapaProcessingForm)
+    @property 
     def params(self)->AAPATuiParams:
         result = self.config_form.params
         result.preview = self.query_one(AapaProcessingForm).preview
         result.input_options = self.query_one(AapaConfigurationForm).input_options
+        result.processing_mode = self.query_one(AapaConfigurationForm).processing_mode
         return result
     @params.setter
     def params(self, value: AAPATuiParams):
         self.config_form.params = value
-        self.query_one(AapaProcessingForm).preview = value.preview                       
-        self.query_one(AapaConfigurationForm).input_options = value.input_options
+        self.process_form.preview = value.preview                       
+        self.config_form.input_options = value.input_options
+        self.config_form.processing_mode = value.processing_mode
     def action_toggle_preview(self):
         self.query_one(AapaProcessingForm).toggle()
     def action_edit_root(self):
