@@ -94,15 +94,15 @@ class StudentDirectoryBuilder:
             kans = len(stud_dir.get_directories(mijlpaal_type))+1
             mp_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=directory, datum=datum, kans = kans)
             stud_dir.add(mp_dir)
-        if mp_dir.directory != directory: 
-            log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory is {File.display_file(mp_dir.directory)}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
+        if str(mp_dir.directory).lower() != str(directory).lower(): 
+            log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory {File.display_file(mp_dir.directory)}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
         return mp_dir
     def register_file(self, student: Student, datum: datetime.datetime, filename: str, 
                       filetype: File.Type, mijlpaal_type: MijlpaalType)->Tuple[StudentDirectory, MijlpaalDirectory]:
         self.storage.ensure_key('studenten', student)        
         if not (stud_dir := self.__get_stud_dir(student, filename)):
             raise StorageException(f'Kan studentdirectory niet vinden of aanmaken. \nStudent: {student.full_name} Filename: {filename}')       
-        error_margin = config.get('student_directories', 'error_margin_date')
+        error_margin = config.get('directories', 'error_margin_date')
         mp_dir = self.get_mijlpaal_directory(stud_dir, str(Path(filename).parent), datum, mijlpaal_type, error_margin)
         if TSC.round_to_day(mp_dir.datum) != TSC.round_to_day(datum):
             log_warning(f'Datum {TSC.get_date_str(datum)} van nieuw bestand is inconsistent met directory\n\t({File.display_file(mp_dir.directory)})')

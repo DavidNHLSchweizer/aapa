@@ -14,8 +14,9 @@ from storage.queries.files import FilesQueries
 from storage.queries.student_directories import StudentDirectoryQueries
 from storage.queries.studenten import StudentQueries
 from general.fileutil import file_exists
+from main.config import config
 from main.log import log_debug, log_error, log_info, log_print, log_warning
-from process.general.student_dir_builder import SDB
+from process.general.student_dir_builder import SDB, StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
 
@@ -87,12 +88,13 @@ class VerslagFromZipImporter(VerslagImporter):
         return result
     def get_filename_to_create(self, verslag: Verslag, original_filename: str):
         student_directory = SDB.get_student_dir(self.storage,verslag.student,self.root_directory)
-        mp_dir_name = SDB.get_mijlpaal_directory_name(stud_dir=student_directory, datum=verslag.datum,mijlpaal_type=verslag.mijlpaal_type)
-
-        mijlpaal_directory:MijlpaalDirectory = self.sdb.get_mijlpaal_directory(stud_dir=student_directory, directory=mp_dir_name, 
+        if mp_dir := student_directory.get_directory(verslag.datum, verslag.mijlpaal_type, config.get('directories', 'error_margin_date')):
+            directory = mp_dir.directory
+        else:
+            directory = StudentDirectoryBuilder.get_mijlpaal_directory_name(student_directory, verslag.datum, verslag.mijlpaal_type)
+        mijlpaal_directory:MijlpaalDirectory = self.sdb.get_mijlpaal_directory(stud_dir=student_directory, directory=directory, 
                                                                           datum=verslag.datum, mijlpaal_type=verslag.mijlpaal_type, 
                                                                           error_margin=4.0)
-        # mijlpaal_directory = student_directory.joinpath(MijlpaalDirectory.directory_name(verslag.mijlpaal_type, verslag.datum))
         return str(Path(mijlpaal_directory.directory).joinpath(original_filename))
     def created_directory(self, directory_path: Path, preview: bool)->bool:
         if preview:
@@ -118,8 +120,8 @@ class VerslagFromZipImporter(VerslagImporter):
         mijlpaal_directory = Path(filename_to_create).parent
         if preview:
             if not mijlpaal_directory.is_dir() and new_student:
-                log_print(f'\tAanmaken directory {File.display_file(mijlpaal_directory)}')
-            log_print(f'\tOntzippen {File.display_file(filename_to_create)}')                
+                log_print(f'\tDirectory aanmaken {File.display_file(mijlpaal_directory)}')
+            log_print(f'\tBestand aanmaken {File.display_file(filename_to_create)}')                
         else:
             mijlpaal_directory = Path(filename_to_create).parent
             if self.created_directory(mijlpaal_directory, preview):
@@ -130,9 +132,9 @@ class VerslagFromZipImporter(VerslagImporter):
     def _check_existing_files(self, student_entries: list[dict]):
         previous_existing = False
         student_dir_queries: StudentDirectoryQueries= self.storage.queries('student_directories')       
-        # because filename comparisons are difficult to get REALLY caseinsensitive in SQLite (only works for standard ASCII, 
-        # and some students have non-ascii names
-        # we do this in python
+        # because filename comparisons are difficult to get REALLY caseinsensitive in SQLite 
+        # (collating only works for standard ASCII, and some students have non-ascii names)
+        # we must do this in python
         if student_entries: #get the student from the first entry
             student_directory = student_dir_queries.find_student_dir(student_entries[0]['verslag'].student)
         else:

@@ -116,7 +116,7 @@
                 "input",
                 "-debug",
                 "--onedrive=d:\\onedrive",
-                "--processing_mode=A",
+                "--processing_mode=R",
                 "--input_options=F",
                 "-preview",
             ]
