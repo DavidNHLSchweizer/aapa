@@ -14,6 +14,7 @@
 *.zip
 *.out
 *.db-journal
+!aapa_config.ini
 !ini/*.ini
 !template*.docx
 !template*.htm
@@ -45,3 +46,4 @@ aapa.exe
 temp_work.py
 process/general/pdf_aanvraag_reader.py
 zzz_backup/zzz_backup.zip
+aapa_config.ini
