@@ -1,7 +1,8 @@
 from __future__ import annotations
 import atexit
 from configparser import ConfigParser, NoOptionError, NoSectionError
-from general.fileutil import file_exists, from_main_path
+from pathlib import Path
+from general.fileutil import file_exists, from_main_path, get_main_module_path
 from general.singleton import Singleton
 
 class ValueConvertor:
@@ -139,9 +140,23 @@ class Config(Singleton):
     def read(self, filename: str):
         self._parser.read(filename)
 
+AAPA_CODE= ':AAPA:'
+def decode_aapa_path(filename: str|Path)->str:
+    return str(filename).replace(AAPA_CODE, str(get_main_module_path()))
+    
 CONFIG_FILE_NAME = 'aapa_config.ini'
 config = Config()
 
+def init_config():
+    config.init('templates', 'directory', r':AAPA:\templates')
+init_config()
+
+def get_templates(filename: str=None)->Path:
+    if filename:
+        return Path(decode_aapa_path(config.get('templates', 'directory'))).joinpath(filename)
+    else:
+        return Path(decode_aapa_path(config.get('templates', 'directory')))
+    
 def _get_config_file():
     try:
         return from_main_path(CONFIG_FILE_NAME)

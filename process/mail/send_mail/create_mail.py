@@ -1,6 +1,6 @@
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from main.config import ListValueConvertor, config
+from main.config import ListValueConvertor, config, get_templates
 from general.fileutil import file_exists, from_main_path
 from general.substitutions import FieldSubstitution, FieldSubstitutions
 from process.general.aanvraag_processor import AanvraagProcessor
@@ -9,7 +9,12 @@ from main.log import log_error, log_print
 
 def init_config():
     config.register('mail', 'feedback_mail_templates', ListValueConvertor)
-    config.init('mail', 'feedback_mail_templates', [r'.\templates\template_afgekeurd.htm', r'.\templates\template_goedgekeurd.htm'])
+    config.init('mail', 'feedback_mail_templates', [r'template_afgekeurd.htm', r'template_goedgekeurd.htm'])
+    if templates:=config.get('mail', 'feedback_mail_templates'):
+        new_templates = []
+        for template in templates:
+            new_templates.append(template.replace(".\\templates\\",  ""))                
+        config.set('mail', 'feedback_mail_templates', new_templates)
     config.init('mail', 'subject', 'Beoordeling aanvraag afstuderen ":TITEL:"')
     config.register('mail', 'cc', ListValueConvertor)
     config.init('mail', 'cc', ['afstuderenschoolofict@nhlstenden.com'])
@@ -19,7 +24,7 @@ def init_config():
 init_config()
 
 def get_feedback_mail_templates():
-    return [from_main_path(template) for template in config.get('mail', 'feedback_mail_templates')]
+    return [get_templates(template) for template in config.get('mail', 'feedback_mail_templates')]
 
 class FeedbackMailCreator:
     def __init__(self):

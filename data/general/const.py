@@ -125,10 +125,12 @@ class MijlpaalType(IntEnum):
                     MijlpaalType.PRESENTATIE: 'presentatie', MijlpaalType.EINDBEOORDELING: 'eindbeoordeling', 
                     MijlpaalType.AFSTUDEERZITTING: 'afstudeerzitting' }
         return _MT_STRS.get(self, _UNKNOWN)
+    def has_single_examinator(self)->bool:
+        return not self in {MijlpaalType.ONDERZOEKS_VERSLAG, MijlpaalType.TECHNISCH_VERSLAG, MijlpaalType.EIND_VERSLAG }
     @staticmethod
     def doc()->str:
         return "\n".join([f'{mpt.value:2} (MijlpaalType.{mpt.name}): {str(mpt)}' for mpt in MijlpaalType])
-    
+
 class AanvraagStatus(IntEnum):
     """ constanten gebruikt om de processing-status van een aanvraaag aan te geven.
     

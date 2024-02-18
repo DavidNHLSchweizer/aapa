@@ -10,16 +10,18 @@ from process.input.create_forms.copy_request import CopyAanvraagProcessor
 from process.input.create_forms.create_diff_file import DifferenceProcessor
 from process.input.create_forms.create_form import FormCreator
 from process.input.importing.import_directory import import_directory
-from main.config import config
+from main.config import config, get_templates
 from storage.aapa_storage import AAPAStorage
 from process.input.importing.import_excel_aanvragen import import_excel_file
 
 def init_config():
-    config.init('requests', 'form_template',r'.\templates\template 0.8.docx')
+    config.init('requests', 'form_template',r'template 0.8.docx')
+    if template:=config.get('requests', 'form_template'):
+        config.set('requests', 'form_template', template.replace('.\\templates\\', ''))
 init_config()
 
 def get_template_doc():
-    return from_main_path(config.get('requests', 'form_template'))
+    return get_templates(config.get('requests', 'form_template'))
 
 def create_beoordelingen_files(storage: AAPAStorage, template_doc, output_directory, filter_func = None, preview=False)->int:
     log_info('--- Maken beoordelingsformulieren en kopiëren aanvragen ...')

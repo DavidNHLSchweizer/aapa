@@ -19,7 +19,7 @@ from main.log import log_debug, log_error, log_print, log_warning, log_info
 from general.pdutil import nrows
 from process.general.preview import pva
 from general.singular_or_plural import sop
-from main.config import IntValueConvertor, config
+from main.config import IntValueConvertor, config, get_templates
 from general.fileutil import created_directory, safe_file_name, set_file_time, test_directory_exists
 from general.strutil import replace_all
 from general.timeutil import TSC
@@ -30,7 +30,9 @@ from process.input.importing.aanvraag_importer import AanvraagImporter
 from process.input.importing.excel_reader import ExcelReader
 
 def init_config():
-    config.init('import', 'xls_template', r'.\templates\2. Aanvraag goedkeuring afstudeeropdracht nieuwe vorm MAILMERGE 3.00b.docx')
+    config.init('import', 'xls_template', r'2. Aanvraag goedkeuring afstudeeropdracht nieuwe vorm MAILMERGE 3.00b.docx')
+    if template:=config.get('import', 'xls_template'):
+        config.set('import', 'xls_template', template.replace('.\\templates\\', ''))
     config.register('import', 'last_id', IntValueConvertor)
     config.init('import', 'last_id', 0)
 init_config()
@@ -106,7 +108,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
     }
     def __init__(self, output_directory: str, storage: AAPAStorage):
         super().__init__(f'import from excel-file', multiple=True)
-        self.template = config.get('import', 'xls_template')
+        self.template = get_templates(config.get('import', 'xls_template'))
         self.storage = storage
         self.output_directory = output_directory
         self.temp_path = None
@@ -287,7 +289,7 @@ def import_excel_file(xls_filename: str, output_directory: str, storage: AAPASto
     log_info(f'Start import van excel-file {xls_filename}...', to_console=True)
     importer = AanvraagCreatorPipeline(f'Importeren aanvragen uit Excel-bestand {xls_filename}', 
                                      AanvragenFromExcelImporter(output_directory, storage), 
-                                     storage, activity = UndoLog.Action.SCAN)
+                                     storage, activity = UndoLog.Action.SCAN_XLS)
     first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process([xls_filename], preview=preview)    

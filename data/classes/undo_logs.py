@@ -27,7 +27,8 @@ class UndoLog(AAPAclass):
         FORM    = 2
         MAIL    = 3
         UNDO    = 4
-        DETECT  = 5    
+        DETECT  = 5
+        SCAN_XLS= 6    
         def __str__(self):
             return self.name
     def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), can_undo=True):

@@ -7,7 +7,7 @@ from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from general.fileutil import file_exists
 from main.log import log_debug, log_error, log_info, log_warning
-from process.general.base_processor import FileProcessor
+from process.general.base_processor import BaseProcessor, FileProcessor
 from process.input.importing.aanvraag_importer import ImportException
 
 
@@ -48,3 +48,19 @@ class VerslagImporter(FileProcessor):
             log_warning(f'Probleem processing file {filename}:\n\t{exception}.')           
         self.after_reading(preview)
         return result
+
+class VerslagProcessor(BaseProcessor):
+    def __init__(self, entry_states:set[Verslag.Status]=None, exit_state:Verslag.Status=None, description: str = '', read_only=False):
+        self.entry_states = entry_states
+        self.exit_state = exit_state
+        self.read_only = read_only
+        super().__init__(description=description)
+    def in_entry_states(self, status:int)->bool:
+        if self.entry_states is not None:
+            return status in self.entry_states
+        else:
+            return True
+    def must_process(self, verslag: Verslag, preview=False, **kwargs)->bool:
+        return self.in_entry_states(verslag.status)
+    def process(self, aanvraag: Verslag, preview = False, **kwargs)->bool:
+        return False

@@ -137,9 +137,9 @@ class FileTypeDetector:
                                                   PresentatieBeoordelingDetector(),
                                                   EindBeoordelingDetector()
                                                   ]
-    def detect(self, filename: str)->(File.Type, MijlpaalType):
+    def detect(self, filename: str|Path)->tuple[File.Type, MijlpaalType]:
         for detector in self.detectors:
-            (filetype,mijlpaal_type) = detector.detect(filename) 
+            (filetype,mijlpaal_type) = detector.detect(str(filename)) 
             if filetype != File.Type.UNKNOWN:
                 return (filetype, mijlpaal_type)
         return (File.Type.UNKNOWN,MijlpaalType.UNKNOWN)
