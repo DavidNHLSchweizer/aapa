@@ -23,15 +23,14 @@ goto :phase%phase1%
 :phase0
 set phase=0
 call :migrate %phase%
-goto :phase42:
-
 call :msgnext
-call :plugin %mxx%.set_sdir_status %mxx%.mp_dir_datum
+call :plugin %mxx%.create_verslagen 
 if "%phase2%" LSS "1" goto :phase42
 
 :phase1
 set phase=1
 call :migrate %phase%
+goto :phase42:
 call :msgnext
 call :plugin %mxx%.adapt_mp_dirs
 if "%phase2%" LSS "2" goto :phase42

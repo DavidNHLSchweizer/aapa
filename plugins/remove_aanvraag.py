@@ -17,6 +17,7 @@ class AanvraagRemover(PluginBase):
     def before_process(self, context: AAPARunnerContext, **kwdargs) -> bool:
         super().before_process(context, **kwdargs)
         self.sql = self.init_sql()
+        self.storage=context.storage
     def init_sql(self)->SQLcollectors:
         sql = SQLcollectors()
         sql.add('undologs_aanvragen',
@@ -37,9 +38,9 @@ class AanvraagRemover(PluginBase):
     def remove(self, aanvraag_id: int|list[int], preview: bool):
         aanvragen_ids = aanvraag_id if isinstance(aanvraag_id, list) else [aanvraag_id]
         for id in aanvragen_ids:
-            log_print(f'removing aanvraag {id}')
             if not (aanvraag := self.storage.read('aanvragen', id)):
                 raise RemoverException(f'Can not read aanvraag {id}')
+            log_print(f'removing aanvraag {id}: {aanvraag}')
             self._remove(aanvraag)
         self.sql.execute_sql(self.storage.database, preview)
         self.storage.commit()
@@ -47,17 +48,10 @@ class AanvraagRemover(PluginBase):
 
     def get_parser(self) -> ArgumentParser:
         parser = super().get_parser()
-        parser.add_argument('--aanvraag', nargs='+', help='Aanvraag id(s) om te verwijderen')
+        parser.add_argument('--aanvraag',  type=int, action='append', help='id van aanvra(a)g(en) om te verwijderen. Kan meerdere malen worden ingevoerd : --aanvraag=id1 --aanvraag=id2.')
         return parser
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        coded_list:str = kwdargs.get('aanvraag')
-        if not coded_list:
-            print('Geen aanvragen ingevoerd.')
-            return False
-        if ',' in coded_list:
-            aanvragen = [int(id) for id in coded_list.split(',')]
-        else:
-            aanvragen = [int(id) for id in coded_list.split()]
+        aanvragen = kwdargs.get('aanvraag')
         print(f'Aanvragen om te verwijderen: {aanvragen}')
-        self.remove(aanvragen, context.processing_options.preview)
+        self.remove(aanvragen, context.preview)
         return True

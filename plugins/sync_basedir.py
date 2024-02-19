@@ -313,7 +313,7 @@ class SyncBaseDirPlugin(PluginBase):
         parser.add_argument('--basedir', nargs='+', action='append', type=str, help='De basisdirectory (of -directories) om te synchroniseren') 
         return parser
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        self.processor = BasedirSyncProcessor(context.configuration.storage)
+        self.processor = BasedirSyncProcessor(context.storage)
         self.basedirs = [Roots.decode_onedrive(bd) for bd in self._unlistify(kwdargs.get('basedir'))]
         self.json = kwdargs.get('json')
         if not self.json:

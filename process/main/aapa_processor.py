@@ -11,6 +11,7 @@ from process.input.scan import process_directory, process_excel_file, process_fo
 from main.options import AAPAOptions, AAPAProcessingOptions, report_options
 from main.versie import banner
 from main.config import config
+from storage.aapa_storage import AAPAStorage
 
 class AAPAProcessor:
     def __report_info(self, options: AAPAOptions):
@@ -70,7 +71,7 @@ class AAPARunnerContext:
             with AAPARunnerContext(configuration, processing_options) as context:
             
     """
-    def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions, message=None):
+    def __init__(self, configuration: AAPAConfiguration, processing_options: AAPAProcessingOptions, plugin=False, message=None):
         """ 
         parameters
         ---------- 
@@ -84,19 +85,22 @@ class AAPARunnerContext:
         """
         self.configuration = configuration
         self.processing_options = processing_options
-        self.preview = self.needs_preview()
+        self.preview = self.needs_preview(plugin)
         self.valid = True
         self._message=message
+    @property
+    def storage(self)->AAPAStorage:
+        return self.configuration.storage
     @property
     def options(self)->AAPAOptions:
         return AAPAOptions(config_options=self.configuration.config_options, 
                            processing_options=self.processing_options
                            )
-    def needs_preview(self)->bool:
+    def needs_preview(self, plugin: bool)->bool:
         if not self.processing_options.preview:
             return False
         else:
-            return not self.processing_options.no_processing() 
+            return not self.processing_options.no_processing(plugin) 
     def __enter__(self):
         if self._message:
             log_info(self._message, to_console=True)

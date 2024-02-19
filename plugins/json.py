@@ -22,7 +22,7 @@ class JSONprocessor(PluginBase):
         if not json_filename:
             log_error('Optie --json is verplicht. Geen JSON-file opgegeven.')
             return False
-        storage = context.configuration.storage
+        storage = context.storage
         import_json(storage.database, json_filename, context.processing_options.preview)
         log_print(f'JSON file {json_filename} uitgevoerd (preview: {context.processing_options.preview})')
         return True

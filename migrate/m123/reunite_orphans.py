@@ -20,6 +20,6 @@ class ReuniteOrphansProcessor(MigrationPlugin):
             {'insert': {'sql':'insert into MIJLPAAL_DIRECTORY_FILES (mp_dir_id,file_id) values(?,?)',}}))
         return sql
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:        
-        self.processor = OrphanFileProcessor(context.configuration.storage)
+        self.processor = OrphanFileProcessor(context.storage)
         self.processor.process(context.preview, self.sql)
         return True

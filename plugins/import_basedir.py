@@ -116,7 +116,7 @@ class BaseDirsExcelImporter(PluginBase):
         context.processing_options.preview = True
         self.json_filename=kwdargs.get('json', '')
         self.xls_filename = kwdargs.get('basedir') 
-        self.storage = context.configuration.storage
+        self.storage = context.storage
         self.importer = BasedirXLSImporter()
         self.pipeline = SingleFilePipeline('Importeren basedirs uit XLS bestand', self.importer, 
                                   self.storage, activity=UndoLog.Action.NOLOG)

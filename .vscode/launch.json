@@ -198,11 +198,10 @@
             "args": [
                 "plugins.remove_verslag",
                 "-stop",
-                "--verslag=563",
+                "--verslag=566",
                 "--verslag=564", 
                 "--verslag=565", 
                 "-debug",
-                "-preview",
                 "--onedrive=d:\\onedrive0",
             ]
         },

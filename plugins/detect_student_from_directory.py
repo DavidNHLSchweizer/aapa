@@ -306,7 +306,7 @@ class DirectoryDetectorPlugin(PluginBase):
         self.directory = directory        
         context.processing_options.debug = True
         context.processing_options.preview = True
-        self.storage = context.configuration.storage
+        self.storage = context.storage
         log_info(f'Start detectie van map  {directory}...', to_console=True)
         return True
     def process(self, context: AAPARunnerContext, **kwdargs) -> bool:

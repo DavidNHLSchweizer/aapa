@@ -15,7 +15,7 @@ class AAPARunner:
             if context is None:
                 print('Fout bij opstarten AAPA.')
                 return        
-            with Preview(context.needs_preview(), self.configuration.storage, 'main'):
+            with Preview(context.needs_preview(), context.storage, 'main'):
                 AAPAProcessor().process(self.configuration, processing_options)
 if __name__=='__main__':
     init_logging(LOGFILENAME, get_debug())

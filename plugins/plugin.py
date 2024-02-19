@@ -32,6 +32,7 @@ from main.args import aapa_parser
 
 from main.options import AAPAConfigOptions, AAPAProcessingOptions, _get_options_from_commandline
 from main.log import init_logging, log_warning
+from process.general.preview import Preview
 from process.main.aapa_config import AAPAConfiguration
 from process.main.aapa_processor import AAPARunnerContext
 
@@ -187,16 +188,17 @@ class PluginBase(ABC):
         if not config_options or not processing_options:
             return False
         init_logging(f'{self.module_name}.log', processing_options.debug)
-        with AAPARunnerContext(AAPAConfiguration(config_options), processing_options) as context:
+        with AAPARunnerContext(AAPAConfiguration(config_options), processing_options, plugin=True) as context:
             result = False
             if not context:
                 print('...Stopping')
                 return False
-            if self.before_process(context, **self.module_options):
-                result = self.process(context, **self.module_options)
-                self.after_process(context, result)
-            else:
-                print('before_process returned False. Stopping...')
+            with Preview(context.preview, context.storage, f'Running plugin {self.module_name}'):
+                if self.before_process(context, **self.module_options):
+                    result = self.process(context, **self.module_options)
+                    self.after_process(context, result)
+                else:
+                    print('before_process returned False. Stopping...')
         return result
 
 @dataclass

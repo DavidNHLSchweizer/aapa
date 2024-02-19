@@ -118,7 +118,7 @@ class StudentenExcelImporter(PluginBase):
         context.processing_options.preview = True
         self.json_filename=kwdargs.get('json', '')
         self.xls_filename = kwdargs.get('student') 
-        self.storage = context.configuration.storage
+        self.storage = context.storage
         self.importer = StudentenXLSImporter()
         self.pipeline = SingleFilePipeline('Importeren studenten uit XLS bestand', self.importer, 
                                   self.storage, activity=UndoLog.Action.NOLOG)

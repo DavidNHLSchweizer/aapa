@@ -22,7 +22,7 @@ class SyncBasedirProcessor(MigrationPlugin):
         parser.add_argument('--basedir', nargs='+', action='append', type=str, help='De basisdirectory (of -directories) om te synchroniseren. Argument kan meerdere keren worden opgegeven.') 
         return parser
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        self.processor = BasedirSyncProcessor(context.configuration.storage)
+        self.processor = BasedirSyncProcessor(context.storage)
         self.basedirs = [Roots.decode_onedrive(bd) for bd in self._unlistify(kwdargs.get('basedir'))]
         return super().before_process(context, **kwdargs)
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:

@@ -31,7 +31,7 @@ class MigrationPlugin(PluginBase):
         log_print('------------------')
         log_print('--- processing ---')
         log_print('------------------')
-        self.storage = context.configuration.storage
+        self.storage = context.storage
         self.verbose=kwdargs.get('verbose', False)
         self.json = kwdargs.get('json', False)
         self.json_path = kwdargs.get('json_directory', None)

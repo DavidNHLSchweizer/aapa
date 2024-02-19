@@ -17,12 +17,12 @@ class VerslagRemover(PluginBase):
     def before_process(self, context: AAPARunnerContext, **kwdargs) -> bool:
         super().before_process(context, **kwdargs)
         self.sql = self.init_sql()
-        self.storage=context.configuration.storage
+        self.storage=context.storage
         return True
     def init_sql(self)->SQLcollectors:
         sql = SQLcollectors()
-        # sql.add('undologs_aanvragen',
-        #     SQLcollector({'delete':{'sql':'delete from UNDOLOGS_AANVRAGEN where verslag_id in (?)'},}))
+        sql.add('undologs_verslagen',
+            SQLcollector({'delete':{'sql':'delete from UNDOLOGS_VERSLAGEN where verslag_id in (?)'},}))
         sql.add('undologs_files',
             SQLcollector({'delete':{'sql':'delete from UNDOLOGS_FILES where file_id in (?)'},}))
         sql.add('verslagen_files', SQLcollector({'delete':{'sql':'delete from VERSLAGEN_FILES where verslag_id in (?)'}, }))
@@ -30,7 +30,7 @@ class VerslagRemover(PluginBase):
         sql.add('verslagen', SQLcollector({'delete':{'sql':'delete from VERSLAGEN where id in (?)'}, }))
         return sql
     def _remove(self, verslag: Verslag):
-        # self.sql.delete('undologs_aanvragen', [Verslag.id])
+        self.sql.delete('undologs_verslagen', [verslag.id])
         self.sql.delete('verslagen_files', [verslag.id])
         for file in verslag.files_list:
             self.sql.delete('undologs_files', [file.id])
@@ -43,10 +43,9 @@ class VerslagRemover(PluginBase):
                 raise RemoverException(f'Can not read verslag {id}')
             log_print(f'removing verslag {id}: {verslag}')
             self._remove(verslag)
-        self.sql.execute_sql(self.storage.database, True)#preview)
+        self.sql.execute_sql(self.storage.database, preview)
         self.storage.commit()
         log_print(f'Removed verslagen {verslagen_ids}.')
-
     def get_parser(self) -> ArgumentParser:
         parser = super().get_parser()
         parser.add_argument('--verslag', type=int, action='append', help='id van verslag(en) om te verwijderen. Kan meerdere malen worden ingevoerd : --verslag=id1 --verslag=id2.')
@@ -57,5 +56,5 @@ class VerslagRemover(PluginBase):
             print('Geen verslagen ingevoerd.')
             return False
         print(f'Verslagen om te verwijderen: {verslagen}')
-        self.remove(verslagen, context.processing_options.preview)
+        self.remove(verslagen, context.preview)
         return True

@@ -90,7 +90,7 @@ class OrphanFilesPlugin(PluginBase):
         parser.add_argument('--json', dest='json', type=str,help='JSON filename waar SQL output wordt weggeschreven') 
         return parser
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        self.processor = OrphanFileProcessor(context.configuration.storage)
+        self.processor = OrphanFileProcessor(context.storage)
         self.json = kwdargs.get('json')
         if not self.json:
             self.json = 'orphan_files.json'

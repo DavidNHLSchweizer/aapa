@@ -115,8 +115,8 @@ class AAPAProcessingOptions:
                    input_options = AAPAProcessingOptions.INPUTOPTIONS.from_str(args.input_options),
                    processing_mode= AAPAProcessingOptions.PROCESSINGMODE.from_str(args.processing_mode),
                    force=args.force, debug=args.debug, onedrive=args.onedrive)
-    def no_processing(self)->bool:
-        return not any([a in self.actions for a in {AAPAaction.INPUT,AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
+    def no_processing(self, plugin=False)->bool:
+        return not plugin and not any([a in self.actions for a in {AAPAaction.INPUT,AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
 
 class AAPAConfigOptions:
     """ Configuratie-gerelateerde opties. Directories, database en dergelijke. """
