@@ -115,8 +115,8 @@
             "args": [
                 "input",
                 "-debug",
-                "--onedrive=d:\\onedrive",
-                "--processing_mode=R",
+                "--onedrive=d:\\onedrive0",
+                "--processing_mode=V",
                 "--input_options=F",
                 "-preview",
             ]
@@ -196,13 +196,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "plugins.remove_verslag",
+                "migrate.m124.correct_mp_dirs",
                 "-stop",
-                "--verslag=566",
-                "--verslag=564", 
-                "--verslag=565", 
+                "-preview",
                 "-debug",
-                "--onedrive=d:\\onedrive0",
+                "--onedrive=d:\\onedrive",
             ]
         },
     ]

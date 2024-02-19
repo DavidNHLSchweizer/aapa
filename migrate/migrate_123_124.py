@@ -9,11 +9,13 @@ from database.classes.database import Database
 class M124JsonData(JsonData):
     class KEY(Enum):
         CREATE_VERSLAGEN = auto()  
+        CORRECT_MP_DIRS = auto()
     def __init__(self):
         super().__init__(r'migrate\m124')
         self.init_entries()
     def init_entries(self):
         self.add_entry(self.KEY.CREATE_VERSLAGEN,filename='create_verslagen', phase=1, message ='"re-engineering" verslagen update')
+        self.add_entry(self.KEY.CORRECT_MP_DIRS,filename='correct_mp_dirs', phase=2, message ='correcting inconsistencies in mijlpaal_directories')
 
 def delete_verslagen(database: Database):
     #remove verslagen die per ongeluk incorrect in de database te recht zijn gekomen

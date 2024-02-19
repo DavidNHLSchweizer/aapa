@@ -82,14 +82,15 @@ class VerslagFromZipImporter(VerslagImporter):
             log_print(f'\t{parsed.original_filename}: {verslag.mijlpaal_type}')
             result[student_key] = student_entries
         for student_entries in result.values():
-            if len(student_entries)>1:
-                for entry in student_entries:
+            if len(student_entries)>1:                
+                for entry in student_entries: 
                     entry['verslag'].status = Verslag.Status.MULTIPLE
         return result
     def get_filename_to_create(self, verslag: Verslag, original_filename: str):
         student_directory = SDB.get_student_dir(self.storage,verslag.student,self.root_directory)
         if mp_dir := student_directory.get_directory(verslag.datum, verslag.mijlpaal_type, config.get('directories', 'error_margin_date')):
             directory = mp_dir.directory
+            verslag.kans = mp_dir.kans
         else:
             directory = StudentDirectoryBuilder.get_mijlpaal_directory_name(student_directory, verslag.datum, verslag.mijlpaal_type)
         mijlpaal_directory:MijlpaalDirectory = self.sdb.get_mijlpaal_directory(stud_dir=student_directory, directory=directory, 

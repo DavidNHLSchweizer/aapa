@@ -51,7 +51,7 @@ register_crud(class_type=UndoLog,
                                    detail_rec_type=UndoLogAanvragenDetailRec),
                         DetailRecData(aggregator_name='data', detail_aggregator_key='verslagen', 
                                    detail_rec_type=UndoLogVerslagenDetailRec),
-                        DetailRecData(aggregator_name='data', detail_aggregator_key='invalid_files', 
+                        DetailRecData(aggregator_name='data', detail_aggregator_key='files', 
                                    detail_rec_type=UndoLogFilesDetailRec),
                     ]
                 )

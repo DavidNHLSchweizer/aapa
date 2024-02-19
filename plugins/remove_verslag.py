@@ -26,8 +26,9 @@ class VerslagRemover(PluginBase):
         sql.add('undologs_files',
             SQLcollector({'delete':{'sql':'delete from UNDOLOGS_FILES where file_id in (?)'},}))
         sql.add('verslagen_files', SQLcollector({'delete':{'sql':'delete from VERSLAGEN_FILES where verslag_id in (?)'}, }))
-        sql.add('files', SQLcollector({'delete':{'sql':'delete from FILES where id in (?)'}, }))                 
         sql.add('verslagen', SQLcollector({'delete':{'sql':'delete from VERSLAGEN where id in (?)'}, }))
+        sql.add('mijlpaal_directory_files', SQLcollector({'delete':{'sql':'delete from MIJLPAAL_DIRECTORY_FILES where file_id in (?)'}, }))
+        sql.add('files', SQLcollector({'delete':{'sql':'delete from FILES where id in (?)'}, }))                 
         return sql
     def _remove(self, verslag: Verslag):
         self.sql.delete('undologs_verslagen', [verslag.id])
@@ -35,6 +36,7 @@ class VerslagRemover(PluginBase):
         for file in verslag.files_list:
             self.sql.delete('undologs_files', [file.id])
             self.sql.delete('files', [file.id])
+            self.sql.delete('mijlpaal_directory_files', [file.id])
         self.sql.delete('verslagen', [verslag.id])
     def remove(self, verslag_id: int|list[int], preview: bool):
         verslagen_ids = verslag_id if isinstance(verslag_id, list) else [verslag_id]

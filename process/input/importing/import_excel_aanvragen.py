@@ -9,6 +9,7 @@ from data.general.const import UNKNOWN_STUDNR
 from data.classes.studenten import Student
 
 from data.classes.undo_logs import UndoLog
+from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
@@ -289,7 +290,7 @@ def import_excel_file(xls_filename: str, output_directory: str, storage: AAPASto
     log_info(f'Start import van excel-file {xls_filename}...', to_console=True)
     importer = AanvraagCreatorPipeline(f'Importeren aanvragen uit Excel-bestand {xls_filename}', 
                                      AanvragenFromExcelImporter(output_directory, storage), 
-                                     storage, activity = UndoLog.Action.SCAN_XLS)
+                                     storage, activity = UndoLog.Action.INPUT)
     first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process([xls_filename], preview=preview)    

@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 
 from data.classes.undo_logs import UndoLog
+from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File

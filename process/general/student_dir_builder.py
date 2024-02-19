@@ -104,7 +104,7 @@ class StudentDirectoryBuilder:
             raise StorageException(f'Kan studentdirectory niet vinden of aanmaken. \nStudent: {student.full_name} Filename: {filename}')       
         error_margin = config.get('directories', 'error_margin_date')
         mp_dir = self.get_mijlpaal_directory(stud_dir, str(Path(filename).parent), datum, mijlpaal_type, error_margin)
-        if TSC.round_to_day(mp_dir.datum) != TSC.round_to_day(datum):
+        if mijlpaal_type != MijlpaalType.AANVRAAG and TSC.round_to_day(mp_dir.datum) != TSC.round_to_day(datum):
             log_warning(f'Datum {TSC.get_date_str(datum)} van nieuw bestand is inconsistent met directory\n\t({File.display_file(mp_dir.directory)})')
         mp_dir.register_file(filename,filetype,mijlpaal_type)
         self.storage.update('student_directories', stud_dir)
