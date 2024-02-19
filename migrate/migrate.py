@@ -1,14 +1,43 @@
+from dataclasses import dataclass
+from enum import Enum
 import importlib
+from pathlib import Path
 from typing import Protocol
 from database.aapa_database import AAPaSchema, create_version_info, read_version_info
 from database.classes.database import Database
 from database.classes.sql_table import SQLcreateTable
 from database.classes.table_def import TableDefinition
 from general.fileutil import file_exists
+from general.sql_coll import import_json
 from main.log import init_logging
 from process.main.initialize import initialize_database
 
 class MigrationException(Exception): pass
+
+@dataclass
+class JsonDataEntry:
+    filename: str
+    phase: int
+    message: str
+
+class JsonData:
+    def __init__(self, migration_root: str):
+        self.migration_root = Path(migration_root)
+        self.entries: dict = {}
+    def add_entry(self, key: Enum, filename:str, phase:int, message:str):
+        self.entries[key] = JsonDataEntry(filename=filename, phase=phase, message=message) 
+    def execute(self, database: Database, phase = 0):
+        print(f'--- executing generated JSON data files (phase: {phase}) ---')
+        for key,entry in self.entries.items():
+            if entry.phase > phase:
+                continue
+            print(f'\t{entry.filename}: {entry.message}')
+            import_json(database, self.get_filename(key))
+        print('ready --- executing generated JSON data files.')       
+    def get_filename(self, key: Enum)->str:
+        if not (entry := self.entries.get(key, None)):
+            return None
+        return fr'{str(self.migration_root.joinpath(entry.filename))}.json'
 
 def _remove_dot(s: str)->str:
     return s.replace('.', '')    

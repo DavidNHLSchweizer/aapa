@@ -13,7 +13,6 @@ class VerslagQueries(CRUDQueries):
             return self.crud.read_many({row['id'] for row in rows})
         return []
     def find_verslag(self, verslag: Verslag)->Verslag:
-        print(f'FIND VERSLAG {verslag}')
         self.get_crud(Student).queries.ensure_key(verslag.student)        
         stored = self.find_values_where('id', where_attributes=['student','datum', 'mijlpaal_type', 'titel'],
                                         where_values = [verslag.student.id, #NOTE: bedrijf kan niet vindbaar zijn voor "oude" verslagen
@@ -21,7 +20,5 @@ class VerslagQueries(CRUDQueries):
                                                         verslag.mijlpaal_type,
                                                         verslag.titel])
         if stored:
-            print('stoort')
             return self.crud.read(stored[0]['id'])
-        print('stoort niet')
         return None

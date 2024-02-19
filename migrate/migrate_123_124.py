@@ -1,33 +1,19 @@
+from dataclasses import dataclass
 from enum import Enum, auto
 from database.aapa_database import UndoLogTableDefinition, UndoLogVerslagenTableDefinition
 from database.classes.sql_table import SQLcreateTable
 from main.options import AAPAProcessingOptions
-from migrate.migrate import modify_table
-from database.classes.sql_view import SQLcreateView
-from general.sql_coll import import_json
+from migrate.migrate import JsonData, modify_table
 from database.classes.database import Database
-
-class JsonData:
+ 
+class M124JsonData(JsonData):
     class KEY(Enum):
-        CREATE_VERSLAGEN = auto()
-    
-    json_data = {   KEY.CREATE_VERSLAGEN: {'filename': 'create_verslagen', 'phase':1, 'message': '"re-engineering" verslagen update'},                    
-                }
-    @staticmethod
-    def execute(database: Database, phase = 0):
-        print(f'--- executing generated JSON data files (phase: {phase}) ---')
-        for key,entry in JsonData.json_data.items():
-            if entry['phase'] > phase:
-                continue
-            print(f'\t{entry["filename"]}: {entry["message"]}')
-            import_json(database, JsonData.get_filename(key))
-        print('ready --- executing generated JSON data files.')       
-    @staticmethod
-    def get_filename(key: KEY)->str:
-        if not (entry := JsonData.json_data.get(key, None)):
-            return None
-        return fr'.\migrate\m124\{entry["filename"]}.json'
-
+        CREATE_VERSLAGEN = auto()  
+    def __init__(self):
+        super().__init__(r'migrate\m124')
+        self.init_entries()
+    def init_entries(self):
+        self.add_entry(self.KEY.CREATE_VERSLAGEN,filename='create_verslagen', phase=1, message ='"re-engineering" verslagen update')
 
 def delete_verslagen(database: Database):
     #remove verslagen die per ongeluk incorrect in de database te recht zijn gekomen
@@ -53,7 +39,7 @@ def migrate_database(database: Database, phase = 42):
     with database.pause_foreign_keys():
         modify_undo_logs(database)
         delete_verslagen(database)
-        JsonData.execute(database, phase)
+        M124JsonData().execute(database, phase)
 
 def after_migrate(database_name: str, debug=False, phase=42):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.
