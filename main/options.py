@@ -41,10 +41,12 @@ class AAPAProcessingOptions:
     class PROCESSINGMODE(IntEnum):
         """ enum voor de processing-mode.
 
+            NONE: geen processingmode (voor andersoortig processing)
             AANVRAGEN: verwerk aanvragen.
             VERSLAGEN: verwerk verslagen.   
 
         """
+        NONE = auto()
         AANVRAGEN= auto()
         VERSLAGEN =auto()
         def __str__(self):

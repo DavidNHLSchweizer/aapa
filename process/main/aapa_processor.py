@@ -85,7 +85,8 @@ class AAPARunnerContext:
         """
         self.configuration = configuration
         self.processing_options = processing_options
-        self.preview = self.needs_preview(plugin)
+        self.plugin=plugin
+        self.preview = self.needs_preview()
         self.valid = True
         self._message=message
     @property
@@ -96,11 +97,11 @@ class AAPARunnerContext:
         return AAPAOptions(config_options=self.configuration.config_options, 
                            processing_options=self.processing_options
                            )
-    def needs_preview(self, plugin: bool)->bool:
+    def needs_preview(self)->bool:
         if not self.processing_options.preview:
             return False
         else:
-            return not self.processing_options.no_processing(plugin) 
+            return not self.processing_options.no_processing(self.plugin) 
     def __enter__(self):
         if self._message:
             log_info(self._message, to_console=True)

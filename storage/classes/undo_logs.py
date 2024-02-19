@@ -1,5 +1,5 @@
 from __future__ import annotations
-from database.aapa_database import UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, UndoLogTableDefinition
+from database.aapa_database import UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, UndoLogTableDefinition, UndoLogVerslagenTableDefinition
 from data.classes.undo_logs  import UndoLog
 from data.general.detail_rec import DetailRec, DetailRecData
 from main.options import AAPAProcessingOptions
@@ -58,6 +58,11 @@ register_crud(class_type=UndoLog,
 register_crud(class_type=UndoLogAanvragenDetailRec, 
                 table=UndoLogAanvragenTableDefinition(),
                 mapper_type=UndoLogAanvragenTableMapper, 
+                autoID=False, 
+                main=False)
+register_crud(class_type=UndoLogVerslagenDetailRec, 
+                table=UndoLogVerslagenTableDefinition(),
+                mapper_type=UndoLogVerslagenTableMapper, 
                 autoID=False, 
                 main=False)
 register_crud(class_type=UndoLogFilesDetailRec, 

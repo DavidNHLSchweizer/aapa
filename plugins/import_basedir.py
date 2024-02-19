@@ -10,19 +10,19 @@
     De gegeneerde SQL-code kan met "run_extra.py json" worden uitgevoerd.
 """
 #TODO: testen na overzetten naar Plugin. Heeft geen haast
-from argparse import ArgumentParser, Namespace
-from pathlib import Path
+from argparse import ArgumentParser
 from typing import Tuple
 from typing import Any
 
 from data.classes.base_dirs import BaseDir
+from main.options import AAPAProcessingOptions
 from storage.general.mappers import ColumnMapper, FilenameColumnMapper, ObjectMapper
 from data.classes.undo_logs import UndoLog
 from general.sql_coll import SQLcollector, SQLcollectors
 from data.general.roots import Roots
 from storage.aapa_storage import AAPAStorage
 from storage.queries.base_dirs import BaseDirQueries
-from main.log import init_logging, log_error, log_info, log_print, log_warning
+from main.log import log_error, log_info, log_print, log_warning
 from process.general.preview import Preview, pva
 from general.singular_or_plural import sop
 from plugins.plugin import PluginBase
@@ -119,7 +119,7 @@ class BaseDirsExcelImporter(PluginBase):
         self.storage = context.storage
         self.importer = BasedirXLSImporter()
         self.pipeline = SingleFilePipeline('Importeren basedirs uit XLS bestand', self.importer, 
-                                  self.storage, activity=UndoLog.Action.NOLOG)
+                                  self.storage, activity=UndoLog.Action.NOLOG, processing_mode=AAPAProcessingOptions.PROCESSINGMODE.NONE)
         return True
     def process(self, context: AAPARunnerContext, **kwdargs) -> bool:
         with Preview(context.preview):

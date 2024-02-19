@@ -10,7 +10,7 @@
 """
 #TODO: testen na overzetten Plugin. Heeft geen haast
 
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any
 from data.general.const import MijlpaalType
@@ -22,6 +22,7 @@ from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
 from general.sql_coll import SQLcollector, SQLcollectors
 from data.general.roots import Roots
+from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from storage.queries.base_dirs import BaseDirQueries
 from storage.queries.studenten import StudentQueries
@@ -166,7 +167,7 @@ class StudentDirectoryDetector(FileProcessor):
     
 class MilestoneDetectorPipeline(FilePipeline):
     def __init__(self, description: str, storage: AAPAStorage, skip_directories:list[str]=[]):
-        super().__init__(description, StudentDirectoryDetector(), storage, activity=UndoLog.Action.DETECT)
+        super().__init__(description, StudentDirectoryDetector(), storage, activity=UndoLog.Action.DETECT, processing_mode=AAPAProcessingOptions.PROCESSINGMODE.NONE)
         self._processor:StudentDirectoryDetector = self.processors[0]
         self.skip_directories=skip_directories
         self.sqls = self.__init_sql_collectors()

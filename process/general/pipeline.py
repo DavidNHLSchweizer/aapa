@@ -44,8 +44,8 @@ class Pipeline:
 
 class FilePipeline(Pipeline):
     def __init__(self, description: str, processors: FileProcessor | list[FileProcessor], storage: AAPAStorage, 
-                 activity: UndoLog.Action, invalid_filetype: File.Type=None):
-        super().__init__(description, processors, storage, activity=activity)
+                 activity: UndoLog.Action, processing_mode: AAPAProcessingOptions.PROCESSINGMODE, invalid_filetype: File.Type=None):
+        super().__init__(description, processors, storage, activity=activity, processing_mode=processing_mode)
         self.invalid_file_type = invalid_filetype
         self._invalid_files = []
     def _add_invalid_file(self, filename: str):
@@ -123,8 +123,8 @@ class FilePipeline(Pipeline):
 class SingleFilePipeline(Pipeline):
     # the simplest pipelineprocessor, process a single file and do something useful with it
     def __init__(self, description: str, processor: FileProcessor, 
-                 storage: AAPAStorage, activity: UndoLog.Action):
-        super().__init__(description, processor, storage, activity=activity)
+                 storage: AAPAStorage, activity: UndoLog.Action, processing_mode: AAPAProcessingOptions.PROCESSINGMODE):
+        super().__init__(description, processor, storage, activity=activity, processing_mode=processing_mode)
     @property
     def processor(self)->FileProcessor:
         return self._processors[0]

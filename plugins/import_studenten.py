@@ -14,9 +14,9 @@
 #TODO: testen na overzetten naar Plugin. Heeft geen haast
 
 from argparse import ArgumentParser, Namespace
-from pathlib import Path
 from typing import Tuple
 from typing import Any
+from main.options import AAPAProcessingOptions
 from storage.general.mappers import ColumnMapper, ObjectMapper
 from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
@@ -121,7 +121,7 @@ class StudentenExcelImporter(PluginBase):
         self.storage = context.storage
         self.importer = StudentenXLSImporter()
         self.pipeline = SingleFilePipeline('Importeren studenten uit XLS bestand', self.importer, 
-                                  self.storage, activity=UndoLog.Action.NOLOG)
+                                  self.storage, activity=UndoLog.Action.NOLOG, processing_mode=AAPAProcessingOptions.PROCESSINGMODE.NONE)
         return True
     def process(self, context: AAPARunnerContext, **kwdargs) -> bool:
         with Preview(context.preview,self.storage, 'Importeren studenten'):
