@@ -74,12 +74,12 @@ def __delete_file(file: File, storage: AAPAStorage):
     storage.delete('files', file)
 
 def _process_forget_invalid_files(undo_log: UndoLog, storage: AAPAStorage):
-    if not undo_log.invalid_files:
+    if not undo_log.files:
         return        
     log_info(f'\tVerwijderen overige gevonden pdf-bestanden uit database:', to_console=True)
-    for file in undo_log.invalid_files:
+    for file in undo_log.files:
         __delete_file(file, storage)
-    undo_log.clear_invalid_files()
+    undo_log.clear_files()
     storage.update('undo_logs', undo_log)
     storage.commit()
     log_info(f'\tEinde verwijderen overige gevonden pdf-bestanden uit database.', to_console=True)

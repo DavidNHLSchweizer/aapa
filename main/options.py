@@ -1,6 +1,6 @@
 from __future__ import annotations
 from argparse import Namespace
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from data.general.roots import Roots
 from main.args import _get_arguments
 from main.log import log_error
@@ -38,18 +38,18 @@ class AAPAProcessingOptions:
                         case 'F': result.add(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
                         case _: log_error(f'Ongeldige waarde voor input_options: {ch}. Geldige waarden zijn S en F. Wordt genegeerd.' )
             return result
-    class PROCESSINGMODE(Enum):
+    class PROCESSINGMODE(IntEnum):
         """ enum voor de processing-mode.
 
             AANVRAGEN: verwerk aanvragen.
-            RAPPORTEN: verwerk rapporten.   
+            VERSLAGEN: verwerk verslagen.   
 
         """
         AANVRAGEN= auto()
-        RAPPORTEN =auto()
+        VERSLAGEN =auto()
         def __str__(self):
             _AS_STRS = {AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN: 'Verwerk aanvragen', 
-                        AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN: 'Verwerk rapporten',
+                        AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN: 'Verwerk verslagen',
             }
             return _AS_STRS[self]
         @staticmethod
@@ -62,8 +62,8 @@ class AAPAProcessingOptions:
                 for ch in s.upper():
                     match ch:
                         case 'A': result.add(AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN)
-                        case 'R': result.add(AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN)
-                        case _: log_error(f'Ongeldige waarde voor processing_mode: {ch}. Geldige waarden zijn A en R. Wordt genegeerd.' )
+                        case 'V': result.add(AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN)
+                        case _: log_error(f'Ongeldige waarde voor processing_mode: {ch}. Geldige waarden zijn A en V. Wordt genegeerd.' )
             return result
     
     def __init__(self, actions: list[AAPAaction]=[], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.EXCEL}, processing_mode = {PROCESSINGMODE.AANVRAGEN}, onedrive=None):
@@ -125,10 +125,10 @@ class AAPAConfigOptions:
         """      
         parameters
         ----------
-        root_directory: de te gebruiken root directory. Dit is de "basis-directory" voor de te verwerken aanvragen en rapporten.
+        root_directory: de te gebruiken root directory. Dit is de "basis-directory" voor de te verwerken aanvragen en verslagen.
         output_directory: de directory waarin uitvoer wordt gegenereerd. Met name is dit voor beoordelingsformulieren van aanvragen.
         database_file: de te gebruiken SQLite database file.
-        bbinput_directory: de directory waarin Blackboard zip-files met te importeren rapporten worden gezocht.
+        bbinput_directory: de directory waarin Blackboard zip-files met te importeren verslagen worden gezocht.
         config_file: de configuratiefile (alternatieve aapa_config.ini).
         report_filename: default filename voor rapportages.
         excel_in: default filename voor excel-import van aanvragen.

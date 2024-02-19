@@ -8,11 +8,11 @@ class AAPAaction(Enum):
     NONE: geen actie.
     INPUT: Verwerk input. 
         Voor aanvragen: importeer nieuwe aanvragen. 
-        Voor rapporten: importeer nieuwe rapporten.
+        Voor verslagen: importeer nieuwe verslagen.
         Welke hiervan wordt uitgevoerd wordt bepaald door de processing_mode.
         Zie AAPAProcessingOptions.PROCESSINGMODE voor meer info.
     FORM: Maak nieuwe beoordelingsformulieren.
-        Ook dit kan worden gedaan voor aanvragen en/of rapporten,
+        Ook dit kan worden gedaan voor aanvragen en/of verslagen,
         afhankelijk van de processing_mode.
     MAIL: Lees beoordelingen en zet concept-mails klaar.
     FULL: combinatie van INPUT,FORM en MAIL.

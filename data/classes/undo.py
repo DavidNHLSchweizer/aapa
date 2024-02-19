@@ -20,7 +20,7 @@ class UndoRecipe:
 class UndoRecipeFactory(Singleton):
     def create(self, activity: UndoLog.Action)->UndoRecipe:
         match activity:
-            case UndoLog.Action.SCAN:
+            case UndoLog.Action.INPUT:
                 return UndoRecipe(final_state=Aanvraag.Status.DELETED, 
                                   final_beoordeling=None, 
                                   files_to_forget=[File.Type.AANVRAAG_PDF], #forget_aanvraag=True, 

@@ -148,7 +148,7 @@ class AapaConfigurationForm(Static):
         if not value:
             return value
         match self.processing_mode:
-            case AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN:
+            case AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN:
                 value.discard(AAPAProcessingOptions.INPUTOPTIONS.EXCEL)
                 value.discard(AAPAProcessingOptions.INPUTOPTIONS.SCAN)
         return value
@@ -175,7 +175,7 @@ class AapaConfigurationForm(Static):
                 self._enable_input('bbinput', False)
                 output_tab.disabled = False
 
-            case AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN:
+            case AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN:
                 self._enable_input('input', False)
                 self._enable_input('scanroot', False)
                 self._enable_input('bbinput', True)
@@ -187,6 +187,6 @@ class AapaConfigurationForm(Static):
     @processing_mode.setter
     def processing_mode(self, value: AAPAProcessingOptions.PROCESSINGMODE|set[AAPAProcessingOptions.PROCESSINGMODE]):
         if isinstance(value,set):
-            value = AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in value else AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN
+            value = AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in value else AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN
         self._processing_mode = value
         self.enable_all()

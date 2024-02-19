@@ -313,18 +313,8 @@ class SyncBaseDirPlugin(PluginBase):
         parser.add_argument('--basedir', nargs='+', action='append', type=str, help='De basisdirectory (of -directories) om te synchroniseren') 
         return parser
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        def _unlistify(basedirs:list[list[str]])->list[str]:
-            """ Converts basedirs arguments from argument parser to simple list of strings 
-            
-                action='append' produces every --basedir=xxx argument as [xxx],
-                so we get [[xxx1],[xxx2]...]. This "unlists" this to a simple list of strings.
-
-            """
-            if not basedirs:
-                return []
-            return [as_list[0] for as_list in basedirs]
         self.processor = BasedirSyncProcessor(context.configuration.storage)
-        self.basedirs = [Roots.decode_onedrive(bd) for bd in _unlistify(kwdargs.get('basedir'))]
+        self.basedirs = [Roots.decode_onedrive(bd) for bd in self._unlistify(kwdargs.get('basedir'))]
         self.json = kwdargs.get('json')
         if not self.json:
             self.json = 'sync_basedir.json'

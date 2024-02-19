@@ -62,6 +62,18 @@ class PluginBase(ABC):
         """
         self.module = module
         self.module_name = module.__name__.split('.')[-1]
+    @staticmethod
+    def _unlistify(list_arg:list[list[str]])->list[str]:
+        """ Converts list arguments from argument parser to simple list of strings 
+        
+            action='append' produces every --list_arg=xxx argument as [xxx],
+            so we get [[xxx1],[xxx2]...]. This "unlists" this to a simple list of strings.
+
+        """
+        if not list_arg:
+            return []
+        return [as_list[0] for as_list in list_arg]
+
     def get_parser(self)->ArgumentParser:
         """ initializes the command line options parser.     
              
@@ -176,14 +188,15 @@ class PluginBase(ABC):
             return False
         init_logging(f'{self.module_name}.log', processing_options.debug)
         with AAPARunnerContext(AAPAConfiguration(config_options), processing_options) as context:
+            result = False
             if not context:
                 print('...Stopping')
                 return False
             if self.before_process(context, **self.module_options):
                 result = self.process(context, **self.module_options)
+                self.after_process(context, result)
             else:
-                print('SHIT!')
-            self.after_process(context, result)
+                print('before_process returned False. Stopping...')
         return result
 
 @dataclass
@@ -266,6 +279,9 @@ class PluginRunner:
         """
         RUNNING = 'Running module '
         for info in self.modules:
-            print(f'{RUNNING}{info.module_name}')
-            print(f'{"-"*len(RUNNING+info.module_name)}')
-            info.plugin_class(info.module).run(args=args)    
+            try:
+                print(f'{RUNNING}{info.module_name}')
+                print(f'{"-"*len(RUNNING+info.module_name)}')
+                info.plugin_class(info.module).run(args=args)    
+            except PluginException as E:
+                print(f'Error running plugin {info.module_name}: {E}')

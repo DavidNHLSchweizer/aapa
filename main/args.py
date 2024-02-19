@@ -21,17 +21,17 @@ def _get_processing_arguments(parser: argparse.ArgumentParser,include_actions=Tr
     parser.add_argument('-force', action='store_true', dest='force', help=argparse.SUPPRESS) #forceer new database zonder vragen (ingeval action NEW)
     parser.add_argument('-debug', action='store_true', dest='debug', help=argparse.SUPPRESS) #forceer debug mode in logging system
     parser.add_argument('-io', '--input_options', type=str, choices=['S','F', 'SF'], default='F',help='Input opties: een of meer van "S" (scan directory), "F" (Forms-Excel file [default]).\nVoorbeeld: "--input_options=SF".')
-    parser.add_argument('-pm', '--processing_mode', type=str, choices=['A','R', 'AR'], default='A',help='Processing mode: een of meer van "A" (aanvragen [default]), "R" (Rapporten).\nVoorbeeld: "--processing_mode=R".')
+    parser.add_argument('-pm', '--processing_mode', type=str, choices=['A','V', 'AV'], default='A',help='Processing mode: een of meer van "A" (aanvragen [default]), "V" (Verslagen).\nVoorbeeld: "--processing_mode=V".')
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
 
 def _get_config_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('configuratie opties')
     group.add_argument('-r', '--root', type=str, 
-                        help='De rootdirectory voor het opslaan van nieuwe aanvragen of rapporten.\nAls geen directory wordt ingevoerd (-r=) wordt deze opgevraagd.')
+                        help='De rootdirectory voor het opslaan van nieuwe aanvragen of verslagen.\nAls geen directory wordt ingevoerd (-r=) wordt deze opgevraagd.')
     group.add_argument('-o', '--output', dest='output',  type=str, 
                         help='De directory voor het aanmaken en invullen van beoordelingsformulieren.\nAls geen directory wordt ingevoerd (-o=) wordt deze opgevraagd.')
     group.add_argument('-bb', '--bbinput', dest='bbinput',  type=str, 
-                        help='De directory waar Blackboard .ZIP-files (voor invoer rapporten) worden gelezen.\nAls geen directory wordt ingevoerd (-bb=) wordt deze opgevraagd.')
+                        help='De directory waar Blackboard .ZIP-files (voor invoer verslagen) worden gelezen.\nAls geen directory wordt ingevoerd (-bb=) wordt deze opgevraagd.')
     group.add_argument('-d', '--database', type=str, help='De naam van de databasefile om mee te werken.\nAls de naam niet wordt ingevoerd (-d=) wordt hij opgevraagd.\nIndien de databasefile niet bestaat wordt hij aangemaakt.')   
     group.add_argument('-rf', '--report_file', type=str, help='Bestandsnaam [.xlsx] voor actie "report". default: uit CONFIG.INI')
     group.add_argument('-x', '--excel_in', type=str, help='Bestandsnaam [.xlsx] voor actie "input" vanuit excel-bestand. Moet worden ingevoerd voor deze actie.')

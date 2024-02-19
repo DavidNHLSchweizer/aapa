@@ -1,6 +1,6 @@
 from argparse import SUPPRESS, ArgumentParser
 from main.log import init_logging, log_info
-from plugins.plugin import PluginRunner
+from plugins.plugin import PluginException, PluginRunner
 
 # use this as first argument to signal the end of the modules
 # stop will be ignored.
@@ -30,10 +30,14 @@ if __name__ == "__main__":
             print('Geen modules ingevoerd.')
             exit(1)
         return (modules,unknown_arguments)
-    (modules,arguments) = _get_modules()
-    runner = PluginRunner(modules)
-    if not runner:
-        print(f'Kan module(s) {modules} niet initialiseren.')
-        exit(1)
-    runner.run(args=arguments)
+    try:
+        (modules,arguments) = _get_modules()
+        runner = PluginRunner(modules)
+        if not runner:
+            print(f'Kan module(s) {modules} niet initialiseren.')
+            exit(1)
+        runner.run(args=arguments)
+    except Exception as E:
+        print(f'Error running plugin: {E}')
+
         

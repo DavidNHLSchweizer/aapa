@@ -21,7 +21,7 @@ from data.general.roots import Roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.23'
+DBVERSION = '1.24'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -157,6 +157,7 @@ class UndoLogTableDefinition(TableDefinition):
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('description', dbc.TEXT)
         self.add_column('action', dbc.INTEGER)    
+        self.add_column('processing_mode', dbc.INTEGER)    
         self.add_column('user', dbc.TEXT)    
         self.add_column('date', dbc.DATE)   
         self.add_column('can_undo', dbc.INTEGER)
@@ -167,6 +168,12 @@ class UndoLogAanvragenTableDefinition(DetailTableDefinition):
                          main_table_name='UNDOLOGS', main_alias_id='log_id', 
                          detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
        
+class UndoLogVerslagenTableDefinition(DetailTableDefinition):
+    def __init__(self):
+        super().__init__('UNDOLOGS_VERSLAGEN', 
+                         main_table_name='UNDOLOGS', main_alias_id='log_id', 
+                         detail_table_name='VERSLAGEN', detail_alias_id='verslag_id')
+
 class UndoLogFilesTableDefinition(DetailTableDefinition):
     def __init__(self):
         super().__init__('UNDOLOGS_FILES', 
@@ -298,6 +305,7 @@ class AAPaSchema(Schema):
         FilesTableDefinition,
         UndoLogTableDefinition,
         UndoLogAanvragenTableDefinition,
+        UndoLogVerslagenTableDefinition,
         UndoLogFilesTableDefinition,
         VerslagTableDefinition,
         VerslagFilesTableDefinition,

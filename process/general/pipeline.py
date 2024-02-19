@@ -4,6 +4,7 @@ from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.undo_logs import UndoLog
+from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from storage.general.storage_const import StoredClass
 from debug.debug import ITEM_DEBUG_DIVIDER, MINOR_DEBUG_DIVIDER
@@ -15,7 +16,7 @@ from process.general.base_processor import BaseProcessor, FileProcessor
 class PipelineException(Exception): pass
 class Pipeline:
     def __init__(self, description: str, processors: BaseProcessor|list[BaseProcessor], 
-                 storage: AAPAStorage, activity: UndoLog.Action, can_undo = True):
+                 storage: AAPAStorage, activity: UndoLog.Action, processing_mode: AAPAProcessingOptions.PROCESSINGMODE, can_undo = True):
         self._processors:list[BaseProcessor] = []
         if isinstance(processors, list):
             if not len(processors):
@@ -24,7 +25,7 @@ class Pipeline:
         else:
             self._processors.append(processors)
         self.storage = storage
-        self.undo_log = UndoLog(activity, description, can_undo=can_undo)
+        self.undo_log = UndoLog(activity, processing_mode, description, can_undo=can_undo)
     @property
     def description(self)->str:
         return self.undo_log.description

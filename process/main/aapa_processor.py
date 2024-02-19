@@ -32,12 +32,12 @@ class AAPAProcessor:
                         process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
                     if AAPAProcessingOptions.INPUTOPTIONS.SCAN in processing_options.input_options and (old_root := config.get('configuration', 'scanroot')): 
                         process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
-                if AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN in processing_options.processing_mode: 
+                if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode: 
                     import_bbdirectory(configuration.config_options.bbinput_directory, configuration.config_options.root_directory, configuration.storage, preview=preview)                    
             if AAPAaction.FORM in actions or AAPAaction.FULL in actions:
                 if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
                     process_forms(configuration.storage, configuration.output_directory, preview=preview)
-                if AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN in processing_options.processing_mode:
+                if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode:
                     log_info(f'BBZIP {configuration.config_options.bbinput_directory}: not yet implemented', to_console=True)
             if AAPAaction.MAIL in actions or AAPAaction.FULL in actions:
                 process_graded(configuration.storage, preview=preview)

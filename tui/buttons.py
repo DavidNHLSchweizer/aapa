@@ -91,7 +91,7 @@ class AapaButtonsPanel(Static):
     def button(self, id: str)->Button:
         return self.query_one(id2selector(id), Button)
     def enable_action_buttons(self, undo_log: UndoLog):
-        button_ids = {UndoLog.Action.SCAN: {'button': 'scan', 'next': 'form'},
+        button_ids = {UndoLog.Action.INPUT: {'button': 'scan', 'next': 'form'},
                       UndoLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
                       UndoLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
                      } 

@@ -4,6 +4,7 @@ from enum import IntEnum
 import os
 from typing import Type
 from data.classes.aanvragen import Aanvraag
+from data.classes.verslagen import Verslag
 from data.general.aapa_class import AAPAclass
 from data.general.aggregator import Aggregator
 from data.classes.files import File
@@ -12,18 +13,20 @@ from general.singular_or_plural import sop
 from general.timeutil import TSC
 from database.classes.dbConst import EMPTY_ID
 from general.fileutil import summary_string
+from main.options import AAPAProcessingOptions
 
 UndoLogData=Type[Aanvraag|File]       
 class UndoLogAggregator(Aggregator):
     def __init__(self, owner: UndoLog):
         super().__init__(owner=owner)
         self.add_class(Aanvraag, 'aanvragen')
-        self.add_class(File, 'invalid_files')
+        self.add_class(Verslag, 'verslagen')
+        self.add_class(File, 'files')
 
 class UndoLog(AAPAclass):
     class Action(IntEnum):
         NOLOG   = 0
-        SCAN    = 1
+        INPUT   = 1
         FORM    = 2
         MAIL    = 3
         UNDO    = 4
@@ -31,9 +34,10 @@ class UndoLog(AAPAclass):
         SCAN_XLS= 6    
         def __str__(self):
             return self.name
-    def __init__(self, action: Action, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), can_undo=True):
+    def __init__(self, action: Action, processing_mode: AAPAProcessingOptions.PROCESSINGMODE, description='',  id=EMPTY_ID, date=None, user: str=os.getlogin(), can_undo=True):
         super().__init__(id)
         self.action = action        
+        self.processing_mode=processing_mode
         self.description = description
         self.date:datetime.datetime = date
         self.user = user
@@ -51,11 +55,19 @@ class UndoLog(AAPAclass):
         if value:
             self._data.add(value)
     @property
-    def invalid_files(self)->list[File]:
-        return self._data.as_list('invalid_files', sort_key=lambda f: f.id)
-    @invalid_files.setter
-    def invalid_files(self, value: list[File]):
-        self._data.clear('invalid_files')
+    def verslagen(self)->list[Verslag]:
+        return self._data.as_list('verslagen', sort_key=lambda a: a.id)
+    @aanvragen.setter
+    def aanvragen(self, value: list[Verslag]):
+        self._data.clear('verslagen')
+        if value:
+            self._data.add(value)
+    @property
+    def files(self)->list[File]:
+        return self._data.as_list('files', sort_key=lambda f: f.id)
+    @files.setter
+    def files(self, value: list[File]):
+        self._data.clear('files')
         if value:
             self._data.add(value)
     def start(self):
@@ -71,19 +83,22 @@ class UndoLog(AAPAclass):
         self._data.remove(object)
     def clear_aanvragen(self):
         self.aanvragen = []
-    def clear_invalid_files(self):
-        self.invalid_files = []
+    def clear_files(self):
+        self.files = []
     @property
     def nr_aanvragen(self)->int:
         return len(self.aanvragen)
     @property
-    def nr_invalid_files(self)->int:
-        return len(self.aanvragen)
+    def nr_verslagen(self)->int:
+        return len(self.verslagen)
+    @property
+    def nr_files(self)->int:
+        return len(self.files)
     def is_empty(self, class_alias: str='')->bool:
         match class_alias:
             case 'aanvragen': return self.nr_aanvragen == 0
-            case 'invalid_files': return self.nr_invalid_files == 0
-            case _: return self.nr_aanvragen == 0 and self.nr_invalid_files == 0
+            case 'files': return self.nr_files == 0
+            case _: return self.nr_aanvragen == 0 and self.nr_files == 0
     def __str_aanvragen(self)->str:
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
         result = f'{self.action} {date_str} [{self.user}] ({self.id})' 
@@ -97,7 +112,7 @@ class UndoLog(AAPAclass):
     def __str__(self)->str:
         return self.__str_aanvragen()
     def __eq__(self, value2: UndoLog)->bool:
-        if not self.value2:
+        if not value2:
             return False
         if self.action != value2.action or self.description != value2.description:
             return False

@@ -21,7 +21,7 @@ class PreviewPanel(RadioSetPanel):
 
 class ModePanel(RadioSetPanel):
     def __init__(self, **kwdargs):
-        super().__init__(radioset_id='mode', values=['aanvragen', 'rapporten'], **kwdargs)
+        super().__init__(radioset_id='mode', values=['aanvragen', 'verslagen'], **kwdargs)
 
 class AapaProcessingForm(Static):
     DEFAULT_CSS = BASE_CSS + """
@@ -52,7 +52,7 @@ class AapaProcessingForm(Static):
     def on_mount(self):
         self.border_title = 'Verwerking'
         tooltips = ToolTips.get('processing', {})
-        for id in {'preview', 'uitvoeren', 'aanvragen', 'rapporten'}:
+        for id in {'preview', 'uitvoeren', 'aanvragen', 'verslagen'}:
             self.query_one(id2selector(id)).tooltip = tooltips.get(f'mode_{id}', MISSINGHELP) 
     def toggle(self):
         self.preview = not self.preview
@@ -69,15 +69,15 @@ class AapaProcessingForm(Static):
     def processing_mode(self)->AAPAProcessingOptions.PROCESSINGMODE:       
         if self.query_one(id2selector('aanvragen'), RadioButton).value == True:
             return AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN
-        elif self.query_one(id2selector('rapporten'), RadioButton).value == True:
-            return AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN
+        elif self.query_one(id2selector('verslagen'), RadioButton).value == True:
+            return AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN
     @processing_mode.setter
     def processing_mode(self, value: AAPAProcessingOptions.PROCESSINGMODE):
         match value:
             case AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN:
                 self.query_one(id2selector('aanvragen'), RadioButton).value = True
-            case AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN:
-                self.query_one(id2selector('rapporten'), RadioButton).value = True
+            case AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN:
+                self.query_one(id2selector('verslagen'), RadioButton).value = True
     def on_radio_set_changed(self, message:RadioSet.Changed):
         if message.radio_set.id == 'mode':
             self.app.post_message(ProcessingModeChanged(self.processing_mode))

@@ -77,8 +77,8 @@ class AAPAApp(App):
         self.post_message(EnableButtons())
     def _sync_app_with_commandline(self):
         processing_options:AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
-        if processing_options.processing_mode == {AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN}:
-            self.processing_mode = AAPAProcessingOptions.PROCESSINGMODE.RAPPORTEN
+        if processing_options.processing_mode == {AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN}:
+            self.processing_mode = AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN
         else:
             self.processing_mode = AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN        
         self.input_options = processing_options.input_options

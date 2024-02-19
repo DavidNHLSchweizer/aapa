@@ -42,12 +42,12 @@ ToolTips = {'config':
             'processing':
                 {
                 'mode_aanvragen': 'Verwerk aanvragen',
-                'mode_rapporten': 'Verwerk rapporten',
+                'mode_verslagen': 'Verwerk verslagen',
                 'mode_preview': 'Laat verloop van de acties zien; Geen wijzigingen in bestanden of database.',
                 'mode_uitvoeren': 'Voer acties uit. Wijzigingen in bestanden en database.',
                 },
             'buttons':
-                {'scan': 'Importeer data volgens Input Options (aanvragen in Excel en/of root-directory/subdirectories en/of rapporten in Blackboard .ZIP-file)',
+                {'scan': 'Importeer data volgens Input Options (aanvragen in Excel en/of root-directory/subdirectories en/of verslagen in Blackboard .ZIP-file)',
                 'form': 'Maak aanvraagformulieren',
                 'mail': 'Zet mails klaar voor beoordeelde aanvragen',
                 'undo': 'Maak de laatste actie (scan,form of mail) ongedaan',

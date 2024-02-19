@@ -2,6 +2,7 @@ from __future__ import annotations
 from database.aapa_database import UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, UndoLogTableDefinition
 from data.classes.undo_logs  import UndoLog
 from data.general.detail_rec import DetailRec, DetailRecData
+from main.options import AAPAProcessingOptions
 from storage.general.CRUDs import register_crud
 from storage.general.detail_rec_crud import DetailRecsTableMapper
 from storage.general.mappers import BoolColumnMapper, ColumnMapper, TimeColumnMapper
@@ -18,6 +19,12 @@ class UndoLogAanvragenTableMapper(DetailRecsTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
         super().__init__(database, table,  class_type, 'log_id','aanvraag_id')
 
+class UndoLogVerslagenDetailRec(DetailRec): pass
+class UndoLogVerslagenTableMapper(DetailRecsTableMapper):
+    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
+        super().__init__(database, table,  class_type, 'log_id','verslag_id')
+
+
 class UndoLogFilesDetailRec(DetailRec): pass
 class UndoLogFilesTableMapper(DetailRecsTableMapper):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
@@ -29,6 +36,7 @@ class UndoLogTableMapper(TableMapper):
             case 'date': return TimeColumnMapper(column_name)
             case 'can_undo': return BoolColumnMapper(column_name)
             case 'action': return ColumnMapper(column_name=column_name, db_to_obj=UndoLog.Action)
+            case 'processing_mode': return ColumnMapper(column_name=column_name, db_to_obj=AAPAProcessingOptions.PROCESSINGMODE)
             case _: return super()._init_column_mapper(column_name, database)
 
 undo_log_table = UndoLogTableDefinition()
@@ -41,6 +49,8 @@ register_crud(class_type=UndoLog,
                     [
                         DetailRecData(aggregator_name='data', detail_aggregator_key='aanvragen', 
                                    detail_rec_type=UndoLogAanvragenDetailRec),
+                        DetailRecData(aggregator_name='data', detail_aggregator_key='verslagen', 
+                                   detail_rec_type=UndoLogVerslagenDetailRec),
                         DetailRecData(aggregator_name='data', detail_aggregator_key='invalid_files', 
                                    detail_rec_type=UndoLogFilesDetailRec),
                     ]
