@@ -14,15 +14,15 @@ class VerslagQueries(CRUDQueries):
                                   where_operators =[Ops.GTE, Ops.IN]):
             return self.crud.read_many({row['id'] for row in rows})
         return []
-    def find_verslag(self, verslag: Verslag)->Verslag:
+    def find_verslag(self, verslag: Verslag, error_margin_date=0)->Verslag:
         self.get_crud(Student).queries.ensure_key(verslag.student)        
-        stored = self.find_values_where('id', where_attributes=['student','datum', 'mijlpaal_type'],
+        stored = self.find_values_where('id', where_attributes=['student','mijlpaal_type'],
                                         where_values = [verslag.student.id, #NOTE: bedrijf kan niet vindbaar zijn voor "oude" verslagen
-                                                        TSC.timestamp_to_sortable_str(verslag.datum), 
                                                         verslag.mijlpaal_type])
                                                         
         if stored:
-            return self.crud.read(stored[0]['id'])
+            results = list(filter(lambda v: TSC.equal_in_range(v.datum, verslag.datum, error_margin_date), self.crud.read_many({row['id'] for row in stored})))
+            return results[0] if results else None
         return None
     def find_mp_dir_verslag(self, file: File)->Verslag:
         self.get_crud(MijlpaalDirectory)

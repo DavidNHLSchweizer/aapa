@@ -22,9 +22,11 @@ class Verslag(MijlpaalGradeable):
                          status=status, beoordeling=beoordeling, titel=titel, id=id)
         self.files.allow_multiple = True 
         self.cijfer = ''
-    def __str__(self):        
-        s = f'{TSC.get_date_str(self.datum)}: {self.mijlpaal_type} ({self.kans}) {str(self.student)} ' +\
+    def summary(self)->str:
+        return f'{TSC.get_date_str(self.datum)}: {self.mijlpaal_type} ({self.kans}) {str(self.student)} ' +\
               f'"{self.titel}" [{str(self.status)}]'
+    def __str__(self):        
+        s = self.summary()
         if self.beoordeling != Verslag.Beoordeling.TE_BEOORDELEN:
             s = s + f' {self.cijfer=} {str(self.beoordeling)})'
         file_str = "\n\t\t".join([file.summary(name_only=True) for file in self.files_list])

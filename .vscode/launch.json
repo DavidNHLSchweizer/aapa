@@ -116,6 +116,7 @@
             "args": [
                 "input",
                 "-debug",
+                "-preview",
                 "--onedrive=d:\\onedrive",
                 "--processing_mode=V",
                 "--input_options=F",

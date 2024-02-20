@@ -138,9 +138,11 @@ class Files(Aggregator):
         return ''
     def summary(self)->str:
         return "\n".join([f'{file.summary()}' for file in self.files])
-    def _find(self, value: File)->File:
+    def find_filename(self, filename: str)->File:
         for file in self.files:
-            if str(file.filename) == str(value.filename):
-                return file 
+            if str(file.filename) == filename:
+                return file
         return None
+    def _find(self, value: File)->File:
+        return self.find_filename(value.filename)
     

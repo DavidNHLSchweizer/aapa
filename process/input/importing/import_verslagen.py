@@ -19,6 +19,7 @@ from main.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.student_dir_builder import SDB, StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
+from storage.queries.verslagen import VerslagQueries
 
 class VerslagParseException(Exception): pass
 
@@ -29,7 +30,7 @@ class VerslagFromZipImporter(VerslagImporter):
         self.sdb = SDB(storage)
         self.reader = BBZipFileReader()
         self.root_directory = root_directory
-
+        self.verslag_queries:VerslagQueries = self.storage.queries('verslagen')
     def _get_verslag_type(self, product_type: str)->MijlpaalType:
         VerslagTypes = {'plan van aanpak': MijlpaalType.PVA, 
                         'onderzoeksverslag': MijlpaalType.ONDERZOEKS_VERSLAG, 
@@ -149,6 +150,7 @@ class VerslagFromZipImporter(VerslagImporter):
             student_directory = None
         for student_entry in student_entries:
             filename_to_create = student_entry['filename_to_create']
+            student_entry['student_directory'] = student_directory
             student_entry['stored'] = self._check_in_database(student_directory, filename_to_create=filename_to_create)
             student_entry['mp_dir'] = student_directory.get_filename_directory(filename_to_create) if student_directory else None
             student_entry['existing'] = file_exists(filename_to_create)
@@ -165,26 +167,33 @@ class VerslagFromZipImporter(VerslagImporter):
         if not student_directory:
             return None
         if mp_dir := student_directory.get_filename_directory(filename_to_create):
-            return self.storage.queries('mijlpaal_directories').find_verslag(mp_dir)
+            known_verslagen = self.verslag_queries.find_values(['student', 'mijlpaal_type', 'kans'], [student_directory.student,mp_dir.mijlpaal_type, mp_dir.kans], map_values = True, read_many=False)
+            return known_verslagen[0] if known_verslagen else None
+        self.storage.queries('mijlpaal_directories').find_verslag(mp_dir)
     def _process_student_entry(self, current_verslag: Verslag, student_entry: dict, preview=False)->Verslag:
         overgeslagen = 'Wordt overgeslagen.'
         new_verslag:Verslag = student_entry['verslag']
         if current_verslag and new_verslag.mijlpaal_type == current_verslag.mijlpaal_type and current_verslag.student==new_verslag.student:
             new_verslag = current_verslag
         filename_to_create = student_entry['filename_to_create']
-        stored_verslag = self._check_existing_verslag(filename_to_create)
+        stored_verslag = self._check_existing_verslag(student_entry['student_directory'], filename_to_create)
         log_debug(f'filename to create: {filename_to_create}')   
-
+        if stored_verslag:
+            log_warning(f'Verslag {stored_verslag.summary()} is al geregistreerd in de database.')
+            if not stored_verslag.files.find_filename(filename_to_create):
+                stored_verslag.register_file(filename_to_create,filetype=stored_verslag.mijlpaal_type.default_filetype(), mijlpaal_type=stored_verslag.mijlpaal_type)                    
+                new_verslag = stored_verslag
         if student_entry['stored'] and student_entry['existing']:
             log_warning(f'Bestand {File.display_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
             return None
         elif student_entry['existing']:
             log_warning(f'Bestand {File.display_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
             return None
-        else:
+        if not stored_verslag:
             self._create_file(new_verslag, student_entry['mp_dir'], student_entry['filename_in_zip'], 
                               filename_to_create, new_student=current_verslag is None, preview=preview)
-            return new_verslag
+        return new_verslag
+        
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')
