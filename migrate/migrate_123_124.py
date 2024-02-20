@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from database.aapa_database import UndoLogTableDefinition, UndoLogVerslagenTableDefinition
+from database.aapa_database import StudentVerslagenOverzichtDefinition, UndoLogTableDefinition, UndoLogVerslagenTableDefinition
 from database.classes.sql_table import SQLcreateTable
+from database.classes.sql_view import SQLcreateView
 from main.options import AAPAProcessingOptions
 from migrate.migrate import JsonData, modify_table
 from database.classes.database import Database
@@ -10,12 +11,14 @@ class M124JsonData(JsonData):
     class KEY(Enum):
         CREATE_VERSLAGEN = auto()  
         CORRECT_MP_DIRS = auto()
+        CORRECT_VERSLAGEN_DOUBLURES = auto()
     def __init__(self):
         super().__init__(r'migrate\m124')
         self.init_entries()
     def init_entries(self):
         self.add_entry(self.KEY.CREATE_VERSLAGEN,filename='create_verslagen', phase=1, message ='"re-engineering" verslagen update')
         self.add_entry(self.KEY.CORRECT_MP_DIRS,filename='correct_mp_dirs', phase=2, message ='correcting inconsistencies in mijlpaal_directories')
+        self.add_entry(self.KEY.CORRECT_VERSLAGEN_DOUBLURES,filename='correct_verslagen_doublures', phase=2, message ='correcting double entries in verslagen')
 
 def delete_verslagen(database: Database):
     #remove verslagen die per ongeluk incorrect in de database te recht zijn gekomen
@@ -37,11 +40,21 @@ def modify_undo_logs(database: Database):
     database.execute_sql_command(SQLcreateTable(UndoLogVerslagenTableDefinition()))  
     print('ready')    
 
+def add_views(database: Database):
+    print('modify view STUDENT_VERSLAGEN_OVERZICHT')
+    database._execute_sql_command('DROP VIEW if exists STUDENT_VERSLAGEN_OVERZICHT')
+    database.execute_sql_command(SQLcreateView(StudentVerslagenOverzichtDefinition()))    
+    print('ready ')
+    
+
+
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
         modify_undo_logs(database)
         delete_verslagen(database)
+        add_views(database)
         M124JsonData().execute(database, phase)
+
 
 def after_migrate(database_name: str, debug=False, phase=42):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.

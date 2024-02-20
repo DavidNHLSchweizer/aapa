@@ -117,17 +117,20 @@ class VerslagFromZipImporter(VerslagImporter):
         self.sdb.register_file(student=verslag.student, datum=file.timestamp if file_exists(filename) else verslag.datum,
                                         filename=filename, filetype=file.filetype, mijlpaal_type=file.mijlpaal_type)
 
-    def _create_file(self, verslag: Verslag, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
-        mijlpaal_directory = Path(filename_to_create).parent
+    def _create_file(self, verslag: Verslag, mp_dir: MijlpaalDirectory, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
+        mijlpaal_directory_path = Path(mp_dir.directory) if mp_dir else Path(filename_to_create).parent
         if preview:
-            if not mijlpaal_directory.is_dir() and new_student:
-                log_print(f'\tDirectory aanmaken {File.display_file(mijlpaal_directory)}')
+            if not mijlpaal_directory_path.is_dir() and new_student:
+                if mp_dir:
+                    log_warning(f'Directory {File.display_file(mijlpaal_directory_path)} in database, maar bestaat niet in filesysteem.')
+                log_print(f'\tDirectory aanmaken {File.display_file(mijlpaal_directory_path)}')
             log_print(f'\tBestand aanmaken {File.display_file(filename_to_create)}')                
         else:
-            mijlpaal_directory = Path(filename_to_create).parent
-            if self.created_directory(mijlpaal_directory, preview):
-                log_print(f'\tDirectory {File.display_file(mijlpaal_directory)} aangemaakt')
-            self.reader.extract_file(filename_in_zip, mijlpaal_directory, Path(filename_to_create).name)
+            if mp_dir and not mijlpaal_directory_path.is_dir():
+                log_warning(f'Directory {File.display_file(mijlpaal_directory_path)} in database, maar bestaat niet in filesysteem.')
+            if self.created_directory(mijlpaal_directory_path, preview):
+                log_print(f'\tDirectory {File.display_file(mijlpaal_directory_path)} aangemaakt')
+            self.reader.extract_file(filename_in_zip, mijlpaal_directory_path, Path(filename_to_create).name)
             log_print(f'\tBestand {File.display_file(filename_to_create)} aangemaakt.')
         self._register_verslag(verslag, filename_to_create)
     def _check_existing_files(self, student_entries: list[dict]):
@@ -143,13 +146,17 @@ class VerslagFromZipImporter(VerslagImporter):
         for student_entry in student_entries:
             filename_to_create = student_entry['filename_to_create']
             student_entry['stored'] = self._check_in_database(student_directory, filename_to_create=filename_to_create)
+            student_entry['mp_dir'] = student_directory.get_filename_directory(filename_to_create) if student_directory else None
             student_entry['existing'] = file_exists(filename_to_create)
             if student_entry['existing'] or student_entry['stored']:
                 previous_existing = True
                 student_entry['verslag'].status = Verslag.Status.LEGACY
         if previous_existing:
             for student_entry in student_entries:
-                student_entry['verslag'].kans -= 1
+                if student_entry['mp_dir']:
+                    student_entry['verslag'].kans = student_entry['mp_dir'].kans
+                else:
+                    student_entry['verslag'].kans -= 1
     def _process_student_entry(self, current_verslag: Verslag, student_entry: dict, preview=False)->Verslag:
         overgeslagen = 'Wordt overgeslagen.'
         new_verslag:Verslag = student_entry['verslag']
@@ -164,8 +171,8 @@ class VerslagFromZipImporter(VerslagImporter):
             log_warning(f'Bestand {File.display_file(filename_to_create)}\n\tbestaat al. {overgeslagen}')
             return None
         else:
-            self._create_file(new_verslag, student_entry['filename_in_zip'], filename_to_create,  
-                                    current_verslag is None, preview=preview)
+            self._create_file(new_verslag, student_entry['mp_dir'], student_entry['filename_in_zip'], 
+                              filename_to_create, new_student=current_verslag is None, preview=preview)
             return new_verslag
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects

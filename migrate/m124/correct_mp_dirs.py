@@ -15,6 +15,7 @@ from general.timeutil import TSC
 from migrate.migration_plugin import MigrationPlugin
 from process.main.aapa_processor import AAPARunnerContext
 
+
 class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
     def init_SQLcollectors(self) -> SQLcollectors:
         sql = super().init_SQLcollectors()

@@ -287,11 +287,11 @@ class StudentVerslagenOverzichtDefinition(ViewDefinition):
         verslag_type_str = get_sql_cases_for_int_type('V.verslag_type', MijlpaalType, 'verslag_type') 
         status_str = get_sql_cases_for_int_type('V.status', Verslag.Status, 'status') 
         beoordeling = get_sql_cases_for_int_type('V.beoordeling', MijlpaalBeoordeling, 'beoordeling')
-        # mijlpaal_reverse=get_int_type_for_sql_cases('SDF.mijlpaal',MijlpaalType)
-        # file_str = f'(select filename from STUDENT_DIRECTORIES_FILE_OVERZICHT as SDF where (SDF.stud_id = V.stud_id) and ({mijlpaal_reverse}=V.verslag_type)) as filename'
-        query = f'select (select full_name from STUDENTEN as S where S.id=V.stud_id) as student, V.datum, {verslag_type_str}, \
-            (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans, {status_str},{beoordeling} \
-            from VERSLAGEN as V order by 1,2' 
+        filetype_str = get_sql_cases_for_int_type('F.filetype', FileType,'filetype')
+        query = f'select V.id as verslag_id, V.stud_id, (select full_name from STUDENTEN as S where S.id=V.stud_id) as student, V.datum, {verslag_type_str}, \
+            (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans, F.id as file_id, F.filename,{filetype_str},{status_str},{beoordeling} \
+            from VERSLAGEN as V inner join VERSLAGEN_FILES as VF on VF.verslag_id = V.id inner join FILES as F on F.ID=VF.file_id order by 3,4' 
+        
         super().__init__('STUDENT_VERSLAGEN_OVERZICHT', query=query)
 
 class AAPaSchema(Schema):

@@ -2,6 +2,7 @@ from __future__ import annotations
 from ast import Tuple
 import datetime
 from enum import Enum, auto
+from pathlib import Path
 from data.general.aapa_class import AAPAclass
 from data.general.aggregator import Aggregator
 from data.classes.base_dirs import BaseDir
@@ -96,6 +97,12 @@ class StudentDirectory(AAPAclass):
         for directory in self.directories:
             if file in directory.files_list:
                 return directory
+        return None
+    def get_filename_directory(self, filename: str)->MijlpaalDirectory:
+        directory = str(Path(filename).parent).lower()
+        for mp_dir in self.directories:
+            if str(mp_dir.directory).lower() == directory:
+                return mp_dir
         return None
     def add(self, mijlpaal: MijlpaalBase):
         if self.get_directory(mijlpaal.datum, mijlpaal.mijlpaal_type):
