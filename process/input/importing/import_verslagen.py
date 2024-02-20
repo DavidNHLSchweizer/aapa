@@ -119,6 +119,10 @@ class VerslagFromZipImporter(VerslagImporter):
 
     def _create_file(self, verslag: Verslag, mp_dir: MijlpaalDirectory, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
         mijlpaal_directory_path = Path(mp_dir.directory) if mp_dir else Path(filename_to_create).parent
+        # if mp_dir:
+
+
+
         if preview:
             if not mijlpaal_directory_path.is_dir() and new_student:
                 if mp_dir:
@@ -157,13 +161,20 @@ class VerslagFromZipImporter(VerslagImporter):
                     student_entry['verslag'].kans = student_entry['mp_dir'].kans
                 else:
                     student_entry['verslag'].kans -= 1
+    def _check_existing_verslag(self, student_directory: StudentDirectory, filename_to_create: str)->Verslag:
+        if not student_directory:
+            return None
+        if mp_dir := student_directory.get_filename_directory(filename_to_create):
+            return self.storage.queries('mijlpaal_directories').find_verslag(mp_dir)
     def _process_student_entry(self, current_verslag: Verslag, student_entry: dict, preview=False)->Verslag:
         overgeslagen = 'Wordt overgeslagen.'
         new_verslag:Verslag = student_entry['verslag']
         if current_verslag and new_verslag.mijlpaal_type == current_verslag.mijlpaal_type and current_verslag.student==new_verslag.student:
             new_verslag = current_verslag
         filename_to_create = student_entry['filename_to_create']
-        log_debug(f'filename to create: {filename_to_create}')                    
+        stored_verslag = self._check_existing_verslag(filename_to_create)
+        log_debug(f'filename to create: {filename_to_create}')   
+
         if student_entry['stored'] and student_entry['existing']:
             log_warning(f'Bestand {File.display_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
             return None

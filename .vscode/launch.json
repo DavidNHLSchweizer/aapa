@@ -197,7 +197,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "migrate.m124.correct_verslagen_doublures",
+                "migrate.m124.create_verslagen",
                 "-stop",
                 "-preview",
                 "-debug",

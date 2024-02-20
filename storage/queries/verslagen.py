@@ -1,4 +1,6 @@
+from pytest import File
 from data.classes.bedrijven import Bedrijf
+from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from general.timeutil import TSC
@@ -14,11 +16,14 @@ class VerslagQueries(CRUDQueries):
         return []
     def find_verslag(self, verslag: Verslag)->Verslag:
         self.get_crud(Student).queries.ensure_key(verslag.student)        
-        stored = self.find_values_where('id', where_attributes=['student','datum', 'mijlpaal_type', 'titel'],
+        stored = self.find_values_where('id', where_attributes=['student','datum', 'mijlpaal_type'],
                                         where_values = [verslag.student.id, #NOTE: bedrijf kan niet vindbaar zijn voor "oude" verslagen
                                                         TSC.timestamp_to_sortable_str(verslag.datum), 
-                                                        verslag.mijlpaal_type,
-                                                        verslag.titel])
+                                                        verslag.mijlpaal_type])
+                                                        
         if stored:
             return self.crud.read(stored[0]['id'])
         return None
+    def find_mp_dir_verslag(self, file: File)->Verslag:
+        self.get_crud(MijlpaalDirectory)
+

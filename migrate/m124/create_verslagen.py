@@ -10,7 +10,7 @@
 
 """
 from data.classes.aanvragen import Aanvraag
-from data.general.const import FileType
+from data.general.const import FileType, MijlpaalType
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
@@ -27,7 +27,9 @@ from storage.queries.verslagen import VerslagQueries
 class VerslagenReEngineeringProcessor(MigrationPlugin):
     def init_SQLcollectors(self)->SQLcollectors:
         sql = super().init_SQLcollectors()
-        sql.add('verslagen', SQLcollector({'insert': {'sql':'insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type) values(?,?,?,?,?,?,?,?,?)' },}))
+        sql.add('verslagen', SQLcollector({'insert': {'sql':'insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type) values(?,?,?,?,?,?,?,?,?)' },
+                                           'delete': {'sql':'delete from VERSLAGEN where id in (?)'}                                           
+                                           }))
         sql.add('verslagen_files', SQLcollector({'insert': {'sql':'insert into VERSLAGEN_FILES(verslag_id,file_id) values(?,?)' },}))
         return sql
     def _get_aanvraag(self, student: Student)->Aanvraag:
@@ -50,9 +52,9 @@ class VerslagenReEngineeringProcessor(MigrationPlugin):
         self.log(f'\tVerslag {verslag}')
         self.storage.queries('verslagen').ensure_key(verslag)            
         self.sql.insert('verslagen_files', [verslag.id, file.id])
-        # this was nog done in the m123 migration
+        # this was no done in the m123 migration
         if self.verslag_queries.find_verslag(verslag):
-            return # this is already in the database
+            return # this for some reason is already in the database, can't imagine why though
         if not preview:
             self.storage.crud('verslagen').create(verslag)    
         self.sql.insert('verslagen', [verslag.id,TSC.timestamp_to_sortable_str(verslag.datum),verslag.student.id,
@@ -60,18 +62,26 @@ class VerslagenReEngineeringProcessor(MigrationPlugin):
                                       verslag.kans,verslag.status,verslag.beoordeling,verslag.mijlpaal_type
                                       ])
     def process_mijlpaal_directory(self, mp_dir: MijlpaalDirectory, student: Student, preview=False):
+        if not mp_dir.mijlpaal_type.is_verslag():
+            return
+        known_verslagen = self.verslag_queries.find_values(['student', 'mijlpaal_type', 'kans'], [student,mp_dir.mijlpaal_type, mp_dir.kans], True)
+        existing_verslag = known_verslagen[0] if known_verslagen else None
         for file in mp_dir.files.files:
-            match file.filetype:
-                case FileType.PVA | FileType.ONDERZOEKS_VERSLAG | FileType.TECHNISCH_VERSLAG | FileType.EIND_VERSLAG:
+            if file.filetype == mp_dir.mijlpaal_type.default_filetype():         
+                if existing_verslag:       
+                    self.sql.insert('verslagen_files', [existing_verslag.id,file.id])
+                else:
                     self.create_verslag(mp_dir, student, file, preview=preview)
-                case _: continue                    
+        if existing_verslag: 
+            for verslag in known_verslagen[1:]:
+                self.sql.delete('verslagen', [verslag.id])                    
     def process_student(self, student: Student, preview=False):      
         student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
         student_directory = student_dir_queries.find_student_dir(student)
         if not student_directory:
             log_warning(f'Geen directory gevonden voor student {student}.')
             return
-        log_info(f'Student: {student}')
+        log_info(f'Student: {student}', to_console=True)
         for mp_dir in student_directory.directories:
             self.process_mijlpaal_directory(mp_dir, student, preview=preview)
     def before_process(self, context: AAPARunnerContext, **kwdargs) -> bool:
