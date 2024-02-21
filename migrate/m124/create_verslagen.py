@@ -38,7 +38,7 @@ class VerslagenReEngineeringProcessor(MigrationPlugin):
         if not aanvraag:
             log_warning(f'Afstudeerbedrijf kan niet worden gevonden: Geen aanvraag gevonden voor student {student}.')
         return aanvraag
-    def create_verslag(self, mp_dir: MijlpaalDirectory, student: Student, file: File, preview=False):
+    def create_verslag(self, mp_dir: MijlpaalDirectory, student: Student, file: File, preview=False)->Verslag:
         if (aanvraag:= self._get_aanvraag(student)):
             bedrijf = aanvraag.bedrijf
             titel = aanvraag.titel
@@ -53,14 +53,15 @@ class VerslagenReEngineeringProcessor(MigrationPlugin):
         self.storage.queries('verslagen').ensure_key(verslag)            
         self.sql.insert('verslagen_files', [verslag.id, file.id])
         # this was no done in the m123 migration
-        if self.verslag_queries.find_verslag(verslag):
-            return # this for some reason is already in the database, can't imagine why though
+        # if self.verslag_queries.find_verslag(verslag):
+        #     return # this for some reason is already in the database, can't imagine why though
         if not preview:
             self.storage.crud('verslagen').create(verslag)    
         self.sql.insert('verslagen', [verslag.id,TSC.timestamp_to_sortable_str(verslag.datum),verslag.student.id,
                                       verslag.bedrijf.id if bedrijf else -1, titel,
                                       verslag.kans,verslag.status,verslag.beoordeling,verslag.mijlpaal_type
                                       ])
+        return verslag
     def process_mijlpaal_directory(self, mp_dir: MijlpaalDirectory, student: Student, preview=False):
         if not mp_dir.mijlpaal_type.is_verslag():
             return
@@ -71,7 +72,7 @@ class VerslagenReEngineeringProcessor(MigrationPlugin):
                 if existing_verslag:       
                     self.sql.insert('verslagen_files', [existing_verslag.id,file.id])
                 else:
-                    self.create_verslag(mp_dir, student, file, preview=preview)
+                    existing_verslag = self.create_verslag(mp_dir, student, file, preview=preview)
         if existing_verslag: 
             for verslag in known_verslagen[1:]:
                 self.sql.delete('verslagen', [verslag.id])                    

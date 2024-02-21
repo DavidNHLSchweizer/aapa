@@ -24,27 +24,27 @@ goto :phase%phase1%
 set phase=0
 call :migrate %phase%
 call :msgnext
-call :plugin %mxx%.create_verslagen 
+call :plugin %mxx%.correct_mp_dirs 
 if "%phase2%" LSS "1" goto :phase42
 
 :phase1
 set phase=1
 call :migrate %phase%
 call :msgnext
-call :plugin %mxx%.correct_mp_dirs 
+call :plugin %mxx%.create_verslagen 
 if "%phase2%" LSS "2" goto :phase42
 
 :phase2
 set phase=2
 call :migrate %phase%
-goto :phase42:
 call :msgnext
-call :plugin %mxx%.create_verslagen
+call :plugin %mxx%.add_orphan_verslagen
 if "%phase2%" LSS "3" goto :phase42
 
 :phase3
 set phase=3
 call :migrate %phase%
+goto :phase42:
 call :msgnext
 call :plugin %mxx%.correct_mp_dirs %mxx%.correct_stud_dirs
 if "%phase2%" LSS "4" goto :phase42

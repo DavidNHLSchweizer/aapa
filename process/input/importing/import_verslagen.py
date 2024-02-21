@@ -31,6 +31,11 @@ class VerslagFromZipImporter(VerslagImporter):
         self.reader = BBZipFileReader()
         self.root_directory = root_directory
         self.verslag_queries:VerslagQueries = self.storage.queries('verslagen')
+        self.student_directory_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.studenten_queries: StudentQueries = self.storage.queries('studenten')
+        self.aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
+        self.files_queries: FilesQueries = self.storage.queries('files')
+
     def _get_verslag_type(self, product_type: str)->MijlpaalType:
         VerslagTypes = {'plan van aanpak': MijlpaalType.PVA, 
                         'onderzoeksverslag': MijlpaalType.ONDERZOEKS_VERSLAG, 
@@ -40,21 +45,19 @@ class VerslagFromZipImporter(VerslagImporter):
             return result
         raise VerslagParseException(f'Onbekend verslagtype: {[product_type]}')
     def _get_kans(self, student: Student, mijlpaal_type: MijlpaalType)->int:
-        storage_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
-        mijlpalen = storage_queries.find_student_mijlpaal_dir(student, mijlpaal_type)
+        mijlpalen = self.student_directory_queries.find_student_mijlpaal_dir(student, mijlpaal_type)
         return 1 + len(mijlpalen)
     def _get_student(self, student_name: str, email: str)->Student:
-        storage_queries: StudentQueries = self.storage.queries('studenten')
+        
         student = Student(full_name=student_name, email=email)
-        stored:Student = storage_queries.find_student_by_name_or_email_or_studnr(student=student)
+        stored:Student = self.studenten_queries.find_student_by_name_or_email_or_studnr(student=student)
         if stored:                 
             return stored
         log_warning(f'Student {student.full_name} is nog niet bekend in database. Dit wordt NIET verwacht!\nDefault waarden (zoals fake studentnummer) worden gebruikt,\nmaar controleer de database vóór verder te gaan!')
-        student.stud_nr = storage_queries.create_unique_student_nr(student=student)
+        student.stud_nr = self.studenten_queries.create_unique_student_nr(student=student)
         return student            
     def _get_bedrijf(self, student: Student)->Bedrijf:
-        aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
-        aanvraag = aanvraag_queries.find_student_aanvraag(student)
+        aanvraag = self.aanvraag_queries.find_student_aanvraag(student)
         if not aanvraag:
             log_warning(f'Afstudeerbedrijf kan niet worden gevonden: Geen aanvraag gevonden voor student {student}.')
             return None
@@ -84,8 +87,8 @@ class VerslagFromZipImporter(VerslagImporter):
             result[student_key] = student_entries
         for student_entries in result.values():
             if len(student_entries)>1:                
-                for entry in student_entries: 
-                    entry['verslag'].status = Verslag.Status.MULTIPLE
+                for entry in student_entries:                    
+                        entry['verslag'].status = Verslag.Status.NEW_MULTIPLE
         return result
     def get_filename_to_create(self, verslag: Verslag, original_filename: str):
         student_directory = SDB.get_student_dir(self.storage,verslag.student,self.root_directory)
@@ -109,9 +112,8 @@ class VerslagFromZipImporter(VerslagImporter):
         for file in student_directory.get_files():
             if file.filename.lower() == filename_to_create.lower():
                 return True
-        # if we get here, try a good-luck search. Hopefully the database is not out-of-sync with reality
-        queries: FilesQueries = self.storage.queries('files')
-        return queries.is_known_file(filename_to_create)
+        # if we get here, try a good-luck search. Hopefully the database is not out-of-sync with reality        
+        return self.files_queries.is_known_file(filename_to_create)
     
     def _register_verslag(self, verslag: Verslag, filename: str):
         file = verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
@@ -140,12 +142,11 @@ class VerslagFromZipImporter(VerslagImporter):
         self._register_verslag(verslag, filename_to_create)
     def _check_existing_files(self, student_entries: list[dict]):
         previous_existing = False
-        student_dir_queries: StudentDirectoryQueries= self.storage.queries('student_directories')       
         # because filename comparisons are difficult to get REALLY caseinsensitive in SQLite 
         # (collating only works for standard ASCII, and some students have non-ascii names)
         # we must do this in python
         if student_entries: #get the student from the first entry
-            student_directory = student_dir_queries.find_student_dir(student_entries[0]['verslag'].student)
+            student_directory = self.student_directory_queries.find_student_dir(student_entries[0]['verslag'].student)
         else:
             student_directory = None
         for student_entry in student_entries:
@@ -163,13 +164,19 @@ class VerslagFromZipImporter(VerslagImporter):
                     student_entry['verslag'].kans = student_entry['mp_dir'].kans
                 else:
                     student_entry['verslag'].kans -= 1
+    def _find_mp_dir(self, verslag: Verslag)->MijlpaalDirectory:
+        target_dir = verslag.get_directory()
+        for mp_dir in self.student_directory_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type):
+            if str(mp_dir.directory) == target_dir:
+                return mp_dir
+        return None
     def _check_existing_verslag(self, student_directory: StudentDirectory, filename_to_create: str)->Verslag:
         if not student_directory:
             return None
         if mp_dir := student_directory.get_filename_directory(filename_to_create):
             known_verslagen = self.verslag_queries.find_values(['student', 'mijlpaal_type', 'kans'], [student_directory.student,mp_dir.mijlpaal_type, mp_dir.kans], map_values = True, read_many=False)
             return known_verslagen[0] if known_verslagen else None
-        self.storage.queries('mijlpaal_directories').find_verslag(mp_dir)
+        # self.storage.queries('mijlpaal_directories').find_verslag(mp_dir)
     def _process_student_entry(self, current_verslag: Verslag, student_entry: dict, preview=False)->Verslag:
         overgeslagen = 'Wordt overgeslagen.'
         new_verslag:Verslag = student_entry['verslag']

@@ -1,0 +1,45 @@
+{
+    "verslagen": {
+        "delete": {
+            "sql": "delete from VERSLAGEN where id in (?)",
+            "values": [],
+            "concatenate": true
+        }
+    },
+    "verslagen_files": {
+        "insert": {
+            "sql": "insert into VERSLAGEN_FILES(verslag_id,file_id) values(?,?)",
+            "values": [
+                [
+                    89,
+                    3833
+                ],
+                [
+                    90,
+                    3842
+                ],
+                [
+                    91,
+                    3842
+                ],
+                [
+                    92,
+                    3843
+                ],
+                [
+                    375,
+                    2443
+                ],
+                [
+                    486,
+                    3010
+                ],
+                [
+                    487,
+                    3017
+                ]
+            ],
+            "concatenate": true
+        }
+    }
+}

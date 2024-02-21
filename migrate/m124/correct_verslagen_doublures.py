@@ -56,6 +56,7 @@ class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
         cur_mpd_id = None
         double_entries = {}
         cur_entries = []
+        new_entry = None
         for row in rows:
             mpd_id = row['mpd_id']
             new_entry = {'verslag_id': row['id'], 'v_kans': row['v_kans'], 'mpd_kans': row['mpd_kans'], 'file_id': row['file_id']}
@@ -67,8 +68,9 @@ class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
                 double_entries[cur_mpd_id] = cur_entries
                 cur_mpd_id = mpd_id
                 cur_entries = [new_entry]
-        cur_entries.append(new_entry)
-        double_entries[cur_mpd_id] = cur_entries
+        if new_entry:
+            cur_entries.append(new_entry)
+            double_entries[cur_mpd_id] = cur_entries
         return double_entries
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         if not super().before_process(context, **kwdargs):

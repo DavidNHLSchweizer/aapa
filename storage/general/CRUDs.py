@@ -3,6 +3,7 @@ from enum import Enum, auto
 from typing import Any, Tuple, Type
 from data.general.aapa_class import AAPAclass
 from data.general.detail_rec import DetailRecData
+from database.classes.sql_table import SQLselect
 from storage.general.mappers import ColumnMapper
 from storage.general.table_mapper import TableMapper
 from storage.general.query_builder import QIF, QueryBuilder
@@ -289,6 +290,13 @@ class CRUDQueries:
                     where=qb.build_where_from_values(
                         column_names=wanted_attributes, values=wanted_values, operators=where_operators,
                             flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))            
+    def find_values_where_explicit(self, where_str: str, where_values: list[Any])->list[Any]:
+        """ shortcut to do queries that don't fit the pattern, such as "LIKE" queries """
+        self.__db_log('FIND_VALUES_WHERE_EXPLICIT', f'{where_str} where_values: {where_values} ')
+        database = self.query_builder.database
+        query = f'SELECT id from {self.table.name} where {where_str}'
+        ids = {row['id'] for row in database._execute_sql_command(query, where_values, True)}
+        return self.crud.read_many(ids)
     def find_max_id(self)->int:
         return self.query_builder.find_max_id()    
     

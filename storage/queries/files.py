@@ -2,6 +2,7 @@ from __future__ import annotations
 from ast import Tuple
 from enum import Enum, auto
 from data.classes.files import File
+from data.general.roots import Roots
 from storage.general.CRUDs import CRUD, CRUDQueries
 from storage.general.storage_const import StorageException
 from main.log import log_debug
@@ -59,6 +60,8 @@ class FilesQueries(CRUDQueries):
         return FileStorageAnalyzer(self).analyze(str(filename))
     def is_known_file(self, filename: str)->bool:
         return self.find_ids_where(where_attributes=['filename', 'filetype'], where_values=[filename,File.Type.valid_file_types()]) != []
+    def files_in_directory(self, directory: str)->list[File]:
+        return self.find_values_where_explicit('filename like ?', [f'{Roots.encode_path(directory)}%' ])
     # def is_known_file(self, filename: str)->bool: 
     #     if not self.known_files:
     #         self.known_files:list[File] = self.find_values(attributes='filetype', 

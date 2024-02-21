@@ -252,14 +252,14 @@ class VerslagStatus(IntEnum):
     LEGACY          = -2
     INVALID         = -1
     NEW             = 0
-    NEEDS_GRADING   = 1
-    MULTIPLE        = 2
+    NEW_MULTIPLE    = 1
+    NEEDS_GRADING   = 2
     GRADED          = 3
     READY           = 4
     def __str__(self):
         STRS = {VerslagStatus.LEGACY: 'erfenis',VerslagStatus.INVALID: 'ongeldig', 
                 VerslagStatus.NEW: 'nieuw', VerslagStatus.NEEDS_GRADING: 'te beoordelen', 
-                VerslagStatus.MULTIPLE: 'bijlage',
+                VerslagStatus.NEW_MULTIPLE: 'nieuw (met bijlages)',
                 VerslagStatus.GRADED: 'beoordeeld', 
                 VerslagStatus.READY: 'geheel verwerkt'}
         return STRS.get(self, _UNKNOWN)

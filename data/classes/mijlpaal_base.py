@@ -1,5 +1,6 @@
 from __future__ import annotations
 import datetime
+from pathlib import Path
 from data.general.aapa_class import AAPAclass
 from data.classes.bedrijven import Bedrijf
 from data.general.const import MijlpaalType, MijlpaalBeoordeling
@@ -28,6 +29,10 @@ class MijlpaalBase(AAPAclass):
         return result    
     def unregister_file(self, filetype: File.Type):
         self.files.remove_filetype(filetype)
+    def get_directory(self)->str:
+        if files := self.files_list:
+            return str(Path(files[0].filename).parent)
+        return None
     def __eq__(self, value2: MijlpaalBase)->bool:
         if not value2:
             return False

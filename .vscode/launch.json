@@ -116,7 +116,6 @@
             "args": [
                 "input",
                 "-debug",
-                "-preview",
                 "--onedrive=d:\\onedrive",
                 "--processing_mode=V",
                 "--input_options=F",
@@ -200,11 +199,10 @@
             "args": [
                 "migrate.m124.create_verslagen",
                 "-stop",
-                "-preview",
                 "-debug",
+                "-preview",
                 "-json",
-                "--database=testing123.db",
-                "--onedrive=d:\\onedrive",
+                 "--onedrive=d:\\onedrive",
             ]
         },
     ]

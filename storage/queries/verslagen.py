@@ -24,6 +24,4 @@ class VerslagQueries(CRUDQueries):
             results = list(filter(lambda v: TSC.equal_in_range(v.datum, verslag.datum, error_margin_date), self.crud.read_many({row['id'] for row in stored})))
             return results[0] if results else None
         return None
-    def find_mp_dir_verslag(self, file: File)->Verslag:
-        self.get_crud(MijlpaalDirectory)
 
