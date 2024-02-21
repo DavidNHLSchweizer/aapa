@@ -220,17 +220,18 @@ class SQLcollectors(dict):
         else:
             database._execute_sql_command(sql_str,parameters=values)    
     def execute_sql(self, database: Database, preview = False):
-        wrapper = TextWrapper(width=80,subsequent_indent="   ") if preview else None
-        for sql_type in SQLcollType:
-            for collector in self.collectors(sql_type):
-                if collector is None or collector.get_values() == []:
-                    continue
-                sql_str = collector.get_sql()
-                if collector.concatenate:
-                    self.__execute_one(database, sql_str, collector.get_values(), wrapper=wrapper)
-                else:
-                    for values in collector.get_values():
-                        self.__execute_one(database, sql_str, values, wrapper=wrapper)
+        with database.pause_foreign_keys():
+            wrapper = TextWrapper(width=80,subsequent_indent="   ") if preview else None
+            for sql_type in SQLcollType:
+                for collector in self.collectors(sql_type):
+                    if collector is None or collector.get_values() == []:
+                        continue
+                    sql_str = collector.get_sql()
+                    if collector.concatenate:
+                        self.__execute_one(database, sql_str, collector.get_values(), wrapper=wrapper)
+                    else:
+                        for values in collector.get_values():
+                            self.__execute_one(database, sql_str, values, wrapper=wrapper)
 
 def import_json(database: Database, json_name: str, preview=False):
     if not json_name:

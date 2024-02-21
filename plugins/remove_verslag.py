@@ -46,10 +46,13 @@ class VerslagRemover(PluginBase):
         if not mp_dir:
             log_print(f'Kan mijlpaaldirectory voor verslag {verslag.summary()} niet vinden.')
             return
+        if str(mp_dir.directory).lower() in self.removed_directories:
+            return
         log_print(f'Verwijderen: {File.display_file(mp_dir.directory)}')
         if not preview:
             try:
                 shutil.rmtree(mp_dir.directory)
+                self.removed_directories.add(str(mp_dir.directory).lower())
             except Exception as E:
                 log_print(f'Fout bij verwijderen {File.display_file(mp_dir.directory)}:\n\t{E}')            
         for file in mp_dir.files_list:
@@ -87,6 +90,7 @@ class VerslagRemover(PluginBase):
     def before_process(self, context: AAPARunnerContext, **kwdargs) -> bool:
         super().before_process(context, **kwdargs)
         self.sql = self.init_sql()
+        self.removed_directories = set()
         self.storage=context.storage
         self.stud_dir_queries:StudentDirectoryQueries = self.storage.queries('student_directories')
         return True
