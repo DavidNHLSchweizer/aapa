@@ -1,4 +1,6 @@
+from __future__ import annotations
 import datetime
+import locale
 class TimeStringConversion:
     AUTOTIMESTAMP = 0
     DATETIME_FORMAT = '%d-%m-%Y %H:%M:%S'
@@ -39,16 +41,17 @@ class TimeStringConversion:
     def sortable_str_to_timestamp(value: str)->datetime.datetime:
         return TSC.__str_to_timestamp(value, TSC.SORTABLE_DATETIME_FORMAT)
     @staticmethod
-    def get_date_str(value: datetime.datetime|datetime.date)->str:
+    def get_date_str(value: datetime.datetime|datetime.date, date_format: str="%d-%m-%Y", datetime_format=DATETIME_FORMAT)->str:
         def __no_time_part(d: datetime)->bool: 
             return d.time() == datetime.time()
         if isinstance(value,datetime.date) or __no_time_part(value):
-            return datetime.datetime.strftime(value, "%d-%m-%Y")
+            return datetime.datetime.strftime(value, date_format)
         else:
-            return datetime.datetime.strftime(value, TSC.DATETIME_FORMAT)
+            return datetime.datetime.strftime(value, datetime_format)
 
 
 
 TSC = TimeStringConversion
+locale.setlocale(locale.LC_TIME, 'nl_nl') # tricky
 
 

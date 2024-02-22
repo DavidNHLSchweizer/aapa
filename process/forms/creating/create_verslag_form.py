@@ -3,7 +3,7 @@ from data.classes.aanvragen import Aanvraag
 from data.classes.verslagen import Verslag
 from data.general.const import MijlpaalType
 from data.classes.files import File
-from main.log import log_error, log_exception, log_print
+from main.log import log_error, log_print
 from general.fileutil import file_exists, safe_file_name
 from mailmerge import MailMerge
 from process.general.preview import pva
@@ -28,9 +28,8 @@ class VerslagFormCreator(VerslagProcessor):
         except Exception as E:
             log_error(f'Error merging document (template:{template_doc}) to {File.display_file(output_filename)}:\n{E}')
             return None
-    def __get_output_filename(self, verslag: Verslag, filetype: File.Type)->str:
-         
-        safe_user_part = safe_file_name(f'{aanvraag.student} ({aanvraag.bedrijf.name})-{aanvraag.versie}')
+    def __get_output_filename(self, verslag: Verslag, filetype: File.Type)->str:         
+        safe_user_part = safe_file_name(f'{verslag.student} ({verslag.bedrijf.name})-{verslag.versie}')
         return f'Beoordeling aanvraag {safe_user_part}.docx'
     def __merge_document(self, aanvraag: Aanvraag, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)

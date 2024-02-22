@@ -5,8 +5,8 @@ from data.classes.files import File
 from data.general.const import MijlpaalType, FileType
 from general.fileutil import file_exists
 from main.config import ListValueConvertor, config, get_templates
-from main.log import log_error, log_exception, log_print
-from process.input.create_forms.create_form import MailMergeException
+from main.log import log_error, log_exception
+from process.forms.creating.create_aanvraag_form import MailMergeException
 from process.input.importing.filename_parser import FileTypeDetector
 
 

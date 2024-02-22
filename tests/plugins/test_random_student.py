@@ -13,7 +13,7 @@ from plugins.plugin import PluginBase
 from process.general.mijlpaal_templates import ALL_EXAMINATORS, MijlpaalTemplates
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.main.aapa_processor import AAPARunnerContext
-from random_student import RandomStudents
+from random_student import RandomData
 from storage.queries.student_directories import StudentDirectoryQueries
 from storage.queries.studenten import StudentQueries
 
@@ -35,7 +35,7 @@ class TestPlugin(PluginBase):
                 results[examinator] = form_for_examinator(directory, forms_version, mijlpaal_type, examinator)
         return results        
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        rs = RandomStudents(context.storage, Student.Status.active_states())
+        rs = RandomData(context.storage, Student.Status.active_states())
         student = rs.random_student()
         print(f'student: {student}')
         stud_dir = self.student_dir_queries.find_student_dir(student)
