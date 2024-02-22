@@ -112,6 +112,9 @@ class MijlpaalType(IntEnum):
     AFSTUDEERZITTING    = 9
     def is_verslag(self)->bool:
         return self in {MijlpaalType.PVA,MijlpaalType.EIND_VERSLAG,MijlpaalType.ONDERZOEKS_VERSLAG,MijlpaalType.TECHNISCH_VERSLAG,MijlpaalType.PRESENTATIE,MijlpaalType.PRODUCT_BEOORDELING}
+    @staticmethod
+    def verslag_types()->set[MijlpaalType]:
+        return {mp for mp in MijlpaalType if mp.is_verslag()}
     def default_filetype(self)->FileType:
         match self:
             case MijlpaalType.AANVRAAG: return FileType.AANVRAAG_PDF

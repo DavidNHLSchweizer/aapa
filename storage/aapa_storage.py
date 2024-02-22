@@ -75,10 +75,10 @@ class AAPAStorage:
         if crud := self.crud(module):
             return crud.read(key)
         return None
-    def read_many(self, module: str, keys: set[KeyClass])->StoredClass:
+    def read_many(self, module: str, keys: set[KeyClass])->list[StoredClass]:
         if crud := self.crud(module):
             return crud.read_many(keys)
-        return None
+        return []
     def update(self, module: str, aapa_obj: StoredClass):
         if crud := self.crud(module):
             crud.update(aapa_obj)

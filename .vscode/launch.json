@@ -195,14 +195,13 @@
             "request": "launch",
             "program": "run_plugin.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "args": [
-                "migrate.m124.create_verslagen",
+                "tests.plugins.test_form_creator",
                 "-stop",
                 "-debug",
-                "-preview",
-                "-json",
-                 "--onedrive=d:\\onedrive",
+                "--database=testing123.db",
+                "--onedrive=d:\\onedrive",
             ]
         },
     ]

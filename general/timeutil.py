@@ -39,10 +39,10 @@ class TimeStringConversion:
     def sortable_str_to_timestamp(value: str)->datetime.datetime:
         return TSC.__str_to_timestamp(value, TSC.SORTABLE_DATETIME_FORMAT)
     @staticmethod
-    def get_date_str(value: datetime.datetime)->str:
+    def get_date_str(value: datetime.datetime|datetime.date)->str:
         def __no_time_part(d: datetime)->bool: 
             return d.time() == datetime.time()
-        if __no_time_part(value):
+        if isinstance(value,datetime.date) or __no_time_part(value):
             return datetime.datetime.strftime(value, "%d-%m-%Y")
         else:
             return datetime.datetime.strftime(value, TSC.DATETIME_FORMAT)
