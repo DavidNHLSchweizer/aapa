@@ -4,6 +4,7 @@ from typing import Iterable
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
 from data.classes.undo_logs import UndoLog
+from data.classes.verslagen import Verslag
 from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from storage.general.storage_const import StoredClass
@@ -35,9 +36,12 @@ class Pipeline:
     def log_aanvraag(self, aanvraag: Aanvraag):
         if aanvraag and aanvraag.status in Aanvraag.Status.valid_states():
             self.undo_log.add(aanvraag)
+    def log_verslag(self, verslag: Verslag):
+        if verslag and verslag.status in Verslag.Status.valid_states():
+            self.undo_log.add(verslag)
     def stop_logging(self):
         self.undo_log.stop()
-        log_debug(f'STOPPING aanvragenprocessor {self.undo_log}')
+        log_debug(f'STOPPING aanvragen/verslagen processor {self.undo_log}')
         if not self.undo_log.is_empty() and self.undo_log.can_undo:
             self.storage.create('undo_logs', self.undo_log)
         self.storage.commit()

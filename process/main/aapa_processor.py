@@ -8,7 +8,7 @@ from process.input.importing.import_bb_directory import import_bbdirectory
 from process.undo.undo_processor import undo_last
 from process.general.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
-from process.forms.forms import process_forms
+from process.forms.forms import process_aanvraag_forms, process_verslag_forms
 from main.options import AAPAOptions, AAPAProcessingOptions, report_options
 from main.versie import banner
 from main.config import config
@@ -38,9 +38,9 @@ class AAPAProcessor:
                     import_bbdirectory(configuration.config_options.bbinput_directory, configuration.config_options.root_directory, configuration.storage, preview=preview)                    
             if AAPAaction.FORM in actions or AAPAaction.FULL in actions:
                 if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
-                    process_forms(configuration.storage, configuration.output_directory, preview=preview)
+                    process_aanvraag_forms(configuration.storage, configuration.output_directory, preview=preview)
                 if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode:
-                    log_info(f'BBZIP {configuration.config_options.bbinput_directory}: not yet implemented', to_console=True)
+                    process_verslag_forms(configuration.storage, preview=preview)
             if AAPAaction.MAIL in actions or AAPAaction.FULL in actions:
                 process_graded(configuration.storage, preview=preview)
             if AAPAaction.UNDO in actions:

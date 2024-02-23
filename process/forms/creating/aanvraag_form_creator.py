@@ -1,35 +1,39 @@
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
-from data.classes.verslagen import Verslag
 from data.general.const import MijlpaalType
 from data.classes.files import File
-from main.log import log_error, log_print
+from main.log import log_error, log_exception, log_print
 from general.fileutil import file_exists, safe_file_name
 from mailmerge import MailMerge
 from process.general.preview import pva
 from general.timeutil import TSC
-from process.general.verslag_processor import VerslagProcessor
+from process.general.aanvraag_processor import AanvraagProcessor
 
 class MailMergeException(Exception): pass
 
-class VerslagFormCreator(VerslagProcessor):
-    def __init__(self):
-        super().__init__(entry_states={Verslag.Status.NEW}, 
-                         exit_state=Verslag.Status.NEEDS_GRADING,
-                         description='Aanmaken beoordelingsformulieren')
-    def merge_document(self, template_doc: str, output_filename: str, **kwds)->str:
+class AanvraagFormCreator(AanvraagProcessor):
+    def __init__(self, template_doc: str, output_directory: str):
+        self.output_directory = Path(output_directory)
+        if not file_exists(template_doc):
+            log_exception(f'kan template {template_doc} niet vinden.', MailMergeException)
+        self.template_doc = template_doc
+        super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF,Aanvraag.Status.IMPORTED_XLS}, 
+                         exit_state=Aanvraag.Status.NEEDS_GRADING,
+                         description='Aanmaken beoordelingsformulier')
+    def merge_document(self, template_doc: str, output_file_name: str, **kwds)->str:
         preview = kwds.pop('preview', False)
-        try:            
+        try:
+            full_output_name = self.output_directory.joinpath(output_file_name)
             document = MailMerge(template_doc)
             if not preview:
                 document.merge(**kwds)
-                document.write(output_filename)
-            return output_filename
+                document.write(full_output_name)
+            return full_output_name.resolve()
         except Exception as E:
-            log_error(f'Error merging document (template:{template_doc}) to {File.display_file(output_filename)}:\n{E}')
+            log_error(f'Error merging document (template:{template_doc}) to {full_output_name}: {E}')
             return None
-    def __get_output_filename(self, verslag: Verslag, filetype: File.Type)->str:         
-        safe_user_part = safe_file_name(f'{verslag.student} ({verslag.bedrijf.name})-{verslag.versie}')
+    def __get_output_filename(self, aanvraag: Aanvraag):
+        safe_user_part = safe_file_name(f'{aanvraag.student} ({aanvraag.bedrijf.name})-{aanvraag.versie}')
         return f'Beoordeling aanvraag {safe_user_part}.docx'
     def __merge_document(self, aanvraag: Aanvraag, preview = False)->str:
         output_filename = self.__get_output_filename(aanvraag)

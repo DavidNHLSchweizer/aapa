@@ -10,10 +10,10 @@ from process.general.mijlpaal_templates import ALL_EXAMINATORS, MijlpaalTemplate
 from storage.aapa_storage import AAPAStorage
 
 class FormCreatorException(Exception): pass
-class VerslagFormCreator:
-    """ class: VerslagFormCreator
+class VerslagVersionFormsCreator:
+    """ class: VerslagVersionFormCreator
 
-        Maakt beoordelingesformulieren voor verslagen,
+        Maakt beoordelingesformulieren voor individuele verslagen in de versie die bij dat verslag hoort.
     
     """
     def __init__(self, storage: AAPAStorage, forms_version: str):
@@ -32,7 +32,7 @@ class VerslagFormCreator:
     def mijlpalen(self)->set[MijlpaalType]:
         return set(self.forms_info.keys())
     def create_forms(self, verslag: Verslag, directory: str, preview=False)->list[tuple[str,MijlpaalType]]:                
-        """ Maakt formulieren aan.
+        """ Maakt beoordelingsformulieren aan.
 
             parameters
             ----------
@@ -106,3 +106,4 @@ class VerslagFormCreator:
                 continue
             results[mijlpaal_type] = self._mijlpaal_forms_info(mijlpaal_type)
         return results
+    

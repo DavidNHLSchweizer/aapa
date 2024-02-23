@@ -9,7 +9,7 @@ from data.classes.verslagen import Verslag
 from data.general.const import MijlpaalType
 from data.classes.studenten import Student
 from plugins.plugin import PluginBase
-from process.forms.creating.verslag_form_creator import VerslagFormCreator
+from process.forms.creating.verslag_version_forms_creator import VerslagVersionFormsCreator
 
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.main.aapa_processor import AAPARunnerContext
@@ -30,7 +30,7 @@ class TestPlugin(PluginBase):
         print(f'student: {student}')
         stud_dir = self.student_dir_queries.find_student_dir(student) 
         version = stud_dir.base_dir.forms_version
-        SVC = VerslagFormCreator(self.storage, version)
+        SVC = VerslagVersionFormsCreator(self.storage, version)
         for mijlpaal_type in MijlpaalType.verslag_types():
             if not mijlpaal_type in SVC.mijlpalen:
                 continue

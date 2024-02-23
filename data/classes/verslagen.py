@@ -23,7 +23,7 @@ class Verslag(MijlpaalGradeable):
         self.files.allow_multiple = True 
         self.cijfer = ''
     def summary(self)->str:
-        return f'{TSC.get_date_str(self.datum)}: {self.mijlpaal_type} ({self.kans}) {str(self.student)} ' +\
+        return f'{TSC.get_date_str(self.datum)}: {self.mijlpaal_type} ({self.kans}) {self.student.full_name} ' +\
               f'"{self.titel}" [{str(self.status)}]'
     def __str__(self):        
         s = self.summary()

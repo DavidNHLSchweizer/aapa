@@ -56,18 +56,21 @@ class VerslagFromZipImporter(VerslagImporter):
         log_warning(f'Student {student.full_name} is nog niet bekend in database. Dit wordt NIET verwacht!\nDefault waarden (zoals fake studentnummer) worden gebruikt,\nmaar controleer de database vóór verder te gaan!')
         student.stud_nr = self.studenten_queries.create_unique_student_nr(student=student)
         return student            
-    def _get_bedrijf(self, student: Student)->Bedrijf:
+    def _get_bedrijf_en_titel(self, student: Student)->tuple[Bedrijf, str]:
         aanvraag = self.aanvraag_queries.find_student_aanvraag(student)
         if not aanvraag:
             log_warning(f'Afstudeerbedrijf kan niet worden gevonden: Geen aanvraag gevonden voor student {student}.')
-            return None
-        return aanvraag.bedrijf
+            return (None,None)
+        return (aanvraag.bedrijf, aanvraag.titel)
     def _get_verslag_from_parsed(self, parsed: BBFilenameInZipParser.Parsed)->Verslag:
         mijlpaal_type=self._get_verslag_type(parsed.product_type)
         student=self._get_student(parsed.student_name, email=parsed.email)
-        bedrijf=self._get_bedrijf(student)
+        bedrijf,titel=self._get_bedrijf_en_titel(student)
+        if not bedrijf:
+            bedrijf=Bedrijf('Bedrijf onbekend...')
+        if not titel:
+            titel=Path(parsed.original_filename).stem
         kans=self._get_kans(student, mijlpaal_type)
-        titel=Path(parsed.original_filename).stem
         return Verslag(mijlpaal_type=mijlpaal_type, student=student,datum=parsed.datum,bedrijf=bedrijf,kans=kans,titel=titel)
     def get_verslagen(self, zip_filename: str)->dict[str, list[dict[Verslag,str,str,str]]]:
         #return per student (indexed on email): list of {verslag object, filename in zip, original filename}
