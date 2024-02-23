@@ -81,7 +81,7 @@ class AanvragenPipeline(Pipeline):
                 for aanvraag in aanvragen:
                     if self._process_aanvraag(aanvraag, preview, **kwargs):
                         n_processed += 1            
-                        self.log_aanvraag(aanvraag) 
+                        self.undo_log_aanvraag(aanvraag) 
             self.stop_logging()
             log_debug(MINOR_DEBUG_DIVIDER)
         return n_processed
@@ -94,6 +94,6 @@ class AanvraagCreatorPipeline(FilePipeline):
         return False
     def _store_new(self, aanvraag: Aanvraag):
         self.storage.create('aanvragen', aanvraag)
-        self.log_aanvraag(aanvraag)   
+        self.undo_log_aanvraag(aanvraag)   
     def _sorted(self, files: Iterable[Path]) -> Iterable[Path]:
         return sorted(files, key=os.path.getmtime)

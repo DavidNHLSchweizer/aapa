@@ -82,22 +82,27 @@ class UndoLog(AAPAclass):
         self._data.remove(object)
     def clear_aanvragen(self):
         self.aanvragen = []
+    def clear_verslagen(self):
+        self.verslagen = []
     def clear_files(self):
         self.files = []
+    def contains(self, obj: AAPAclass)->bool:
+        return self._data.contains(obj)
     @property
     def nr_aanvragen(self)->int:
-        return len(self.aanvragen)
+        return self._data.nr_items('aanvragen')
     @property
     def nr_verslagen(self)->int:
-        return len(self.verslagen)
+        return self._data.nr_items('verslagen')
     @property
     def nr_files(self)->int:
-        return len(self.files)
+        return self._data.nr_items('files')
     def is_empty(self, class_alias: str='')->bool:
         match class_alias:
             case 'aanvragen': return self.nr_aanvragen == 0
+            case 'verslagen': return self.nr_verslagen == 0
             case 'files': return self.nr_files == 0
-            case _: return self.nr_aanvragen == 0 and self.nr_files == 0
+            case _: return self._data.nr_items() == 0
     def __str_aanvragen(self)->str:
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
         result = f'{self.action} {date_str} [{self.user}] ({self.id})' 
@@ -108,8 +113,18 @@ class UndoLog(AAPAclass):
             can_undo_str = 'kan worden' if self.can_undo else ''
             result = f"{result} [{can_undo_str} teruggedraaid]"
             return result + '\n\t'+ '\n\t'.join([summary_string(aanvraag) for aanvraag in self.aanvragen])            
+    def __str_verslagen(self)->str:
+        date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
+        result = f'{self.action} {date_str} [{self.user}] ({self.id})' 
+        if self.is_empty('verslagen'):
+            return result + ' (geen verslagen)'
+        else:
+            result = result + f'!{self.nr_verslagen} {sop(self.nr_verslagen, "verslag", "verslagen")}'
+            can_undo_str = 'kan worden' if self.can_undo else ''
+            result = f"{result} [{can_undo_str} teruggedraaid]"
+            return result + '\n\t'+ '\n\t'.join([verslag.summary() for verslag in self.verslagen])            
     def __str__(self)->str:
-        return self.__str_aanvragen()
+        return self.__str_aanvragen() if self.processing_mode == AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN else self.__str_verslagen()
     def __eq__(self, value2: UndoLog)->bool:
         if not value2:
             return False
@@ -121,9 +136,13 @@ class UndoLog(AAPAclass):
             return False
         return True
         
-
     def summary(self)->str:
         log_debug(f'full action: {str(self)}')
         date_str = TSC.timestamp_to_str(self.date if self.date else datetime.datetime.now())
-        aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty('aanvragen') else 'geen'
-        return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen", False)})'
+        if self.processing_mode == AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN:
+            aanvr_str = f'{self.nr_aanvragen}' if not self.is_empty('aanvragen') else 'geen'
+            return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen", False)})'
+        else:
+            versl_str = f'{self.nr_verslagen}' if not self.is_empty('verslagen') else 'geen'
+            return f'{date_str} (gebruiker: {self.user}): {self.description} ({versl_str} {sop(self.nr_verslagenj, "verslag", "verslagen", False)})'
+    

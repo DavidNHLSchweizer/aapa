@@ -1,4 +1,4 @@
-from gc import get_debug
+from main.args import get_debug
 from main.options import AAPAConfigOptions, AAPAProcessingOptions, ArgumentOption, get_options_from_commandline
 from main.log import init_logging
 from process.general.preview import Preview

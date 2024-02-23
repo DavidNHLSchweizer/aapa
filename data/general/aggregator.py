@@ -14,6 +14,11 @@ class Aggregator(dict):
     @property
     def classes(self)->list[dict]:
         return self._classes
+    def nr_items(self, description: str='')->int:
+        if description:
+            return len(self.as_list(description))
+        else:            
+            return sum([self.nr_items(entry['attribute'])for entry in self._classes])
     def class_items(self)->list[Tuple[str, Any]]:
         return [(entry['class'], entry['attribute']) for entry in self.classes]
     def class_types(self)->list[Any]:
@@ -39,7 +44,7 @@ class Aggregator(dict):
             if item==object:
                 return True
         return False
-    def _add(self, object: Any):        
+    def _add(self, object: Any):
         self[self.__get_hash(object)]={'object': object, 'attribute': self.__get_class_attribute(object)}
     def add(self, object: Any):
         if isinstance(object, list):

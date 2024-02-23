@@ -15,6 +15,7 @@ class VerslagQueries(CRUDQueries):
             return self.crud.read_many({row['id'] for row in rows})
         return []
     def find_verslag(self, verslag: Verslag, error_margin_date=0)->Verslag:
+        self.crud.queries.ensure_key(verslag)
         self.get_crud(Student).queries.ensure_key(verslag.student)        
         stored = self.find_values_where('id', where_attributes=['student','mijlpaal_type'],
                                         where_values = [verslag.student.id, #NOTE: bedrijf kan niet vindbaar zijn voor "oude" verslagen

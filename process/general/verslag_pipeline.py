@@ -17,7 +17,7 @@ class VerslagenPipeline(Pipeline):
                  can_undo=True, verslagen: list[Verslag] = None):
         super().__init__(description, processors, storage, activity=activity, processing_mode=AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN, can_undo=can_undo)
         self.verslagen = verslagen if verslagen else self.__read_verslagen_from_storage()
-        self.__sort_aanvragen()     
+        self.__sort_verslagen()     
     def __read_verslagen_from_storage(self)->list[Verslag]:
         entry_states = self.processors[0].entry_states
         log_info(f'Start reading verslagen from database. Entry_states: {entry_states}')
@@ -26,7 +26,7 @@ class VerslagenPipeline(Pipeline):
                                        where_values=entry_states)
         log_info(f'End reading aanvragen from database. {len} aanvragen read.')
         return result
-    def __sort_aanvragen(self):
+    def __sort_verslagen(self):
         def comparekey(v: Verslag):
             if isinstance(v.datum, datetime.datetime):
                 return v.datum
@@ -80,7 +80,7 @@ class VerslagenPipeline(Pipeline):
                     log_info(f'Verslag {verslag.summary()}:', to_console=True)
                     if self._process_verslag(verslag, preview, **kwargs):
                         n_processed += 1            
-                        self.log_verslag(verslag) 
+                        self.undo_log_verslag(verslag) 
             self.stop_logging()
             log_debug(MINOR_DEBUG_DIVIDER)
         return n_processed
@@ -89,9 +89,10 @@ class VerslagCreatingPipeline(FilePipeline):
     def __init__(self, description: str, processor: VerslagImporter, storage: AAPAStorage, activity: UndoLog.Action):
         super().__init__(description, processor, storage, activity=activity, processing_mode=AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN, invalid_filetype=None)  
         self.verslag_queries:VerslagQueries = self.storage.queries('verslagen')
-    def _store_new(self, verslag: Verslag):
+    def _store_new(self, verslag: Verslag):        
         if stored := self.verslag_queries.find_verslag(verslag, config.get('directories', 'error_margin_date')):
             self.storage.update('verslagen', stored)
         else:
             self.storage.create('verslagen', verslag)
+        self.undo_log_verslag(verslag)   
     

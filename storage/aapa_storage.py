@@ -68,7 +68,9 @@ class AAPAStorage:
                 case EnsureKeyAction.ALREADY_THERE:
                     #note: this could still have set the key for the object
                     return
-                case EnsureKeyAction.KEY_CREATED: 
+                case EnsureKeyAction.KEY_CREATED|EnsureKeyAction.NOTHING: 
+                # case EnsureKeyAction.KEY_CREATED #NOTE: changed this because probably a bug, so far no side-effects, but take care
+                # it caused objects with key already set elsewehere to not be created.
                     crud.create(aapa_obj)
                 case _: pass
     def read(self, module: str, key: KeyClass|list[KeyClass])->StoredClass:

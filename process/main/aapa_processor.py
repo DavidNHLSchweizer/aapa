@@ -2,9 +2,9 @@ from datetime import datetime
 from general.fileutil import path_with_suffix
 from main.log import log_error, log_info, log_print, log_warning
 from process.general.const import AAPAaction
-from process.input.scan import process_directory, process_excel_file
+from process.input.import_aanvragen import scan_aanvraag_directory, process_excel_file
 from process.main.aapa_config import AAPAConfiguration
-from process.input.importing.import_bb_directory import import_bbdirectory
+from process.input.import_verslagen import process_bbdirectory
 from process.undo.undo_processor import undo_last
 from process.general.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
@@ -33,9 +33,9 @@ class AAPAProcessor:
                     if AAPAProcessingOptions.INPUTOPTIONS.EXCEL in processing_options.input_options and configuration.config_options.excel_in:
                         process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
                     if AAPAProcessingOptions.INPUTOPTIONS.SCAN in processing_options.input_options and (old_root := config.get('configuration', 'scanroot')): 
-                        process_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
+                        scan_aanvraag_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
                 if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode: 
-                    import_bbdirectory(configuration.config_options.bbinput_directory, configuration.config_options.root_directory, configuration.storage, preview=preview)                    
+                    process_bbdirectory(configuration.config_options.bbinput_directory, configuration.config_options.root_directory, configuration.storage, preview=preview)                    
             if AAPAaction.FORM in actions or AAPAaction.FULL in actions:
                 if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
                     process_aanvraag_forms(configuration.storage, configuration.output_directory, preview=preview)

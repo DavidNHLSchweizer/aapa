@@ -125,10 +125,6 @@ class VerslagFromZipImporter(VerslagImporter):
 
     def _create_file(self, verslag: Verslag, mp_dir: MijlpaalDirectory, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
         mijlpaal_directory_path = Path(mp_dir.directory) if mp_dir else Path(filename_to_create).parent
-        # if mp_dir:
-
-
-
         if preview:
             if not mijlpaal_directory_path.is_dir() and new_student:
                 if mp_dir:
@@ -188,11 +184,13 @@ class VerslagFromZipImporter(VerslagImporter):
         filename_to_create = student_entry['filename_to_create']
         stored_verslag = self._check_existing_verslag(student_entry['student_directory'], filename_to_create)
         log_debug(f'filename to create: {filename_to_create}')   
-        if stored_verslag:
-            log_warning(f'Verslag {stored_verslag.summary()} is al geregistreerd in de database.')
+        if stored_verslag:            
+            log_warning(f'Verslag {stored_verslag.summary()} is al geregistreerd in de database.\n\tWaarschijnlijk al eerder geimporteerd.')
             if not stored_verslag.files.find_filename(filename_to_create):
                 stored_verslag.register_file(filename_to_create,filetype=stored_verslag.mijlpaal_type.default_filetype(), mijlpaal_type=stored_verslag.mijlpaal_type)                    
                 new_verslag = stored_verslag
+            else:
+                return None
         if student_entry['stored'] and student_entry['existing']:
             log_warning(f'Bestand {File.display_file(filename_to_create)}\n\t bestaat al en is in database bekend. {overgeslagen}')
             return None
@@ -202,8 +200,7 @@ class VerslagFromZipImporter(VerslagImporter):
         if not stored_verslag:
             self._create_file(new_verslag, student_entry['mp_dir'], student_entry['filename_in_zip'], 
                               filename_to_create, new_student=current_verslag is None, preview=preview)
-        return new_verslag
-        
+        return new_verslag        
     def read_verslagen(self, zip_filename: str, preview: bool)->Iterable[Verslag]:
         #return generator ("list") of verslag objects
         log_debug(f'Start read_verslagen\n\t{zip_filename}')

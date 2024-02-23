@@ -33,16 +33,22 @@ class Pipeline:
     def start_logging(self):
         self.undo_log.start()
         log_debug(f'STARTING pipeline {self.undo_log}')
-    def log_aanvraag(self, aanvraag: Aanvraag):
+    def undo_log_aanvraag(self, aanvraag: Aanvraag):
         if aanvraag and aanvraag.status in Aanvraag.Status.valid_states():
             self.undo_log.add(aanvraag)
-    def log_verslag(self, verslag: Verslag):
+    def undo_log_verslag(self, verslag: Verslag):
         if verslag and verslag.status in Verslag.Status.valid_states():
             self.undo_log.add(verslag)
+            # the next is probably not necessary, since the files would be linked 
+            # to the verslag anyway
+            # for file in verslag.files:
+            #     if not self.undo_log.contains(file):
+            #         self.undo_log.add(file)
     def stop_logging(self):
         self.undo_log.stop()
         log_debug(f'STOPPING aanvragen/verslagen processor {self.undo_log}')
         if not self.undo_log.is_empty() and self.undo_log.can_undo:
+            log_debug(f'CREATING NEW UNDO LOG {self.undo_log}')
             self.storage.create('undo_logs', self.undo_log)
         self.storage.commit()
 
