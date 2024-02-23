@@ -1,7 +1,8 @@
 from data.classes.aanvragen import Aanvraag
 from data.classes.undo_logs import UndoLog
 from data.classes.files import File
-from data.classes.undo import UndoRecipe, UndoRecipeFactory
+from data.classes.undo_recipe import UndoAanvragenRecipe, UndoRecipe, UndoRecipeFactory
+from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from storage.queries.undo_logs import UndoLogQueries
 from general.fileutil import delete_if_exists, file_exists
@@ -10,9 +11,9 @@ from process.general.aanvraag_pipeline import AanvragenPipeline
 from process.general.aanvraag_processor import AanvraagProcessor
 class UndoException(Exception): pass
 
-class UndoRecipeProcessor(AanvraagProcessor):
+class UndoAanvragenProcessor(AanvraagProcessor):
     def __init__(self, undo_log: UndoLog):
-        self.recipe: UndoRecipe = UndoRecipeFactory().create(undo_log.action)
+        self.recipe: UndoAanvragenRecipe = UndoRecipeFactory().create(undo_log.action, processing_mode=AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN)
         self.files_to_forget = []
         self.undo_log = undo_log
         super().__init__(exit_state = self.recipe.final_state, description='Ongedaan maken')
@@ -59,7 +60,7 @@ class UndoRecipeProcessor(AanvraagProcessor):
         #     log_info(f'Verwijdering aanvraag {aanvraag.summary()} is voltooid.', to_console=True)
         return True
 
-def _process_delete_aanvragen(aanvragen: list[Aanvraag], storage: AAPAStorage):
+def process_delete_aanvragen(aanvragen: list[Aanvraag], storage: AAPAStorage):
     if not aanvragen:
         return        
     log_info(f'\tVerwijderen aanvragen uit database:', to_console=True)
@@ -68,57 +69,4 @@ def _process_delete_aanvragen(aanvragen: list[Aanvraag], storage: AAPAStorage):
         storage.delete('aanvragen', aanvraag)
     storage.commit()
     log_info(f'\tEinde verwijderen aanvragen uit database.', to_console=True)
-
-def __delete_file(file: File, storage: AAPAStorage):
-    log_print(f'\t\t{File.display_file(file.filename)}')
-    storage.delete('files', file)
-
-def _process_forget_invalid_files(undo_log: UndoLog, storage: AAPAStorage):
-    if not undo_log.files:
-        return        
-    log_info(f'\tVerwijderen overige gevonden pdf-bestanden uit database:', to_console=True)
-    for file in undo_log.files:
-        __delete_file(file, storage)
-    undo_log.clear_files()
-    storage.update('undo_logs', undo_log)
-    storage.commit()
-    log_info(f'\tEinde verwijderen overige gevonden pdf-bestanden uit database.', to_console=True)
-
-def _process_forget_files(files_to_forget: list[File], storage: AAPAStorage):
-    log_info(f'\tVerwijderen te vergeten bestanden uit database:', to_console=True)
-    for file in files_to_forget:
-        __delete_file(file, storage)
-    storage.commit()
-    log_info(f'\tEinde verwijderen te vergeten bestanden uit database.', to_console=True)
-
-def undo_last(storage: AAPAStorage, preview=False)->int:    
-    log_info('--- Ongedaan maken verwerking aanvragen ...', True)
-    queries : UndoLogQueries = storage.queries('undo_logs')
-    if not (undo_log:=queries.last_undo_log()):
-        log_error(f'Kan ongedaan te maken acties niet laden uit database.')
-        return None
-    nr_aanvragen = undo_log.nr_aanvragen 
-    processor = UndoRecipeProcessor(undo_log)
-       
-    # remember which aanvragen to delete, lists in undolog will be cleared by processing
-    aanvragen_to_delete = undo_log.aanvragen.copy() if processor.recipe.delete_aanvragen else None 
-        
-    pipeline = AanvragenPipeline('Ongedaan maken verwerking aanvragen', processor, storage, 
-                                  UndoLog.Action.UNDO, can_undo=False, aanvragen=undo_log.aanvragen.copy()) 
-                #copy is needed here because processing will remove aanvragen from the undo_log.aanvragen list
-                #at the end of the individual process call, so we cannot use the same list to determine the aanvragen to 
-                # process by the pipeline
-    result = pipeline.process(preview=preview) 
-    if result == nr_aanvragen:
-        undo_log.can_undo = False
-    storage.update('undo_logs', undo_log)
-    storage.commit()
-    log_info('--- Einde ongedaan maken verwerking aanvragen.', True)
-    if aanvragen_to_delete:
-        _process_delete_aanvragen(aanvragen_to_delete, storage)
-    if processor.files_to_forget:
-        _process_forget_files(processor.files_to_forget, storage)
-    if processor.recipe.forget_invalid_files:
-        _process_forget_invalid_files(undo_log, storage)
-    return result
 

@@ -102,4 +102,4 @@ class AapaButtonsPanel(Static):
         self.button(next_button_id).classes = 'next'
         self.button(next_button_id).focus()
         self.button('mail').disabled = processing_mode==AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN        
-        self.button('undo').disabled = not undo_log or processing_mode==AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN
+        self.button('undo').disabled = not undo_log #or processing_mode==AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN

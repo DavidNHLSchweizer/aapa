@@ -44,7 +44,7 @@ class VerslagenPipeline(Pipeline):
         return self._processors
     def _process_verslag_processor(self, processor: VerslagProcessor, verslag: Verslag, preview=False, **kwargs)->bool:
         try:
-            result = processor.must_process(verslag, preview=preview, **kwargs) and processor.process(verslag, preview, **kwargs)                                                
+            result = (MP:=processor.must_process(verslag, preview=preview, **kwargs)) and processor.process(verslag, preview, **kwargs)                                                
             log_debug(f'_process_verslag_processor: {result}')
             return result
         except Exception as E:

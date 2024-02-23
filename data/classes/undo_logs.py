@@ -144,5 +144,5 @@ class UndoLog(AAPAclass):
             return f'{date_str} (gebruiker: {self.user}): {self.description} ({aanvr_str} {sop(self.nr_aanvragen, "aanvraag", "aanvragen", False)})'
         else:
             versl_str = f'{self.nr_verslagen}' if not self.is_empty('verslagen') else 'geen'
-            return f'{date_str} (gebruiker: {self.user}): {self.description} ({versl_str} {sop(self.nr_verslagenj, "verslag", "verslagen", False)})'
+            return f'{date_str} (gebruiker: {self.user}): {self.description} ({versl_str} {sop(self.nr_verslagen, "verslag", "verslagen", False)})'
     

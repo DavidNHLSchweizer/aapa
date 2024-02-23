@@ -1,17 +1,17 @@
 from datetime import datetime
 from general.fileutil import path_with_suffix
-from main.log import log_error, log_info, log_print, log_warning
+from main.log import log_error, log_info, log_print, log_warning, not_implemented
 from process.general.const import AAPAaction
 from process.input.import_aanvragen import scan_aanvraag_directory, process_excel_file
 from process.main.aapa_config import AAPAConfiguration
 from process.input.import_verslagen import process_bbdirectory
-from process.undo.undo_processor import undo_last
 from process.general.report_aanvragen import report_aanvragen_XLS
 from process.mail.mail import process_graded
 from process.forms.forms import process_aanvraag_forms, process_verslag_forms
 from main.options import AAPAOptions, AAPAProcessingOptions, report_options
 from main.versie import banner
 from main.config import config
+from process.undo.undo import undo_last_aanvragen, undo_last_verslagen
 from storage.aapa_storage import AAPAStorage
 
 class AAPAProcessor:
@@ -42,9 +42,15 @@ class AAPAProcessor:
                 if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode:
                     process_verslag_forms(configuration.storage, preview=preview)
             if AAPAaction.MAIL in actions or AAPAaction.FULL in actions:
-                process_graded(configuration.storage, preview=preview)
+                if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
+                    process_graded(configuration.storage, preview=preview)
+                if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode:
+                    not_implemented(f'Mail is niet geimmplementeerd voor verslagen')
             if AAPAaction.UNDO in actions:
-                undo_last(configuration.storage, preview=preview)
+                if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
+                    undo_last_aanvragen(configuration.storage, preview=preview)
+                if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode:
+                    undo_last_verslagen(configuration.storage, preview=preview)
             if AAPAaction.REPORT in actions:
                 report_aanvragen_XLS(configuration.storage, 
                                      path_with_suffix(configuration.config_options.report_filename, '.xlsx'))

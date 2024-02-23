@@ -134,7 +134,7 @@ class AAPAApp(App):
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
             queries : UndoLogQueries = configuration.storage.queries('undo_logs')
-            self.last_action = queries.last_undo_log()
+            self.last_action = queries.last_undo_log(self.processing_mode)
             log_debug(f'Refresh last {self.last_action}')
             return self.last_action
         log_debug('Refresh last none')

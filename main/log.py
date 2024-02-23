@@ -169,6 +169,9 @@ def log_exception(msg: str, exception: type[Exception]):
         _logger.error(f'EXCEPTION:{msg}')
     raise exception(msg)
 
+def not_implemented(message: str):
+    log_error(message)
+    
 class DefaultConsoleFactory(ConsoleFactory):
     def create(self)->PrintFuncs:
         return PrintFuncs(console_print, console_info, console_warning, console_error, console_debug)

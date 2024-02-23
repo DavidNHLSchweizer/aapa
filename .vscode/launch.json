@@ -162,6 +162,9 @@
             "args": [
                 "undo",
                 "-preview",
+                "--onedrive=d:\\onedrive",
+                "--processing_mode=V",
+                "--database=testing123.db",
                 "-debug",
             ]
         },
