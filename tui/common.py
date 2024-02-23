@@ -48,7 +48,7 @@ ToolTips = {'config':
                 },
             'buttons':
                 {'scan': 'Importeer data volgens Input Options (aanvragen in Excel en/of root-directory/subdirectories en/of verslagen in Blackboard .ZIP-file)',
-                'form': 'Maak aanvraagformulieren',
+                'form': 'Maak beoordelingsformulieren',
                 'mail': 'Zet mails klaar voor beoordeelde aanvragen',
                 'undo': 'Maak de laatste actie (scan,form of mail) ongedaan',
                 'report': 'Schrijf alle aanvragen in de detabase naar een Excel-bestand',

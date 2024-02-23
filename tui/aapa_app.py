@@ -94,6 +94,7 @@ class AAPAApp(App):
     @processing_mode.setter
     def processing_mode(self,value: AAPAProcessingOptions.PROCESSINGMODE):
         self.process_form.processing_mode = value
+        self.post_message(EnableButtons())
     def _init_onedrive_root(self):
         processing_options:AAPAProcessingOptions = get_options_from_commandline(ArgumentOption.PROCES)
         if processing_options.onedrive:
@@ -140,7 +141,7 @@ class AAPAApp(App):
         return None
     async def enable_buttons(self):
         self.refresh_last_action()
-        self.query_one(AapaButtonsPanel).enable_action_buttons(self.last_action)
+        self.query_one(AapaButtonsPanel).enable_action_buttons(self.last_action, processing_mode=self.processing_mode)
     async def action_undo(self):
         if self.query_one(AapaProcessingForm).preview:
             await self.run_AAPA(AAPAaction.UNDO)
@@ -191,8 +192,9 @@ class AAPAApp(App):
         result = getattr(widget.styles, attribute, None)
         widget.styles.animate(attribute, target, duration = duration*(1+ random.random()))
         return result
-    def on_processing_mode_changed(self, message: ProcessingModeChanged):
-        self.config_form.processing_mode = message.mode      
+    async def on_processing_mode_changed(self, message: ProcessingModeChanged):
+        self.config_form.processing_mode = message.mode
+        self.post_message(EnableButtons())
     def action_barbie(self):
         BARBIE = '#e0218a'
         self.barbie = not self.barbie

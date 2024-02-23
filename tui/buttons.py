@@ -3,6 +3,7 @@ from textual.widgets import Static, Button, RadioSet, RadioButton
 from textual.containers import Horizontal
 from data.classes.undo_logs import UndoLog
 from main.log import log_debug
+from main.options import AAPAProcessingOptions
 
 from tui.general.button_bar import ButtonBar, ButtonDef
 from tui.general.utils import id2selector
@@ -90,7 +91,7 @@ class AapaButtonsPanel(Static):
         log_debug ('endmounting')
     def button(self, id: str)->Button:
         return self.query_one(id2selector(id), Button)
-    def enable_action_buttons(self, undo_log: UndoLog):
+    def enable_action_buttons(self, undo_log: UndoLog, processing_mode: AAPAProcessingOptions.PROCESSINGMODE):
         button_ids = {UndoLog.Action.INPUT: {'button': 'scan', 'next': 'form'},
                       UndoLog.Action.FORM: {'button': 'form', 'next': 'mail'}, 
                       UndoLog.Action.MAIL: {'button': 'mail', 'next': 'scan'}
@@ -100,4 +101,5 @@ class AapaButtonsPanel(Static):
             self.button(button_id).classes = 'not_next'
         self.button(next_button_id).classes = 'next'
         self.button(next_button_id).focus()
-        self.button('undo').disabled = not undo_log
+        self.button('mail').disabled = processing_mode==AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN        
+        self.button('undo').disabled = not undo_log or processing_mode==AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN
