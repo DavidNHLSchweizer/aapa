@@ -204,10 +204,10 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "tests.plugins.test_form_creator",
+                "tests.plugins.temp_new",
                 "-stop",
                 "-debug",
-                "--database=testing123.db",
+                "--database=testing345.db",
                 "--onedrive=d:\\onedrive",
             ]
         },
