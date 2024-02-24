@@ -14,15 +14,15 @@ from general.classutil import classname
 from main.log import log_debug
 
 class DetailRecsTableMapper(TableMapper):
-    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec], 
-                 main_key: str, detail_key:str):
+    def __init__(self, database: Database, table: TableDefinition, 
+                 class_type: type[DetailRec], 
+                 main_key: str):
         self.main_key = main_key
-        self.detail_key=detail_key
         super().__init__(database, table, class_type)
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case self.main_key: return ColumnMapper(column_name,attribute_name='main_key')
-            case self.detail_key: return ColumnMapper(column_name,attribute_name='detail_key')
+            case 'class_code': return ColumnMapper(column_name,db2obj=, obj2db=)
             case  _: super()._init_column_mapper(column_name, database)
    
 class DetailRecsCRUD(CRUD):
