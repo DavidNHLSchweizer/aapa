@@ -22,7 +22,6 @@ class DetailRecsTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case self.main_key: return ColumnMapper(column_name,attribute_name='main_key')
-            case 'class_code': return ColumnMapper(column_name,db2obj=, obj2db=)
             case  _: super()._init_column_mapper(column_name, database)
    
 class DetailRecsCRUD(CRUD):

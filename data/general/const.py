@@ -87,6 +87,19 @@ class FileType(IntEnum):
     @staticmethod
     def invalid_file_types()->set[FileType]:
         return {FileType.INVALID_PDF, FileType.INVALID_DOCX}
+    def default_suffix(self)->str:
+        match self:
+            case self.UNKNOWN: return '.unknown'
+            case self.INVALID_DIR: return ''
+            case self.INVALID_DOCX|self.GRADE_FORM_DOCX|self.GRADE_FORM_EX1_DOCX|self.GRADE_FORM_EX2_DOCX|self.GRADE_FORM_EX1_DOCX|self.GENERAL_DOCX:
+                return '.docx'
+            case self.INVALID_PDF|self.AANVRAAG_PDF|self.COPIED_PDF|self.GRADE_FORM_PDF|self.GENERAL_PDF:
+                return '.pdf'
+            case self.DIFFERENCE_HTML: 
+                return '.html'
+            case self.PVA|self.ONDERZOEKSVERSLAG|self.TECHNISCH_VERSLAG|self.EIND_VERSLAG:
+                return '.pdf'
+            case _: return f'.onbekend_{self}'           
     @staticmethod
     def doc()->str:
         return "\n".join([f'{ft.value:2} (FileType.{ft.name}): {str(ft)}' for ft in FileType])  

@@ -12,7 +12,7 @@ from typing import Type
 class DetailRec:
     main_key: int 
     detail_key: int
-    def as_list(self)->list[int]:
+    def as_list(self)->list[int|str]:
         return [self.main_key, self.detail_key]
 DetailRecs = list[DetailRec]
 
@@ -21,19 +21,4 @@ class DetailRecData:
     aggregator_name: str
     detail_aggregator_key: str
     detail_rec_type: Type[DetailRec]    
-    
-@dataclass
-class DetailRec2:
-    main_key: int 
-    detail_key: int
-    class_code: str
-    def as_list(self)->list[int]:
-        return [self.main_key, self.detail_key]
-DetailRecs2 = list[DetailRec2]
-
-@dataclass
-class DetailRecData2:
-    aggregator_name: str
-    detail_aggregator_key: str
-    detail_rec_type: Type[DetailRec2]    
     

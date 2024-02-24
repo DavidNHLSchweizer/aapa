@@ -1,5 +1,6 @@
 from storage.general.CRUDs import CRUDColumnMapper, CRUD, CRUDQueries
 from storage.general.detail_rec_crud import DetailRecsCRUD
+from storage.general.detail_rec_crud2 import DetailRecsCRUD2
 from storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.classes.database import Database
 from general.classutil import classname
@@ -9,7 +10,7 @@ class ExtendedCRUD(CRUD):
     def __init__(self, database: Database, class_type: StoredClass):
         super().__init__(database, class_type)
         self._crud = self.get_crud(class_type) 
-        self.details = DetailRecsCRUD(database, class_type) if self._data.details_data else None
+        self.details = DetailRecsCRUD2(database, class_type) if self._data.details_data else None
     def __check_valid(self, aapa_obj, msg: str):
         if not isinstance(aapa_obj, StoredClass):
             raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')    

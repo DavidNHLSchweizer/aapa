@@ -1,7 +1,9 @@
-from database.aapa_database import AanvraagTableDefinition, AanvraagFilesTableDefinition
+from data.general.detail_rec2 import DetailRec2, DetailRecData2
+from database.aapa_database import AanvraagDetailsTableDefinition, AanvraagTableDefinition, AanvraagFilesTableDefinition
 from data.classes.aanvragen import Aanvraag
 from data.general.detail_rec import DetailRec, DetailRecData
 from storage.general.detail_rec_crud import DetailRecsTableMapper
+from storage.general.detail_rec_crud2 import DetailRecsTableMapper2
 from storage.general.extended_crud import ExtendedCRUD
 from storage.general.mappers import ColumnMapper
 from storage.general.CRUDs import register_crud
@@ -17,10 +19,10 @@ class AanvragenTableMapper(MijlpaalGradeableTableMapper):
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
   
-class AanvragenFilesDetailRec(DetailRec): pass
-class AanvragenFilesTableMapper(DetailRecsTableMapper):
+class AanvragenDetailRec2(DetailRec2): pass
+class AanvragenDetailsTableMapper(DetailRecsTableMapper2):
     def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
-        super().__init__(database, table, class_type, 'aanvraag_id','file_id')
+        super().__init__(database, table, class_type, 'aanvraag_id')
 
 register_crud(class_type=Aanvraag, 
                 table=AanvraagTableDefinition(), 
@@ -28,13 +30,13 @@ register_crud(class_type=Aanvraag,
                 queries_type=AanvraagQueries,        
                 mapper_type=AanvragenTableMapper, 
                 details_data=
-                    [DetailRecData(aggregator_name='files', detail_aggregator_key='files', 
-                                   detail_rec_type=AanvragenFilesDetailRec),
+                    [DetailRecData2(aggregator_name='files', 
+                                   detail_rec_type=AanvragenDetailRec2),
                     ]
                 )
-register_crud(class_type=AanvragenFilesDetailRec, 
-                table=AanvraagFilesTableDefinition(), 
-                mapper_type=AanvragenFilesTableMapper, 
+register_crud(class_type=AanvragenDetailRec2, 
+                table=AanvraagDetailsTableDefinition(), 
+                mapper_type=AanvragenDetailsTableMapper, 
                 autoID=False,
                 main=False
                 )
