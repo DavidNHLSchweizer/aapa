@@ -32,9 +32,9 @@ class TestPlugin(PluginBase):
         print(b)
         for file in b.files.files:
             print(File.display_file(file.filename))
-        # self.storage.delete('aanvragen', b)
-        # c = self.storage.read('aanvragen',  a.id)
-        # print(c)
+        self.storage.delete('aanvragen', b)
+        c = self.storage.read('aanvragen',  a.id)
+        print(c)
     def test_undologs(self, RD: RandomData):
         undo=self.storage.read('undo_logs', 60)
         print(undo)
@@ -42,7 +42,7 @@ class TestPlugin(PluginBase):
             print(File.display_file(file.filename))
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
         RD = RandomData(self.storage)
-        # self.test_aanvragen(RD)
+        self.test_aanvragen(RD)
         self.test_undologs(RD)
         self.database.commit()
         return True
