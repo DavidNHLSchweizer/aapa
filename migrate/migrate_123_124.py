@@ -1,12 +1,19 @@
 from dataclasses import dataclass
 from enum import Enum, IntEnum, auto
+from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
+from data.classes.mijlpaal_directories import MijlpaalDirectory
+from data.classes.verslagen import Verslag
+from data.general.class_codes import ClassCodes
 from data.general.const import VerslagStatus
-from database.aapa_database import StudentVerslagenOverzichtDefinition, UndoLogTableDefinition, UndoLogVerslagenTableDefinition, VerslagTableDefinition
-from database.classes.sql_table import SQLcreateTable
-from database.classes.sql_view import SQLcreateView
+from database.aapa_database import AanvraagDetailsTableDefinition, AanvragenFileOverzichtDefinition,AanvragenFileOverzichtDefinition, MijlpaalDirectoriesDetailsTableDefinition,StudentDirectoriesDetailsTableDefinition, StudentDirectoriesFileOverzichtDefinition,StudentMijlpaalDirectoriesOverzichtDefinition,StudentVerslagenOverzichtDefinition,  UndoLogTableDefinition,  UndologsDetailsTableDefinition, VerslagTableDefinition, VerslagenDetailsTableDefinition
+from database.classes.sql_table import SQLcreateTable, SQLdropTable
+from database.classes.sql_view import SQLcreateView, SQLdropView
 from main.options import AAPAProcessingOptions
+from migrate.m124.obsolete import AanvraagFilesTableDefinition, MijlpaalDirectory_FilesTableDefinition, StudentDirectory_DirectoriesTableDefinition, UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, UndoLogVerslagenTableDefinition, VerslagFilesTableDefinition, oldAanvragenFileOverzichtDefinition, oldStudentDirectoriesFileOverzichtDefinition, oldStudentMijlpaalDirectoriesOverzichtDefinition, oldStudentVerslagenOverzichtDefinition
 from migrate.migrate import JsonData, modify_table
 from database.classes.database import Database
+import database.classes.dbConst as dbc
  
 class M124JsonData(JsonData):
     class KEY(Enum):
@@ -40,7 +47,7 @@ translation= {
 
 def modify_verslag_status(database: Database):
     print('modifying VERSLAGEN table.')
-    database.drop_view(StudentVerslagenOverzichtDefinition()) # to be sure, will be restored in add_views
+    database.drop_view(oldStudentVerslagenOverzichtDefinition()) # to be sure, will be restored in add_views
     database._execute_sql_command('alter table VERSLAGEN RENAME TO OLD_VERSLAGEN')
     print('creating the new table')
     verslagen_table = VerslagTableDefinition() 
@@ -79,11 +86,76 @@ def modify_undo_logs(database: Database):
 
 def add_views(database: Database):
     print('modify view STUDENT_VERSLAGEN_OVERZICHT')
-    database.drop_view(StudentVerslagenOverzichtDefinition())
-    database.execute_sql_command(SQLcreateView(StudentVerslagenOverzichtDefinition()))    
+    database.drop_view(oldStudentVerslagenOverzichtDefinition())
+    database.execute_sql_command(SQLcreateView(oldStudentVerslagenOverzichtDefinition()))    
     print('ready ')
-    
 
+#next part is the re-building of details vies
+#om pragmatic reasons (plugins were written for old situation, not necess to rewrite)
+#this is done after phase 3
+def _drop_views(database: Database):
+    database.execute_sql_command(SQLdropView(oldAanvragenFileOverzichtDefinition()))
+    database.execute_sql_command(SQLdropView(oldStudentDirectoriesFileOverzichtDefinition()))
+    database.execute_sql_command(SQLdropView(oldStudentVerslagenOverzichtDefinition()))
+    database.execute_sql_command(SQLdropView(oldStudentMijlpaalDirectoriesOverzichtDefinition()))
+    database.execute_sql_command(SQLdropView(AanvragenFileOverzichtDefinition()))
+    database.execute_sql_command(SQLdropView(StudentDirectoriesFileOverzichtDefinition()))
+    database.execute_sql_command(SQLdropView(StudentVerslagenOverzichtDefinition()))
+    database.execute_sql_command(SQLdropView(StudentMijlpaalDirectoriesOverzichtDefinition()))
+def _create_aanvragen(database: Database):
+    database.execute_sql_command(SQLdropTable(AanvraagDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(AanvraagDetailsTableDefinition()))
+    database._execute_sql_command(
+        f'INSERT into AANVRAGEN_DETAILS(aanvraag_id,detail_id,class_code) select aanvraag_id,file_id,"{ClassCodes.classtype_to_code(File)}" from AANVRAGEN_FILES')
+def _create_mijlpaal_directories(database: Database):
+    database.execute_sql_command(SQLdropTable(MijlpaalDirectoriesDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(MijlpaalDirectoriesDetailsTableDefinition()))
+    database._execute_sql_command(
+        f'INSERT into MIJLPAAL_DIRECTORIES_DETAILS(mp_dir_id,detail_id,class_code) select mp_dir_id,file_id,"{ClassCodes.classtype_to_code(File)}" from MIJLPAAL_DIRECTORY_FILES')     
+def _create_student_directories(database: Database):
+    database.execute_sql_command(SQLdropTable(StudentDirectoriesDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(StudentDirectoriesDetailsTableDefinition()))
+    database._execute_sql_command(
+        f'INSERT into STUDENT_DIRECTORIES_DETAILS(stud_dir_id,detail_id,class_code) select stud_dir_id,mp_dir_id,"{ClassCodes.classtype_to_code(MijlpaalDirectory)}" from STUDENT_DIRECTORY_DIRECTORIES')
+def _create_undologs(database: Database):
+    database.execute_sql_command(SQLdropTable(UndologsDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(UndologsDetailsTableDefinition()))
+    database._execute_sql_command(
+        f'INSERT into UNDOLOGS_DETAILS(log_id,detail_id,class_code) select log_id,aanvraag_id,"{ClassCodes.classtype_to_code(Aanvraag)}" from UNDOLOGS_AANVRAGEN')
+    database._execute_sql_command(
+        f'INSERT into UNDOLOGS_DETAILS(log_id,detail_id,class_code) select log_id,file_id,"{ClassCodes.classtype_to_code(File)}" from UNDOLOGS_FILES')
+    database._execute_sql_command(
+        f'INSERT into UNDOLOGS_DETAILS(log_id,detail_id,class_code) select log_id,verslag_id,"{ClassCodes.classtype_to_code(Verslag)}" from UNDOLOGS_VERSLAGEN')
+def _create_verslagen(database: Database):
+    database.execute_sql_command(SQLdropTable(VerslagenDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(VerslagenDetailsTableDefinition()))
+    database._execute_sql_command(
+        f'INSERT into VERSLAGEN_DETAILS(verslag_id,detail_id,class_code) select verslag_id,file_id,"{ClassCodes.classtype_to_code(File)}" from VERSLAGEN_FILES')
+def _drop_old_tables(database: Database):
+    database.execute_sql_command(SQLdropTable(UndoLogAanvragenTableDefinition()))
+    database.execute_sql_command(SQLdropTable(UndoLogVerslagenTableDefinition()))
+    database.execute_sql_command(SQLdropTable(UndoLogFilesTableDefinition()))
+    database.execute_sql_command(SQLdropTable(AanvraagFilesTableDefinition()))
+    database.execute_sql_command(SQLdropTable(VerslagFilesTableDefinition()))
+    database.execute_sql_command(SQLdropTable(AanvraagFilesTableDefinition()))
+    database.execute_sql_command(SQLdropTable(MijlpaalDirectory_FilesTableDefinition()))
+    database.execute_sql_command(SQLdropTable(StudentDirectory_DirectoriesTableDefinition()))    
+def _create_views(database: Database):
+    database.execute_sql_command(SQLcreateView(AanvragenFileOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(StudentVerslagenOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(StudentMijlpaalDirectoriesOverzichtDefinition()))
+
+def migrate_after_phase_3(database: Database):
+    _drop_views(database)
+    _create_aanvragen(database)
+    _create_mijlpaal_directories(database)
+    _create_student_directories(database)
+    _create_undologs(database)
+    _create_verslagen(database)
+    _drop_old_tables(database)
+    _create_views(database)
+    database.commit()
 
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
@@ -92,8 +164,10 @@ def migrate_database(database: Database, phase = 42):
         delete_verslagen(database)
         add_views(database)
         M124JsonData().execute(database, phase)
+        if phase > 3:
+            migrate_after_phase_3(database)
 
 def after_migrate(database_name: str, debug=False, phase=42):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.
-         # 
         
+         # 
