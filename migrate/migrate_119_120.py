@@ -1,8 +1,8 @@
 import datetime
 import re
 from typing import Tuple
-from database.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
-        StudentDirectoryTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
+from database.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoriesTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
+        StudentDirectoriesTableDefinition, VerslagFilesTableDefinition, VerslagenTableDefinition, \
         create_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student
@@ -58,12 +58,12 @@ def _update_roots_table(database:Database):
 
 def create_mijlpalen_tables(database: Database):
     print('toevoegen nieuwe tabel VERSLAGEN en VERSLAG_FILES')
-    database.execute_sql_command(SQLcreateTable(VerslagTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(VerslagenTableDefinition()))
     database.execute_sql_command(SQLcreateTable(VerslagFilesTableDefinition()))
     print('toevoegen nieuwe STUDENT_DIRECTORY en gerelateerde tabellen')
-    database.execute_sql_command(SQLcreateTable(StudentDirectoryTableDefinition()))             
+    database.execute_sql_command(SQLcreateTable(StudentDirectoriesTableDefinition()))             
     database.execute_sql_command(SQLcreateTable(StudentDirectory_DirectoriesTableDefinition())) 
-    database.execute_sql_command(SQLcreateTable(MijlpaalDirectoryTableDefinition()))             
+    database.execute_sql_command(SQLcreateTable(MijlpaalDirectoriesTableDefinition()))             
     database.execute_sql_command(SQLcreateTable(MijlpaalDirectory_FilesTableDefinition()))        
 
     print('--- klaar toevoegen nieuwe tabellen')

@@ -9,17 +9,17 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from storage.aapa_storage import AAPAStorage
-from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.aanvragen import AanvragenQueries
 from storage.queries.files import FilesQueries
-from storage.queries.student_directories import StudentDirectoryQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
+from storage.queries.studenten import StudentenQueries
 from general.fileutil import file_exists
 from main.config import config
 from main.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.student_dir_builder import SDB, StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
-from storage.queries.verslagen import VerslagQueries
+from storage.queries.verslagen import VerslagenQueries
 
 class VerslagParseException(Exception): pass
 
@@ -30,10 +30,10 @@ class VerslagFromZipImporter(VerslagImporter):
         self.sdb = SDB(storage)
         self.reader = BBZipFileReader()
         self.root_directory = root_directory
-        self.verslag_queries:VerslagQueries = self.storage.queries('verslagen')
-        self.student_directory_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
-        self.studenten_queries: StudentQueries = self.storage.queries('studenten')
-        self.aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
+        self.verslag_queries:VerslagenQueries = self.storage.queries('verslagen')
+        self.student_directory_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
+        self.studenten_queries: StudentenQueries = self.storage.queries('studenten')
+        self.aanvraag_queries:AanvragenQueries = self.storage.queries('aanvragen')
         self.files_queries: FilesQueries = self.storage.queries('files')
 
     def _get_verslag_type(self, product_type: str)->MijlpaalType:

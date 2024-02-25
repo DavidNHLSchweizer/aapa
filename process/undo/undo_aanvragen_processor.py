@@ -4,7 +4,7 @@ from data.classes.files import File
 from data.classes.undo_recipe import UndoAanvragenRecipe, UndoRecipe, UndoRecipeFactory
 from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
-from storage.queries.undo_logs import UndoLogQueries
+from storage.queries.undo_logs import UndoLogsQueries
 from general.fileutil import delete_if_exists, file_exists
 from main.log import log_error, log_info, log_print, log_warning
 from process.general.aanvraag_pipeline import AanvragenPipeline

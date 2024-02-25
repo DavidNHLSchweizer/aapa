@@ -6,7 +6,7 @@ from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.verslagen import Verslag
 from data.general.class_codes import ClassCodes
 from data.general.const import VerslagStatus
-from database.aapa_database import AanvraagDetailsTableDefinition, AanvragenFileOverzichtDefinition,AanvragenFileOverzichtDefinition, MijlpaalDirectoriesDetailsTableDefinition,StudentDirectoriesDetailsTableDefinition, StudentDirectoriesFileOverzichtDefinition,StudentMijlpaalDirectoriesOverzichtDefinition,StudentVerslagenOverzichtDefinition,  UndoLogTableDefinition,  UndologsDetailsTableDefinition, VerslagTableDefinition, VerslagenDetailsTableDefinition
+from database.aapa_database import AanvraagDetailsTableDefinition, AanvragenFileOverzichtDefinition,AanvragenFileOverzichtDefinition, MijlpaalDirectoryDetailsTableDefinition,StudentDirectoryDetailsTableDefinition, StudentDirectoriesFileOverzichtDefinition,StudentMijlpaalDirectoriesOverzichtDefinition,StudentVerslagenOverzichtDefinition,  UndoLogsTableDefinition,  UndologDetailsTableDefinition, VerslagenTableDefinition, VerslagDetailsTableDefinition
 from database.classes.sql_table import SQLcreateTable, SQLdropTable
 from database.classes.sql_view import SQLcreateView, SQLdropView
 from main.options import AAPAProcessingOptions
@@ -50,7 +50,7 @@ def modify_verslag_status(database: Database):
     database.drop_view(oldStudentVerslagenOverzichtDefinition()) # to be sure, will be restored in add_views
     database._execute_sql_command('alter table VERSLAGEN RENAME TO OLD_VERSLAGEN')
     print('creating the new table')
-    verslagen_table = VerslagTableDefinition() 
+    verslagen_table = VerslagenTableDefinition() 
     database.execute_sql_command(SQLcreateTable(verslagen_table))
     #copying the data
     database._execute_sql_command('insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type,cijfer)'+ \
@@ -79,7 +79,7 @@ def _copy_undolog_data(database: Database, old_table_name: str, new_table_name: 
 
 def modify_undo_logs(database: Database):
     print(f'adding "processing_mode" to UNDOLOGS')
-    modify_table(database, UndoLogTableDefinition(), _copy_undolog_data)    
+    modify_table(database, UndoLogsTableDefinition(), _copy_undolog_data)    
     # add new UNDOLOG_VERSLAGEN table    
     database.execute_sql_command(SQLcreateTable(UndoLogVerslagenTableDefinition()))  
     print('ready')    
@@ -108,18 +108,18 @@ def _create_aanvragen(database: Database):
     database._execute_sql_command(
         f'INSERT into AANVRAGEN_DETAILS(aanvraag_id,detail_id,class_code) select aanvraag_id,file_id,"{ClassCodes.classtype_to_code(File)}" from AANVRAGEN_FILES')
 def _create_mijlpaal_directories(database: Database):
-    database.execute_sql_command(SQLdropTable(MijlpaalDirectoriesDetailsTableDefinition()))
-    database.execute_sql_command(SQLcreateTable(MijlpaalDirectoriesDetailsTableDefinition()))
+    database.execute_sql_command(SQLdropTable(MijlpaalDirectoryDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(MijlpaalDirectoryDetailsTableDefinition()))
     database._execute_sql_command(
         f'INSERT into MIJLPAAL_DIRECTORIES_DETAILS(mp_dir_id,detail_id,class_code) select mp_dir_id,file_id,"{ClassCodes.classtype_to_code(File)}" from MIJLPAAL_DIRECTORY_FILES')     
 def _create_student_directories(database: Database):
-    database.execute_sql_command(SQLdropTable(StudentDirectoriesDetailsTableDefinition()))
-    database.execute_sql_command(SQLcreateTable(StudentDirectoriesDetailsTableDefinition()))
+    database.execute_sql_command(SQLdropTable(StudentDirectoryDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(StudentDirectoryDetailsTableDefinition()))
     database._execute_sql_command(
         f'INSERT into STUDENT_DIRECTORIES_DETAILS(stud_dir_id,detail_id,class_code) select stud_dir_id,mp_dir_id,"{ClassCodes.classtype_to_code(MijlpaalDirectory)}" from STUDENT_DIRECTORY_DIRECTORIES')
 def _create_undologs(database: Database):
-    database.execute_sql_command(SQLdropTable(UndologsDetailsTableDefinition()))
-    database.execute_sql_command(SQLcreateTable(UndologsDetailsTableDefinition()))
+    database.execute_sql_command(SQLdropTable(UndologDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(UndologDetailsTableDefinition()))
     database._execute_sql_command(
         f'INSERT into UNDOLOGS_DETAILS(log_id,detail_id,class_code) select log_id,aanvraag_id,"{ClassCodes.classtype_to_code(Aanvraag)}" from UNDOLOGS_AANVRAGEN')
     database._execute_sql_command(
@@ -127,8 +127,8 @@ def _create_undologs(database: Database):
     database._execute_sql_command(
         f'INSERT into UNDOLOGS_DETAILS(log_id,detail_id,class_code) select log_id,verslag_id,"{ClassCodes.classtype_to_code(Verslag)}" from UNDOLOGS_VERSLAGEN')
 def _create_verslagen(database: Database):
-    database.execute_sql_command(SQLdropTable(VerslagenDetailsTableDefinition()))
-    database.execute_sql_command(SQLcreateTable(VerslagenDetailsTableDefinition()))
+    database.execute_sql_command(SQLdropTable(VerslagDetailsTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(VerslagDetailsTableDefinition()))
     database._execute_sql_command(
         f'INSERT into VERSLAGEN_DETAILS(verslag_id,detail_id,class_code) select verslag_id,file_id,"{ClassCodes.classtype_to_code(File)}" from VERSLAGEN_FILES')
 def _drop_old_tables(database: Database):

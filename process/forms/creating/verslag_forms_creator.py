@@ -8,7 +8,7 @@ from process.general.preview import pva
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagProcessor
 from storage.aapa_storage import AAPAStorage
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 
 class FormsException(Exception): pass
 
@@ -18,7 +18,7 @@ class VerslagFormsCreator(VerslagProcessor):
                          exit_state=Verslag.Status.NEEDS_GRADING,
                          description='Aanmaken beoordelingsformulieren')
         self.storage=storage
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         self.builder = StudentDirectoryBuilder(self.storage)
     def process(self, verslag: Verslag, preview=False, **kwdargs)->bool:
         if not verslag:

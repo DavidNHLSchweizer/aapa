@@ -14,7 +14,7 @@ from process.input.importing.dirname_parser import DirectoryNameParser
 from process.main.aapa_processor import AAPARunnerContext
 from storage.aapa_storage import AAPAStorage
 from storage.queries.files import FilesQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.studenten import StudentenQueries
 
 class OrphanException(Exception): pass
 
@@ -23,7 +23,7 @@ class OrphanFileProcessor:
         self.storage = storage
         self.database = storage.database
         self.file_queries: FilesQueries = self.storage.queries('files')
-        self.student_queries: StudentQueries = self.storage.queries('studenten')
+        self.student_queries: StudentenQueries = self.storage.queries('studenten')
         self.skip_pattern2023 = re.compile(r"Beoordeling aanvragen 2023\\Week\s\d")
         self.skip_pattern2024 = re.compile(r"0_Beoordeling aanvragen 2024\\Week\s\d")
         self.parser = DirectoryNameParser()

@@ -207,7 +207,7 @@
                 "tests.plugins.temp_new",
                 "-stop",
                 "-debug",
-                "--database=testing345.db",
+                "--database=testing123.db",
                 "--onedrive=d:\\onedrive",
             ]
         },

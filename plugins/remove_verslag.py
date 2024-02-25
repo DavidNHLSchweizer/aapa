@@ -16,7 +16,7 @@ from main.log import log_error, log_print
 from general.sql_coll import SQLcollector, SQLcollectors
 from plugins.plugin import PluginBase
 from process.main.aapa_processor import AAPARunnerContext
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from main.config import config
 
 class RemoverException(Exception):pass
@@ -92,7 +92,7 @@ class VerslagRemover(PluginBase):
         self.sql = self.init_sql()
         self.removed_directories = set()
         self.storage=context.storage
-        self.stud_dir_queries:StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.stud_dir_queries:StudentDirectoriesQueries = self.storage.queries('student_directories')
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
         verslagen = kwdargs.get('verslag')

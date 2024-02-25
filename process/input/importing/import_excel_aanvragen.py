@@ -13,8 +13,8 @@ from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from storage.queries.aanvragen import AanvraagQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.aanvragen import AanvragenQueries
+from storage.queries.studenten import StudentenQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from main.log import log_debug, log_error, log_print, log_warning, log_info
 from general.pdutil import nrows
@@ -131,7 +131,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
         result = Student(full_name=self.__get_value(values, self.ColNr.NAAM),
                           stud_nr=self.__get_value(values, self.ColNr.STUDNR),
                           email=self.__get_value(values, self.ColNr.EMAIL))
-        student_queries: StudentQueries = self.storage.queries('studenten')
+        student_queries: StudentenQueries = self.storage.queries('studenten')
         if (stored := student_queries.find_student_by_name_or_email_or_studnr(result)):
             result.id = stored.id
             result.status = stored.status
@@ -198,7 +198,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             # self.files_to_delete.append(Path(docx_filename))
         return pdf_filename
     def _existing_aanvraag(self, aanvraag: Aanvraag)->bool:
-        queries: AanvraagQueries = self.storage.queries('aanvragen')
+        queries: AanvragenQueries = self.storage.queries('aanvragen')
         return queries.find_aanvraag(aanvraag) 
     def create_files(self, aanvraag: Aanvraag, values: dict[str, Any], docx_filename: str, pdf_filename: str, preview=False)->bool:
         log_debug(f'Start create_files: {aanvraag.summary()}')
@@ -294,7 +294,7 @@ def import_excel_file(xls_filename: str, output_directory: str, storage: AAPASto
     first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process([xls_filename], preview=preview)    
-    queries:AanvraagQueries = storage.queries('aanvragen')
+    queries:AanvragenQueries = storage.queries('aanvragen')
     new_aanvragen = queries.find_new_aanvragen(first_id=first_id)
     report_imports(new_aanvragen, preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')

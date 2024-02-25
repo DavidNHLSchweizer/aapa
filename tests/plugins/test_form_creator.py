@@ -13,14 +13,14 @@ from process.forms.creating.verslag_version_forms_creator import VerslagVersionF
 
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.main.aapa_processor import AAPARunnerContext
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from tests.random_data import RandomData
 
     
 class TestPlugin(PluginBase):
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         self.storage = context.storage
-        self.student_dir_queries: StudentDirectoryQueries = context.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = context.storage.queries('student_directories')
         self.builder = StudentDirectoryBuilder(self.storage)
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:

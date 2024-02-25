@@ -72,7 +72,7 @@ def load_roots(database: Database):
             continue # first row is already loaded, this is the NHL Stenden BASEPATH
         Roots.add_root(Roots.decode_path(row['root']), row['code']) 
             
-class DetailTableDefinition2(TableDefinition):
+class DetailsTableDefinition(TableDefinition):
     def __init__(self, name: str, 
                  main_table_name: str, main_alias_id: str):
         super().__init__(name)
@@ -86,7 +86,7 @@ class DetailTableDefinition2(TableDefinition):
     def add_detail(self, detail_code: str, detail_table: TableDefinition):
         self._detail_tables[detail_code] = detail_table
 
-class StudentTableDefinition(TableDefinition):
+class StudentenTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('STUDENTEN')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -96,13 +96,13 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('email', dbc.TEXT, notnull=True)
         self.add_column('status', dbc.INTEGER)
 
-class BedrijfTableDefinition(TableDefinition):
+class BedrijvenTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('BEDRIJVEN')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('name', dbc.TEXT)    
 
-class MijlpaalTableDefinition(TableDefinition):
+class MijlpalenTableDefinition(TableDefinition):
     #model voor AANVRAGEN en VERSLAGEN tabellen
     def __init__(self, name: str):
         super().__init__(name)
@@ -117,24 +117,24 @@ class MijlpaalTableDefinition(TableDefinition):
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class AanvraagTableDefinition(MijlpaalTableDefinition):
+class AanvragenTableDefinition(MijlpalenTableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
         self.add_column('datum_str', dbc.TEXT)
         self.add_column('versie', dbc.INTEGER)
 
-class AanvraagDetailsTableDefinition(DetailTableDefinition2):
+class AanvraagDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN_DETAILS', main_table_name='AANVRAGEN', main_alias_id='aanvraag_id')
         self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
 
-class VerslagTableDefinition(MijlpaalTableDefinition):
+class VerslagenTableDefinition(MijlpalenTableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
         self.add_column('verslag_type', dbc.INTEGER)
         self.add_column('cijfer', dbc.TEXT)
 
-class VerslagenDetailsTableDefinition(DetailTableDefinition2):
+class VerslagDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN_DETAILS', main_table_name='VERSLAGEN', main_alias_id='verslag_id')
         self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
@@ -157,7 +157,7 @@ class FilesTableDefinition(TableDefinition):
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])
 
-class UndoLogTableDefinition(TableDefinition):
+class UndoLogsTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('UNDOLOGS')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -168,12 +168,12 @@ class UndoLogTableDefinition(TableDefinition):
         self.add_column('date', dbc.DATE)   
         self.add_column('can_undo', dbc.INTEGER)
 
-class UndologsDetailsTableDefinition(DetailTableDefinition2):
+class UndologDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
         super().__init__('UNDOLOGS_DETAILS', main_table_name='UNDOLOGS', main_alias_id='log_id')
-        self.add_detail(detail_code=ClassCodes.classtype_to_code(Aanvraag), detail_table=AanvraagTableDefinition)
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(Aanvraag), detail_table=AanvragenTableDefinition)
         self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
-        self.add_detail(detail_code=ClassCodes.classtype_to_code(Verslag), detail_table=VerslagTableDefinition)
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(Verslag), detail_table=VerslagenTableDefinition)
     
 class BaseDirsTableDefinition(TableDefinition):
     def __init__(self):
@@ -184,7 +184,7 @@ class BaseDirsTableDefinition(TableDefinition):
         self.add_column('forms_version', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
 
-class StudentDirectoryTableDefinition(TableDefinition):
+class StudentDirectoriesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('STUDENT_DIRECTORIES')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -195,12 +195,12 @@ class StudentDirectoryTableDefinition(TableDefinition):
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class StudentDirectoriesDetailsTableDefinition(DetailTableDefinition2):
+class StudentDirectoryDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
         super().__init__('STUDENT_DIRECTORIES_DETAILS', main_table_name='STUDENT_DIRECTORIES', main_alias_id='stud_dir_id')
-        self.add_detail(detail_code=ClassCodes.classtype_to_code(MijlpaalDirectory), detail_table=MijlpaalDirectoryTableDefinition)
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(MijlpaalDirectory), detail_table=MijlpaalDirectoriesTableDefinition)
 
-class MijlpaalDirectoryTableDefinition(TableDefinition):
+class MijlpaalDirectoriesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('MIJLPAAL_DIRECTORIES')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -209,9 +209,9 @@ class MijlpaalDirectoryTableDefinition(TableDefinition):
         self.add_column('directory', dbc.TEXT)
         self.add_column('datum', dbc.TEXT)
 
-class MijlpaalDirectoriesDetailsTableDefinition(DetailTableDefinition2):
+class MijlpaalDirectoryDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
-        super().__init__('MIJLPAAL_DIRECTORIES_DETAILS', main_table_name='MIJLPAAL_DIRECTORIES', main_alias_id='mp_dir_id')
+        super().__init__('MIJLPAAL_DIRECTORY_DETAILS', main_table_name='MIJLPAAL_DIRECTORIES', main_alias_id='mp_dir_id')
         self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
 
 #-------------------- views -------------------------------
@@ -289,20 +289,20 @@ class AAPaSchema(Schema):
     ALL_TABLES:list[TableDefinition] = [
         VersionTableDefinition,
         FileRootTableDefinition,
-        StudentTableDefinition,
-        BedrijfTableDefinition,
-        AanvraagTableDefinition,
+        StudentenTableDefinition,
+        BedrijvenTableDefinition,
+        AanvragenTableDefinition,
         AanvraagDetailsTableDefinition,
         FilesTableDefinition,
-        UndoLogTableDefinition,
-        UndologsDetailsTableDefinition,
-        VerslagTableDefinition,
-        VerslagenDetailsTableDefinition,
+        UndoLogsTableDefinition,
+        UndologDetailsTableDefinition,
+        VerslagenTableDefinition,
+        VerslagDetailsTableDefinition,
         BaseDirsTableDefinition,
-        StudentDirectoryTableDefinition,    
-        StudentDirectoriesDetailsTableDefinition, 
-        MijlpaalDirectoryTableDefinition, 
-        MijlpaalDirectoriesDetailsTableDefinition,        
+        StudentDirectoriesTableDefinition,    
+        StudentDirectoryDetailsTableDefinition, 
+        MijlpaalDirectoriesTableDefinition, 
+        MijlpaalDirectoryDetailsTableDefinition,        
     ]
     ALL_VIEWS:list[ViewDefinition]= [ 
                 AanvragenOverzichtDefinition,

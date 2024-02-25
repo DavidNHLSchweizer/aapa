@@ -1,6 +1,6 @@
 from enum import IntEnum
-from database.aapa_database import AanvraagFilesTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, FilesTableDefinition, \
-                            StudentTableDefinition, UndoLogTableDefinition
+from database.aapa_database import AanvraagFilesTableDefinition, AanvragenTableDefinition, AanvragenFileOverzichtDefinition, AanvragenOverzichtDefinition, FilesTableDefinition, \
+                            StudentenTableDefinition, UndoLogsTableDefinition
 from data.general.const import AanvraagStatus, MijlpaalType
 from data.classes.files import File
 from database.classes.sql_table import SQLcreateTable
@@ -27,7 +27,7 @@ def modify_studenten_table(database: Database):
     print('adding primary key to STUDENTEN table, also adding status and remove telnr.')
     database._execute_sql_command('alter table STUDENTEN RENAME TO OLD_STUDENTEN')
     print('creating the new table')
-    database.execute_sql_command(SQLcreateTable(StudentTableDefinition()))
+    database.execute_sql_command(SQLcreateTable(StudentenTableDefinition()))
     database._execute_sql_command('insert into STUDENTEN(stud_nr,full_name,first_name,email) select stud_nr,full_name,first_name,email from OLD_STUDENTEN', [])
     database._execute_sql_command('drop table OLD_STUDENTEN')
     print('end adding primary key to STUDENTEN table, also adding status and remove telnr.')
@@ -57,7 +57,7 @@ def modify_aanvragen_table(database: Database):
     print('modifying AANVRAGEN table.')
     database._execute_sql_command('alter table AANVRAGEN RENAME TO OLD_AANVRAGEN')
     print('creating the new table')
-    aanvragen_table = AanvraagTableDefinition() 
+    aanvragen_table = AanvragenTableDefinition() 
     database.execute_sql_command(SQLcreateTable(aanvragen_table))
     #copying the data
     database._execute_sql_command('insert into AANVRAGEN(id,bedrijf_id,datum_str,titel,status,beoordeling,kans,versie)'+ \
@@ -142,7 +142,7 @@ def correct_first_names(database: Database):
 def rename_action_logs(database: Database):
     print('adapting ACTIONLOG tables.')
     print('creating the new table')
-    database.execute_sql_command(SQLcreateTable(UndoLogTableDefinition()))    
+    database.execute_sql_command(SQLcreateTable(UndoLogsTableDefinition()))    
     print('copy data and transform timestrings to sortable format in UNDOLOGS table.')
     for row in database._execute_sql_command('select id,description,action,user,date,can_undo from ACTIONLOG', [], True):
         database._execute_sql_command('insert into UNDOLOGS VALUES (?,?,?,?,?,?)',

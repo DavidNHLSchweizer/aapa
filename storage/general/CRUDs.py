@@ -2,8 +2,7 @@ from __future__ import annotations
 from enum import Enum, auto
 from typing import Any, Tuple, Type
 from data.general.aapa_class import AAPAclass
-from data.general.detail_rec import DetailRecData
-from database.classes.sql_table import SQLselect
+from data.general.details_record import DetailsRecord
 from storage.general.mappers import ColumnMapper
 from storage.general.table_mapper import TableMapper
 from storage.general.query_builder import QIF, QueryBuilder
@@ -321,14 +320,14 @@ class ClassRegistryData:
                         mapper_type = TableMapper, 
                         crud=CRUD,  
                         queries_type = CRUDQueries,
-                        details_data:list[DetailRecData]=None,
+                        details_record_type:DetailsRecord=None,
                         autoID=True,
                         module_name=''):
         self.table = table
         self.mapper_type = mapper_type
         self.crud = crud
         self.queries_type = queries_type
-        self.details_data = details_data
+        self.details_record_type = details_record_type
         self.autoID = autoID
         self.module_name = module_name
 
@@ -349,7 +348,7 @@ class CRUDRegistry(Singleton):
                         mapper_type=TableMapper, 
                         crud=CRUD,  
                         queries_type = CRUDQueries,
-                        details_data: list[DetailRecData] = None, 
+                        details_record_type: DetailsRecord = None, 
                         autoID=True, 
                         main=True):
         self.__check_valid(class_type, False)
@@ -358,7 +357,7 @@ class CRUDRegistry(Singleton):
                                                               mapper_type = mapper_type, 
                                                               crud=crud,  
                                                               queries_type = queries_type,
-                                                              details_data=details_data,
+                                                              details_record_type=details_record_type,
                                                               autoID=autoID,
                                                               module_name=module_name)
     def _is_registered(self, class_type: StoredClass)->bool:
@@ -385,7 +384,7 @@ def register_crud(class_type: Type[StoredClass],
                   mapper_type: Type[TableMapper] = TableMapper, 
                   crud = CRUD, 
                   queries_type = CRUDQueries,
-                  details_data: list[DetailRecData] = None, 
+                  details_record_type: DetailsRecord = None, 
                   autoID=True, 
                   main=True):
     _crud_registry.register(class_type, 
@@ -393,7 +392,7 @@ def register_crud(class_type: Type[StoredClass],
                             mapper_type=mapper_type, 
                             crud=crud, 
                             queries_type=queries_type,
-                            details_data=details_data,  
+                            details_record_type=details_record_type,  
                             autoID=autoID,
                             main=main)
     

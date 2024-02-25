@@ -5,11 +5,11 @@ from process.general.preview import Preview, pva
 from process.input.importing.import_directory_aanvragen import import_directory
 from process.input.importing.import_excel_aanvragen import import_excel_file
 from storage.aapa_storage import AAPAStorage
-from storage.queries.base_dirs import BaseDirQueries
+from storage.queries.base_dirs import BaseDirsQueries
 
 
 def check_root_directory(root_directory: str, storage: AAPAStorage):
-    queries:BaseDirQueries = storage.queries('base_dirs')
+    queries:BaseDirsQueries = storage.queries('base_dirs')
     if not queries.is_basedir(root_directory):
         storage.add_basedir(root_directory) 
         log_warning(f'Basis directory {root_directory} is nog niet bekend.\nWordt geinitialiseerd met default waarden. \nHet is ESSENTIEEL om dit nog in de database aan te passen!')

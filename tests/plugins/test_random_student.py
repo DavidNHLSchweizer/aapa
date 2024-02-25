@@ -14,13 +14,13 @@ from process.general.mijlpaal_templates import ALL_EXAMINATORS, MijlpaalTemplate
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.main.aapa_processor import AAPARunnerContext
 from random_student import RandomData
-from storage.queries.student_directories import StudentDirectoryQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
+from storage.queries.studenten import StudentenQueries
 
 class TestPlugin(PluginBase):
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         self.storage = context.storage
-        self.student_dir_queries: StudentDirectoryQueries = context.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = context.storage.queries('student_directories')
         self.builder = StudentDirectoryBuilder(self.storage)
         self.templates = MijlpaalTemplates()
         return True

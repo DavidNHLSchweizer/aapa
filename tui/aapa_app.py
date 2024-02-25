@@ -11,7 +11,7 @@ from aapa import AAPARunner
 from data.classes.undo_logs import UndoLog
 from data.general.roots import Roots
 from process.general.const import AAPAaction
-from storage.queries.undo_logs import UndoLogQueries
+from storage.queries.undo_logs import UndoLogsQueries
 from main.options import  AAPAProcessingOptions, AAPAOptions, ArgumentOption, get_options_from_commandline
 from main.log import log_debug, pop_console, push_console
 from main.versie import BannerPart, banner
@@ -133,7 +133,7 @@ class AAPAApp(App):
         options = self._create_options()
         configuration = AAPAConfiguration(options.config_options)
         if configuration.initialize(options.processing_options, AAPAConfiguration.PART.DATABASE):
-            queries : UndoLogQueries = configuration.storage.queries('undo_logs')
+            queries : UndoLogsQueries = configuration.storage.queries('undo_logs')
             self.last_action = queries.last_undo_log(self.processing_mode)
             log_debug(f'Refresh last {self.last_action}')
             return self.last_action

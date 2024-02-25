@@ -11,16 +11,12 @@ from typing import Type
 from data.general.aapa_class import AAPAclass
     
 @dataclass
-class DetailRec2:
+class DetailsRecord:
+    """ this is used to read/write the records for all Details tables """
     main_id: int 
     detail_id: int
     class_code: str
     def as_list(self)->list[int|str]:
         return [self.main_id, self.detail_id, self.class_code]
-DetailRecs2 = list[DetailRec2]
-
-@dataclass
-class DetailRecData2:
-    aggregator_name: str
-    detail_rec_type: Type[DetailRec2]    
     
+

@@ -1,27 +1,25 @@
 from __future__ import annotations
-from data.general.detail_rec2 import DetailRec2, DetailRecData2
-from database.aapa_database import UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, UndoLogTableDefinition, UndoLogVerslagenTableDefinition, UndologsDetailsTableDefinition
+from data.general.details_record import DetailsRecord
+from database.aapa_database import UndoLogsTableDefinition, UndologDetailsTableDefinition
 from data.classes.undo_logs  import UndoLog
-from data.general.detail_rec import DetailRec
 from main.options import AAPAProcessingOptions
 from storage.general.CRUDs import register_crud
-from storage.general.detail_rec_crud import DetailRecsTableMapper
-from storage.general.detail_rec_crud2 import DetailRecsTableMapper2
+from storage.general.details_crud import DetailsRecordTableMapper
 from storage.general.mappers import BoolColumnMapper, ColumnMapper, TimeColumnMapper
 from storage.general.table_mapper import TableMapper
-from storage.general.extended_crud import ExtendedCRUD
-from storage.queries.undo_logs import UndoLogQueries
+from storage.general.aggregator_crud import AggregatorCRUD
+from storage.queries.undo_logs import UndoLogsQueries
 from database.classes.database import Database
 from database.classes.table_def import TableDefinition
 
 NoUNDOwarning = 'Geen ongedaan te maken acties opgeslagen in database.'
 
-class UndoLogDetailRec2(DetailRec2): pass
-class UndoLogDetailsTableMapper(DetailRecsTableMapper2):
-    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
+class UndoLogDetailsRecord(DetailsRecord): pass
+class UndoLogDetailsTableMapper(DetailsRecordTableMapper):
+    def __init__(self, database: Database, table: TableDefinition, class_type: DetailsRecord):
         super().__init__(database, table,  class_type, 'log_id')
 
-class UndoLogTableMapper(TableMapper):
+class UndoLogsTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
         match column_name:
             case 'date': return TimeColumnMapper(column_name)
@@ -31,18 +29,14 @@ class UndoLogTableMapper(TableMapper):
             case _: return super()._init_column_mapper(column_name, database)
 
 register_crud(class_type=UndoLog, 
-                table=UndoLogTableDefinition(), 
-                mapper_type=UndoLogTableMapper, 
-                crud=ExtendedCRUD,
-                queries_type=UndoLogQueries,
-                details_data=
-                    [
-                        DetailRecData2(aggregator_name='data', 
-                                   detail_rec_type=UndoLogDetailRec2),
-                    ]
+                table=UndoLogsTableDefinition(), 
+                mapper_type=UndoLogsTableMapper, 
+                crud=AggregatorCRUD,
+                queries_type=UndoLogsQueries,
+                details_record_type=UndoLogDetailsRecord                    
                 )
-register_crud(class_type=UndoLogDetailRec2, 
-                table=UndologsDetailsTableDefinition(),
+register_crud(class_type=UndoLogDetailsRecord, 
+                table=UndologDetailsTableDefinition(),
                 mapper_type=UndoLogDetailsTableMapper, 
                 autoID=False, 
                 main=False)

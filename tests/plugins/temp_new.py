@@ -1,17 +1,5 @@
-from data.classes.aanvragen import Aanvraag
-from data.classes.mijlpaal_directories import MijlpaalDirectory
-from data.classes.student_directories import StudentDirectory
-from data.classes.verslagen import Verslag
-from data.general.const import FileType, MijlpaalBeoordeling, MijlpaalType
+from data.general.const import MijlpaalType
 from data.classes.files import File
-from database.classes.database import Database
-import database.classes.dbConst as dbc
-from database.aapa_database import AanvraagDetailsTableDefinition, AanvraagTableDefinition, AanvragenFileOverzichtDefinition, DetailTableDefinition2, FilesTableDefinition, MijlpaalDirectoriesDetailsTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesDetailsTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition, UndoLogFilesTableDefinition, UndologsDetailsTableDefinition, VerslagTableDefinition, VerslagenDetailsTableDefinition, get_sql_cases_for_int_type
-from database.classes.sql_table import SQLcreateTable, SQLdropTable
-from database.classes.sql_view import SQLcreateView, SQLdropView
-from database.classes.table_def import ForeignKeyAction, TableDefinition
-from data.general.class_codes import ClassCodes
-from database.classes.view_def import ViewDefinition
 from plugins.plugin import PluginBase
 from process.main.aapa_processor import AAPARunnerContext
 from tests.random_data import RandomData

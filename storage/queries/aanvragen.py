@@ -5,7 +5,7 @@ from storage.general.CRUDs import CRUDQueries
 from database.classes.sql_expr import Ops
 from general.timeutil import TSC
 
-class  AanvraagQueries(CRUDQueries):
+class  AanvragenQueries(CRUDQueries):
     def find_kans(self, student: Student)->int:
         self.get_crud(Student).queries.ensure_key(student)        
         return self.find_count('student', student.id)

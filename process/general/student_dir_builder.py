@@ -12,9 +12,9 @@ from general.timeutil import TSC
 from main.config import FloatValueConvertor, config
 from storage.aapa_storage import AAPAStorage
 from storage.general.storage_const import StorageException
-from storage.queries.base_dirs import BaseDirQueries
-from storage.queries.student_directories import StudentDirectoryQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.base_dirs import BaseDirsQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
+from storage.queries.studenten import StudentenQueries
 from main.log import log_error, log_print, log_warning
 
 def init_config():
@@ -28,7 +28,7 @@ class StudentDirectoryBuilder:
         self.storage = storage
     def _register_new_student_directory(self, student: Student, filename: str)->StudentDirectory:
         directory = Path(filename).parent
-        basedir_queries : BaseDirQueries = self.storage.queries('base_dirs')
+        basedir_queries : BaseDirsQueries = self.storage.queries('base_dirs')
         if not (base_dir := basedir_queries.find_basedir(directory)):
             raise StorageException(f'Kan student directory voor {student} bestand {filename} niet aan basis-directory koppelen.\nBasis-directory moet eerst worden aangemaakt.')
         stud_dir_name = base_dir.get_student_directory_name(student)
@@ -37,28 +37,28 @@ class StudentDirectoryBuilder:
         return StudentDirectory(student, stud_dir_name, base_dir, StudentDirectory.Status.ACTIVE)
     @staticmethod
     def get_student_dir(storage: AAPAStorage, student: Student, output_directory: str)->StudentDirectory:
-        student_queries: StudentQueries = storage.queries('studenten')
+        student_queries: StudentenQueries = storage.queries('studenten')
         if (stored:=student_queries.find_student_by_name_or_email_or_studnr(student)):
             student = stored
-        student_dir_queries: StudentDirectoryQueries= storage.queries('student_directories')       
+        student_dir_queries: StudentDirectoriesQueries= storage.queries('student_directories')       
         if (student_dir := student_dir_queries.find_student_dir(student)):
             return student_dir
         else:
-            basedir_queries : BaseDirQueries = storage.queries('base_dirs')
+            basedir_queries : BaseDirsQueries = storage.queries('base_dirs')
             if not (base_dir := basedir_queries.find_basedir(output_directory, start_at_parent = False)):
                 if not (base_dir := basedir_queries.last_base_dir()):
                     raise StorageException(f'Geen basis-directories gedefinieerd.')
             return StudentDirectory(student,BaseDir.get_directory_name(student), base_dir, status=StudentDirectory.Status.ACTIVE)
     @staticmethod
     def get_student_dir_name(storage: AAPAStorage, student: Student, output_directory: str)->str:
-        student_queries: StudentQueries = storage.queries('studenten')
+        student_queries: StudentenQueries = storage.queries('studenten')
         if (stored:=student_queries.find_student_by_name_or_email_or_studnr(student)):
             student = stored
-        student_dir_queries: StudentDirectoryQueries= storage.queries('student_directories')       
+        student_dir_queries: StudentDirectoriesQueries= storage.queries('student_directories')       
         if (student_dir := student_dir_queries.find_student_dir(student)):
             return student_dir.directory
         else:
-            basedir_queries : BaseDirQueries = storage.queries('base_dirs')
+            basedir_queries : BaseDirsQueries = storage.queries('base_dirs')
             if not (base_dir := basedir_queries.find_basedir(output_directory, start_at_parent = False)):
                 if not (base_dir := basedir_queries.last_base_dir()):
                     raise StorageException(f'Geen basis-directories gedefinieerd.')
@@ -68,7 +68,7 @@ class StudentDirectoryBuilder:
         """ geeft de naam van het volledige pad voor mijlpaaldirectory met deze datum/type. """
         return str(Path(stud_dir.directory).joinpath(MijlpaalDirectory.directory_name(mijlpaal_type, datum)))
     def __check_must_register_new_student_directory(self, student: Student, target_basedir: BaseDir, filename: str)->Tuple[bool, StudentDirectory]:
-        queries: StudentDirectoryQueries = self.storage.queries('student_directories')        
+        queries: StudentDirectoriesQueries = self.storage.queries('student_directories')        
         if not (stud_dir := queries.find_student_dir(student)):
             return (True,None)
         elif stud_dir.base_dir != target_basedir:
@@ -78,7 +78,7 @@ class StudentDirectoryBuilder:
             return (True,None)
         return (False,stud_dir)
     def __get_stud_dir(self, student: Student, filename: str)->StudentDirectory:        
-        basedir_queries: BaseDirQueries = self.storage.queries('base_dirs')
+        basedir_queries: BaseDirsQueries = self.storage.queries('base_dirs')
         if not (basedir_from_file := basedir_queries.find_basedir(Path(filename).parent)):
             log_error(f'Basisdirectory voor toe te voegen bestand kan niet worden gevonden.\n\tBestand {filename}\n\tkan niet worden geregistreerd.')
             return None
