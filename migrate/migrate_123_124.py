@@ -13,6 +13,7 @@ class M124JsonData(JsonData):
         CREATE_VERSLAGEN = auto()  
         CORRECT_MP_DIRS = auto()
         ADD_ORPHAN_VERSLAGEN = auto()
+        CORRECT_VERSLAGEN_DOUBLURES = auto()
     def __init__(self):
         super().__init__(r'migrate\m124')
         self.init_entries()
@@ -20,7 +21,7 @@ class M124JsonData(JsonData):
         self.add_entry(self.KEY.CORRECT_MP_DIRS,filename='correct_mp_dirs', phase=1, message ='correcting inconsistencies in mijlpaal_directories')
         self.add_entry(self.KEY.CREATE_VERSLAGEN,filename='create_verslagen', phase=2, message ='"re-engineering" verslagen update')
         self.add_entry(self.KEY.ADD_ORPHAN_VERSLAGEN,filename='add_orphan_verslagen', phase=3, message ='correcting verslagen without any files attached')
-
+        # self.add_entry(self.KEY.CORRECT_VERSLAGEN_DOUBLURES,filename='correct_verslagen_doublures', phase=3, message ='correcting doublure verslagen')
 
 class OldVerslagStatus(IntEnum):
     LEGACY          = -2

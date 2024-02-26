@@ -95,14 +95,14 @@ class VerslagFromZipImporter(VerslagImporter):
         return result
     def get_filename_to_create(self, verslag: Verslag, original_filename: str):
         student_directory = SDB.get_student_dir(self.storage,verslag.student,self.root_directory)
-        if mp_dir := student_directory.get_directory(verslag.datum, verslag.mijlpaal_type, config.get('directories', 'error_margin_date')):
-            directory = mp_dir.directory
+        if mp_dir := student_directory.get_directory(verslag.datum, verslag.mijlpaal_type, error_margin=config.get('directories', 'error_margin_date')):
+            mijlpaal_directory = mp_dir
             verslag.kans = mp_dir.kans
         else:
             directory = StudentDirectoryBuilder.get_mijlpaal_directory_name(student_directory, verslag.datum, verslag.mijlpaal_type)
-        mijlpaal_directory:MijlpaalDirectory = self.sdb.get_mijlpaal_directory(stud_dir=student_directory, directory=directory, 
+            mijlpaal_directory:MijlpaalDirectory = self.sdb.get_mijlpaal_directory(stud_dir=student_directory, directory=directory, 
                                                                           datum=verslag.datum, mijlpaal_type=verslag.mijlpaal_type, 
-                                                                          error_margin=4.0)
+                                                                          error_margin=config.get('directories', 'error_margin_date'))
         return str(Path(mijlpaal_directory.directory).joinpath(original_filename))
     def created_directory(self, directory_path: Path, preview: bool)->bool:
         if preview:
@@ -120,7 +120,7 @@ class VerslagFromZipImporter(VerslagImporter):
     
     def _register_verslag(self, verslag: Verslag, filename: str):
         file = verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
-        self.sdb.register_file(student=verslag.student, datum=file.timestamp if file_exists(filename) else verslag.datum,
+        self.sdb.register_file(student=verslag.student, datum=verslag.datum,# datum=file.timestamp if file_exists(filename) else verslag.datum,
                                         filename=filename, filetype=file.filetype, mijlpaal_type=file.mijlpaal_type)
 
     def _create_file(self, verslag: Verslag, mp_dir: MijlpaalDirectory, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
