@@ -8,7 +8,8 @@ from process.general.preview import pva
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagProcessor
 from storage.aapa_storage import AAPAStorage
-from storage.queries.student_directories import StudentDirectoriesQueries
+from storage.queries.student_directories import StudentDirectoryQueries
+from main.config import config
 
 class FormsException(Exception): pass
 
@@ -27,7 +28,10 @@ class VerslagFormsCreator(VerslagProcessor):
         if not stud_dir:
             raise FormsException(f'Kan formulieren voor {verslag.summary()} niet aanmaken\n\t(kan student directory niet bepalen).')
         version = stud_dir.base_dir.forms_version      
-        directory = Path(self.builder.get_mijlpaal_directory_name(stud_dir, verslag.datum, verslag.mijlpaal_type))
+        if mp_dir := stud_dir.get_directory(verslag.datum, verslag.mijlpaal_type, error_margin=config.get('directories', 'error_margin_date')):
+            directory = mp_dir.directory
+        else:
+            directory = Path(self.builder.get_mijlpaal_directory_name(stud_dir, verslag.datum, verslag.mijlpaal_type))
         if not directory:
             raise FormsException(f'Kan juiste directory voor formulieren {verslag.summary()} niet bepalen.')        
         creator = VerslagVersionFormsCreator(self.storage, version)

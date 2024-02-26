@@ -116,11 +116,9 @@
             "args": [
                 "input",
                 "-debug",
-                "-preview",
-                "--onedrive=d:\\onedrive",
+                "--onedrive=c:\\onedrive",
                 "--processing_mode=V",
-                "--input_options=F",
-                "--database=testing123.db"
+                "--input_options=F"              
             ]
         },
         {

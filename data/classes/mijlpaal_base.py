@@ -25,7 +25,10 @@ class MijlpaalBase(AAPAclass):
     def files_list(self)->list[File]: return self._files.as_list('files')
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
         result = File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, mijlpaal_type=mijlpaal_type)
-        self.files.add(result)
+        if self.files.contains(result):
+            return self.files.find_filename(filename)
+        else:
+            self.files.add(result)
         return result    
     def unregister_file(self, filetype: File.Type):
         self.files.remove_filetype(filetype)
