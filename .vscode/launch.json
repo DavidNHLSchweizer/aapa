@@ -117,10 +117,9 @@
                 "input",
                 "-debug",
                 "-preview",
-                "--onedrive=d:\\onedrive",
-                "--processing_mode=V",
-                "--input_options=F",
-                "--database=testing123.db"
+                "--onedrive=c:\\onedrive",
+                "--processing_mode=A",
+                "--input_options=F"              
             ]
         },
         {
