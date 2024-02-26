@@ -90,7 +90,7 @@ class MijlpaalTemplates:
         if mijlpaal_type == MijlpaalType.EINDBEOORDELING:
             return 'Eindbeoordeling afstuderen'
         else:
-            return f'{prefixes.get(mijlpaal_type, '')}Beoordeling {what}{postfix}'
+            return f"{prefixes.get(mijlpaal_type, '')}Beoordeling {what}{postfix}"
     def get_verslag_names(self, version: str, mijlpaal_type: MijlpaalType, examinator: int)->tuple[str,TemplateFormCreator]:
         if not (version_templates := self.templates.get(version,None)):
             raise Exception(f'Templates voor versie {version} zijn niet gedefinieerd')

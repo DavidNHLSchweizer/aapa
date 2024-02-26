@@ -37,7 +37,7 @@ class VerslagFormsCreator(VerslagProcessor):
             log_error(f'Geen formulieren {aangemaakt}')
             return False
         filename,_ = created[0]
-        log_print(f'{sop(len(created), 'formulier', 'formulieren')} {aangemaakt} in {File.display_file(Path(filename).parent)}')
+        log_print(f"{sop(len(created), 'formulier', 'formulieren')} {aangemaakt} in {File.display_file(Path(filename).parent)}")
         for filename,filetype in created:
             log_print(f'\t{File.display_file(Path(filename).name)} [{filetype}].')
             verslag.register_file(filename, filetype, verslag.mijlpaal_type)
