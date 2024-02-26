@@ -8,7 +8,7 @@ from process.general.preview import pva
 from process.general.student_dir_builder import StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagProcessor
 from storage.aapa_storage import AAPAStorage
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from main.config import config
 
 class FormsException(Exception): pass
