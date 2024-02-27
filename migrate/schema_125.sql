@@ -1,5 +1,5 @@
 AAPA Database schema versie 1.25
-27-02-2024 10:24:01
+27-02-2024 15:51:39
 
 table VERSIE:
   CREATE TABLE IF NOT EXISTS VERSIE (ID INTEGER PRIMARY KEY,db_versie TEXT,versie TEXT,datum TEXT);
@@ -50,7 +50,7 @@ table STUDENT_DIRECTORIES_DETAILS:
   DELETE CASCADE);
 table MIJLPAAL_DIRECTORIES:
   CREATE TABLE IF NOT EXISTS MIJLPAAL_DIRECTORIES (id INTEGER PRIMARY KEY,mijlpaal_type INTEGER,kans INTEGER,directory
-  TEXT,datum TEXT);
+  TEXT UNIQUE,datum TEXT);
 table MIJLPAAL_DIRECTORIES_DETAILS:
   CREATE TABLE IF NOT EXISTS MIJLPAAL_DIRECTORIES_DETAILS (mp_dir_id INTEGER,detail_id INTEGER,class_code TEXT,PRIMARY
   KEY(mp_dir_id,detail_id,class_code),FOREIGN KEY(mp_dir_id) REFERENCES MIJLPAAL_DIRECTORIES(id) ON UPDATE CASCADE ON
@@ -95,7 +95,7 @@ view STUDENT_DIRECTORIES_FILE_OVERZICHT:
   when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?" end ) as mijlpaal from STUDENT_DIRECTORIES as SD
   inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MD on
   MD.id=SDD.detail_id inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id inner join FILES as F on
-  F.ID=MDF.detail_id;
+  F.ID=MDF.detail_id WHERE MDF.class_code=="FL";
 view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT AS select (select full_name from studenten as S where
   S.id=SD.stud_id) as student, MPD.datum, (case MPD.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then
@@ -103,7 +103,7 @@ view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT:
   then "productbeoordeling" when 7 then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else
   "?" end ) as mijlpaal_type, MPD.kans, MPD.directory from student_directories as SD inner join
   STUDENT_DIRECTORIES_DETAILS as SDD on SD.ID=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MPD on
-  MPD.ID=SDD.detail_id order by 1,3;
+  MPD.ID=SDD.detail_id where SDD.class_codes=="MP" order by 1,3;
 view LAATSTE_VERSIE:
   CREATE VIEW IF NOT EXISTS LAATSTE_VERSIE AS select max(db_versie) as "database-versie",max(versie) as "programma-
   versie" from VERSIE;

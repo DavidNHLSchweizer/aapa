@@ -43,6 +43,7 @@ class  AanvragenQueries(CRUDQueries):
         if (id := self.find_max_value('id', 'student', student.id)):
             return self.crud.read(id)
         return None
+        
 # find_all(where_attributes='status', where_values=Aanvraag.Status.valid_states())
 
 

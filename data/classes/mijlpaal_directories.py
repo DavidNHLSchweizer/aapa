@@ -32,9 +32,9 @@ class MijlpaalDirectory(MijlpaalBase):
         self.mijlpalen = MijlpaalDirectoryAggregator(self)
     @property
     def files_list(self)->list[File]: return self.mijlpalen.as_list('files')
-    @property
-    def files(self)->list[File]:
-        raise Exception('call to MijlpaalDirectory.files, function deprecated.')
+    # @property
+    # def files(self)->list[File]:
+    #     raise Exception('call to MijlpaalDirectory.files, function deprecated.')
     @property
     def nr_files(self):
         return self.mijlpalen.nr_items('files')

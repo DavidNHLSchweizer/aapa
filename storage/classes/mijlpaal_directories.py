@@ -10,6 +10,7 @@ from storage.general.aggregator_crud import AggregatorCRUD
 from storage.general.CRUDs import register_crud
 from database.classes.database import Database
 from database.classes.table_def import TableDefinition
+from storage.queries.mijlpaal_directories import MijlpaalDirectoriesQueries
 
 class MijlpaalDirectoriesTableMapper(TableMapper):
     def _init_column_mapper(self, column_name: str, database: Database=None)->ColumnMapper:
@@ -29,6 +30,7 @@ register_crud(class_type=MijlpaalDirectory,
                 table=MijlpaalDirectoriesTableDefinition(), 
                 crud=AggregatorCRUD,     
                 mapper_type=MijlpaalDirectoriesTableMapper, 
+                queries_type=MijlpaalDirectoriesQueries,
                 details_record_type=MijlpaalDirectoryDetailsRecord,
                 )
 register_crud(class_type=MijlpaalDirectoryDetailsRecord, 

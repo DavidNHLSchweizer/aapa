@@ -205,11 +205,12 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "tests.plugins.temp_new",
+                "tests.plugins.temp_revamp",
                 "-stop",
                 "-debug",
                 "--database=testing123.db",
                 "--onedrive=d:\\onedrive",
+                "-preview"
             ]
         },
     ]

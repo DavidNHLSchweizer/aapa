@@ -206,7 +206,7 @@ class MijlpaalDirectoriesTableDefinition(TableDefinition):
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('mijlpaal_type', dbc.INTEGER)
         self.add_column('kans', dbc.INTEGER)
-        self.add_column('directory', dbc.TEXT)
+        self.add_column('directory', dbc.TEXT, unique=True)
         self.add_column('datum', dbc.TEXT)
 
 class MijlpaalDirectoryDetailsTableDefinition(DetailsTableDefinition):
@@ -244,24 +244,27 @@ group by sdd.stud_id having max(sdd.id) order by 5,6,2'
 class AanvragenFileOverzichtDefinition(ViewDefinition):
     def __init__(self):
         filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
+        fl_code = ClassCodes.classtype_to_code(File)
         stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
         innerjoins = 'inner join AANVRAGEN_DETAILS as AD on A.ID=AD.aanvraag_id inner join FILES as F on F.ID=AD.detail_id'
         super().__init__('AANVRAGEN_FILE_OVERZICHT', 
                          query=f'select A.id as aanvraag_id,{stud_name},titel, F.ID as file_id,F.filename as filename,{filetype_str} \
-                                from AANVRAGEN as A {innerjoins} where AD.class_code="{ClassCodes.classtype_to_code(File)}" order by 2')
+                                from AANVRAGEN as A {innerjoins} where AD.class_code="{fl_code}" order by 2')
 
 class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
     def __init__(self):
         filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
         mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
         status_str = get_sql_cases_for_int_type('sd.status', StudentDirectory.Status, 'dir_status') 
+        fl_code = ClassCodes.classtype_to_code(File)
         query = \
-f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
-from STUDENT_DIRECTORIES as SD \
-inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id \
-inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id \
-inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id \
-inner join FILES as F on F.ID=MDF.detail_id'
+            f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+            from STUDENT_DIRECTORIES as SD \
+            inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id \
+            inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id \
+            inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id \
+            inner join FILES as F on F.ID=MDF.detail_id WHERE MDF.class_code=="{fl_code}"'
+        print(query, len(query))        
         super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=query)
 
 class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
@@ -270,7 +273,7 @@ class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
         query = f'select (select full_name from studenten as S where S.id=SD.stud_id) as student, MPD.datum, {mijlpaal_str}, MPD.kans, MPD.directory \
                 from student_directories as SD \
                 inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.ID=SDD.stud_dir_id \
-                inner join MIJLPAAL_DIRECTORIES as MPD on MPD.ID=SDD.detail_id order by 1,3'
+                inner join MIJLPAAL_DIRECTORIES as MPD on MPD.ID=SDD.detail_id where SDD.class_codes=="{ClassCodes.classtype_to_code(MijlpaalDirectory)}" order by 1,3'
         super().__init__('STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT', query=query)
 
 class StudentVerslagenOverzichtDefinition(ViewDefinition):
@@ -282,11 +285,8 @@ class StudentVerslagenOverzichtDefinition(ViewDefinition):
         filetype_str = get_sql_cases_for_int_type('F.filetype', FileType,'filetype')
         query = f'select V.id as verslag_id, V.stud_id, (select full_name from STUDENTEN as S where S.id=V.stud_id) as student, V.datum, {verslag_type_str}, \
             (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans, F.id as file_id, F.filename,{filetype_str},{status_str},{beoordeling} \
-            from VERSLAGEN as V inner join VERSLAGEN_DETAILS as VD on VD.verslag_id = V.id inner join FILES as F on F.ID=VD.detail_id order by 3,4'        
+            from VERSLAGEN as V inner join VERSLAGEN_DETAILS as VD on VD.verslag_id = V.id inner join FILES as F on F.ID=VD.detail_id where VD.class_code=="{ClassCodes.classtype_to_code(File)}" order by 3,4'        
         super().__init__('STUDENT_VERSLAGEN_OVERZICHT', query=query)
-        # self.add_column('db_versie', dbc.TEXT)
-        # self.add_column('versie', dbc.TEXT)
-        # self.add_column('datum', dbc.TEXT)
 
 class LastVersionViewDefinition(ViewDefinition):
     def __init__(self):
