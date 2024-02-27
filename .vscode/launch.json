@@ -116,8 +116,10 @@
             "args": [
                 "input",
                 "-debug",
-                "--onedrive=c:\\onedrive",
-                "--processing_mode=V",
+                "--onedrive=d:\\onedrive",
+                "--processing_mode=A",
+                "--excel_in=test_aanvragen.xlsx", 
+                "-preview",
                 "--input_options=F"              
             ]
         },
@@ -131,8 +133,9 @@
             "args": [
                 "form",
                 "-debug",
+                "-preview",
                 "--onedrive=d:\\onedrive",
-                "--processing_mode=V",
+                "--processing_mode=A",
                 "--input_options=F",
                 "--database=testing123.db"
             ]

@@ -105,9 +105,6 @@ class Aggregator(dict):
                     return False
         return True
 
-
-
-
 if __name__=='__main__':       
     class een:
         def __init__(self, id, dinges):

@@ -47,7 +47,7 @@ class OrphanFileProcessor:
     def _is_in_beoordeling_aanvraag_directory(self, filename: str)->bool:
         return self.skip_pattern2023.search(filename) is not None or self.skip_pattern2024.search(filename)
     def _add_to_mijlpaal(self, mijlpaal_dir: MijlpaalDirectory, file: File):
-        mijlpaal_dir.files.add(file)
+        mijlpaal_dir.mijlpalen.add(file)
         self.sql.insert('mijlpaal_directory_files', [mijlpaal_dir.id, file.id])
     def handle_file(self, file: File)->bool:
         if self._is_in_beoordeling_aanvraag_directory(file.filename):

@@ -80,7 +80,7 @@ class File(AAPAclass):
             return False
         return True
     def __eq__(self, value: File):
-        if  self.filename != value.filename:
+        if  str(self.filename).lower() != str(value.filename).lower():
             return False
         if  self.timestamp != value.timestamp:            
             return False
