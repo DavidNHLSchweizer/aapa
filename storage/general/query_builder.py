@@ -88,6 +88,8 @@ class QueryBuilder:
         for attribute in attributes.copy():
             if not attribute in aapa_obj.relevant_attributes():
                 attributes.remove(attribute)
+            elif getattr(aapa_obj, attribute) is None:
+                attributes.remove(attribute)
         return self.__find_ids(*self.query_info.get_data(aapa_obj, columns=attributes, flags=flags))
     def find_ids_from_values(self, attributes: list[str], values: list[Any|set[Any]], flags={QIF.ATTRIBUTES})->list[int]:
         self.__db_log('FIND_IDS_FROM_VALUES', f'attributes:{attributes} values:{values} {flags=}')

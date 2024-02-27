@@ -205,7 +205,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "migrate.m125.correct_files_doublures",
+                "tests.plugins.temp_revamp",
                 "-stop",
                 "-debug",
                 "--database=testing123.db",

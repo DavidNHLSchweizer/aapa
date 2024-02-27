@@ -25,6 +25,8 @@ class File(AAPAclass):
     def display_file(filename: str)->str:
         """ returns shortened filename starting with the year-part of the file (e.g. 2022-2023). """
         def __compute_min_parts(filename: str)->int:
+            if not filename:
+                return 0
             pattern = re.compile(r'\d{4,4}\-\d{4,4}')
             parts = Path(filename).parts
             for n,part in enumerate(parts):

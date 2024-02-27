@@ -54,8 +54,9 @@ class MijlpaalGradeable(MijlpaalBase):
     def unregister_file(self, filetype: File.Type):
         self.files.remove_filetype(filetype)
     def get_directory(self)->str:
-        if files := self.files_list:
-            return str(Path(files[0].filename).parent)
+        for file in self.files_list:
+            if file.filetype == File.Type.AANVRAAG_PDF:
+                return str(Path(file.filename).parent)
         return None
     def summary(self)->str:
         return str(self)
