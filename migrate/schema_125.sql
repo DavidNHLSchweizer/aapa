@@ -1,5 +1,5 @@
 AAPA Database schema versie 1.25
-27-02-2024 15:51:39
+27-02-2024 17:20:51
 
 table VERSIE:
   CREATE TABLE IF NOT EXISTS VERSIE (ID INTEGER PRIMARY KEY,db_versie TEXT,versie TEXT,datum TEXT);
@@ -103,7 +103,7 @@ view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT:
   then "productbeoordeling" when 7 then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else
   "?" end ) as mijlpaal_type, MPD.kans, MPD.directory from student_directories as SD inner join
   STUDENT_DIRECTORIES_DETAILS as SDD on SD.ID=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MPD on
-  MPD.ID=SDD.detail_id where SDD.class_codes=="MP" order by 1,3;
+  MPD.ID=SDD.detail_id where SDD.class_code=="MP" order by 1,3;
 view LAATSTE_VERSIE:
   CREATE VIEW IF NOT EXISTS LAATSTE_VERSIE AS select max(db_versie) as "database-versie",max(versie) as "programma-
   versie" from VERSIE;

@@ -264,7 +264,6 @@ class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
             inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id \
             inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id \
             inner join FILES as F on F.ID=MDF.detail_id WHERE MDF.class_code=="{fl_code}"'
-        print(query, len(query))        
         super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=query)
 
 class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
@@ -273,7 +272,7 @@ class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
         query = f'select (select full_name from studenten as S where S.id=SD.stud_id) as student, MPD.datum, {mijlpaal_str}, MPD.kans, MPD.directory \
                 from student_directories as SD \
                 inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.ID=SDD.stud_dir_id \
-                inner join MIJLPAAL_DIRECTORIES as MPD on MPD.ID=SDD.detail_id where SDD.class_codes=="{ClassCodes.classtype_to_code(MijlpaalDirectory)}" order by 1,3'
+                inner join MIJLPAAL_DIRECTORIES as MPD on MPD.ID=SDD.detail_id where SDD.class_code=="{ClassCodes.classtype_to_code(MijlpaalDirectory)}" order by 1,3'
         super().__init__('STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT', query=query)
 
 class StudentVerslagenOverzichtDefinition(ViewDefinition):

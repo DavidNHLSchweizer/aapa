@@ -205,12 +205,11 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "tests.plugins.temp_revamp",
+                "migrate.m125.correct_files_doublures",
                 "-stop",
                 "-debug",
                 "--database=testing123.db",
                 "--onedrive=d:\\onedrive",
-                "-preview"
             ]
         },
     ]
