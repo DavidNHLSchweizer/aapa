@@ -19,13 +19,14 @@ from database.classes.database import Database
  
 class M125JsonData(JsonData):
     class KEY(Enum):
+        CORRECT_FILES_DOUBLURES = auto()
         CORRECT_VERSLAGEN_DOUBLURES = auto()
     def __init__(self):
         super().__init__(r'migrate\m125')
         self.init_entries()
     def init_entries(self):
+        self.add_entry(self.KEY.CORRECT_FILES_DOUBLURES,filename='correct_files_doublures', phase=1, message ='correcting doublures files')
         # self.add_entry(self.KEY.CORRECT_VERSLAGEN_DOUBLURES,filename='correct_verslagen_doublures', phase=3, message ='correcting doublure verslagen')
-        pass
 
 def drop_views(database: Database):
     print('Dropping old views')

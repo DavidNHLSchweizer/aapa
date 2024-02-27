@@ -23,22 +23,22 @@ goto :phase%phase1%
 :phase0
 set phase=0
 call :migrate %phase%
-goto :phase42:
 call :msgnext
-call :plugin %mxx%.ccc
+call :plugin %mxx%.correct_files_doublures
 if "%phase2%" LSS "1" goto :phase42
 
 :phase1
 set phase=1
 call :migrate %phase%
 call :msgnext
-call :plugin %mxx%.ttt
+rem call :plugin %mxx%.ttt
 if "%phase2%" LSS "2" goto :phase42
 
 :phase2
 set phase=2
 call :migrate %phase%
 call :msgnext
+goto :phase42:
 call :plugin %mxx%.rrr	
 if "%phase2%" LSS "3" goto :phase42
 
