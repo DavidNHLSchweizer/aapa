@@ -25,7 +25,7 @@ from data.general.roots import Roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.24'
+DBVERSION = '1.25'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -211,7 +211,7 @@ class MijlpaalDirectoriesTableDefinition(TableDefinition):
 
 class MijlpaalDirectoryDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
-        super().__init__('MIJLPAAL_DIRECTORY_DETAILS', main_table_name='MIJLPAAL_DIRECTORIES', main_alias_id='mp_dir_id')
+        super().__init__('MIJLPAAL_DIRECTORIES_DETAILS', main_table_name='MIJLPAAL_DIRECTORIES', main_alias_id='mp_dir_id')
         self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
 
 #-------------------- views -------------------------------
@@ -284,6 +284,14 @@ class StudentVerslagenOverzichtDefinition(ViewDefinition):
             (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans, F.id as file_id, F.filename,{filetype_str},{status_str},{beoordeling} \
             from VERSLAGEN as V inner join VERSLAGEN_DETAILS as VD on VD.verslag_id = V.id inner join FILES as F on F.ID=VD.detail_id order by 3,4'        
         super().__init__('STUDENT_VERSLAGEN_OVERZICHT', query=query)
+        # self.add_column('db_versie', dbc.TEXT)
+        # self.add_column('versie', dbc.TEXT)
+        # self.add_column('datum', dbc.TEXT)
+
+class LastVersionViewDefinition(ViewDefinition):
+    def __init__(self):
+        query = 'select max(db_versie) as "database-versie",max(versie) as "programma-versie" from VERSIE'
+        super().__init__('LAATSTE_VERSIE', query=query)
 
 class AAPaSchema(Schema):
     ALL_TABLES:list[TableDefinition] = [
@@ -310,6 +318,7 @@ class AAPaSchema(Schema):
                 AanvragenFileOverzichtDefinition,
                 StudentDirectoriesFileOverzichtDefinition,
                 StudentMijlpaalDirectoriesOverzichtDefinition,
+                LastVersionViewDefinition,
                 ]
     def __init__(self):
         super().__init__()

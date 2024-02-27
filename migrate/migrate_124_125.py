@@ -10,7 +10,7 @@ from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.verslagen import Verslag
 from data.general.class_codes import ClassCodes
-from database.aapa_database import AanvraagDetailsTableDefinition, AanvragenFileOverzichtDefinition,AanvragenFileOverzichtDefinition, MijlpaalDirectoryDetailsTableDefinition,StudentDirectoryDetailsTableDefinition, StudentDirectoriesFileOverzichtDefinition,StudentMijlpaalDirectoriesOverzichtDefinition,StudentVerslagenOverzichtDefinition,   UndologDetailsTableDefinition, VerslagDetailsTableDefinition
+from database.aapa_database import AanvraagDetailsTableDefinition, AanvragenFileOverzichtDefinition,AanvragenFileOverzichtDefinition, LastVersionViewDefinition, MijlpaalDirectoryDetailsTableDefinition,StudentDirectoryDetailsTableDefinition, StudentDirectoriesFileOverzichtDefinition,StudentMijlpaalDirectoriesOverzichtDefinition,StudentVerslagenOverzichtDefinition,   UndologDetailsTableDefinition, VerslagDetailsTableDefinition
 from database.classes.sql_table import SQLcreateTable, SQLdropTable
 from database.classes.sql_view import SQLcreateView, SQLdropView
 from migrate.m124.obsolete import AanvraagFilesTableDefinition, MijlpaalDirectory_FilesTableDefinition, StudentDirectory_DirectoriesTableDefinition, UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, UndoLogVerslagenTableDefinition, VerslagFilesTableDefinition, oldAanvragenFileOverzichtDefinition, oldStudentDirectoriesFileOverzichtDefinition, oldStudentMijlpaalDirectoriesOverzichtDefinition, oldStudentVerslagenOverzichtDefinition
@@ -32,10 +32,6 @@ def drop_views(database: Database):
     database.execute_sql_command(SQLdropView(oldStudentDirectoriesFileOverzichtDefinition()))
     database.execute_sql_command(SQLdropView(oldStudentVerslagenOverzichtDefinition()))
     database.execute_sql_command(SQLdropView(oldStudentMijlpaalDirectoriesOverzichtDefinition()))
-    database.execute_sql_command(SQLdropView(AanvragenFileOverzichtDefinition()))
-    database.execute_sql_command(SQLdropView(StudentDirectoriesFileOverzichtDefinition()))
-    database.execute_sql_command(SQLdropView(StudentVerslagenOverzichtDefinition()))
-    database.execute_sql_command(SQLdropView(StudentMijlpaalDirectoriesOverzichtDefinition()))
 def create_aanvragen(database: Database):
     database.execute_sql_command(SQLdropTable(AanvraagDetailsTableDefinition()))
     database.execute_sql_command(SQLcreateTable(AanvraagDetailsTableDefinition()))
@@ -79,6 +75,7 @@ def create_views(database: Database):
     database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))
     database.execute_sql_command(SQLcreateView(StudentVerslagenOverzichtDefinition()))
     database.execute_sql_command(SQLcreateView(StudentMijlpaalDirectoriesOverzichtDefinition()))
+    database.execute_sql_command(SQLcreateView(LastVersionViewDefinition()))
 
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
