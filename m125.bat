@@ -24,22 +24,21 @@ goto :phase%phase1%
 set phase=0
 call :migrate %phase%
 call :msgnext
-call :plugin %mxx%.correct_files_doublures
+call :plugin %mxx%.correct_files_doublures %mxx%.correct_missing_aanvragen_files
 if "%phase2%" LSS "1" goto :phase42
 
 :phase1
 set phase=1
 call :migrate %phase%
 call :msgnext
-rem call :plugin %mxx%.ttt
+call :plugin %mxx%.correct_files_in_week %mxx%.correct_verslagen_doublures
 if "%phase2%" LSS "2" goto :phase42
 
 :phase2
 set phase=2
 call :migrate %phase%
 call :msgnext
-goto :phase42:
-call :plugin %mxx%.rrr	
+call :plugin %mxx%.add_aanvragen_to_mp_dirs	%mxx%.add_verslagen_to_mp_dirs
 if "%phase2%" LSS "3" goto :phase42
 
 :phase3
@@ -70,7 +69,7 @@ call :migrate %phase%
 goto :phase42
 
 :plugin
-python run_plugin.py %~1 %~2 %~3 %~4 %~5 --onedrive=%onedrive% -json -debug
+python run_plugin.py %~1 %~2 %~3 %~4 %~5 --onedrive=%onedrive% -json -debug --database=%db1%
 exit /b
 
 :reset
@@ -82,7 +81,7 @@ echo ---------------------------
 echo --- MIGRATION PHASE %~1 ---
 echo ---------------------------
 call :reset
-python aapa_migrate.py %db1% %v0% %v1% --phase=%~1 -debug
+python aapa_migrate.py %db1% %v0% %v1% --phase=%~1 -debug 
 exit /b
 
 :msgnext

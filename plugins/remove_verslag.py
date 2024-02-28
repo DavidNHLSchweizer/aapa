@@ -36,8 +36,8 @@ class VerslagRemover(PluginBase):
         sql.add('files', SQLcollector({'delete':{'sql':'delete from FILES where id in (?)'}, }))                 
         return sql
     def _find_mp_dir(self, verslag: Verslag)->MijlpaalDirectory:
-        target_dir = verslag.get_directory()
-        for mp_dir in self.stud_dir_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type):
+        target_dir = verslag.get_directory(verslag.mijlpaal_type.default_filetype())
+        for mp_dir in self.stud_dir_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type, kans=verslag.kans):
             if str(mp_dir.directory) == target_dir:
                 return mp_dir
         return None

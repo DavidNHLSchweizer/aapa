@@ -163,12 +163,12 @@ class VerslagFromZipImporter(VerslagImporter):
                     student_entry['verslag'].kans = student_entry['mp_dir'].kans
                 else:
                     student_entry['verslag'].kans -= 1
-    def _find_mp_dir(self, verslag: Verslag)->MijlpaalDirectory:
-        target_dir = verslag.get_directory()
-        for mp_dir in self.student_directory_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type):
-            if str(mp_dir.directory) == target_dir:
-                return mp_dir
-        return None
+    # def _find_mp_dir(self, verslag: Verslag)->MijlpaalDirectory:
+    #     target_dir = verslag.get_directory(verslag.mijlpaal_type.default_filetype())
+    #     for mp_dir in self.student_directory_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type):
+    #         if str(mp_dir.directory) == target_dir:
+    #             return mp_dir
+    #     return None
     def _check_existing_verslag(self, student_directory: StudentDirectory, filename_to_create: str)->Verslag:
         if not student_directory:
             return None

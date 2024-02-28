@@ -203,11 +203,12 @@
             "request": "launch",
             "program": "run_plugin.py",
             "console": "integratedTerminal",
-            "justMyCode": false,
+            "justMyCode": true,
             "args": [
-                "tests.plugins.temp_revamp",
+                "migrate.m125.add_verslagen_to_mp_dirs",
                 "-stop",
                 "-debug",
+                "-preview",
                 "--database=testing123.db",
                 "--onedrive=d:\\onedrive",
             ]

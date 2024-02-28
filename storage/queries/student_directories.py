@@ -16,7 +16,10 @@ class StudentDirectoriesQueries(CRUDQueries):
         if stored := self.find_values(attributes=['student','directory'], values=[student,directory]):
             return stored[0]
         return None
-    def find_student_mijlpaal_dir(self, student: Student, mijlpaal_type: MijlpaalType)->list[MijlpaalDirectory]:
+    def find_student_mijlpaal_dir(self, student: Student, mijlpaal_type: MijlpaalType, kans: int = 0)->list[MijlpaalDirectory]:
         if student_directory := self.find_student_dir(student):
-            return list(filter(lambda mp_dir: mp_dir.mijlpaal_type == mijlpaal_type, student_directory.directories))
+            if kans:
+                return list(filter(lambda mp_dir: mp_dir.mijlpaal_type == mijlpaal_type and mp_dir.kans==kans, student_directory.directories))
+            else:
+                return list(filter(lambda mp_dir: mp_dir.mijlpaal_type == mijlpaal_type, student_directory.directories))
         return []

@@ -20,13 +20,24 @@ from database.classes.database import Database
 class M125JsonData(JsonData):
     class KEY(Enum):
         CORRECT_FILES_DOUBLURES = auto()
+        CORRECT_MISSING_AANVRAGEN_FILES = auto()
+        CORRECT_FILES_IN_WEEK = auto()
+        ADD_AANVRAGEN_TO_MP_DIRS= auto()
+        ADD_VERSLAGEN_TO_MP_DIRS= auto()
         CORRECT_VERSLAGEN_DOUBLURES = auto()
     def __init__(self):
         super().__init__(r'migrate\m125')
         self.init_entries()
     def init_entries(self):
         self.add_entry(self.KEY.CORRECT_FILES_DOUBLURES,filename='correct_files_doublures', phase=1, message ='correcting doublures files')
-        # self.add_entry(self.KEY.CORRECT_VERSLAGEN_DOUBLURES,filename='correct_verslagen_doublures', phase=3, message ='correcting doublure verslagen')
+        self.add_entry(self.KEY.CORRECT_MISSING_AANVRAGEN_FILES,filename='correct_missing_aanvragen_files',phase=1,message='Corrigeren aanvragen zonder gekoppelde bestanden')
+        self.add_entry(self.KEY.CORRECT_FILES_IN_WEEK,filename='correct_files_in_week',phase=2,message='Corrigeren aanvragen met files die alleen op de "verkeerde" plaats staan')
+        self.add_entry(self.KEY.CORRECT_VERSLAGEN_DOUBLURES,filename='correct_verslagen_doublures', phase=2, message ='correcting doublure verslagen')
+        self.add_entry(self.KEY.ADD_AANVRAGEN_TO_MP_DIRS,filename='add_aanvragen_to_mp_dirs',phase=3,
+                       message='Toevoegen aanvragen aan mijlpaal directories')
+        self.add_entry(self.KEY.ADD_VERSLAGEN_TO_MP_DIRS,filename='add_verslagen_to_mp_dirs',phase=3,
+                       message='Toevoegen verslagen aan mijlpaal directories')
+        
 
 def drop_views(database: Database):
     print('Dropping old views')
@@ -114,14 +125,38 @@ def _correct_path(database: Database, table: str, path_column: str, path_to_corr
         new_path = str(row[path_column]).replace(replace, replace_with)
         database._execute_sql_command(f'update {table} set {path_column}=? where id=?', [new_path, row['id']])
 
+def _correct_path_2(database: Database, table: str, path_column: str, id: int, replace: str, replace_with: str):
+    rows = database._execute_sql_command(f'select {path_column} from {table} where id = ?', [id],True)
+    for row in rows:
+        new_path = str(row[path_column]).replace(replace, replace_with)
+        database._execute_sql_command(f'update {table} set {path_column}=? where id=?', [new_path, id])
+
 def correct_filename_errors(database: Database):
     print('correcting filename errors/inconsistencies')
     #Ibrić, Elvedin
     database._execute_sql_command(f'UPDATE FILES SET FILENAME=? WHERE ID=?', [r':ROOT12:\Ibrić, Elvedin\Beoordeling afstudeeropdracht Elvedin.pdf',79])
     #Heij, de, Gerrit
     _correct_path(database, 'FILES', 'filename', r'%\Heij, de,Gerrit%',  "Heij, de,Gerrit", "Heij, de, Gerrit")
-
+    #Micky Cheng
+    _correct_path_2(database, 'MIJLPAAL_DIRECTORIES', 'directory', 591,  "onderzoeksverslag", "Onderzoeksverslag")
     print('end correcting filename errors/inconsistencies')
+def _remove_missing_files(database: Database, table_name: str, main_id: str):
+    file_code = ClassCodes.classtype_to_code(File)
+    query = f'select DDD.detail_id from {table_name}_DETAILS as DDD inner join {table_name} as M on M.id=DDD.{main_id} where DDD.class_code = "{file_code}" and ' + \
+    'not exists (select id from FILES as F where F.ID = DDD.detail_id)'
+    file_ids = []
+    for row in database._execute_sql_command(query,[], True):
+        file_ids.append(row['detail_id'])
+    commas = ",".join(['?']*len(file_ids))
+    database._execute_sql_command(f'delete from {table_name}_DETAILS where detail_id in ({commas}) and class_code=="{file_code}"', file_ids)
+    print(f'{table_name}: removed {file_ids}')
+def remove_missing_files(database: Database):
+    print('removing links to non-existent files from DETAILS-tables')
+    _remove_missing_files(database, 'AANVRAGEN', 'aanvraag_id')
+    _remove_missing_files(database, 'VERSLAGEN', 'verslag_id')
+    _remove_missing_files(database, 'UNDOLOGS', 'log_id')
+    _remove_missing_files(database, 'MIJLPAAL_DIRECTORIES', 'mp_dir_id')
+    print(f'end removing links to non-existent files')
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
         drop_views(database)
@@ -130,6 +165,7 @@ def migrate_database(database: Database, phase = 42):
         modify_mijlpaal_directories(database)
         create_views(database)
         correct_filename_errors(database)
+        remove_missing_files(database)
         M125JsonData().execute(database, phase)
 
 def after_migrate(database_name: str, debug=False, phase=42):

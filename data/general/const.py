@@ -175,6 +175,8 @@ class AanvraagStatus(IntEnum):
     @staticmethod
     def valid_states()->set[AanvraagStatus]:
         return {status for status in AanvraagStatus} - {AanvraagStatus.DELETED}
+    def active_states()->set[AanvraagStatus]:
+        return AanvraagStatus.valid_states() - {AanvraagStatus.READY, AanvraagStatus.READY_IMPORTED,AanvraagStatus.MAIL_READY}
     @staticmethod
     def doc()->str:
         return "\n".join([f'{status.value:2} (AanvraagStatus.{status.name}): {str(status)}' for status in AanvraagStatus])

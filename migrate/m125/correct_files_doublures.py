@@ -17,20 +17,16 @@ from process.main.aapa_processor import AAPARunnerContext
 class FilesReEngineeringProcessor(MigrationPlugin):
 
     def init_SQLcollectors(self) -> SQLcollectors:
-        def insert_query(table_name: str, main_id: str)->str:
-            return f'insert into {table_name}({main_id},detail_id,class_code) values (?,?,?)'
-        def delete_query(table_name: str, main_id: str)->str:
-            return f'delete from {table_name} where {main_id}=? and detail_id=? and class_code=?'
         sql = super().init_SQLcollectors()
-        sql.add('aanvragen_details', SQLcollector({'insert': {'sql': insert_query('AANVRAGEN_DETAILS', 'aanvraag_id'),},
-                                                   'delete': {'sql': delete_query('AANVRAGEN_DETAILS', 'aanvraag_id'), 'concatenate': False},}))                                                   
-        sql.add('verslagen_details', SQLcollector({'insert': {'sql': insert_query('VERSLAGEN_DETAILS', 'verslag_id'),},
-                                                   'delete': {'sql': delete_query('VERSLAGEN_DETAILS', 'verslag_id'), 'concatenate': False},}))                                                   
+        sql.add('aanvragen_details', SQLcollector({'insert': {'sql': self.insert_detail_query('AANVRAGEN', 'aanvraag_id'),},
+                                                   'delete': {'sql': self.delete_detail_query('AANVRAGEN', 'aanvraag_id'), 'concatenate': False},}))                                                   
+        sql.add('verslagen_details', SQLcollector({'insert': {'sql': self.insert_detail_query('VERSLAGEN', 'verslag_id'),},
+                                                   'delete': {'sql': self.delete_detail_query('VERSLAGEN', 'verslag_id'), 'concatenate': False},}))                                                   
         sql.add('mijlpaal_directories_details', 
-                                     SQLcollector({'insert': {'sql': insert_query('MIJLPAAL_DIRECTORIES_DETAILS', 'mp_dir_id'),'concatenate': False},
-                                                             'delete': {'sql': delete_query('MIJLPAAL_DIRECTORIES_DETAILS', 'mp_dir_id'),'concatenate': False},}))                                                         
-        sql.add('undologs_details', SQLcollector({'insert': {'sql': insert_query('UNDOLOGS_DETAILS', 'log_id'),},
-                                                             'delete': {'sql': delete_query('UNDOLOGS_DETAILS', 'log_id'),'concatenate': False},}))
+                                     SQLcollector({'insert': {'sql': self.insert_detail_query('MIJLPAAL_DIRECTORIES', 'mp_dir_id'),'concatenate': False},
+                                                             'delete': {'sql': self.delete_detail_query('MIJLPAAL_DIRECTORIES', 'mp_dir_id'),'concatenate': False},}))                                                         
+        sql.add('undologs_details', SQLcollector({'insert': {'sql': self.insert_detail_query('UNDOLOGS', 'log_id'),},
+                                                             'delete': {'sql': self.delete_detail_query('UNDOLOGS', 'log_id'),'concatenate': False},}))
         sql.add('files', SQLcollector({'delete': {'sql':'delete from FILES where id in (?)'},}))
         return sql
     def correct_table(self, main_table: str, file_id1: int, file_id2: int):

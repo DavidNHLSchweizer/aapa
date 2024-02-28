@@ -18,7 +18,7 @@ class Aanvraag(MijlpaalGradeable):
         super().__init__(mijlpaal_type=MijlpaalType.AANVRAAG, 
                          student=student, bedrijf=bedrijf, datum = datum, kans=kans, 
                          status=status, beoordeling=beoordeling, titel=titel, id=id)
-        self.files.allow_multiple = False 
+        self.files.allow_multiple = not status in AanvraagStatus.active_states()
         self._datum_str = datum_str
         self.versie=versie
         if source_info:
