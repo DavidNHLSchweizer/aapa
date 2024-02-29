@@ -25,6 +25,7 @@ class M125JsonData(JsonData):
         ADD_AANVRAGEN_TO_MP_DIRS= auto()
         ADD_VERSLAGEN_TO_MP_DIRS= auto()
         CORRECT_VERSLAGEN_DOUBLURES = auto()
+        MOVE_FILES = auto()
     def __init__(self):
         super().__init__(r'migrate\m125')
         self.init_entries()
@@ -37,8 +38,9 @@ class M125JsonData(JsonData):
                        message='Toevoegen aanvragen aan mijlpaal directories')
         self.add_entry(self.KEY.ADD_VERSLAGEN_TO_MP_DIRS,filename='add_verslagen_to_mp_dirs',phase=3,
                        message='Toevoegen verslagen aan mijlpaal directories')
+        self.add_entry(self.KEY.MOVE_FILES,filename='move_files',phase=4,
+                       message='Verplaatsen alle bestanden vanuit mijlpaal_directories')
         
-
 def drop_views(database: Database):
     print('Dropping old views')
     database.execute_sql_command(SQLdropView(oldAanvragenFileOverzichtDefinition()))
@@ -140,6 +142,15 @@ def correct_filename_errors(database: Database):
     #Micky Cheng
     _correct_path_2(database, 'MIJLPAAL_DIRECTORIES', 'directory', 591,  "onderzoeksverslag", "Onderzoeksverslag")
     print('end correcting filename errors/inconsistencies')
+
+def correct_student_errors(database: Database):
+    print('correcting student errors/inconsistencies')
+    #Rob Klein ikink
+    database._execute_sql_command(f'UPDATE STUDENTEN SET full_name=? WHERE ID=?', ['Rob Klein Ikink', 4])
+    #Klaas Skelte van der Werf
+    database._execute_sql_command(f'UPDATE STUDENTEN SET full_name=? WHERE ID=?', ['Klaas Skelte van der Werf', 169])
+    print('end correcting student errors/inconsistencies')
+
 def _remove_missing_files(database: Database, table_name: str, main_id: str):
     file_code = ClassCodes.classtype_to_code(File)
     query = f'select DDD.detail_id from {table_name}_DETAILS as DDD inner join {table_name} as M on M.id=DDD.{main_id} where DDD.class_code = "{file_code}" and ' + \
@@ -164,6 +175,7 @@ def migrate_database(database: Database, phase = 42):
         drop_old_tables(database)
         modify_mijlpaal_directories(database)
         create_views(database)
+        correct_student_errors(database)
         correct_filename_errors(database)
         remove_missing_files(database)
         M125JsonData().execute(database, phase)

@@ -1,3 +1,4 @@
+from pathlib import Path
 from data.general.const import MijlpaalType
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
@@ -23,3 +24,6 @@ class StudentDirectoriesQueries(CRUDQueries):
             else:
                 return list(filter(lambda mp_dir: mp_dir.mijlpaal_type == mijlpaal_type, student_directory.directories))
         return []
+    def find_student_dir_from_directory(self, directory: str|Path)->list[StudentDirectory]:
+        return self.find_values(attributes='directory', values=str(directory))
+    

@@ -257,14 +257,29 @@ class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
         mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
         status_str = get_sql_cases_for_int_type('sd.status', StudentDirectory.Status, 'dir_status') 
         fl_code = ClassCodes.classtype_to_code(File)
-        query = \
-            f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+        av_code = ClassCodes.classtype_to_code(Aanvraag)
+        vs_code = ClassCodes.classtype_to_code(Verslag)
+        query1 = \
+            f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},A.titel, \
+            MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
             from STUDENT_DIRECTORIES as SD \
             inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id \
             inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id \
             inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id \
-            inner join FILES as F on F.ID=MDF.detail_id WHERE MDF.class_code=="{fl_code}"'
-        super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=query)
+            inner join AANVRAGEN as A on MDF.detail_id=A.ID \
+            inner join AANVRAGEN_DETAILS as AD on AD.aanvraag_id=A.ID \
+            inner join FILES as F on F.ID=AD.detail_id WHERE AD.class_code=="{fl_code}" and MDF.class_code="{av_code}"'
+        query2 = \
+            f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},V.titel, \
+            MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+            from STUDENT_DIRECTORIES as SD \
+            inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id \
+            inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id \
+            inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id \
+            inner join VERSLAGEN as V on MDF.detail_id=V.ID \
+            inner join VERSLAGEN_DETAILS as VD on VD.verslag_id=V.ID \
+            inner join FILES as F on F.ID=VD.detail_id WHERE VD.class_code=="{fl_code}" and MDF.class_code="{vs_code}"'
+        super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=f'{query1} UNION ALL {query2}')
 
 class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
     def __init__(self):

@@ -44,14 +44,14 @@ if "%phase2%" LSS "3" goto :phase42
 :phase3
 set phase=3
 call :migrate %phase%
-goto :phase42:
 call :msgnext
-call :plugin %mxx%.ttt  %mxx%.ttt
+call :plugin %mxx%.move_files -v
 if "%phase2%" LSS "4" goto :phase42
 
 :phase4
 set phase=4
 call :migrate %phase%
+goto :phase42:
 call :msgnext
 call :plugin %mxx%.zzz
 if "%phase2%" LSS "5" goto :phase42
@@ -69,7 +69,7 @@ call :migrate %phase%
 goto :phase42
 
 :plugin
-python run_plugin.py %~1 %~2 %~3 %~4 %~5 --onedrive=%onedrive% -json -debug --database=%db1%
+python run_plugin.py %~1 %~2 %~3 %~4 %~5 --onedrive=%onedrive% -json -debug --database=%db1% %1 %2 %3
 exit /b
 
 :reset

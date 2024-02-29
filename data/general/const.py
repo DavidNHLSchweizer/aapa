@@ -125,6 +125,8 @@ class MijlpaalType(IntEnum):
     AFSTUDEERZITTING    = 9
     def is_verslag(self)->bool:
         return self in {MijlpaalType.PVA,MijlpaalType.EIND_VERSLAG,MijlpaalType.ONDERZOEKS_VERSLAG,MijlpaalType.TECHNISCH_VERSLAG,MijlpaalType.PRESENTATIE,MijlpaalType.PRODUCT_BEOORDELING}
+    def is_eindbeoordeling(self)->bool:
+        return self in {MijlpaalType.EINDBEOORDELING,MijlpaalType.AFSTUDEERZITTING}
     @staticmethod
     def verslag_types()->set[MijlpaalType]:
         return {mp for mp in MijlpaalType if mp.is_verslag()}
@@ -155,6 +157,7 @@ class AanvraagStatus(IntEnum):
     Voor meer info: zie AanvraagStatus.doc()
         
     """
+    LEGACY          = -2
     DELETED         = -1
     NEW             = 0
     IMPORTED_PDF    = 1
@@ -170,7 +173,9 @@ class AanvraagStatus(IntEnum):
                     AanvraagStatus.IMPORTED_PDF: 'gelezen (PDF)',  AanvraagStatus.IMPORTED_XLS: 'geimporteerd (PDF)',
                 AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', 
                 AanvraagStatus.ARCHIVED: 'gearchiveerd', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'geheel verwerkt', 
-                AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
+                AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)',
+                AanvraagStatus.LEGACY: 'Erfenis',
+                }
         return _AS_STRS.get(self,_UNKNOWN)
     @staticmethod
     def valid_states()->set[AanvraagStatus]:

@@ -40,6 +40,7 @@ class AanvragenFilesReEngineeringProcessor(MigrationPlugin):
             return False
         self.student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         self.database = context.storage.database
+        self.database = context.storage.database
         self.file_code = ClassCodes.classtype_to_code(File)
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:        

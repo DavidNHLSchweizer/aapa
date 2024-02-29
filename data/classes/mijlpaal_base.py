@@ -58,6 +58,8 @@ class MijlpaalGradeable(MijlpaalBase):
             if file.filetype == filetype:
                 return str(Path(file.filename).parent)
         return None
+    def relevant_attributes(self) -> set[str]:
+        return super().relevant_attributes() | {'student', 'bedrijf'}
     def summary(self)->str:
         return str(self)
     def __str__(self):        

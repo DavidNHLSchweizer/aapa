@@ -205,8 +205,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "migrate.m125.add_verslagen_to_mp_dirs",
+                "migrate.m125.move_files",
                 "-stop",
+                "-v",
                 "-debug",
                 "-preview",
                 "--database=testing123.db",

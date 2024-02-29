@@ -1,18 +1,18 @@
 from __future__ import annotations
 import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from database.aapa_database import create_root
 from data.general.aapa_class import AAPAclass
 from data.classes.base_dirs import BaseDir
-from storage.general.CRUDs import CRUD, CRUDQueries, EnsureKeyAction, create_crud, get_registered_type
+from storage.general.CRUDs import CRUD, CRUDQueries, CallBackFunc, EnsureKeyAction, create_crud, get_registered_type
 from storage.general.storage_const import STORAGE_CLASSES, KeyClass, StorageException, StoredClass
 from database.classes.database import Database
 from data.general.roots import Roots
 from general.classutil import classname, find_all_modules
 from main.log import log_debug
-   
+
 class AAPAStorage: 
     #main interface with the database
     def __init__(self, database: Database):
@@ -53,13 +53,13 @@ class AAPAStorage:
                     map_values = True, read_many=False)->list[AAPAclass]:
         return self.queries(module).find_values(attributes=attributes, values=values, 
                                                 map_values = map_values, read_many=read_many)
-    def find_all(self, module: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None, map_values=True)->list[Any]:
+    def find_all(self, module: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None, map_values=True, callback: CallBackFunc=None)->list[Any]:
         if where_attributes:
             if rows := self.queries(module).find_values_where(attribute='id', 
                                                               where_attributes=where_attributes, where_values=where_values):
-                return self.read_many(module, {row['id'] for row in rows})
+                return self.read_many(module, {row['id'] for row in rows},callback=callback)
         else:
-            return self.queries(module).find_all(map_values)
+            return self.queries(module).find_all(map_values,callback=callback)
    
     #------------- crud stuff --------------
     def create(self, module: str, aapa_obj: StoredClass):
@@ -77,9 +77,9 @@ class AAPAStorage:
         if crud := self.crud(module):
             return crud.read(key)
         return None
-    def read_many(self, module: str, keys: set[KeyClass])->list[StoredClass]:
+    def read_many(self, module: str, keys: set[KeyClass], callback: CallBackFunc=None)->list[StoredClass]:
         if crud := self.crud(module):
-            return crud.read_many(keys)
+            return crud.read_many(keys, callback=callback)
         return []
     def update(self, module: str, aapa_obj: StoredClass):
         if crud := self.crud(module):

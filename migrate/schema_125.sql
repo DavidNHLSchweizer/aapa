@@ -1,5 +1,5 @@
 AAPA Database schema versie 1.25
-28-02-2024 16:30:43
+29-02-2024 14:14:56
 
 table VERSIE:
   CREATE TABLE IF NOT EXISTS VERSIE (ID INTEGER PRIMARY KEY,db_versie TEXT,versie TEXT,datum TEXT);
@@ -82,20 +82,38 @@ view AANVRAGEN_FILE_OVERZICHT:
 view STUDENT_DIRECTORIES_FILE_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_DIRECTORIES_FILE_OVERZICHT AS select SD.id,SD.STUD_ID,SD.directory as
   student_directory,(case sd.status when 0 then "nog niet bekend" when 1 then "actief" when 42 then "gearchiveerd" else
-  "?" end ) as dir_status,MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,(case F.filetype when -4 then
-  "directory (geen verdere gegevens)" when -3 then "docx-bestand (geen verdere gegevens)" when -2 then "pdf-bestand
-  (geen verdere gegevens)" when -1 then "!unknown" when 0 then "PDF-file (aanvraag)" when 1 then "Beoordelingsformulier"
-  when 2 then "Kopie van PDF-file (aanvraag)" when 3 then "Verschilbestand met vorige versie aanvraag" when 5 then
-  "Ingevuld beoordelingsformulier (PDF format)" when 6 then "Beoordelingsformulier (examinator 1)" when 7 then
-  "Beoordelingsformulier (examinator 2)" when 8 then "Beoordelingsformulier (examinator 3 of hoger)" when 9 then "Plan
-  van Aanpak" when 10 then "Onderzoeksverslag" when 11 then "Technisch verslag" when 12 then "Eindverslag" when 13 then
-  "Aanvraag" when 20 then "PDF bestand" when 21 then "Microsoft Word bestand" else "?" end ) as filetype,(case
-  F.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then "plan van aanpak" when 3 then "onderzoeksverslag"
-  when 4 then "technisch verslag" when 5 then "eindverslag" when 6 then "productbeoordeling" when 7 then "presentatie"
-  when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?" end ) as mijlpaal from STUDENT_DIRECTORIES as SD
-  inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MD on
-  MD.id=SDD.detail_id inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id inner join FILES as F on
-  F.ID=MDF.detail_id WHERE MDF.class_code=="FL";
+  "?" end ) as dir_status,A.titel, MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,(case F.filetype
+  when -4 then "directory (geen verdere gegevens)" when -3 then "docx-bestand (geen verdere gegevens)" when -2 then
+  "pdf-bestand (geen verdere gegevens)" when -1 then "!unknown" when 0 then "PDF-file (aanvraag)" when 1 then
+  "Beoordelingsformulier" when 2 then "Kopie van PDF-file (aanvraag)" when 3 then "Verschilbestand met vorige versie
+  aanvraag" when 5 then "Ingevuld beoordelingsformulier (PDF format)" when 6 then "Beoordelingsformulier (examinator 1)"
+  when 7 then "Beoordelingsformulier (examinator 2)" when 8 then "Beoordelingsformulier (examinator 3 of hoger)" when 9
+  then "Plan van Aanpak" when 10 then "Onderzoeksverslag" when 11 then "Technisch verslag" when 12 then "Eindverslag"
+  when 13 then "Aanvraag" when 20 then "PDF bestand" when 21 then "Microsoft Word bestand" else "?" end ) as
+  filetype,(case F.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then "plan van aanpak" when 3 then
+  "onderzoeksverslag" when 4 then "technisch verslag" when 5 then "eindverslag" when 6 then "productbeoordeling" when 7
+  then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting" else "?" end ) as mijlpaal from
+  STUDENT_DIRECTORIES as SD inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id inner join
+  MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on
+  MD.ID=MDF.mp_dir_id inner join AANVRAGEN as A on MDF.detail_id=A.ID inner join AANVRAGEN_DETAILS as AD on
+  AD.aanvraag_id=A.ID inner join FILES as F on F.ID=AD.detail_id WHERE AD.class_code=="FL" and MDF.class_code="AV" UNION
+  ALL select SD.id,SD.STUD_ID,SD.directory as student_directory,(case sd.status when 0 then "nog niet bekend" when 1
+  then "actief" when 42 then "gearchiveerd" else "?" end ) as dir_status,V.titel, MD.id as mp_id,MD.directory as
+  mp_dir,F.ID as file_id,F.filename,(case F.filetype when -4 then "directory (geen verdere gegevens)" when -3 then
+  "docx-bestand (geen verdere gegevens)" when -2 then "pdf-bestand (geen verdere gegevens)" when -1 then "!unknown" when
+  0 then "PDF-file (aanvraag)" when 1 then "Beoordelingsformulier" when 2 then "Kopie van PDF-file (aanvraag)" when 3
+  then "Verschilbestand met vorige versie aanvraag" when 5 then "Ingevuld beoordelingsformulier (PDF format)" when 6
+  then "Beoordelingsformulier (examinator 1)" when 7 then "Beoordelingsformulier (examinator 2)" when 8 then
+  "Beoordelingsformulier (examinator 3 of hoger)" when 9 then "Plan van Aanpak" when 10 then "Onderzoeksverslag" when 11
+  then "Technisch verslag" when 12 then "Eindverslag" when 13 then "Aanvraag" when 20 then "PDF bestand" when 21 then
+  "Microsoft Word bestand" else "?" end ) as filetype,(case F.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2
+  then "plan van aanpak" when 3 then "onderzoeksverslag" when 4 then "technisch verslag" when 5 then "eindverslag" when
+  6 then "productbeoordeling" when 7 then "presentatie" when 8 then "eindbeoordeling" when 9 then "afstudeerzitting"
+  else "?" end ) as mijlpaal from STUDENT_DIRECTORIES as SD inner join STUDENT_DIRECTORIES_DETAILS as SDD on
+  SD.id=SDD.stud_dir_id inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id inner join
+  MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id inner join VERSLAGEN as V on MDF.detail_id=V.ID inner join
+  VERSLAGEN_DETAILS as VD on VD.verslag_id=V.ID inner join FILES as F on F.ID=VD.detail_id WHERE VD.class_code=="FL" and
+  MDF.class_code="VS";
 view STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT:
   CREATE VIEW IF NOT EXISTS STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT AS select (select full_name from studenten as S where
   S.id=SD.stud_id) as student, MPD.datum, (case MPD.mijlpaal_type when 0 then "" when 1 then "aanvraag" when 2 then
