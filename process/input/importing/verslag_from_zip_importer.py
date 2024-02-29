@@ -118,7 +118,7 @@ class VerslagFromZipImporter(VerslagImporter):
         # if we get here, try a good-luck search. Hopefully the database is not out-of-sync with reality        
         return self.files_queries.is_known_file(filename_to_create)
     def _register_verslag(self, verslag: Verslag, filename: str):
-        file = verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
+        verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
         self.sdb.register_verslag(verslag,filename)
     def _create_file(self, verslag: Verslag, mp_dir: MijlpaalDirectory, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
         mijlpaal_directory_path = Path(mp_dir.directory) if mp_dir else Path(filename_to_create).parent
@@ -135,6 +135,7 @@ class VerslagFromZipImporter(VerslagImporter):
                 log_print(f'\tDirectory {File.display_file(mijlpaal_directory_path)} aangemaakt')
             self.reader.extract_file(filename_in_zip, mijlpaal_directory_path, Path(filename_to_create).name)
             log_print(f'\tBestand {File.display_file(filename_to_create)} aangemaakt.')
+            verslag.ensure_files_timestamp_and_digest()
         self._register_verslag(verslag, filename_to_create)
     def _check_existing_files(self, student_entries: list[dict]):
         previous_existing = False
@@ -176,9 +177,10 @@ class VerslagFromZipImporter(VerslagImporter):
     def _process_student_entry(self, current_verslag: Verslag, student_entry: dict, preview=False)->Verslag:
         overgeslagen = 'Wordt overgeslagen.'
         new_verslag:Verslag = student_entry['verslag']
-        if current_verslag and new_verslag.mijlpaal_type == current_verslag.mijlpaal_type and current_verslag.student==new_verslag.student:
-            new_verslag = current_verslag
         filename_to_create = student_entry['filename_to_create']
+        if current_verslag and new_verslag.mijlpaal_type == current_verslag.mijlpaal_type and current_verslag.student==new_verslag.student:
+            current_verslag.register_file(filename_to_create,filetype=current_verslag.mijlpaal_type.default_filetype(), mijlpaal_type=current_verslag.mijlpaal_type)
+            new_verslag = current_verslag
         stored_verslag = self._check_existing_verslag(student_entry['student_directory'], filename_to_create)
         log_debug(f'filename to create: {filename_to_create}')   
         if stored_verslag:            

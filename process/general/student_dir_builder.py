@@ -96,6 +96,7 @@ class StudentDirectoryBuilder:
         if not (mp_dir := stud_dir.get_directory(datum, mijlpaal_type, error_margin=error_margin)):
             kans = len(stud_dir.get_directories(mijlpaal_type))+1
             mp_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=directory, datum=datum, kans = kans)
+            self.storage.create('mijlpaal_directories', mp_dir)
             stud_dir.add(mp_dir)
         if str(mp_dir.directory).lower() != str(directory).lower(): 
             log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory {File.display_file(mp_dir.directory)}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
@@ -122,6 +123,7 @@ class StudentDirectoryBuilder:
         error_margin = config.get('directories', 'error_margin_date')
         mp_dir = self.get_mijlpaal_directory(stud_dir, str(Path(filename).parent), mijlpaal.datum, mijlpaal.mijlpaal_type
                                              , error_margin)
+        self.storage.ensure_key('mijlpaal_directories', mp_dir)
         if mijlpaal.mijlpaal_type != MijlpaalType.AANVRAAG and TSC.round_to_day(mp_dir.datum) != TSC.round_to_day(mijlpaal.datum):
             log_warning(f'Datum {TSC.get_date_str(mijlpaal.datum)} van nieuw bestand is inconsistent met directory\n\t({File.display_file(mp_dir.directory)})')
         mp_dir.register_mijlpaal(mijlpaal)

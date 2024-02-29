@@ -117,8 +117,11 @@
                 "input",
                 "-debug",
                 "--onedrive=d:\\onedrive",
-                "--processing_mode=A",
-                "--input_options=F"              
+                "--processing_mode=V",
+                "--input_options=F",
+                "--database=testing123.db",
+                "-preview"
+
             ]
         },
         {
@@ -133,7 +136,7 @@
                 "-debug",
                 "-preview",
                 "--onedrive=d:\\onedrive",
-                "--processing_mode=A",
+                "--processing_mode=V",
                 "--input_options=F",
                 "--database=testing123.db"
             ]
@@ -203,11 +206,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "migrate.m125.move_files",
+                "plugins.remove_verslag",
                 "-stop",
-                "-v",
                 "-debug",
-                "-preview",
+                "-unlink",
+                "--verslag=95",
                 "--database=testing123.db",
                 "--onedrive=d:\\onedrive",
             ]

@@ -101,14 +101,18 @@ class Files(Aggregator):
         super().__init__(owner=owner)
         self.allow_multiple = allow_multiple
         self.add_class(File, 'files')
-    def add(self, files:File|list[File]):
+    def _add_file(self, file: File):
         if not self.allow_multiple:
-            if isinstance(files, list):
-                for filetype in {file.filetype for file in files}:
-                    self.remove_filetype(filetype)
-            else:
-                self.remove_filetype(files.filetype)
-        super().add(files)
+            self.remove_filetype(file.filetype)
+        if self.find_filename(file.filename) is not None:
+            return
+        super().add(file)
+    def add(self, files:File|list[File]):
+        if isinstance(files, list):
+            for file in files:
+                self._add_file(file)
+        else:
+            self._add_file(files)
     @property
     def files(self)->list[File]:
         return self.as_list('files', sort_key=lambda file: file.filetype)

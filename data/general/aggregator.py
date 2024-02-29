@@ -44,6 +44,11 @@ class Aggregator(dict):
             if item==object:
                 return True
         return False
+    def contains_id(self, object: Any)->bool:
+        for item in self.as_list(self.__get_class_attribute(object)):
+            if item.id==object.id:
+                return True
+        return False
     def _add(self, object: Any):
         self[self.__get_hash(object)]={'object': object, 'attribute': self.__get_class_attribute(object)}
     def add(self, object: Any):
@@ -78,8 +83,8 @@ class Aggregator(dict):
         if isinstance(class_type, str):
             return self._as_list(class_type, sort_key=sort_key, sort_reverse=sort_reverse)
         return self._as_list(self.__get_class_attribute(class_type), sort_reverse=sort_reverse)
-    def as_class_list(self, class_type:Type[Any])->list:
-        return self._as_list(class_type)
+    def as_class_list(self, aapa_obj:Any)->list:
+        return self._as_list(type(aapa_obj))
     def _get_ids(self, class_attribute: str):
         return [value['object'].id for value in self.values() if value['attribute']==class_attribute]
     def get_ids(self, class_type:str|Any)->list[int]:

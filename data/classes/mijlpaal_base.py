@@ -55,7 +55,7 @@ class MijlpaalGradeable(MijlpaalBase):
     @property
     def files_list(self)->list[File]: return self._files.as_list('files')
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
-        result = File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, mijlpaal_type=mijlpaal_type)
+        result = File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=filetype, mijlpaal_type=mijlpaal_type)
         if self.files.contains(result):
             return self.files.find_filename(filename)
         else:
@@ -63,6 +63,9 @@ class MijlpaalGradeable(MijlpaalBase):
         return result    
     def unregister_file(self, filetype: File.Type):
         self.files.remove_filetype(filetype)
+    def ensure_files_timestamp_and_digest(self):
+        for file in self.files_list:
+            file.ensure_timestamp_and_digest()
     def get_directory(self, filetype: File.Type)->str:
         for file in self.files_list:
             if file.filetype == filetype:

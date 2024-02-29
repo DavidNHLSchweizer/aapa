@@ -23,11 +23,16 @@ class MijlpaalDirectoryAggregator(Aggregator):
     def find_filename(self,filename: str):
         obsolete_exception('find_filename')
     def find_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
-        for mijlpaal in self.as_class_list(mijlpaal):
-            if mijlpaal == mijlpaal:
-                return mijlpaal
+        for mijlpaal2 in self.as_class_list(mijlpaal):
+            if mijlpaal2 == mijlpaal:
+                return mijlpaal2
         return None        
-    
+    def find_mijlpaal_id(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
+        for mijlpaal2 in self.as_class_list(mijlpaal):
+            if mijlpaal2.id == mijlpaal.id:
+                return mijlpaal2
+        return None        
+        
 class MijlpaalDirectory(MijlpaalBase):    
     def __init__(self, mijlpaal_type: MijlpaalType, directory: str, datum: datetime.datetime, kans=0, id=EMPTY_ID):
         super().__init__(mijlpaal_type=mijlpaal_type, datum=datum, kans=kans, id=id)
@@ -43,7 +48,9 @@ class MijlpaalDirectory(MijlpaalBase):
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
         obsolete_exception('register_file in mijlpaaldirectory')
     def register_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
-        if self.mijlpalen.contains(mijlpaal):
+        if self.mijlpalen.contains_id(mijlpaal):
+            return self.mijlpalen.find_mijlpaal_id(mijlpaal)
+        elif self.mijlpalen.contains(mijlpaal):
             return self.mijlpalen.find_mijlpaal(mijlpaal)
         else:
             self.mijlpalen.add(mijlpaal)
