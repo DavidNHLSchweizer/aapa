@@ -206,13 +206,13 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "plugins.remove_verslag",
+                "plugins.remove_aanvraag",
                 "-stop",
                 "-debug",
-                "-unlink",
-                "--verslag=95",
+                "--aanvraag=75",
                 "--database=testing123.db",
                 "--onedrive=d:\\onedrive",
+                
             ]
         },
     ]
