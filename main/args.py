@@ -23,6 +23,7 @@ def _get_processing_arguments(parser: argparse.ArgumentParser,include_actions=Tr
     parser.add_argument('-io', '--input_options', type=str, choices=['S','F', 'SF'], default='F',help='Input opties: een of meer van "S" (scan directory), "F" (Forms-Excel file [default]).\nVoorbeeld: "--input_options=SF".')
     parser.add_argument('-pm', '--processing_mode', type=str, choices=['A','V', 'AV'], default='A',help='Processing mode: een of meer van "A" (aanvragen [default]), "V" (Verslagen).\nVoorbeeld: "--processing_mode=V".')
     parser.add_argument('-od', '--onedrive', type=str, help=argparse.SUPPRESS) # simulates the OneDrive root for debugging purposes
+    parser.add_argument('--last_id', '--last_id', type=int, help=argparse.SUPPRESS) # resets the last_id in config
 
 def _get_config_arguments(parser: argparse.ArgumentParser):
     group = parser.add_argument_group('configuratie opties')

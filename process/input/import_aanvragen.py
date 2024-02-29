@@ -14,11 +14,11 @@ def check_root_directory(root_directory: str, storage: AAPAStorage):
         storage.add_basedir(root_directory) 
         log_warning(f'Basis directory {root_directory} is nog niet bekend.\nWordt geinitialiseerd met default waarden. \nHet is ESSENTIEEL om dit nog in de database aan te passen!')
 
-def process_excel_file(excel_filename, storage: AAPAStorage, root_directory, recursive = True, preview=False):
+def process_excel_file(excel_filename, storage: AAPAStorage, root_directory, recursive = True, preview=False, last_excel_id = None):
     with Preview(preview, storage, 'requests_excel'):
         log_debug(MAJOR_DEBUG_DIVIDER)
         check_root_directory(root_directory,storage)
-        n_imported,_ = import_excel_file(excel_filename, root_directory, storage, preview=preview)
+        n_imported,_ = import_excel_file(excel_filename, root_directory, storage, preview=preview,last_excel_id=last_excel_id)
         log_info(f'### {sop(n_imported, "aanvraag", "aanvragen")} {pva(preview, "importeren", "geimporteerd")} van {excel_filename}.', to_console=True)
         log_debug(MAJOR_DEBUG_DIVIDER)
 

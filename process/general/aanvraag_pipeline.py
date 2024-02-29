@@ -77,11 +77,10 @@ class AanvragenPipeline(Pipeline):
         self.start_logging()
         with Preview(preview, self.storage, 'process (pipeline)'):
             log_debug(MINOR_DEBUG_DIVIDER)
-            if (aanvragen := self.filtered_aanvragen(filter_func)):
-                for aanvraag in aanvragen:
-                    if self._process_aanvraag(aanvraag, preview, **kwargs):
-                        n_processed += 1            
-                        self.undo_log_aanvraag(aanvraag) 
+            for aanvraag in self.filtered_aanvragen(filter_func):
+                if self._process_aanvraag(aanvraag, preview, **kwargs):
+                    n_processed += 1            
+                    self.undo_log_aanvraag(aanvraag) 
             self.stop_logging()
             log_debug(MINOR_DEBUG_DIVIDER)
         return n_processed

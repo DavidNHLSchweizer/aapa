@@ -107,12 +107,13 @@ class AanvragenFromExcelImporter(AanvraagImporter):
       ColNr.KWALITEIT: 'Kwaliteitsbewaking: welke processen ga je inzetten om grip te houden op je kwaliteit en voortgang?\n ',
       ColNr.TECHNIEK: 'Welke technieken/frameworks ga je inzetten en welke hiervan heb je nog geen ervaring mee. \n',
     }
-    def __init__(self, output_directory: str, storage: AAPAStorage):
+    def __init__(self, output_directory: str, storage: AAPAStorage, last_excel_id = None):
         super().__init__(f'import from excel-file', multiple=True)
         self.template = get_templates(config.get('import', 'xls_template'))
         self.storage = storage
         self.output_directory = output_directory
         self.temp_path = None
+        self.last_excel_id = last_excel_id if last_excel_id else config.get('import', 'last_id')
         with MailMerge(self.template) as document:
             self.merge_fields = document.get_merge_fields()    
     def find_merge_field_vraag(self, merge_field: str)->str:
@@ -234,7 +235,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             return {}
         all_aanvragen = {}
         for values in reader.read():
-            if (id:=self._get_id(values)) <= self.last_id:
+            if (id:=self._get_id(values)) <= self.last_excel_id:
                 continue
             aanvraag,docx_filename, pdf_filename = self.convert_values(values)
             if aanvraag:  
@@ -255,7 +256,7 @@ class AanvragenFromExcelImporter(AanvraagImporter):
             self.temp_path = Path(tmp)
             #temporary directory for storing .docx aanvragen
             #these will be saved as .pdf somewhere else, the .docx can be removed after.
-            log_debug(f'Start read_aanvragen\n\t{filename}\n\tlast-id={self.last_id}')
+            log_debug(f'Start read_aanvragen\n\t{filename}\n\tfirst-id={self.last_excel_id}')
             for n, entry in enumerate(self.get_aanvragen(filename).values()):
                 log_debug(f'{n}:{entry["aanvraag"].student.full_name}')
                 try:
@@ -268,7 +269,6 @@ class AanvragenFromExcelImporter(AanvraagImporter):
                     yield (None,None)
     def before_reading(self, preview = False):
         self.ids_read = []
-        self.last_id = config.get('import', 'last_id')
 
     def after_reading(self, preview = False):
         if preview:
@@ -286,16 +286,16 @@ def report_imports(new_aanvragen, preview=False):
         for aanvraag in new_aanvragen:
             log_print(f'\t{str(aanvraag)}')
     log_info(f'\t{len(new_aanvragen)} nieuwe {sop_aanvragen} {pva(preview, "te importeren", "geimporteerd")}.', to_console=True)
-def import_excel_file(xls_filename: str, output_directory: str, storage: AAPAStorage, preview=False)->Tuple[int,int]:
+def import_excel_file(xls_filename: str, output_directory: str, storage: AAPAStorage, preview=False, last_excel_id=None)->Tuple[int,int]:
     log_info(f'Start import van excel-file {xls_filename}...', to_console=True)
     importer = AanvraagCreatorPipeline(f'Importeren aanvragen uit Excel-bestand {xls_filename}', 
-                                     AanvragenFromExcelImporter(output_directory, storage), 
+                                     AanvragenFromExcelImporter(output_directory, storage, last_excel_id), 
                                      storage, activity = UndoLog.Action.INPUT)
-    first_id = storage.find_max_id('aanvragen') + 1
-    log_debug(f'first_id: {first_id}')
+    first_aanvraag_id = storage.find_max_id('aanvragen') + 1
+    log_debug(f'first_id: {first_aanvraag_id}')
     (n_processed, n_files) = importer.process([xls_filename], preview=preview)    
     queries:AanvragenQueries = storage.queries('aanvragen')
-    new_aanvragen = queries.find_new_aanvragen(first_id=first_id)
+    new_aanvragen = queries.find_new_aanvragen(first_id=first_aanvraag_id)
     report_imports(new_aanvragen, preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')
     log_info(f'...Import afgerond ({sop(len(new_aanvragen), "nieuwe aanvraag", "nieuwe aanvragen")} {pva(preview,"te lezen", "gelezen")} uit bestand {xls_filename})', to_console=True)
