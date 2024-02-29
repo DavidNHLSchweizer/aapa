@@ -42,6 +42,16 @@ class MijlpaalGradeable(MijlpaalBase):
         self._files = Files(owner=self)
     @property
     def files(self)->Files: return self._files
+    def get_directory(self)->str:
+        if files := self.files_list:
+            return Path(files[0].filename).parent
+        return None            
+    def get_base_file(self)->str:
+        if files := self.files_list:
+            for file in files:
+                if file.filetype == self.mijlpaal_type.default_filetype():
+                    return file.filename
+        return None            
     @property
     def files_list(self)->list[File]: return self._files.as_list('files')
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:

@@ -118,8 +118,6 @@
                 "-debug",
                 "--onedrive=d:\\onedrive",
                 "--processing_mode=A",
-                "--excel_in=test_aanvragen.xlsx", 
-                "-preview",
                 "--input_options=F"              
             ]
         },

@@ -78,6 +78,8 @@ class Aggregator(dict):
         if isinstance(class_type, str):
             return self._as_list(class_type, sort_key=sort_key, sort_reverse=sort_reverse)
         return self._as_list(self.__get_class_attribute(class_type), sort_reverse=sort_reverse)
+    def as_class_list(self, class_type:Type[Any])->list:
+        return self._as_list(class_type)
     def _get_ids(self, class_attribute: str):
         return [value['object'].id for value in self.values() if value['attribute']==class_attribute]
     def get_ids(self, class_type:str|Any)->list[int]:

@@ -19,6 +19,7 @@ class AAPAStorage:
         self.database: Database = database
         self._crud_dict:dict[str,CRUD] = {}
         self._class_index: dict[AAPAclass,CRUD] = {}
+        self._module_names: dict[AAPAclass,str] = {}
         self.__init_modules()
     def __init_modules(self):
         #initialize the crud variables from the actual modules in the STORAGE_CLASSES directory
@@ -33,13 +34,15 @@ class AAPAStorage:
                 log_debug(f'STORAGE: loaded {module_name} ({classname(class_type)})')
                 self._crud_dict[module_name] = crud
                 self._class_index[class_type] = crud
+                self._module_names[class_type] = module_name
     def crud(self, module: str)->CRUD:
         return self._crud_dict.get(module, None)
     def queries(self, module: str)->CRUDQueries:
         if crud := self.crud(module):
             return crud.queries
         raise StorageException(f'{classname(self)}: no Queries for {module}.')
-
+    def module_name(self, aapa_obj: StoredClass)->str:
+        return self._module_names.get(type(aapa_obj)    , 'invalid')
     #----------- queries stuff --------------
     def ensure_key(self, module: str, aapa_obj: StoredClass)->EnsureKeyAction:
         return self.queries(module).ensure_key(aapa_obj)

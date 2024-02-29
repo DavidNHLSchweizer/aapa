@@ -117,12 +117,9 @@ class VerslagFromZipImporter(VerslagImporter):
                 return True
         # if we get here, try a good-luck search. Hopefully the database is not out-of-sync with reality        
         return self.files_queries.is_known_file(filename_to_create)
-    
     def _register_verslag(self, verslag: Verslag, filename: str):
         file = verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
-        self.sdb.register_file(student=verslag.student, datum=verslag.datum,# datum=file.timestamp if file_exists(filename) else verslag.datum,
-                                        filename=filename, filetype=file.filetype, mijlpaal_type=file.mijlpaal_type)
-
+        self.sdb.register_verslag(verslag,filename)
     def _create_file(self, verslag: Verslag, mp_dir: MijlpaalDirectory, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
         mijlpaal_directory_path = Path(mp_dir.directory) if mp_dir else Path(filename_to_create).parent
         if preview:
