@@ -1,4 +1,4 @@
-""" Simple class to generate random students """
+""" Simple class to generate random data """
 import datetime
 import random
 import string
