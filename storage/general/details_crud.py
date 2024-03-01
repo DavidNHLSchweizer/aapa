@@ -63,16 +63,26 @@ class DetailsCRUD(CRUD):
     def create(self, owning_obj: StoredClass):
         self.__db_log('CREATE', f'({classname(owning_obj)}: {str(owning_obj)}) [{classname(self.details_record_type)}] ({owning_obj.id=})')
         aggregator = self.aggregator(owning_obj)
-        for code in self._get_class_codes(aggregator):
-            details_class_type = ClassCodes.code_to_classtype(code)
+        # this cycles through all objects in the aggregator by object type
+        for class_code in self._get_class_codes(aggregator):
+            details_class_type = ClassCodes.code_to_classtype(class_code)
             details_crud = self.get_crud(details_class_type)
-            for details_item in aggregator.as_list(details_class_type):     
-                CRUDQueries(details_crud).create_key_if_needed(details_item)
-                if not CRUDQueries(details_crud).check_already_there(details_item) or \
-                    CRUDQueries(details_crud).is_changed(details_item):
-                    details_crud.create(details_item)
-                self.crud.create(self.details_record_type(main_id=owning_obj.id, detail_id=details_item.id, class_code=code))
+            for details_item in aggregator.as_list(details_class_type): 
+                self._create_detail_record(owning_obj.id, details_crud, details_item, class_code)
         self.__db_log('END CREATE')
+    def _create_detail_record(self, owner_id: int, details_crud: CRUD, details_item: AAPAclass, class_code: str):
+        # first make sure the items exist in the database and has a valid ID
+        # then check whether the item is changed (in that case: update it)
+        # finally create the detail record linking the owner object and the detail items.
+        CRUDQueries(details_crud).create_key_if_needed(details_item)
+        if not CRUDQueries(details_crud).check_already_there(details_item):
+            # create the item if it doesn't exist yet, bv to avoid foreign key problems
+            details_crud.create(details_item)
+        elif CRUDQueries(details_crud).is_changed(details_item):
+            # if the item was changed, make sure it is stored in the database
+            details_crud.update(details_item)
+        self.crud.create(self.details_record_type(main_id=owner_id, detail_id=details_item.id, class_code=class_code))
+
     def read(self, owning_obj: StoredClass):
         self.__db_log('START READ', f'({classname(owning_obj)}: {str(owning_obj)}) [{classname(self.details_record_type)}] ({owning_obj.id=})')
         aggregator = self.aggregator(owning_obj)

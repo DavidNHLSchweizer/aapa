@@ -170,6 +170,11 @@ class CRUDQueries:
         log_debug(f'CH:{classname(self)}|{classname(self.crud)}: {function}{(" - " + params) if params else ""}')
     #----------- utilituy functions -----------
     def check_already_there(self, aapa_obj: StoredClass)->bool:
+        """ True als item met dezelfde relevante attributen al in database aanwezig is. 
+        
+            Zet tevens het ID van het betreffende object op de waarde in de database indien aanwezig.
+            
+        """
         self.__db_log('CHECK_ALREADY_THERE', f'object: {aapa_obj}')
         if stored_ids := self.query_builder.find_ids_from_object(aapa_obj): 
             log_debug(f'\tCAT: --- already in database ----')                
