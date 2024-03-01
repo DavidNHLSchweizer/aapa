@@ -1,5 +1,5 @@
 @echo off
-set onedrive=d:\onedrive
+set onedrive=d:\onedrive0
 set basedir="%onedrive%\NHL Stenden\HBO-ICT Afstuderen - Software Engineering\2023-2024 Nieuw\aapa"
 set db0=%basedir%\aapa_124.db
 set db1=%basedir%\aapa.db
@@ -24,7 +24,7 @@ goto :phase%phase1%
 set phase=0
 call :migrate %phase%
 call :msgnext
-call :plugin %mxx%.correct_files_doublures %mxx%.correct_missing_aanvragen_files
+call :plugin %mxx%.correct_files_doublures %mxx%.correct_missing_aanvragen_files -stop
 if "%phase2%" LSS "1" goto :phase42
 
 :phase1
