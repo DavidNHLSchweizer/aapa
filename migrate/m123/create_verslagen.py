@@ -14,8 +14,8 @@ from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
-from storage.queries.aanvragen import AanvraagQueries
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.aanvragen import AanvragenQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from main.log import log_info, log_warning
 from general.timeutil import TSC
 from general.sql_coll import SQLcollector, SQLcollectors
@@ -28,7 +28,7 @@ class VerslagenReEngineeringProcessor(MigrationPlugin):
         sql.add('verslagen', SQLcollector({'insert': {'sql':'insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type) values(?,?,?,?,?,?,?,?,?)' },}))
         return sql
     def _get_aanvraag(self, student: Student)->Aanvraag:
-        aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
+        aanvraag_queries:AanvragenQueries = self.storage.queries('aanvragen')
         aanvraag = aanvraag_queries.find_student_aanvraag(student)
         if not aanvraag:
             log_warning(f'Afstudeerbedrijf kan niet worden gevonden: Geen aanvraag gevonden voor student {student}.')
@@ -59,7 +59,7 @@ class VerslagenReEngineeringProcessor(MigrationPlugin):
                     self.create_verslag(mp_dir, student, file, preview=preview)
                 case _: continue                    
     def process_student(self, student: Student, preview=False):      
-        student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         student_directory = student_dir_queries.find_student_dir(student)
         if not student_directory:
             log_warning(f'Geen directory gevonden voor student {student}.')

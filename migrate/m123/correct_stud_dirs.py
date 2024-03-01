@@ -12,7 +12,7 @@ from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.general.roots import Roots
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from main.log import log_info
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
@@ -71,7 +71,7 @@ where (MPD.mijlpaal_type = ? and stud_dir <> mp_directory) or \
         
         database = self.storage.database
         builder = SDB(self.storage)
-        student_dir_queries:StudentDirectoryQueries = self.storage.queries('student_directories')
+        student_dir_queries:StudentDirectoriesQueries = self.storage.queries('student_directories')
         rows = database._execute_sql_command(query, [int(MijlpaalType.AANVRAAG),StudentDirectory.Status.ACTIVE],True)
         old_student = None
         for row in rows:
@@ -88,7 +88,7 @@ where (MPD.mijlpaal_type = ? and stud_dir <> mp_directory) or \
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         if not super().before_process(context, **kwdargs):
             return False
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:        
         self._process_incorrect_mijlpaal_directories()

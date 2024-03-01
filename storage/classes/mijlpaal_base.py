@@ -3,7 +3,7 @@ from data.classes.bedrijven import Bedrijf
 from data.classes.studenten import Student
 from storage.general.mappers import ColumnMapper, TimeColumnMapper
 from storage.general.table_mapper import TableMapper
-from storage.general.extended_crud import ExtendedCRUD
+from storage.general.aggregator_crud import AggregatorCRUD
 from storage.general.storage_const import StoredClass
 from storage.general.CRUDs import create_crud, CRUDColumnMapper
 from database.classes.database import Database

@@ -8,7 +8,7 @@ from process.general.preview import Preview
 from storage.aapa_storage import AAPAStorage
 from process.general.pipeline import FilePipeline, Pipeline
 from process.general.verslag_processor import VerslagImporter, VerslagProcessor
-from storage.queries.verslagen import VerslagQueries
+from storage.queries.verslagen import VerslagenQueries
 from main.config import config
 
 
@@ -88,7 +88,7 @@ class VerslagenPipeline(Pipeline):
 class VerslagCreatingPipeline(FilePipeline):
     def __init__(self, description: str, processor: VerslagImporter, storage: AAPAStorage, activity: UndoLog.Action):
         super().__init__(description, processor, storage, activity=activity, processing_mode=AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN, invalid_filetype=None)  
-        self.verslag_queries:VerslagQueries = self.storage.queries('verslagen')
+        self.verslag_queries:VerslagenQueries = self.storage.queries('verslagen')
     def _store_new(self, verslag: Verslag):        
         if stored := self.verslag_queries.find_verslag(verslag, config.get('directories', 'error_margin_date')):
             self.storage.update('verslagen', stored)

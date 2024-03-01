@@ -17,9 +17,9 @@ from plugins.plugin import PluginBase
 from process.general.student_directory_detector import StudentDirectoryDetector
 from process.main.aapa_processor import AAPARunnerContext
 from storage.aapa_storage import AAPAStorage
-from storage.queries.base_dirs import BaseDirQueries
+from storage.queries.base_dirs import BaseDirsQueries
 from storage.queries.files import FilesQueries
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 
 class SyncException(Exception): pass
 
@@ -144,7 +144,7 @@ class StudentDirectoryCompareProcessor:
         queries: FilesQueries = self.storage.queries('files')
         return queries.find_values('filename', Roots.encode_path(file.filename)) != []
     def _add_new_files(self, actual_mp_dir: MijlpaalDirectory, store_in_dir: MijlpaalDirectory, handled: list[File] = []):
-        for actual_file in actual_mp_dir.files.files:
+        for actual_file in actual_mp_dir.files_list():
             if actual_file in handled:
                 continue
             if self._file_is_already_known(actual_file):
@@ -162,7 +162,7 @@ class StudentDirectoryCompareProcessor:
             mp_dir.ensure_datum()
             self._add_new_mijlpaal_directory(mp_dir, stud_dir)
         #also update status for any older directories
-        queries:StudentDirectoryQueries = self.storage.queries('student_directories')
+        queries:StudentDirectoriesQueries = self.storage.queries('student_directories')
         for old_stud_dir in queries.find_student_dirs(stud_dir.student):
             if old_stud_dir.status != StudentDirectory.Status.ARCHIVED:
                 old_stud_dir.status = StudentDirectory.Status.ARCHIVED
@@ -197,8 +197,8 @@ class StudentDirectoryCompareProcessor:
     def compare_mp_dirs(self, stored_mp_dir: MijlpaalDirectory, actual_mp_dir: MijlpaalDirectory):
         assert str(stored_mp_dir.directory).lower() == str(actual_mp_dir.directory).lower()
         handled:list[File] = []
-        for stored_file in stored_mp_dir.files.files:
-            if (actual_file:=actual_mp_dir.files._find(stored_file)):
+        for stored_file in stored_mp_dir.files_list():
+            if (actual_file:=actual_mp_dir._find_file(stored_file)):
                 handled.append(actual_file)
                 actual_file.ensure_timestamp_and_digest()
                 if actual_file.equal_relevant_attributes(stored_file):
@@ -259,13 +259,13 @@ class StudentDirectoryCompareProcessor:
 class BasedirSyncProcessor:
     def __init__(self, storage: AAPAStorage):
         self.storage = storage
-        self.stud_dir_queries:StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.stud_dir_queries:StudentDirectoriesQueries = self.storage.queries('student_directories')
         self.detector = StudentDirectoryDetector()
         self.compare_processor = StudentDirectoryCompareProcessor(storage)
         self.sql_processor = StudentDirectorySQL(storage)
         self.new_students = []
     def _init_basedir(self, directory: str)->BaseDir:
-        queries: BaseDirQueries = self.storage.queries('base_dirs')
+        queries: BaseDirsQueries = self.storage.queries('base_dirs')
         return queries.find_basedir(directory, start_at_parent=False)
     def dump_sql(self, json_file: str):
         self.sql_processor.sql.dump_to_file(json_file)

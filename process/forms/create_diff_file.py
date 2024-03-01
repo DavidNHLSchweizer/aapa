@@ -3,7 +3,7 @@ from data.classes.aanvragen import Aanvraag
 from data.general.const import MijlpaalType
 from data.classes.files import File
 from storage.aapa_storage import AAPAStorage
-from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.aanvragen import AanvragenQueries
 from general.fileutil import file_exists, safe_file_name
 from main.log import log_print
 from process.general.preview import pva
@@ -17,7 +17,7 @@ class DifferenceProcessor(AanvraagProcessor):
         super().__init__(entry_states={Aanvraag.Status.IMPORTED_PDF, Aanvraag.Status.NEEDS_GRADING},
                          description='Aanmaken verschilbestand')
     def find_previous_aanvraag(self, aanvraag: Aanvraag)->Aanvraag:
-        queries: AanvraagQueries = self.storage.queries('aanvragen')
+        queries: AanvragenQueries = self.storage.queries('aanvragen')
         return queries.find_previous_aanvraag(aanvraag)
     def get_difference_filename(self, output_directory:str, student_name: str)->str:
         return Path(output_directory).joinpath(f'Veranderingen in aanvraag {safe_file_name(student_name)}.html')

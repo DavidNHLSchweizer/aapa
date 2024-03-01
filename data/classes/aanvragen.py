@@ -18,7 +18,7 @@ class Aanvraag(MijlpaalGradeable):
         super().__init__(mijlpaal_type=MijlpaalType.AANVRAAG, 
                          student=student, bedrijf=bedrijf, datum = datum, kans=kans, 
                          status=status, beoordeling=beoordeling, titel=titel, id=id)
-        self.files.allow_multiple = False 
+        self.files.allow_multiple = not status in AanvraagStatus.active_states()
         self._datum_str = datum_str
         self.versie=versie
         if source_info:
@@ -31,6 +31,8 @@ class Aanvraag(MijlpaalGradeable):
         return Path(self.files.get_filename(File.Type.AANVRAAG_PDF))
     def source_file_name(self)->str:
         return str(self.aanvraag_source_file_path())
+    def source_file_directory(self)->str:
+        return str(Path(self.source_file_name()).parent)
     def summary(self, maxlen=0)->str:
         return summary_string(f'{str(self.student)} ({self.bedrijf.name})-{self.titel}',maxlen=maxlen)
     def file_summary(self)->str:

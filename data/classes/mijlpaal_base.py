@@ -15,27 +15,9 @@ class MijlpaalBase(AAPAclass):
         self.mijlpaal_type = mijlpaal_type
         self.datum = datum
         self.kans = kans
-        self._files = Files(owner=self)
     def relevant_attributes(self)->set[str]:
         return {'datum', 'mijlpaal_type'}
         # return {'datum', 'mijlpaal_type', 'kans'} 
-    @property
-    def files(self)->Files: return self._files
-    @property
-    def files_list(self)->list[File]: return self._files.as_list('files')
-    def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
-        result = File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, filetype=filetype, mijlpaal_type=mijlpaal_type)
-        if self.files.contains(result):
-            return self.files.find_filename(filename)
-        else:
-            self.files.add(result)
-        return result    
-    def unregister_file(self, filetype: File.Type):
-        self.files.remove_filetype(filetype)
-    def get_directory(self)->str:
-        if files := self.files_list:
-            return str(Path(files[0].filename).parent)
-        return None
     def __eq__(self, value2: MijlpaalBase)->bool:
         if not value2:
             return False
@@ -44,8 +26,6 @@ class MijlpaalBase(AAPAclass):
         if self.datum != value2.datum:
             return False
         if self.kans != value2.kans:
-            return False
-        if not self.files.is_equal(value2.files):
             return False
         return True
 
@@ -59,8 +39,40 @@ class MijlpaalGradeable(MijlpaalBase):
         self.titel = titel
         self.status = status
         self.beoordeling = beoordeling
-    def relevant_attributes(self)->set[str]:
-        return super().relevant_attributes() | { 'student', 'bedrijf'}
+        self._files = Files(owner=self)
+    @property
+    def files(self)->Files: return self._files
+    def get_directory(self)->str:
+        if files := self.files_list:
+            return Path(files[0].filename).parent
+        return None            
+    def get_base_file(self)->str:
+        if files := self.files_list:
+            for file in files:
+                if file.filetype == self.mijlpaal_type.default_filetype():
+                    return file.filename
+        return None            
+    @property
+    def files_list(self)->list[File]: return self._files.as_list('files')
+    def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
+        result = File(filename=filename, timestamp=TSC.AUTOTIMESTAMP, digest=File.AUTODIGEST, filetype=filetype, mijlpaal_type=mijlpaal_type)
+        if self.files.contains(result):
+            return self.files.find_filename(filename)
+        else:
+            self.files.add(result)
+        return result    
+    def unregister_file(self, filetype: File.Type):
+        self.files.remove_filetype(filetype)
+    def ensure_files_timestamp_and_digest(self):
+        for file in self.files_list:
+            file.ensure_timestamp_and_digest()
+    def get_directory(self, filetype: File.Type)->str:
+        for file in self.files_list:
+            if file.filetype == filetype:
+                return str(Path(file.filename).parent)
+        return None
+    def relevant_attributes(self) -> set[str]:
+        return super().relevant_attributes() | {'student', 'bedrijf'}
     def summary(self)->str:
         return str(self)
     def __str__(self):        
@@ -82,5 +94,7 @@ class MijlpaalGradeable(MijlpaalBase):
         if self.status != value2.status:
             return False
         if self.beoordeling != value2.beoordeling:
+            return False
+        if not self.files.is_equal(value2.files):
             return False
         return True

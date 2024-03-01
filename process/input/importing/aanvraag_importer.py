@@ -38,10 +38,7 @@ class AanvraagImporter(FileProcessor):
         return None # implement in subclass
     def _register_aanvraag(self, aanvraag: Aanvraag, filename: str, storage: AAPAStorage):
         aanvraag.register_file(filename, File.Type.AANVRAAG_PDF, MijlpaalType.AANVRAAG)
-        SDB(storage).register_file(student=aanvraag.student, 
-                                                            datum=File.get_timestamp(filename) if file_exists(filename) else aanvraag.datum,
-                                                            filename=filename, 
-                                                            filetype=File.Type.AANVRAAG_PDF,mijlpaal_type=MijlpaalType.AANVRAAG)
+        SDB(storage).register_aanvraag(aanvraag, filename)
     def before_reading(self, preview = False):
         pass
     def after_reading(self, preview = False):

@@ -8,7 +8,7 @@ from main.log import log_debug
 from storage.general.CRUDs import CRUDQueries
 from database.classes.sql_expr import Ops
 
-class VerslagQueries(CRUDQueries):
+class VerslagenQueries(CRUDQueries):
     def find_new_verslagen(self, first_id: int)->list[Verslag]:        
         if rows := self.find_values_where('id', where_attributes=['id', 'status'], where_values=[first_id, Verslag.Status.valid_states()], 
                                   where_operators =[Ops.GTE, Ops.IN]):

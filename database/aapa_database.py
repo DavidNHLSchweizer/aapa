@@ -3,6 +3,10 @@ import datetime
 from enum import IntEnum
 from textwrap import TextWrapper
 from typing import TextIO
+from data.classes.aanvragen import Aanvraag
+from data.classes.files import File
+from data.classes.mijlpaal_directories import MijlpaalDirectory
+from data.general.class_codes import ClassCodes
 from data.general.const import FileType, MijlpaalBeoordeling, MijlpaalType
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
@@ -21,7 +25,7 @@ from data.general.roots import Roots
 
 class AAPaException(Exception): pass
 
-DBVERSION = '1.24'
+DBVERSION = '1.25'
 class DBVersie(Versie):
     def __init__(self, db_versie = DBVERSION, **kwargs):
         super().__init__(**kwargs)
@@ -68,17 +72,21 @@ def load_roots(database: Database):
             continue # first row is already loaded, this is the NHL Stenden BASEPATH
         Roots.add_root(Roots.decode_path(row['root']), row['code']) 
             
-class DetailTableDefinition(TableDefinition):
+class DetailsTableDefinition(TableDefinition):
     def __init__(self, name: str, 
-                 main_table_name: str, main_alias_id: str, 
-                 detail_table_name: str, detail_alias_id: str):
+                 main_table_name: str, main_alias_id: str):
         super().__init__(name)
+        self._detail_tables = {}
         self.add_column(main_alias_id, dbc.INTEGER, primary = True)
-        self.add_column(detail_alias_id, dbc.INTEGER, primary = True)  
+        self.add_column('detail_id', dbc.INTEGER, primary = True)          
+        self.add_column('class_code', dbc.TEXT, primary = True)  
         self.add_foreign_key(main_alias_id, main_table_name, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
-        self.add_foreign_key(detail_alias_id, detail_table_name, 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
+        #NOTE: no foreign key on second column, this could be coupled to more than one table
+        #   class_code determines how to interpret detail_id!
+    def add_detail(self, detail_code: str, detail_table: TableDefinition):
+        self._detail_tables[detail_code] = detail_table
 
-class StudentTableDefinition(TableDefinition):
+class StudentenTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('STUDENTEN')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -88,13 +96,13 @@ class StudentTableDefinition(TableDefinition):
         self.add_column('email', dbc.TEXT, notnull=True)
         self.add_column('status', dbc.INTEGER)
 
-class BedrijfTableDefinition(TableDefinition):
+class BedrijvenTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('BEDRIJVEN')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('name', dbc.TEXT)    
 
-class MijlpaalTableDefinition(TableDefinition):
+class MijlpalenTableDefinition(TableDefinition):
     #model voor AANVRAGEN en VERSLAGEN tabellen
     def __init__(self, name: str):
         super().__init__(name)
@@ -109,29 +117,27 @@ class MijlpaalTableDefinition(TableDefinition):
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('bedrijf_id', 'BEDRIJVEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class AanvraagTableDefinition(MijlpaalTableDefinition):
+class AanvragenTableDefinition(MijlpalenTableDefinition):
     def __init__(self):
         super().__init__('AANVRAGEN')
         self.add_column('datum_str', dbc.TEXT)
         self.add_column('versie', dbc.INTEGER)
 
-class AanvraagFilesTableDefinition(DetailTableDefinition):
+class AanvraagDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
-        super().__init__('AANVRAGEN_FILES', 
-                         main_table_name='AANVRAGEN', main_alias_id='aanvraag_id',
-                         detail_table_name='FILES', detail_alias_id='file_id')
+        super().__init__('AANVRAGEN_DETAILS', main_table_name='AANVRAGEN', main_alias_id='aanvraag_id')
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
 
-class VerslagTableDefinition(MijlpaalTableDefinition):
+class VerslagenTableDefinition(MijlpalenTableDefinition):
     def __init__(self):
         super().__init__('VERSLAGEN')
         self.add_column('verslag_type', dbc.INTEGER)
         self.add_column('cijfer', dbc.TEXT)
 
-class VerslagFilesTableDefinition(DetailTableDefinition):
+class VerslagDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
-        super().__init__('VERSLAGEN_FILES', 
-                         main_table_name='VERSLAGEN', main_alias_id='verslag_id',
-                         detail_table_name='FILES', detail_alias_id='file_id')
+        super().__init__('VERSLAGEN_DETAILS', main_table_name='VERSLAGEN', main_alias_id='verslag_id')
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
 
 #NOTE: een index op FILES (bijvoorbeeld op filename, filetype of digest) ligt voor de hand
 # Bij onderzoek blijkt echter dat dit bij de huidige grootte van de database (1000 files) 
@@ -151,7 +157,7 @@ class FilesTableDefinition(TableDefinition):
         # self.add_index('digest_index', 'digest')
         # self.add_index('name_digest_index', ['digest','name'])
 
-class UndoLogTableDefinition(TableDefinition):
+class UndoLogsTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('UNDOLOGS')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -162,23 +168,12 @@ class UndoLogTableDefinition(TableDefinition):
         self.add_column('date', dbc.DATE)   
         self.add_column('can_undo', dbc.INTEGER)
 
-class UndoLogAanvragenTableDefinition(DetailTableDefinition):
+class UndologDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
-        super().__init__('UNDOLOGS_AANVRAGEN', 
-                         main_table_name='UNDOLOGS', main_alias_id='log_id', 
-                         detail_table_name='AANVRAGEN', detail_alias_id='aanvraag_id')
-       
-class UndoLogVerslagenTableDefinition(DetailTableDefinition):
-    def __init__(self):
-        super().__init__('UNDOLOGS_VERSLAGEN', 
-                         main_table_name='UNDOLOGS', main_alias_id='log_id', 
-                         detail_table_name='VERSLAGEN', detail_alias_id='verslag_id')
-
-class UndoLogFilesTableDefinition(DetailTableDefinition):
-    def __init__(self):
-        super().__init__('UNDOLOGS_FILES', 
-                         main_table_name='UNDOLOGS', main_alias_id='log_id', 
-                         detail_table_name='FILES', detail_alias_id='file_id')
+        super().__init__('UNDOLOGS_DETAILS', main_table_name='UNDOLOGS', main_alias_id='log_id')
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(Aanvraag), detail_table=AanvragenTableDefinition)
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(Verslag), detail_table=VerslagenTableDefinition)
     
 class BaseDirsTableDefinition(TableDefinition):
     def __init__(self):
@@ -189,7 +184,7 @@ class BaseDirsTableDefinition(TableDefinition):
         self.add_column('forms_version', dbc.TEXT)
         self.add_column('directory', dbc.TEXT)
 
-class StudentDirectoryTableDefinition(TableDefinition):
+class StudentDirectoriesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('STUDENT_DIRECTORIES')
         self.add_column('id', dbc.INTEGER, primary = True)
@@ -200,27 +195,24 @@ class StudentDirectoryTableDefinition(TableDefinition):
         self.add_foreign_key('stud_id', 'STUDENTEN', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
         self.add_foreign_key('basedir_id', 'BASEDIRS', 'id', onupdate=ForeignKeyAction.CASCADE, ondelete=ForeignKeyAction.CASCADE)
 
-class StudentDirectory_DirectoriesTableDefinition(DetailTableDefinition):
+class StudentDirectoryDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
-        super().__init__('STUDENT_DIRECTORY_DIRECTORIES', 
-                         main_table_name='STUDENT_DIRECTORIES', main_alias_id='stud_dir_id',
-                         detail_table_name='MIJLPAAL_DIRECTORY', detail_alias_id='mp_dir_id')
+        super().__init__('STUDENT_DIRECTORIES_DETAILS', main_table_name='STUDENT_DIRECTORIES', main_alias_id='stud_dir_id')
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(MijlpaalDirectory), detail_table=MijlpaalDirectoriesTableDefinition)
 
-class MijlpaalDirectoryTableDefinition(TableDefinition):
+class MijlpaalDirectoriesTableDefinition(TableDefinition):
     def __init__(self):
         super().__init__('MIJLPAAL_DIRECTORIES')
         self.add_column('id', dbc.INTEGER, primary = True)
         self.add_column('mijlpaal_type', dbc.INTEGER)
         self.add_column('kans', dbc.INTEGER)
-        self.add_column('directory', dbc.TEXT)
+        self.add_column('directory', dbc.TEXT, unique=True)
         self.add_column('datum', dbc.TEXT)
 
-class MijlpaalDirectory_FilesTableDefinition(DetailTableDefinition):
+class MijlpaalDirectoryDetailsTableDefinition(DetailsTableDefinition):
     def __init__(self):
-        super().__init__('MIJLPAAL_DIRECTORY_FILES', 
-                         main_table_name='MIJLPAAL_DIRECTORIES', main_alias_id='mp_dir_id',
-                         detail_table_name='FILES', detail_alias_id='file_id')
-
+        super().__init__('MIJLPAAL_DIRECTORIES_DETAILS', main_table_name='MIJLPAAL_DIRECTORIES', main_alias_id='mp_dir_id')
+        self.add_detail(detail_code=ClassCodes.classtype_to_code(File), detail_table=FilesTableDefinition)
 
 #-------------------- views -------------------------------
 def get_sql_cases_for_int_type(column_name: str, int_class: IntEnum, alias_name: str)->str:
@@ -240,29 +232,6 @@ class AanvragenOverzichtDefinition(ViewDefinition):
         super().__init__('AANVRAGEN_OVERZICHT', 
                          query=f'select id,{stud_name},datum,{bedrijf},titel,versie,kans,{beoordeling} from AANVRAGEN as A order by 2,3')
         
-class AanvragenFileOverzichtDefinition(ViewDefinition):
-    def __init__(self):
-        filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
-        stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
-        innerjoins = ' inner join AANVRAGEN_FILES as AF on A.ID=AF.aanvraag_id inner join FILES as F on F.ID=AF.file_id'
-        super().__init__('AANVRAGEN_FILE_OVERZICHT', 
-                         query=f'select A.id as aanvraag_id,{stud_name},titel, F.ID as file_id,F.filename as filename,{filetype_str} \
-                                from AANVRAGEN as A {innerjoins} order by 2')
-        
-class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
-    def __init__(self):
-        filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
-        mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
-        status_str = get_sql_cases_for_int_type('sd.status', StudentDirectory.Status, 'dir_status') 
-        query = \
-f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
-from STUDENT_DIRECTORIES as SD \
-inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.id=SDD.stud_dir_id \
-inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.mp_dir_id \
-inner join MIJLPAAL_DIRECTORY_FILES as MDF on MD.ID=MDF.mp_dir_id \
-inner join FILES as F on F.ID=MDF.file_id'
-        super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=query)
-
 class StudentDirectoriesOverzichtDefinition(ViewDefinition):
     def __init__(self):
         stud_status_str = get_sql_cases_for_int_type('s.status', Student.Status, 'student_status') 
@@ -272,13 +241,53 @@ inner join basedirs as bd on sdd.basedir_id = bd.id \
 group by sdd.stud_id having max(sdd.id) order by 5,6,2'
         super().__init__('STUDENT_DIRECTORIES_OVERZICHT', query=query)
 
+class AanvragenFileOverzichtDefinition(ViewDefinition):
+    def __init__(self):
+        filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
+        fl_code = ClassCodes.classtype_to_code(File)
+        stud_name = '(select full_name from STUDENTEN as S where S.ID = A.stud_id) as student'
+        innerjoins = 'inner join AANVRAGEN_DETAILS as AD on A.ID=AD.aanvraag_id inner join FILES as F on F.ID=AD.detail_id'
+        super().__init__('AANVRAGEN_FILE_OVERZICHT', 
+                         query=f'select A.id as aanvraag_id,{stud_name},titel, F.ID as file_id,F.filename as filename,{filetype_str} \
+                                from AANVRAGEN as A {innerjoins} where AD.class_code="{fl_code}" order by 2')
+
+class StudentDirectoriesFileOverzichtDefinition(ViewDefinition):
+    def __init__(self):
+        filetype_str = get_sql_cases_for_int_type('F.filetype', FileType, 'filetype') 
+        mijlpaal_str = get_sql_cases_for_int_type('F.mijlpaal_type', MijlpaalType, 'mijlpaal') 
+        status_str = get_sql_cases_for_int_type('sd.status', StudentDirectory.Status, 'dir_status') 
+        fl_code = ClassCodes.classtype_to_code(File)
+        av_code = ClassCodes.classtype_to_code(Aanvraag)
+        vs_code = ClassCodes.classtype_to_code(Verslag)
+        query1 = \
+            f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},A.titel, \
+            MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+            from STUDENT_DIRECTORIES as SD \
+            inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id \
+            inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id \
+            inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id \
+            inner join AANVRAGEN as A on MDF.detail_id=A.ID \
+            inner join AANVRAGEN_DETAILS as AD on AD.aanvraag_id=A.ID \
+            inner join FILES as F on F.ID=AD.detail_id WHERE AD.class_code=="{fl_code}" and MDF.class_code="{av_code}"'
+        query2 = \
+            f'select SD.id,SD.STUD_ID,SD.directory as student_directory,{status_str},V.titel, \
+            MD.id as mp_id,MD.directory as mp_dir,F.ID as file_id,F.filename,{filetype_str},{mijlpaal_str} \
+            from STUDENT_DIRECTORIES as SD \
+            inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.id=SDD.stud_dir_id \
+            inner join MIJLPAAL_DIRECTORIES as MD on MD.id=SDD.detail_id \
+            inner join MIJLPAAL_DIRECTORIES_DETAILS as MDF on MD.ID=MDF.mp_dir_id \
+            inner join VERSLAGEN as V on MDF.detail_id=V.ID \
+            inner join VERSLAGEN_DETAILS as VD on VD.verslag_id=V.ID \
+            inner join FILES as F on F.ID=VD.detail_id WHERE VD.class_code=="{fl_code}" and MDF.class_code="{vs_code}"'
+        super().__init__('STUDENT_DIRECTORIES_FILE_OVERZICHT', query=f'{query1} UNION ALL {query2}')
+
 class StudentMijlpaalDirectoriesOverzichtDefinition(ViewDefinition):
     def __init__(self):
         mijlpaal_str = get_sql_cases_for_int_type('MPD.mijlpaal_type', MijlpaalType, 'mijlpaal_type') 
         query = f'select (select full_name from studenten as S where S.id=SD.stud_id) as student, MPD.datum, {mijlpaal_str}, MPD.kans, MPD.directory \
                 from student_directories as SD \
-                inner join STUDENT_DIRECTORY_DIRECTORIES as SDD on SD.ID=SDD.stud_dir_id \
-                inner join MIJLPAAL_DIRECTORIES MPD on MPD.ID=SDD.mp_dir_id order by 1,3'
+                inner join STUDENT_DIRECTORIES_DETAILS as SDD on SD.ID=SDD.stud_dir_id \
+                inner join MIJLPAAL_DIRECTORIES as MPD on MPD.ID=SDD.detail_id where SDD.class_code=="{ClassCodes.classtype_to_code(MijlpaalDirectory)}" order by 1,3'
         super().__init__('STUDENT_MIJLPAAL_DIRECTORIES_OVERZICHT', query=query)
 
 class StudentVerslagenOverzichtDefinition(ViewDefinition):
@@ -290,37 +299,40 @@ class StudentVerslagenOverzichtDefinition(ViewDefinition):
         filetype_str = get_sql_cases_for_int_type('F.filetype', FileType,'filetype')
         query = f'select V.id as verslag_id, V.stud_id, (select full_name from STUDENTEN as S where S.id=V.stud_id) as student, V.datum, {verslag_type_str}, \
             (select name from BEDRIJVEN as B where B.id=V.bedrijf_id) as bedrijf, V.titel,V.kans, F.id as file_id, F.filename,{filetype_str},{status_str},{beoordeling} \
-            from VERSLAGEN as V inner join VERSLAGEN_FILES as VF on VF.verslag_id = V.id inner join FILES as F on F.ID=VF.file_id order by 3,4' 
-        
+            from VERSLAGEN as V inner join VERSLAGEN_DETAILS as VD on VD.verslag_id = V.id inner join FILES as F on F.ID=VD.detail_id where VD.class_code=="{ClassCodes.classtype_to_code(File)}" order by 3,4'        
         super().__init__('STUDENT_VERSLAGEN_OVERZICHT', query=query)
+
+class LastVersionViewDefinition(ViewDefinition):
+    def __init__(self):
+        query = 'select max(db_versie) as "database-versie",max(versie) as "programma-versie" from VERSIE'
+        super().__init__('LAATSTE_VERSIE', query=query)
 
 class AAPaSchema(Schema):
     ALL_TABLES:list[TableDefinition] = [
         VersionTableDefinition,
         FileRootTableDefinition,
-        StudentTableDefinition,
-        BedrijfTableDefinition,
-        AanvraagTableDefinition,
-        AanvraagFilesTableDefinition,
+        StudentenTableDefinition,
+        BedrijvenTableDefinition,
+        AanvragenTableDefinition,
+        AanvraagDetailsTableDefinition,
         FilesTableDefinition,
-        UndoLogTableDefinition,
-        UndoLogAanvragenTableDefinition,
-        UndoLogVerslagenTableDefinition,
-        UndoLogFilesTableDefinition,
-        VerslagTableDefinition,
-        VerslagFilesTableDefinition,
+        UndoLogsTableDefinition,
+        UndologDetailsTableDefinition,
+        VerslagenTableDefinition,
+        VerslagDetailsTableDefinition,
         BaseDirsTableDefinition,
-        StudentDirectoryTableDefinition,    
-        StudentDirectory_DirectoriesTableDefinition, 
-        MijlpaalDirectoryTableDefinition, 
-        MijlpaalDirectory_FilesTableDefinition,        
+        StudentDirectoriesTableDefinition,    
+        StudentDirectoryDetailsTableDefinition, 
+        MijlpaalDirectoriesTableDefinition, 
+        MijlpaalDirectoryDetailsTableDefinition,        
     ]
     ALL_VIEWS:list[ViewDefinition]= [ 
                 AanvragenOverzichtDefinition,
+                StudentDirectoriesOverzichtDefinition,
                 AanvragenFileOverzichtDefinition,
                 StudentDirectoriesFileOverzichtDefinition,
-                StudentDirectoriesOverzichtDefinition,
                 StudentMijlpaalDirectoriesOverzichtDefinition,
+                LastVersionViewDefinition,
                 ]
     def __init__(self):
         super().__init__()

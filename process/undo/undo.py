@@ -8,7 +8,7 @@ from process.general.verslag_pipeline import VerslagenPipeline
 from process.undo.undo_aanvragen_processor import UndoAanvragenProcessor, process_delete_aanvragen
 from process.undo.undo_verslagen_processor import UndoVerslagenProcessor, process_delete_verslagen
 from storage.aapa_storage import AAPAStorage
-from storage.queries.undo_logs import UndoLogQueries
+from storage.queries.undo_logs import UndoLogsQueries
 
 def __delete_file(file: File, storage: AAPAStorage):
     log_print(f'\t\t{File.display_file(file.filename)}')
@@ -34,7 +34,7 @@ def _process_forget_files(files_to_forget: list[File], storage: AAPAStorage):
 
 def undo_last_aanvragen(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking aanvragen ...', True)
-    queries : UndoLogQueries = storage.queries('undo_logs')
+    queries : UndoLogsQueries = storage.queries('undo_logs')
     if not (undo_log:=queries.last_undo_log(AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN)):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return None
@@ -65,7 +65,7 @@ def undo_last_aanvragen(storage: AAPAStorage, preview=False)->int:
 
 def undo_last_verslagen(storage: AAPAStorage, preview=False)->int:    
     log_info('--- Ongedaan maken verwerking verslagen ...', True)
-    queries : UndoLogQueries = storage.queries('undo_logs')
+    queries : UndoLogsQueries = storage.queries('undo_logs')
     if not (undo_log:=queries.last_undo_log(AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN)):
         log_error(f'Kan ongedaan te maken acties niet laden uit database.')
         return None

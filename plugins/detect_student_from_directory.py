@@ -24,8 +24,8 @@ from general.sql_coll import SQLcollector, SQLcollectors
 from data.general.roots import Roots
 from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
-from storage.queries.base_dirs import BaseDirQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.base_dirs import BaseDirsQueries
+from storage.queries.studenten import StudentenQueries
 from general.fileutil import test_directory_exists
 from main.log import log_debug, log_error, log_info, log_print, log_warning
 from general.singular_or_plural import sop
@@ -55,7 +55,7 @@ class StudentDirectoryDetector(FileProcessor):
         if not (parsed := self.parser.parsed(student_directory)):
             raise DetectorException(f'directory {File.display_file(student_directory)} kan niet worden herkend.')
         student = Student(full_name=parsed.student,email=parsed.email())
-        queries: StudentQueries = storage.queries('studenten')
+        queries: StudentenQueries = storage.queries('studenten')
         if storage and (stored := queries.find_student_by_name_or_email_or_studnr(student)):
             return stored
         storage.ensure_key('studenten',student)
@@ -67,7 +67,7 @@ class StudentDirectoryDetector(FileProcessor):
     #     if max_id := storage.find_max_value('aanvragen', attribute='id', where_attributes='student', where_values=student.id):
     #         return storage.read('aanvragen', max_id)
     def _get_basedir(self, dirname: str, storage: AAPAStorage)->BaseDir:
-        queries : BaseDirQueries = storage.queries('base_dirs')
+        queries : BaseDirsQueries = storage.queries('base_dirs')
         self.base_dir = queries.find_basedir(dirname)
         return self.base_dir != None
     def _parse_type(self, subdirectory:str, parsed_type: str)->MijlpaalType:
@@ -151,7 +151,7 @@ class StudentDirectoryDetector(FileProcessor):
             student_directory = StudentDirectory(student, dirname, self.base_dir)
             new_dir = MijlpaalDirectory(mijlpaal_type=MijlpaalType.AANVRAAG, directory=dirname, datum=TSC.AUTOTIMESTAMP)
             self._collect_files(new_dir)
-            if new_dir.files.nr_files() > 0:
+            if new_dir.nr_files() > 0:
                 student_directory.add(new_dir)
             # if (aanvraag := self._get_aanvraag(student, storage)):
             #     student_directory.add(aanvraag)

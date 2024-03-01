@@ -4,8 +4,8 @@ import tkinter.simpledialog as tksimp
 from data.classes.aanvragen import Aanvraag
 from data.classes.studenten import Student
 from storage.aapa_storage import AAPAStorage
-from storage.queries.aanvragen import AanvraagQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.aanvragen import AanvragenQueries
+from storage.queries.studenten import StudentenQueries
 from main.log import log_error, log_warning
 from general.valid_email import is_valid_email, try_extract_email
 from process.general.pdf_aanvraag_reader import is_valid_title
@@ -27,7 +27,7 @@ class AanvraagValidator:
             self.validated_aanvraag.student.status = Student.Status.AANVRAAG
         return True
     def __check_student(self)->bool:
-        queries: StudentQueries = self.storage.queries('studenten')
+        queries: StudentenQueries = self.storage.queries('studenten')
         if stored_student := queries.find_student_by_name_or_email_or_studnr(self.validated_aanvraag.student):
             self.validated_aanvraag.student = stored_student
         return True
@@ -49,7 +49,7 @@ class AanvraagValidator:
     def __ask_titel(self, aanvraag: Aanvraag)->str:
         return tksimp.askstring(f'Titel', f'Titel voor {str(aanvraag)}', initialvalue=aanvraag.titel)
     def __insert_versie_en_kans(self):
-        queries: AanvraagQueries = self.storage.queries('aanvragen')
+        queries: AanvragenQueries = self.storage.queries('aanvragen')
         bedrijf = self.validated_aanvraag.bedrijf
         student = self.validated_aanvraag.student
         kans = queries.find_kans(student)

@@ -7,7 +7,7 @@
 from data.general.const import MijlpaalType
 from data.classes.studenten import Student
 from storage.aapa_storage import AAPAStorage
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from main.log import log_warning
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
@@ -19,7 +19,7 @@ class MijlpalenKansProcessor(MigrationPlugin):
         sql.add('mijlpaal_directories', SQLcollector({'update': {'sql':'update MIJLPAAL_DIRECTORIES set kans=? where id=?'},}))                  
         return sql
     def process_student(self, student: Student):      
-        student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         student_directory = student_dir_queries.find_student_dir(student)
         if not student_directory:
             log_warning(f'Geen directory gevonden voor student {student}.')

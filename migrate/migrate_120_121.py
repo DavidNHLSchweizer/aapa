@@ -1,8 +1,8 @@
 import datetime
 import re
 from typing import Tuple
-from database.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
-        StudentDirectoryTableDefinition, UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, VerslagFilesTableDefinition, VerslagTableDefinition, \
+from database.aapa_database import BaseDirsTableDefinition, MijlpaalDirectory_FilesTableDefinition, MijlpaalDirectoriesTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectory_DirectoriesTableDefinition, \
+        StudentDirectoriesTableDefinition, UndoLogAanvragenTableDefinition, UndoLogFilesTableDefinition, VerslagFilesTableDefinition, VerslagenTableDefinition, \
         create_roots
 from data.classes.base_dirs import BaseDir
 from data.classes.studenten import Student

@@ -9,7 +9,7 @@ from pathlib import Path
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.general.roots import Roots
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
 from migrate.migration_plugin import MigrationPlugin
@@ -71,7 +71,7 @@ class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         if not super().before_process(context, **kwdargs):
             return False
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         self.database = context.storage.database
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:        

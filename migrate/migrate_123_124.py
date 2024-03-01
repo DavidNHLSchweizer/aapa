@@ -1,10 +1,15 @@
-from dataclasses import dataclass
+""" migratie naar database v1.24
+
+Aanpassingen voor verslagen.
+
+"""
 from enum import Enum, IntEnum, auto
 from data.general.const import VerslagStatus
-from database.aapa_database import StudentVerslagenOverzichtDefinition, UndoLogTableDefinition, UndoLogVerslagenTableDefinition, VerslagTableDefinition
+from database.aapa_database import UndoLogsTableDefinition,  VerslagenTableDefinition
 from database.classes.sql_table import SQLcreateTable
 from database.classes.sql_view import SQLcreateView
 from main.options import AAPAProcessingOptions
+from migrate.m124.obsolete import  UndoLogVerslagenTableDefinition, oldStudentVerslagenOverzichtDefinition
 from migrate.migrate import JsonData, modify_table
 from database.classes.database import Database
  
@@ -13,7 +18,6 @@ class M124JsonData(JsonData):
         CREATE_VERSLAGEN = auto()  
         CORRECT_MP_DIRS = auto()
         ADD_ORPHAN_VERSLAGEN = auto()
-        CORRECT_VERSLAGEN_DOUBLURES = auto()
     def __init__(self):
         super().__init__(r'migrate\m124')
         self.init_entries()
@@ -21,7 +25,6 @@ class M124JsonData(JsonData):
         self.add_entry(self.KEY.CORRECT_MP_DIRS,filename='correct_mp_dirs', phase=1, message ='correcting inconsistencies in mijlpaal_directories')
         self.add_entry(self.KEY.CREATE_VERSLAGEN,filename='create_verslagen', phase=2, message ='"re-engineering" verslagen update')
         self.add_entry(self.KEY.ADD_ORPHAN_VERSLAGEN,filename='add_orphan_verslagen', phase=3, message ='correcting verslagen without any files attached')
-        # self.add_entry(self.KEY.CORRECT_VERSLAGEN_DOUBLURES,filename='correct_verslagen_doublures', phase=3, message ='correcting doublure verslagen')
 
 class OldVerslagStatus(IntEnum):
     LEGACY          = -2
@@ -41,10 +44,10 @@ translation= {
 
 def modify_verslag_status(database: Database):
     print('modifying VERSLAGEN table.')
-    database.drop_view(StudentVerslagenOverzichtDefinition()) # to be sure, will be restored in add_views
+    database.drop_view(oldStudentVerslagenOverzichtDefinition()) # to be sure, will be restored in add_views
     database._execute_sql_command('alter table VERSLAGEN RENAME TO OLD_VERSLAGEN')
     print('creating the new table')
-    verslagen_table = VerslagTableDefinition() 
+    verslagen_table = VerslagenTableDefinition() 
     database.execute_sql_command(SQLcreateTable(verslagen_table))
     #copying the data
     database._execute_sql_command('insert into VERSLAGEN(id,datum,stud_id,bedrijf_id,titel,kans,status,beoordeling,verslag_type,cijfer)'+ \
@@ -73,18 +76,16 @@ def _copy_undolog_data(database: Database, old_table_name: str, new_table_name: 
 
 def modify_undo_logs(database: Database):
     print(f'adding "processing_mode" to UNDOLOGS')
-    modify_table(database, UndoLogTableDefinition(), _copy_undolog_data)    
+    modify_table(database, UndoLogsTableDefinition(), _copy_undolog_data)    
     # add new UNDOLOG_VERSLAGEN table    
     database.execute_sql_command(SQLcreateTable(UndoLogVerslagenTableDefinition()))  
     print('ready')    
 
 def add_views(database: Database):
     print('modify view STUDENT_VERSLAGEN_OVERZICHT')
-    database.drop_view(StudentVerslagenOverzichtDefinition())
-    database.execute_sql_command(SQLcreateView(StudentVerslagenOverzichtDefinition()))    
+    database.drop_view(oldStudentVerslagenOverzichtDefinition())
+    database.execute_sql_command(SQLcreateView(oldStudentVerslagenOverzichtDefinition()))    
     print('ready ')
-    
-
 
 def migrate_database(database: Database, phase = 42):    
     with database.pause_foreign_keys():
@@ -96,5 +97,5 @@ def migrate_database(database: Database, phase = 42):
 
 def after_migrate(database_name: str, debug=False, phase=42):
     pass # just testing. To be done later if necessary. Get a clearer way to (re)produce the SQL scripts.
-         # 
         
+         # 

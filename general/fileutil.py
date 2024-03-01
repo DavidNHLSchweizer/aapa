@@ -150,6 +150,8 @@ def safe_file_name(filename: str, chars_to_replace=r"#%&{}\/<>:*?$!'""+`|=", rep
 
 def last_parts_file(filename: str|Path, max_parts=3)->str:
     """ returns the last parts of a (long) filename. """
+    if not filename: 
+        return ''
     parts = Path(filename).parts
     parts_path = Path("...").joinpath(*parts[len(parts)-max_parts:])
     return str(parts_path)

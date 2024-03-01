@@ -12,11 +12,12 @@ from tkinter.messagebox import askokcancel, askyesno
 from data.classes.files import File
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.verslagen import Verslag
+from data.general.class_codes import ClassCodes
 from main.log import log_error, log_print
 from general.sql_coll import SQLcollector, SQLcollectors
 from plugins.plugin import PluginBase
 from process.main.aapa_processor import AAPARunnerContext
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from main.config import config
 
 class RemoverException(Exception):pass
@@ -24,20 +25,19 @@ class RemoverException(Exception):pass
 class VerslagRemover(PluginBase):
     def init_sql(self)->SQLcollectors:
         sql = SQLcollectors()
-        sql.add('undologs_verslagen',
-            SQLcollector({'delete':{'sql':'delete from UNDOLOGS_VERSLAGEN where verslag_id in (?)'},}))
-        sql.add('undologs_files',
-            SQLcollector({'delete':{'sql':'delete from UNDOLOGS_FILES where file_id in (?)'},}))
-        sql.add('verslagen_files', SQLcollector({'delete':{'sql':'delete from VERSLAGEN_FILES where verslag_id in (?)'}, }))
+        sql.add('undologs_details',
+            SQLcollector({'delete':{'sql':'delete from UNDOLOGS_DETAILS where detail_id=? and class_code=?', 'concatenate': False},}))
+        sql.add('verslagen_details', 
+                SQLcollector({'delete':{'sql':f'delete from VERSLAGEN_DETAILS where verslag_id in (?)'}, }))       
         sql.add('verslagen', SQLcollector({'delete':{'sql':'delete from VERSLAGEN where id in (?)'}, }))
-        sql.add('mijlpaal_directory_files', SQLcollector({'delete':{'sql':'delete from MIJLPAAL_DIRECTORY_FILES where file_id in (?)'}, }))
+        sql.add('mijlpaal_directories_details', SQLcollector({'delete':{'sql':'delete from MIJLPAAL_DIRECTORIES_DETAILS where detail_id=? and class_code=?', 'concatenate': False}, }))
         sql.add('mijlpaal_directories', SQLcollector({'delete':{'sql':'delete from MIJLPAAL_DIRECTORIES where id in (?)'}, }))
-        sql.add('student_directory_directories', SQLcollector({'delete':{'sql':'delete from STUDENT_DIRECTORY_DIRECTORIES where mp_dir_id in (?)'}, }))
+        sql.add('student_directories_details', SQLcollector({'delete':{'sql':'delete from STUDENT_DIRECTORIES_DETAILS where detail_id=? and class_code=?', 'concatenate': False}, }))
         sql.add('files', SQLcollector({'delete':{'sql':'delete from FILES where id in (?)'}, }))                 
         return sql
     def _find_mp_dir(self, verslag: Verslag)->MijlpaalDirectory:
-        target_dir = verslag.get_directory()
-        for mp_dir in self.stud_dir_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type):
+        target_dir = verslag.get_directory(verslag.mijlpaal_type.default_filetype())
+        for mp_dir in self.stud_dir_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type, kans=verslag.kans):
             if str(mp_dir.directory) == target_dir:
                 return mp_dir
         return None
@@ -55,19 +55,15 @@ class VerslagRemover(PluginBase):
                 self.removed_directories.add(str(mp_dir.directory).lower())
             except Exception as E:
                 log_print(f'Fout bij verwijderen {File.display_file(mp_dir.directory)}:\n\t{E}')            
-        for file in mp_dir.files_list:
-            self.sql.delete('undologs_files', [file.id])
-            self.sql.delete('files', [file.id])
-            self.sql.delete('mijlpaal_directory_files', [file.id])
         self.sql.delete('mijlpaal_directories', [mp_dir.id])
-        self.sql.delete('student_directory_directories', [mp_dir.id])            
+        self.sql.delete('student_directories_details', [mp_dir.id,self.mp_dir_code])
     def _remove_verslag(self, verslag: Verslag):
-        self.sql.delete('undologs_verslagen', [verslag.id])
-        self.sql.delete('verslagen_files', [verslag.id])
+        self.sql.delete('verslagen_details', [verslag.id])
         for file in verslag.files_list:
-            self.sql.delete('undologs_files', [file.id])
+            self.sql.delete('undologs_details', [file.id,self.file_code])
             self.sql.delete('files', [file.id])
-            self.sql.delete('mijlpaal_directory_files', [file.id])
+        self.sql.delete('undologs_details', [verslag.id,self.verslag_code])
+        self.sql.delete('mijlpaal_directories_details', [verslag.id, self.verslag_code])
         self.sql.delete('verslagen', [verslag.id])
     def remove(self, verslag_id: int|list[int], unlink: bool, preview: bool):
         verslagen_ids = verslag_id if isinstance(verslag_id, list) else [verslag_id]
@@ -92,7 +88,10 @@ class VerslagRemover(PluginBase):
         self.sql = self.init_sql()
         self.removed_directories = set()
         self.storage=context.storage
-        self.stud_dir_queries:StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.stud_dir_queries:StudentDirectoriesQueries = self.storage.queries('student_directories')
+        self.file_code = ClassCodes.classtype_to_code(File)
+        self.verslag_code = ClassCodes.classtype_to_code(Verslag)
+        self.mp_dir_code = ClassCodes.classtype_to_code(MijlpaalDirectory)
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
         verslagen = kwdargs.get('verslag')
