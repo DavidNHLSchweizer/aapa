@@ -87,6 +87,19 @@ class FileType(IntEnum):
     @staticmethod
     def invalid_file_types()->set[FileType]:
         return {FileType.INVALID_PDF, FileType.INVALID_DOCX}
+    def default_suffix(self)->str:
+        match self:
+            case self.UNKNOWN: return '.unknown'
+            case self.INVALID_DIR: return ''
+            case self.INVALID_DOCX|self.GRADE_FORM_DOCX|self.GRADE_FORM_EX1_DOCX|self.GRADE_FORM_EX2_DOCX|self.GRADE_FORM_EX1_DOCX|self.GENERAL_DOCX:
+                return '.docx'
+            case self.INVALID_PDF|self.AANVRAAG_PDF|self.COPIED_PDF|self.GRADE_FORM_PDF|self.GENERAL_PDF:
+                return '.pdf'
+            case self.DIFFERENCE_HTML: 
+                return '.html'
+            case self.PVA|self.ONDERZOEKSVERSLAG|self.TECHNISCH_VERSLAG|self.EIND_VERSLAG:
+                return '.pdf'
+            case _: return f'.onbekend_{self}'           
     @staticmethod
     def doc()->str:
         return "\n".join([f'{ft.value:2} (FileType.{ft.name}): {str(ft)}' for ft in FileType])  
@@ -112,6 +125,8 @@ class MijlpaalType(IntEnum):
     AFSTUDEERZITTING    = 9
     def is_verslag(self)->bool:
         return self in {MijlpaalType.PVA,MijlpaalType.EIND_VERSLAG,MijlpaalType.ONDERZOEKS_VERSLAG,MijlpaalType.TECHNISCH_VERSLAG,MijlpaalType.PRESENTATIE,MijlpaalType.PRODUCT_BEOORDELING}
+    def is_eindbeoordeling(self)->bool:
+        return self in {MijlpaalType.EINDBEOORDELING,MijlpaalType.AFSTUDEERZITTING}
     @staticmethod
     def verslag_types()->set[MijlpaalType]:
         return {mp for mp in MijlpaalType if mp.is_verslag()}
@@ -142,6 +157,7 @@ class AanvraagStatus(IntEnum):
     Voor meer info: zie AanvraagStatus.doc()
         
     """
+    LEGACY          = -2
     DELETED         = -1
     NEW             = 0
     IMPORTED_PDF    = 1
@@ -157,11 +173,15 @@ class AanvraagStatus(IntEnum):
                     AanvraagStatus.IMPORTED_PDF: 'gelezen (PDF)',  AanvraagStatus.IMPORTED_XLS: 'geimporteerd (PDF)',
                 AanvraagStatus.NEEDS_GRADING: 'te beoordelen', AanvraagStatus.GRADED: 'beoordeeld', 
                 AanvraagStatus.ARCHIVED: 'gearchiveerd', AanvraagStatus.MAIL_READY: 'mail klaar voor verzending', AanvraagStatus.READY: 'geheel verwerkt', 
-                AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)'}
+                AanvraagStatus.READY_IMPORTED: 'verwerkt (ingelezen via Excel)',
+                AanvraagStatus.LEGACY: 'Erfenis',
+                }
         return _AS_STRS.get(self,_UNKNOWN)
     @staticmethod
     def valid_states()->set[AanvraagStatus]:
         return {status for status in AanvraagStatus} - {AanvraagStatus.DELETED}
+    def active_states()->set[AanvraagStatus]:
+        return AanvraagStatus.valid_states() - {AanvraagStatus.READY, AanvraagStatus.READY_IMPORTED,AanvraagStatus.MAIL_READY}
     @staticmethod
     def doc()->str:
         return "\n".join([f'{status.value:2} (AanvraagStatus.{status.name}): {str(status)}' for status in AanvraagStatus])

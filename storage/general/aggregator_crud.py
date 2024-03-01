@@ -1,18 +1,19 @@
-from storage.general.CRUDs import CRUDColumnMapper, CRUD, CRUDQueries
-from storage.general.detail_rec_crud import DetailRecsCRUD
+from data.general.aggregator import Aggregator
+from storage.general.CRUDs import CRUDColumnMapper, CRUD, CRUDQueries, CallBackFunc
+from storage.general.details_crud import DetailsCRUD
 from storage.general.storage_const import KeyClass, StorageException, StoredClass
 from database.classes.database import Database
 from general.classutil import classname
 from main.log import log_debug
 
-class ExtendedCRUD(CRUD):
+class AggregatorCRUD(CRUD):
+    """ CRUD with automatic support for detail tables (Aggregator objects) """
     def __init__(self, database: Database, class_type: StoredClass):
         super().__init__(database, class_type)
-        self._crud = self.get_crud(class_type) 
-        self.details = DetailRecsCRUD(database, class_type) if self._data.details_data else None
+        self.details = DetailsCRUD(database, class_type) if self._data.details_record_type else None
     def __check_valid(self, aapa_obj, msg: str):
         if not isinstance(aapa_obj, StoredClass):
-            raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')    
+            raise StorageException(f'Invalid call to {msg}. {aapa_obj} is not a valid object.')  
     # --------------- CRUD functions ----------------
     def __db_log(self, function: str, params: str=''):
         log_debug(f'EXT-CRUD({classname(self)}): {function}{(" - " + params) if params else ""}') 
@@ -41,11 +42,14 @@ class ExtendedCRUD(CRUD):
             self.details.read(result)
         self.__db_log('END READ', f'{result}')
         return result
-    def read_many(self, keys: set[KeyClass])->StoredClass|list:
+    def read_many(self, keys: set[KeyClass], callback: CallBackFunc=None)->StoredClass|list:
         self.__db_log('READ MANY', f'[{keys}]')
-        for result in (results := super().read_many(keys)):
+        results = super().read_many(keys,callback=callback)
+        for n,result in enumerate(results):
             if result and self.details:
                 self.details.read(result)
+                if callback and not callback('reading details', n):
+                    break
         self.__db_log('END READ MANY', f'{results}')
         return results
     def update(self, aapa_obj: StoredClass):

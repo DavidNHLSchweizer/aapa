@@ -116,9 +116,12 @@
             "args": [
                 "input",
                 "-debug",
-                "--onedrive=c:\\onedrive",
+                "--onedrive=d:\\onedrive",
                 "--processing_mode=V",
-                "--input_options=F"              
+                "--input_options=F",
+                "--database=testing123.db",
+                "-preview"
+
             ]
         },
         {
@@ -131,6 +134,7 @@
             "args": [
                 "form",
                 "-debug",
+                "-preview",
                 "--onedrive=d:\\onedrive",
                 "--processing_mode=V",
                 "--input_options=F",
@@ -175,8 +179,8 @@
             "justMyCode": true,
             "args": [
                 "testing123.db",
-                "1.23",
                 "1.24",
+                "1.25",
                 "-debug"
             ]
         },
@@ -200,13 +204,13 @@
             "request": "launch",
             "program": "run_plugin.py",
             "console": "integratedTerminal",
-            "justMyCode": false,
+            "justMyCode": true,
             "args": [
-                "tests.plugins.test_form_creator",
-                "-stop",
-                "-debug",
-                "--database=testing123.db",
-                "--onedrive=d:\\onedrive",
+                "migrate.m125.correct_missing_aanvragen_files",
+                "migrate.m125.correct_files_doublures",
+                "--onedrive=d:\\onedrive0",
+                "-preview"
+                
             ]
         },
     ]

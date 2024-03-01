@@ -15,7 +15,7 @@ class AapaButtonsPanel(Static):
             align: center middle;
             max-height: 5;
             background: $background;
-            max-width: 150;   
+            max-width: 100%;   
             min-width: 120;
         }        
         AapaButtonsPanel ButtonBar {

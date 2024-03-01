@@ -1,12 +1,12 @@
-from database.aapa_database import AanvraagTableDefinition, AanvraagFilesTableDefinition
+from data.general.details_record import DetailsRecord
+from database.aapa_database import AanvraagDetailsTableDefinition, AanvragenTableDefinition
 from data.classes.aanvragen import Aanvraag
-from data.general.detail_rec import DetailRec, DetailRecData
-from storage.general.detail_rec_crud import DetailRecsTableMapper
-from storage.general.extended_crud import ExtendedCRUD
+from storage.general.details_crud import DetailsRecordTableMapper
+from storage.general.aggregator_crud import AggregatorCRUD
 from storage.general.mappers import ColumnMapper
 from storage.general.CRUDs import register_crud
 from storage.classes.mijlpaal_base import MijlpaalGradeableTableMapper
-from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.aanvragen import AanvragenQueries
 from database.classes.database import Database
 from database.classes.table_def import TableDefinition
 
@@ -17,24 +17,21 @@ class AanvragenTableMapper(MijlpaalGradeableTableMapper):
             case 'beoordeling': return ColumnMapper(column_name=column_name, db_to_obj=Aanvraag.Beoordeling)
             case _: return super()._init_column_mapper(column_name, database)
   
-class AanvragenFilesDetailRec(DetailRec): pass
-class AanvragenFilesTableMapper(DetailRecsTableMapper):
-    def __init__(self, database: Database, table: TableDefinition, class_type: type[DetailRec]):
-        super().__init__(database, table, class_type, 'aanvraag_id','file_id')
+class AanvraagDetailsRecord(DetailsRecord): pass
+class AanvraagDetailsTableMapper(DetailsRecordTableMapper):
+    def __init__(self, database: Database, table: TableDefinition, class_type: DetailsRecord):
+        super().__init__(database, table, class_type, 'aanvraag_id')
 
 register_crud(class_type=Aanvraag, 
-                table=AanvraagTableDefinition(), 
-                crud=ExtendedCRUD,     
-                queries_type=AanvraagQueries,        
+                table=AanvragenTableDefinition(), 
+                crud=AggregatorCRUD,     
+                queries_type=AanvragenQueries,        
                 mapper_type=AanvragenTableMapper, 
-                details_data=
-                    [DetailRecData(aggregator_name='files', detail_aggregator_key='files', 
-                                   detail_rec_type=AanvragenFilesDetailRec),
-                    ]
+                details_record_type=AanvraagDetailsRecord,
                 )
-register_crud(class_type=AanvragenFilesDetailRec, 
-                table=AanvraagFilesTableDefinition(), 
-                mapper_type=AanvragenFilesTableMapper, 
+register_crud(class_type=AanvraagDetailsRecord, 
+                table=AanvraagDetailsTableDefinition(), 
+                mapper_type=AanvraagDetailsTableMapper, 
                 autoID=False,
                 main=False
                 )

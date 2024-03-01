@@ -7,7 +7,7 @@
 from data.classes.files import File
 from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from main.log import log_warning
 from general.sql_coll import SQLcollector, SQLcollectors
 from migrate.migration_plugin import MigrationPlugin
@@ -38,11 +38,11 @@ class StudentDirectoriesStatusProcessor(MigrationPlugin):
         for stud_dir in student_directories:
             self.log(f'{File.display_file(stud_dir.directory)}: {stud_dir.status}')
 
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         if not super().before_process(context, **kwdargs):
             return False
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         return True
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:        
         for student in sorted(self.storage.queries('studenten').find_all(),key=lambda s: s.full_name):

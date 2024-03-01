@@ -6,7 +6,7 @@ from main.options import AAPAProcessingOptions
 from storage.aapa_storage import AAPAStorage
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.aanvragen import AanvragenQueries
 from storage.queries.files import FileStorageAnalyzer, FilesQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from main.log import log_debug, log_error, log_print, log_warning, log_info
@@ -103,7 +103,7 @@ def import_directory(directory: str, output_directory: str, storage: AAPAStorage
     first_id = storage.find_max_id('aanvragen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
-    queries:AanvraagQueries = storage.queries('aanvragen')
+    queries:AanvragenQueries = storage.queries('aanvragen')
     new_aanvragen = queries.find_new_aanvragen(first_id=first_id)
     report_imports(new_aanvragen, preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')

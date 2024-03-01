@@ -1,8 +1,8 @@
 from data.general.aapa_class import AAPAclass
-from data.general.detail_rec import DetailRec
+from data.general.details_record import DetailsRecord
 
 DBtype = str|int|float
-StoredClass = AAPAclass|DetailRec
+StoredClass = AAPAclass|DetailsRecord
 KeyClass = int|str
 
 class StorageException(Exception): pass

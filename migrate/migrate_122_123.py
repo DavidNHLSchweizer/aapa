@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from data.classes.studenten import Student
-from database.aapa_database import  MijlpaalDirectoryTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectoryTableDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
+from database.aapa_database import  MijlpaalDirectoriesTableDefinition, StudentDirectoriesFileOverzichtDefinition, StudentDirectoriesOverzichtDefinition, StudentDirectoriesTableDefinition, StudentMijlpaalDirectoriesOverzichtDefinition, StudentVerslagenOverzichtDefinition
 from data.classes.student_directories import StudentDirectory
 from migrate.migrate import modify_table
 from database.classes.sql_view import SQLcreateView
@@ -73,7 +73,7 @@ def modify_student_directories(database: Database):
     #dropping referencing views first
     database._execute_sql_command(f'DROP VIEW {StudentDirectoriesFileOverzichtDefinition().name}')
     database._execute_sql_command(f'DROP VIEW {StudentDirectoriesOverzichtDefinition().name}')
-    modify_table(database, StudentDirectoryTableDefinition(), _copy_student_directories_data)    
+    modify_table(database, StudentDirectoriesTableDefinition(), _copy_student_directories_data)    
     # now re-create views STUDENT_DIRECTORIES_FILE_OVERZICHT en STUDENT_DIRECTORIES_OVERZICHT, 
     database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))    
     database.execute_sql_command(SQLcreateView(StudentDirectoriesOverzichtDefinition()))    
@@ -95,7 +95,7 @@ def _copy_mijlpaal_data(database: Database, old_table_name: str, new_table_name:
 def modify_mijlpaal_directories(database: Database):
     print(f'adding "kans" to MIJLPAAL_DIRECTORIES')
     database._execute_sql_command(f'DROP VIEW {StudentDirectoriesFileOverzichtDefinition().name}')
-    modify_table(database, MijlpaalDirectoryTableDefinition(), _copy_mijlpaal_data)
+    modify_table(database, MijlpaalDirectoriesTableDefinition(), _copy_mijlpaal_data)
     # must also re-create view StudentDirectoriesFileOverzichtDefinition, because it now references OLD_TABLE_NAME
     database.execute_sql_command(SQLcreateView(StudentDirectoriesFileOverzichtDefinition()))    
     print('ready')

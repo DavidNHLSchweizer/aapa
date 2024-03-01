@@ -1,6 +1,7 @@
 from __future__ import annotations
 from argparse import Namespace
 from enum import Enum, IntEnum, auto
+from typing import Any
 from data.general.roots import Roots
 from main.args import _get_arguments
 from main.log import log_error
@@ -68,7 +69,7 @@ class AAPAProcessingOptions:
                         case _: log_error(f'Ongeldige waarde voor processing_mode: {ch}. Geldige waarden zijn A en V. Wordt genegeerd.' )
             return result
     
-    def __init__(self, actions: list[AAPAaction]=[], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.EXCEL}, processing_mode = {PROCESSINGMODE.AANVRAGEN}, onedrive=None):
+    def __init__(self, actions: list[AAPAaction]=[], preview = False, force=False, debug=False, input_options={INPUTOPTIONS.EXCEL}, processing_mode = {PROCESSINGMODE.AANVRAGEN}, onedrive=None, last_id=None):
         """ 
         parameters
         ----------
@@ -93,6 +94,7 @@ class AAPAProcessingOptions:
         self.force   = force
         self.debug   = debug
         self.onedrive = onedrive
+        self.last_id : int = last_id if last_id else config.get('import', 'last_id')
         if not self.actions:
             self.actions = [AAPAaction.NONE]
     def __str__(self):
@@ -116,7 +118,7 @@ class AAPAProcessingOptions:
         return cls(actions=_get_actions(args.actions) if 'actions' in args else [], preview=args.preview, 
                    input_options = AAPAProcessingOptions.INPUTOPTIONS.from_str(args.input_options),
                    processing_mode= AAPAProcessingOptions.PROCESSINGMODE.from_str(args.processing_mode),
-                   force=args.force, debug=args.debug, onedrive=args.onedrive)
+                   force=args.force, debug=args.debug, onedrive=args.onedrive, last_id=args.last_id)
     def no_processing(self, plugin=False)->bool:
         return not plugin and not any([a in self.actions for a in {AAPAaction.INPUT,AAPAaction.FORM, AAPAaction.MAIL, AAPAaction.UNDO, AAPAaction.FULL, AAPAaction.REPORT}])
 
@@ -134,12 +136,13 @@ class AAPAConfigOptions:
         config_file: de configuratiefile (alternatieve aapa_config.ini).
         report_filename: default filename voor rapportages.
         excel_in: default filename voor excel-import van aanvragen.
+        last_id: reset last id in config
 
         deze parameters worden opgeslagen in de gelijknamige attributen.
         
         """
         def get_default(param: str, config_key: str)->str:
-            return param if param is not None else config.get('configuration', config_key)
+            return param if param is not None else  config.get('configuration', config_key)
         self.root_directory: str = get_default(root_directory, 'root')
         self.output_directory: str = get_default(output_directory, 'output')
         self.database_file: str = get_default(database_file, 'database')

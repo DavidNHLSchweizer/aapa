@@ -2,7 +2,7 @@ from pathlib import Path
 from data.classes.undo_logs import UndoLog
 from data.classes.verslagen import Verslag
 from storage.aapa_storage import AAPAStorage
-from storage.queries.verslagen import VerslagQueries
+from storage.queries.verslagen import VerslagenQueries
 from debug.debug import MAJOR_DEBUG_DIVIDER
 from main.log import log_debug, log_error, log_print, log_info
 from process.general.preview import pva
@@ -31,7 +31,7 @@ def process_bbdirectory(directory: str, root_directory: str, storage: AAPAStorag
     first_id = storage.find_max_id('verslagen') + 1
     log_debug(f'first_id: {first_id}')
     (n_processed, n_files) = importer.process(Path(directory).glob(_get_pattern(recursive)), preview=preview)    
-    queries: VerslagQueries = storage.queries('verslagen')
+    queries: VerslagenQueries = storage.queries('verslagen')
     new_verslagen = queries.find_new_verslagen(first_id=first_id)
     report_imports(new_verslagen, preview=preview)
     log_debug(f'NOW WE HAVE: {n_processed=} {n_files=}')

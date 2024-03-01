@@ -25,6 +25,8 @@ class File(AAPAclass):
     def display_file(filename: str)->str:
         """ returns shortened filename starting with the year-part of the file (e.g. 2022-2023). """
         def __compute_min_parts(filename: str)->int:
+            if not filename:
+                return 0
             pattern = re.compile(r'\d{4,4}\-\d{4,4}')
             parts = Path(filename).parts
             for n,part in enumerate(parts):
@@ -80,7 +82,7 @@ class File(AAPAclass):
             return False
         return True
     def __eq__(self, value: File):
-        if  self.filename != value.filename:
+        if  str(self.filename).lower() != str(value.filename).lower():
             return False
         if  self.timestamp != value.timestamp:            
             return False
@@ -99,14 +101,18 @@ class Files(Aggregator):
         super().__init__(owner=owner)
         self.allow_multiple = allow_multiple
         self.add_class(File, 'files')
-    def add(self, files:File|list[File]):
+    def _add_file(self, file: File):
         if not self.allow_multiple:
-            if isinstance(files, list):
-                for filetype in {file.filetype for file in files}:
-                    self.remove_filetype(filetype)
-            else:
-                self.remove_filetype(files.filetype)
-        super().add(files)
+            self.remove_filetype(file.filetype)
+        if self.find_filename(file.filename) is not None:
+            return
+        super().add(file)
+    def add(self, files:File|list[File]):
+        if isinstance(files, list):
+            for file in files:
+                self._add_file(file)
+        else:
+            self._add_file(files)
     @property
     def files(self)->list[File]:
         return self.as_list('files', sort_key=lambda file: file.filetype)

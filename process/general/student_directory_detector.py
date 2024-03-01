@@ -11,8 +11,8 @@ from main.log import log_debug, log_error, log_info, log_print, log_warning
 from process.input.importing.dirname_parser import DirectoryNameParser
 from process.input.importing.filename_parser import FileTypeDetector
 from storage.aapa_storage import AAPAStorage
-from storage.queries.base_dirs import BaseDirQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.base_dirs import BaseDirsQueries
+from storage.queries.studenten import StudentenQueries
 
 class StudentDirectoryDetectorException(Exception): pass
 class StudentDirectoryDetector:
@@ -25,14 +25,14 @@ class StudentDirectoryDetector:
         self.new_students:dict[int:Student] = {}   
         self.verbose = verbose
     def _get_basedir(self, dirname: str, storage: AAPAStorage)->BaseDir:
-        queries : BaseDirQueries = storage.queries('base_dirs')
+        queries : BaseDirsQueries = storage.queries('base_dirs')
         self.base_dir = queries.find_basedir(dirname)
         return self.base_dir != None
     def _get_student(self, student_directory: str, storage: AAPAStorage)->Student:
         if not (parsed := self.parser.parsed(student_directory)):
             raise StudentDirectoryDetectorException(f'directory {File.display_file(student_directory)} kan niet worden herkend.')
         student = Student(full_name=parsed.student,email=parsed.email())
-        queries: StudentQueries = storage.queries('studenten')
+        queries: StudentenQueries = storage.queries('studenten')
         if storage and (stored := queries.find_student_by_name_or_email_or_studnr(student)):
             return stored
         storage.ensure_key('studenten',student)
@@ -130,7 +130,7 @@ class StudentDirectoryDetector:
             student_directory = StudentDirectory(student, dirname, self.base_dir)
             new_dir = MijlpaalDirectory(mijlpaal_type=MijlpaalType.AANVRAAG, directory=dirname, datum=TSC.AUTOTIMESTAMP)
             self._collect_files(new_dir)
-            if new_dir.files.nr_files() > 0:
+            if new_dir.nr_files() > 0:
                 student_directory.add(new_dir)
             for subdirectory in Path(dirname).glob('*'):
                 if subdirectory.is_dir() and (new_item := self._process_subdirectory(subdirectory, student)):                    

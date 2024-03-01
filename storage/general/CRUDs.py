@@ -1,9 +1,8 @@
 from __future__ import annotations
 from enum import Enum, auto
-from typing import Any, Tuple, Type
+from typing import Any, Protocol, Tuple, Type
 from data.general.aapa_class import AAPAclass
-from data.general.detail_rec import DetailRecData
-from database.classes.sql_table import SQLselect
+from data.general.details_record import DetailsRecord
 from storage.general.mappers import ColumnMapper
 from storage.general.table_mapper import TableMapper
 from storage.general.query_builder import QIF, QueryBuilder
@@ -17,6 +16,8 @@ from general.keys import get_next_key
 from main.log import log_debug
 from general.singleton import Singleton
 
+class CallBackFunc(Protocol):
+    def __call__(self, msg: str, n: int)->bool: pass
 class CRUDs(dict):
     # All CRUD (or subclasses) objects have this to access any CRUD.
     # any cruds are created as needed 
@@ -98,8 +99,7 @@ class CRUD:
         log_debug(f'CRUD CREATE ({classname(self)}) {classname(aapa_obj)}: {str(aapa_obj)}')
         columns,values = self.mapper.object_to_db(aapa_obj)
         self.database.create_record(self.table, columns=columns, values=values)
-        log_debug(f'END CRUD CREATE')
-   
+        log_debug(f'END CRUD CREATE')   
     def read(self, key: KeyClass|list[KeyClass])->StoredClass: 
         log_debug(f'CRUD READ ({classname(self)}|{self.table.name}) {classname(self.class_type)}:{key=}')
         result = None
@@ -113,7 +113,7 @@ class CRUD:
             result = self.mapper.db_to_object(rows[0])
         log_debug(f'END CRUD READ: {str(result)}')
         return result
-    def read_many(self, keys:set[KeyClass])->list[StoredClass]: 
+    def read_many(self, keys:set[KeyClass], callback: CallBackFunc=None)->list[StoredClass]: 
         log_debug(f'CRUD READ_MANY ({classname(self)}|{self.table.name}) {classname(self.class_type)}')
         result = None
         #TODO: this could probably somehow be better integrated with queries.find_values_where
@@ -122,7 +122,9 @@ class CRUD:
         where = self.query_builder.build_where_for_many(column_name=self.table.key, 
                                                                values=keys,flags={QIF.NO_MAP_VALUES})
         result = []
-        for row in self.database.read_record(self.table, where=where):
+        for n,row in enumerate(self.database.read_record(self.table, where=where)):
+            if callback and not callback('read many', n):
+                break
             result.append(self.mapper.db_to_object(row))
         log_debug(f'END CRUD READ_MANY: {str(result)}')
         return result    
@@ -168,6 +170,11 @@ class CRUDQueries:
         log_debug(f'CH:{classname(self)}|{classname(self.crud)}: {function}{(" - " + params) if params else ""}')
     #----------- utilituy functions -----------
     def check_already_there(self, aapa_obj: StoredClass)->bool:
+        """ True als item met dezelfde relevante attributen al in database aanwezig is. 
+        
+            Zet tevens het ID van het betreffende object op de waarde in de database indien aanwezig.
+            
+        """
         self.__db_log('CHECK_ALREADY_THERE', f'object: {aapa_obj}')
         if stored_ids := self.query_builder.find_ids_from_object(aapa_obj): 
             log_debug(f'\tCAT: --- already in database ----')                
@@ -245,14 +252,14 @@ class CRUDQueries:
                         column_names=wanted_attributes, values=wanted_values,
                             flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES})     
         return qb.find_max_value(attribute, where= where)
-    def find_all(self, map_values = True)->list[AAPAclass]:
+    def find_all(self, map_values = True, callback: CallBackFunc=None)->list[AAPAclass]:
         self.__db_log('FIND_ALL', f'keys: {self.table.keys} [{map_values=}]')
         qb = self.query_builder
         if ids := qb.find_ids():
-            return self.crud.read_many(set(ids))
+            return self.crud.read_many(set(ids), callback=callback)
         log_debug(f'\tFALL: no values found')
         return []
-    def find_values(self, attributes: str|list[str], values: Any|list[Any], map_values = True, read_many=False)->list[AAPAclass]:
+    def find_values(self, attributes: str|list[str], values: Any|list[Any], map_values = True, read_many=False, callback: CallBackFunc=None)->list[AAPAclass]:
         self.__db_log('FIND_VALUES', f'attributes: {attributes} values: {values} [{map_values=}, {read_many=}]')
         qb = self.query_builder
         wanted_attributes, wanted_values = self.__get_wanted_values(attributes, values) 
@@ -260,7 +267,7 @@ class CRUDQueries:
         if (ids := qb.find_ids_from_values(attributes=wanted_attributes, values=wanted_values, 
                         flags={QIF.ATTRIBUTES} if map_values else {QIF.ATTRIBUTES, QIF.NO_MAP_VALUES})):
             if read_many:
-                return self.crud.read_many(set(ids))
+                return self.crud.read_many(set(ids), callback=callback)
             else:
                 return [self.crud.read(id) for id in ids]
         log_debug(f'\tFV: no values found')
@@ -290,13 +297,13 @@ class CRUDQueries:
                     where=qb.build_where_from_values(
                         column_names=wanted_attributes, values=wanted_values, operators=where_operators,
                             flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))            
-    def find_values_where_explicit(self, where_str: str, where_values: list[Any])->list[Any]:
+    def find_values_where_explicit(self, where_str: str, where_values: list[Any], callback: CallBackFunc=None)->list[Any]:
         """ shortcut to do queries that don't fit the pattern, such as "LIKE" queries """
         self.__db_log('FIND_VALUES_WHERE_EXPLICIT', f'{where_str} where_values: {where_values} ')
         database = self.query_builder.database
         query = f'SELECT id from {self.table.name} where {where_str}'
         ids = {row['id'] for row in database._execute_sql_command(query, where_values, True)}
-        return self.crud.read_many(ids)
+        return self.crud.read_many(ids, callback=None)
     def find_max_id(self)->int:
         return self.query_builder.find_max_id()    
     
@@ -321,14 +328,14 @@ class ClassRegistryData:
                         mapper_type = TableMapper, 
                         crud=CRUD,  
                         queries_type = CRUDQueries,
-                        details_data:list[DetailRecData]=None,
+                        details_record_type:DetailsRecord=None,
                         autoID=True,
                         module_name=''):
         self.table = table
         self.mapper_type = mapper_type
         self.crud = crud
         self.queries_type = queries_type
-        self.details_data = details_data
+        self.details_record_type = details_record_type
         self.autoID = autoID
         self.module_name = module_name
 
@@ -349,7 +356,7 @@ class CRUDRegistry(Singleton):
                         mapper_type=TableMapper, 
                         crud=CRUD,  
                         queries_type = CRUDQueries,
-                        details_data: list[DetailRecData] = None, 
+                        details_record_type: DetailsRecord = None, 
                         autoID=True, 
                         main=True):
         self.__check_valid(class_type, False)
@@ -358,7 +365,7 @@ class CRUDRegistry(Singleton):
                                                               mapper_type = mapper_type, 
                                                               crud=crud,  
                                                               queries_type = queries_type,
-                                                              details_data=details_data,
+                                                              details_record_type=details_record_type,
                                                               autoID=autoID,
                                                               module_name=module_name)
     def _is_registered(self, class_type: StoredClass)->bool:
@@ -385,7 +392,7 @@ def register_crud(class_type: Type[StoredClass],
                   mapper_type: Type[TableMapper] = TableMapper, 
                   crud = CRUD, 
                   queries_type = CRUDQueries,
-                  details_data: list[DetailRecData] = None, 
+                  details_record_type: DetailsRecord = None, 
                   autoID=True, 
                   main=True):
     _crud_registry.register(class_type, 
@@ -393,7 +400,7 @@ def register_crud(class_type: Type[StoredClass],
                             mapper_type=mapper_type, 
                             crud=crud, 
                             queries_type=queries_type,
-                            details_data=details_data,  
+                            details_record_type=details_record_type,  
                             autoID=autoID,
                             main=main)
     

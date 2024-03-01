@@ -1,9 +1,9 @@
-from database.aapa_database import StudentTableDefinition
+from database.aapa_database import StudentenTableDefinition
 from data.classes.studenten import Student
 from storage.general.CRUDs import register_crud
 from storage.general.mappers import ColumnMapper
 from storage.general.table_mapper import TableMapper
-from storage.queries.studenten import StudentQueries
+from storage.queries.studenten import StudentenQueries
 from database.classes.database import Database
 
 class StudentenTableMapper(TableMapper):
@@ -13,7 +13,7 @@ class StudentenTableMapper(TableMapper):
             case _: return super()._init_column_mapper(column_name, database)
 
 register_crud(class_type=Student, 
-                table=StudentTableDefinition(),
+                table=StudentenTableDefinition(),
                 mapper_type=StudentenTableMapper,
-                queries_type=StudentQueries
+                queries_type=StudentenQueries
                 )

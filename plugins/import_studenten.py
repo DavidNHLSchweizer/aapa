@@ -22,7 +22,7 @@ from data.classes.studenten import Student
 from data.classes.undo_logs import UndoLog
 from general.sql_coll import SQLcollector, SQLcollectors
 from storage.aapa_storage import AAPAStorage
-from storage.queries.studenten import StudentQueries
+from storage.queries.studenten import StudentenQueries
 from main.log import init_logging, log_error, log_info, log_print, log_warning
 from process.general.preview import Preview, pva
 from general.singular_or_plural import sop
@@ -71,7 +71,7 @@ class StudentenXLSImporter(FileProcessor):
                 log_warning(f'\tVerschil in {attrib}: {a1}, {a2} in database.')
                 return True
             return False
-        queries: StudentQueries = storage.queries('studenten')
+        queries: StudentenQueries = storage.queries('studenten')
         if stored:=queries.find_student_by_name_or_email_or_studnr(student):
             log_warning(f'\tStudent {student} al in database')
             different = check_diff(student, stored, 'email') or\

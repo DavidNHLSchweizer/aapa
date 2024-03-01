@@ -31,7 +31,7 @@ class AAPAProcessor:
             if AAPAaction.INPUT in actions or AAPAaction.FULL in actions:
                 if AAPAProcessingOptions.PROCESSINGMODE.AANVRAGEN in processing_options.processing_mode:
                     if AAPAProcessingOptions.INPUTOPTIONS.EXCEL in processing_options.input_options and configuration.config_options.excel_in:
-                        process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview)
+                        process_excel_file(configuration.config_options.excel_in, configuration.storage, configuration.root, preview=preview, last_excel_id=processing_options.last_id)
                     if AAPAProcessingOptions.INPUTOPTIONS.SCAN in processing_options.input_options and (old_root := config.get('configuration', 'scanroot')): 
                         scan_aanvraag_directory(old_root, configuration.storage, configuration.output_directory, preview=preview)
                 if AAPAProcessingOptions.PROCESSINGMODE.VERSLAGEN in processing_options.processing_mode: 

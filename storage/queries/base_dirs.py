@@ -5,7 +5,7 @@ from storage.general.CRUDs import CRUDQueries
 from storage.general.storage_const import StorageException
 from main.log import log_debug
 
-class BaseDirQueries(CRUDQueries):
+class BaseDirsQueries(CRUDQueries):
     def is_basedir(self, directory: str|Path)->bool:    
         directory = str(directory)
         if not directory:

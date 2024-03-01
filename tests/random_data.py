@@ -1,8 +1,13 @@
 """ Simple class to generate random students """
 import datetime
 import random
+import string
+from data.classes.aanvragen import Aanvraag
 from data.classes.bedrijven import Bedrijf
+from data.classes.files import File
 from data.classes.studenten import Student
+from data.general.const import FileType, MijlpaalType
+from general.singleton import Singleton
 from storage.aapa_storage import AAPAStorage
 
 
@@ -99,28 +104,37 @@ gouden_uil_quotes = [
     "The quieter you become, the more you can hear", 
 ]
 
-
-
-
-
-
-class RandomData:
-    def __init__(self, storage: AAPAStorage, status: set[Student.Status]):
+class RandomData(Singleton):
+    def __init__(self, storage: AAPAStorage):
         self.storage = storage
         self.students = self._get_students({Student.Status.AANVRAAG, Student.Status.BEZIG})
         self.bedrijven = self._get_bedrijven()
         self.dates = self._get_dates()
+        # self.files= self._get_files()
     def _get_students(self, status: set[Student.Status])->list[Student]:
         if (ids := self.storage.queries('studenten').find_ids_where('status', status)):
             return self.storage.read_many('studenten', set(ids))
         return []    
+    def _get_files(self)->list[File]:
+        return self.storage.queries('files').find_all()
     def random_student(self)->Student:
         return random.choice(self.students)
-        
+    def random_aanvraag(self)->Aanvraag:
+        kans = random.randrange(1,9)
+        aanvraag = Aanvraag(student=self.random_student(), bedrijf=self.random_bedrijf(),
+                        datum=self.random_date(),titel=self.random_quote(),kans=kans,versie=random.randrange(1,kans+1))        
+        aanvraag.files.add(self.random_file(FileType.AANVRAAG_PDF, MijlpaalType.AANVRAAG))
+        return aanvraag
     def _get_bedrijven(self)->list[Bedrijf]:
         return self.storage.queries('bedrijven').find_all()
     def random_bedrijf(self)->Bedrijf:
         return random.choice(self.bedrijven)
+    def random_file(self, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
+        return File(self.random_filename(filetype.default_suffix()),filetype=filetype, mijlpaal_type=mijlpaal_type)
+        # return random.choice(list(filter(self.files,key =lambda f: f.filetype==filetype)))
+    def random_filename(self, suffix = '')->str:
+        return ''.join(random.choices(string.ascii_uppercase +
+                             string.digits, k=8))+suffix
     def _get_dates(self):
         result = []
         date = datetime.datetime(year=2020, month=1,day=1)

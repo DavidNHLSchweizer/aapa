@@ -15,7 +15,7 @@ from data.classes.verslagen import Verslag
 from data.general.roots import Roots
 from main.log import log_error
 from storage.queries.files import FilesQueries
-from storage.queries.student_directories import StudentDirectoryQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
 from general.sql_coll import SQLcollector, SQLcollectors
 from general.timeutil import TSC
 from migrate.migration_plugin import MigrationPlugin
@@ -83,7 +83,7 @@ class OrphanVerslagenProcessor(MigrationPlugin):
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         if not super().before_process(context, **kwdargs):
             return False
-        self.student_dir_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
+        self.student_dir_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
         self.files_query: FilesQueries = self.storage.queries('files')
         self.database = context.storage.database
         return True

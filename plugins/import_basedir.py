@@ -21,7 +21,7 @@ from data.classes.undo_logs import UndoLog
 from general.sql_coll import SQLcollector, SQLcollectors
 from data.general.roots import Roots
 from storage.aapa_storage import AAPAStorage
-from storage.queries.base_dirs import BaseDirQueries
+from storage.queries.base_dirs import BaseDirsQueries
 from main.log import log_error, log_info, log_print, log_warning
 from process.general.preview import Preview, pva
 from general.singular_or_plural import sop
@@ -70,7 +70,7 @@ class BasedirXLSImporter(FileProcessor):
                 log_warning(f'\tVerschil in {attrib}: {a1}, {a2} in database.')
                 return True
             return False
-        queries: BaseDirQueries  = storage.queries('base_dirs')
+        queries: BaseDirsQueries  = storage.queries('base_dirs')
         if rows:=queries.find_values(['year', 'period', 'forms_version'], [base_dir.year, base_dir.period, base_dir.forms_version], map_values=False):
             stored = rows[0]
             log_warning(f'\tBasedir {base_dir} al in database')

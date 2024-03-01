@@ -9,17 +9,17 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from storage.aapa_storage import AAPAStorage
-from storage.queries.aanvragen import AanvraagQueries
+from storage.queries.aanvragen import AanvragenQueries
 from storage.queries.files import FilesQueries
-from storage.queries.student_directories import StudentDirectoryQueries
-from storage.queries.studenten import StudentQueries
+from storage.queries.student_directories import StudentDirectoriesQueries
+from storage.queries.studenten import StudentenQueries
 from general.fileutil import file_exists
 from main.config import config
 from main.log import log_debug, log_error, log_info, log_print, log_warning
 from process.general.student_dir_builder import SDB, StudentDirectoryBuilder
 from process.general.verslag_processor import VerslagImporter
 from process.general.zipfile_reader import BBFilenameInZipParser, BBZipFileReader
-from storage.queries.verslagen import VerslagQueries
+from storage.queries.verslagen import VerslagenQueries
 
 class VerslagParseException(Exception): pass
 
@@ -30,10 +30,10 @@ class VerslagFromZipImporter(VerslagImporter):
         self.sdb = SDB(storage)
         self.reader = BBZipFileReader()
         self.root_directory = root_directory
-        self.verslag_queries:VerslagQueries = self.storage.queries('verslagen')
-        self.student_directory_queries: StudentDirectoryQueries = self.storage.queries('student_directories')
-        self.studenten_queries: StudentQueries = self.storage.queries('studenten')
-        self.aanvraag_queries:AanvraagQueries = self.storage.queries('aanvragen')
+        self.verslag_queries:VerslagenQueries = self.storage.queries('verslagen')
+        self.student_directory_queries: StudentDirectoriesQueries = self.storage.queries('student_directories')
+        self.studenten_queries: StudentenQueries = self.storage.queries('studenten')
+        self.aanvraag_queries:AanvragenQueries = self.storage.queries('aanvragen')
         self.files_queries: FilesQueries = self.storage.queries('files')
 
     def _get_verslag_type(self, product_type: str)->MijlpaalType:
@@ -117,12 +117,9 @@ class VerslagFromZipImporter(VerslagImporter):
                 return True
         # if we get here, try a good-luck search. Hopefully the database is not out-of-sync with reality        
         return self.files_queries.is_known_file(filename_to_create)
-    
     def _register_verslag(self, verslag: Verslag, filename: str):
-        file = verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
-        self.sdb.register_file(student=verslag.student, datum=verslag.datum,# datum=file.timestamp if file_exists(filename) else verslag.datum,
-                                        filename=filename, filetype=file.filetype, mijlpaal_type=file.mijlpaal_type)
-
+        verslag.register_file(filename, verslag.mijlpaal_type.default_filetype(), verslag.mijlpaal_type)
+        self.sdb.register_verslag(verslag,filename)
     def _create_file(self, verslag: Verslag, mp_dir: MijlpaalDirectory, filename_in_zip: str, filename_to_create: str, new_student:bool, preview=False):
         mijlpaal_directory_path = Path(mp_dir.directory) if mp_dir else Path(filename_to_create).parent
         if preview:
@@ -138,6 +135,7 @@ class VerslagFromZipImporter(VerslagImporter):
                 log_print(f'\tDirectory {File.display_file(mijlpaal_directory_path)} aangemaakt')
             self.reader.extract_file(filename_in_zip, mijlpaal_directory_path, Path(filename_to_create).name)
             log_print(f'\tBestand {File.display_file(filename_to_create)} aangemaakt.')
+            verslag.ensure_files_timestamp_and_digest()
         self._register_verslag(verslag, filename_to_create)
     def _check_existing_files(self, student_entries: list[dict]):
         previous_existing = False
@@ -163,12 +161,12 @@ class VerslagFromZipImporter(VerslagImporter):
                     student_entry['verslag'].kans = student_entry['mp_dir'].kans
                 else:
                     student_entry['verslag'].kans -= 1
-    def _find_mp_dir(self, verslag: Verslag)->MijlpaalDirectory:
-        target_dir = verslag.get_directory()
-        for mp_dir in self.student_directory_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type):
-            if str(mp_dir.directory) == target_dir:
-                return mp_dir
-        return None
+    # def _find_mp_dir(self, verslag: Verslag)->MijlpaalDirectory:
+    #     target_dir = verslag.get_directory(verslag.mijlpaal_type.default_filetype())
+    #     for mp_dir in self.student_directory_queries.find_student_mijlpaal_dir(verslag.student, verslag.mijlpaal_type):
+    #         if str(mp_dir.directory) == target_dir:
+    #             return mp_dir
+    #     return None
     def _check_existing_verslag(self, student_directory: StudentDirectory, filename_to_create: str)->Verslag:
         if not student_directory:
             return None
@@ -179,9 +177,10 @@ class VerslagFromZipImporter(VerslagImporter):
     def _process_student_entry(self, current_verslag: Verslag, student_entry: dict, preview=False)->Verslag:
         overgeslagen = 'Wordt overgeslagen.'
         new_verslag:Verslag = student_entry['verslag']
-        if current_verslag and new_verslag.mijlpaal_type == current_verslag.mijlpaal_type and current_verslag.student==new_verslag.student:
-            new_verslag = current_verslag
         filename_to_create = student_entry['filename_to_create']
+        if current_verslag and new_verslag.mijlpaal_type == current_verslag.mijlpaal_type and current_verslag.student==new_verslag.student:
+            current_verslag.register_file(filename_to_create,filetype=current_verslag.mijlpaal_type.default_filetype(), mijlpaal_type=current_verslag.mijlpaal_type)
+            new_verslag = current_verslag
         stored_verslag = self._check_existing_verslag(student_entry['student_directory'], filename_to_create)
         log_debug(f'filename to create: {filename_to_create}')   
         if stored_verslag:            

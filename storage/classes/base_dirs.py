@@ -3,7 +3,7 @@ from data.classes.base_dirs import BaseDir
 from storage.general.mappers import ColumnMapper, FilenameColumnMapper
 from storage.general.table_mapper import TableMapper
 from storage.general.CRUDs import register_crud
-from storage.queries.base_dirs import BaseDirQueries
+from storage.queries.base_dirs import BaseDirsQueries
 from database.classes.database import Database
 
 class BaseDirsTableMapper(TableMapper):
@@ -15,5 +15,5 @@ class BaseDirsTableMapper(TableMapper):
 register_crud(class_type=BaseDir, 
                 table=BaseDirsTableDefinition(), 
                 mapper_type = BaseDirsTableMapper,
-                queries_type=BaseDirQueries
+                queries_type=BaseDirsQueries
                 )

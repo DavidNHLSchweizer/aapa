@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from argparse import ArgumentParser
 from pathlib import Path
 from types import ModuleType
@@ -27,6 +26,11 @@ class MigrationPlugin(PluginBase):
         return parser
     def init_SQLcollectors(self)->SQLcollectors:
         return SQLcollectors()
+    def insert_detail_query(self, table_name: str, main_id: str)->str:
+        return f'insert into {table_name}_DETAILS({main_id},detail_id,class_code) values (?,?,?)'
+    def delete_detail_query(self, table_name: str, main_id: str)->str:
+        return f'delete from {table_name}_DETAILS where {main_id}=? and detail_id=? and class_code=?'
+
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:        
         log_print('------------------')
         log_print('--- processing ---')
