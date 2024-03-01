@@ -206,12 +206,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "plugins.remove_aanvraag",
-                "-stop",
-                "-debug",
-                "--aanvraag=75",
-                "--database=testing123.db",
-                "--onedrive=d:\\onedrive",
+                "migrate.m125.correct_missing_aanvragen_files",
+                "migrate.m125.correct_files_doublures",
+                "--onedrive=d:\\onedrive0",
+                "-preview"
                 
             ]
         },
