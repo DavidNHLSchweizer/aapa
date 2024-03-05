@@ -29,7 +29,7 @@ class MijlpaalBase(AAPAclass):
             return False
         return True
 
-class MijlpaalDirectory(MijlpaalBase):            
+class MijlpaalGradeable(MijlpaalBase):            
     Beoordeling = MijlpaalBeoordeling
     def __init__(self, mijlpaal_type: MijlpaalType, student:Student, datum: datetime.datetime, bedrijf: Bedrijf = None, kans=0, status=0, 
                  beoordeling=Beoordeling.TE_BEOORDELEN, titel='', id=EMPTY_ID):
@@ -82,7 +82,7 @@ class MijlpaalDirectory(MijlpaalBase):
         if self.beoordeling != MijlpaalBeoordeling.TE_BEOORDELEN:
             s = s + f' ({str(self.beoordeling)})'
         return s
-    def __eq__(self, value2: MijlpaalDirectory)->bool:
+    def __eq__(self, value2: MijlpaalGradeable)->bool:
         if not super().__eq__(value2):
             return False
         if self.student != value2.student:

@@ -8,7 +8,7 @@ from data.general.aapa_class import AAPAclass
 from data.general.aggregator import Aggregator
 
 from data.general.const import MijlpaalType
-from data.classes.mijlpaal_base import MijlpaalBase, MijlpaalDirectory
+from data.classes.mijlpaal_base import MijlpaalBase, MijlpaalGradeable
 from database.classes.dbConst import EMPTY_ID
 from general.obsolete import obsolete_exception
 from general.timeutil import TSC
@@ -22,18 +22,18 @@ class MijlpaalDirectoryAggregator(Aggregator):
         self.add_class(Verslag, 'verslagen')
     def find_filename(self,filename: str):
         obsolete_exception('find_filename')
-    def find_mijlpaal(self, mijlpaal: MijlpaalDirectory)->MijlpaalDirectory:
+    def find_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
         for mijlpaal2 in self.as_class_list(mijlpaal):
             if mijlpaal2 == mijlpaal:
                 return mijlpaal2
         return None        
-    def find_mijlpaal_id(self, mijlpaal: MijlpaalDirectory)->MijlpaalDirectory:
+    def find_mijlpaal_id(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
         for mijlpaal2 in self.as_class_list(mijlpaal):
             if mijlpaal2.id == mijlpaal.id:
                 return mijlpaal2
         return None        
         
-class MijlpaalDirectory(MijlpaalBase):    
+class MijlpaalGradeable(MijlpaalBase):    
     def __init__(self, mijlpaal_type: MijlpaalType, directory: str, datum: datetime.datetime, kans=0, id=EMPTY_ID):
         super().__init__(mijlpaal_type=mijlpaal_type, datum=datum, kans=kans, id=id)
         self.directory = directory
@@ -58,7 +58,7 @@ class MijlpaalDirectory(MijlpaalBase):
         obsolete_exception('register_file in mijlpaaldirectory')        
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
         obsolete_exception('register_file in mijlpaaldirectory')
-    def register_mijlpaal(self, mijlpaal: MijlpaalDirectory)->MijlpaalDirectory:
+    def register_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
         if self.mijlpalen.contains_id(mijlpaal):
             return self.mijlpalen.find_mijlpaal_id(mijlpaal)
         elif self.mijlpalen.contains(mijlpaal):
@@ -68,7 +68,7 @@ class MijlpaalDirectory(MijlpaalBase):
             return mijlpaal
     def relevant_attributes(self) -> set[str]:
         return super().relevant_attributes() | {'directory'}
-    def equal_relevant_attributes(self, value: MijlpaalDirectory)->bool:
+    def equal_relevant_attributes(self, value: MijlpaalGradeable)->bool:
         if  str(self.directory).lower() != str(value.directory).lower():
             return False        
         if  self.mijlpaal_type != value.mijlpaal_type:            
@@ -87,7 +87,7 @@ class MijlpaalDirectory(MijlpaalBase):
         if file_str:
             s = s + "\n\t\t"+ file_str
         return s
-    def __eq__(self, value2: MijlpaalDirectory)->bool:
+    def __eq__(self, value2: MijlpaalGradeable)->bool:
         if not super().__eq__(value2):
             return False
         if self.directory != value2.directory:
@@ -95,7 +95,7 @@ class MijlpaalDirectory(MijlpaalBase):
         if self.mijlpalen != value2.mijlpalen:
             return False
         return True
-    def __gt__(self, value2: MijlpaalDirectory)->bool:
+    def __gt__(self, value2: MijlpaalGradeable)->bool:
         return value2 is not None and self.directory > value2.directory
     @staticmethod
     def directory_name(mijlpaal_type: MijlpaalType, datum: datetime.datetime)->str:

@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from data.classes.aanvragen import Aanvraag
 from data.classes.files import File
-from data.classes.mijlpaal_base import MijlpaalDirectory
+from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.verslagen import Verslag
 from data.general.class_codes import ClassCodes
@@ -78,10 +78,10 @@ class FileRemover(RemoverClass):
             Path(file.filename).unlink(missing_ok=True)
 
 class MijlpaalRemover(RemoverClass):
-    def __init__(self, class_type: MijlpaalDirectory, table_name: str, details_id: str):
+    def __init__(self, class_type: MijlpaalGradeable, table_name: str, details_id: str):
         self.file_remover = FileRemover()
         super().__init__(class_type, table_name=table_name, owner_names=['mijlpaal_directories', 'undologs'], details_id=details_id)
-    def delete(self, mijlpaal: MijlpaalDirectory):
+    def delete(self, mijlpaal: MijlpaalGradeable):
         for file in mijlpaal.files_list:
             self.file_remover.delete(file)
         super().delete(mijlpaal)
@@ -101,8 +101,8 @@ class MijlpaalDirectoryRemover(RemoverClass):
     def __init__(self):
         self.aanvraag_remover = AanvraagRemover()
         self.verslag_remover = VerslagRemover()
-        super().__init__(MijlpaalDirectory, table_name='mijlpaal_directories', owner_names='student_directories', details_id='mp_dir_id')
-    def delete(self, mijlpaal_directory: MijlpaalDirectory):
+        super().__init__(MijlpaalGradeable, table_name='mijlpaal_directories', owner_names='student_directories', details_id='mp_dir_id')
+    def delete(self, mijlpaal_directory: MijlpaalGradeable):
         for aanvraag in mijlpaal_directory.aanvragen:
             self.aanvraag_remover.delete(aanvraag)
         for verslag in mijlpaal_directory.verslagen:

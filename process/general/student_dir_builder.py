@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Tuple
 from data.classes.aanvragen import Aanvraag
 from data.classes.base_dirs import BaseDir
-from data.classes.mijlpaal_base import MijlpaalDirectory
+from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.verslagen import Verslag
 from data.general.const import MijlpaalType
 from data.classes.files import File
@@ -69,7 +69,7 @@ class StudentDirectoryBuilder:
     @staticmethod
     def get_mijlpaal_directory_name(stud_dir: StudentDirectory, datum: datetime.datetime, mijlpaal_type: MijlpaalType)->str:
         """ geeft de naam van het volledige pad voor mijlpaaldirectory met deze datum/type. """
-        return str(Path(stud_dir.directory).joinpath(MijlpaalDirectory.directory_name(mijlpaal_type, datum)))
+        return str(Path(stud_dir.directory).joinpath(MijlpaalGradeable.directory_name(mijlpaal_type, datum)))
     def __check_must_register_new_student_directory(self, student: Student, target_basedir: BaseDir, filename: str)->Tuple[bool, StudentDirectory]:
         queries: StudentDirectoriesQueries = self.storage.queries('student_directories')        
         if not (stud_dir := queries.find_student_dir(student)):
@@ -92,17 +92,17 @@ class StudentDirectoryBuilder:
             self.storage.create('student_directories', stud_dir)
         return stud_dir
     def get_mijlpaal_directory(self, stud_dir: StudentDirectory, directory: str, datum: datetime.datetime, 
-                                 mijlpaal_type: MijlpaalType, error_margin=0.0)->MijlpaalDirectory:
+                                 mijlpaal_type: MijlpaalType, error_margin=0.0)->MijlpaalGradeable:
         if not (mp_dir := stud_dir.get_directory(datum, mijlpaal_type, error_margin=error_margin)):
             kans = len(stud_dir.get_directories(mijlpaal_type))+1
-            mp_dir = MijlpaalDirectory(mijlpaal_type=mijlpaal_type, directory=directory, datum=datum, kans = kans)
+            mp_dir = MijlpaalGradeable(mijlpaal_type=mijlpaal_type, directory=directory, datum=datum, kans = kans)
             self.storage.create('mijlpaal_directories', mp_dir)
             stud_dir.add(mp_dir)
         if str(mp_dir.directory).lower() != str(directory).lower(): 
             log_warning(f'Bestand staat op onverwachte plek ({directory}).\n\tAndere bestanden voor deze student staan in directory {File.display_file(mp_dir.directory)}.\n\tIndien dit bewust zo gedaan is kan deze waarschuwing genegeerd worden.\n\tAnders: verplaats het document naar de juiste locatie.')
         return mp_dir
     def register_file(self, student: Student, datum: datetime.datetime, filename: str, 
-                      filetype: File.Type, mijlpaal_type: MijlpaalType)->Tuple[StudentDirectory, MijlpaalDirectory]:
+                      filetype: File.Type, mijlpaal_type: MijlpaalType)->Tuple[StudentDirectory, MijlpaalGradeable]:
         obsolete_exception('student dir builder register_file')
         # self.storage.ensure_key('studenten', student)        
         # if not (stud_dir := self.__get_stud_dir(student, filename)):
@@ -114,7 +114,7 @@ class StudentDirectoryBuilder:
         # mp_dir.register_file(filename,filetype,mijlpaal_type)
         # self.storage.update('student_directories', stud_dir)
         # return (stud_dir,mp_dir)
-    def _register_mijlpaal(self, mijlpaal: MijlpaalDirectory, filename: str = None):
+    def _register_mijlpaal(self, mijlpaal: MijlpaalGradeable, filename: str = None):
         self.storage.ensure_key(self.storage.module_name(mijlpaal), mijlpaal)
         if not filename:
             filename = mijlpaal.get_base_file()
@@ -132,7 +132,7 @@ class StudentDirectoryBuilder:
         self._register_mijlpaal(aanvraag, filename)
     def register_verslag(self, verslag: Verslag, filename: str = None):
         self._register_mijlpaal(verslag, filename)
-    def _register_file(self, student: Student, file: File)->Tuple[StudentDirectory, MijlpaalDirectory]:
+    def _register_file(self, student: Student, file: File)->Tuple[StudentDirectory, MijlpaalGradeable]:
         obsolete_exception('_register_file')
         return self.register_file(student, file.timestamp, file.filename, file.filetype, file.mijlpaal_type)
     # def register_verslag(self, verslag: Verslag):
