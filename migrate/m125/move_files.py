@@ -42,13 +42,13 @@ class MoveFilesProcessor(MigrationPlugin):
         return sql
     def process_verslag(self, mp_dir: MijlpaalDirectory, verslag: Verslag):
         self.log(f'Verslag: {verslag.summary()}; Verslag id: {verslag.id}')
-        for file in mp_dir.files_list:
+        for file in mp_dir.get_files():
             if not verslag.files.contains(file):
                 self.sql.insert('verslagen_details', [verslag.id, file.id, self.file_code])
             self.sql.delete('mijlpaal_directories_details', [mp_dir.id, file.id, self.file_code])
     def process_aanvraag(self, mp_dir: MijlpaalDirectory, aanvraag: Aanvraag):
         self.log(f'Aanvraag: {aanvraag.summary()}; Aanvraag id: {aanvraag.id}')
-        for file in mp_dir.files_list:
+        for file in mp_dir.get_files():
             if not aanvraag.files.contains(file):
                 self.sql.insert('aanvragen_details', [aanvraag.id, file.id, self.file_code])
             self.sql.delete('mijlpaal_directories_details', [mp_dir.id, file.id, self.file_code])
