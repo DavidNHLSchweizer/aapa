@@ -17,7 +17,7 @@ from main.config import config
 class MijlpaalDirectoryAggregator(Aggregator):
     def __init__(self, owner: AAPAclass):
         super().__init__(owner=owner)
-        self.add_class(File, 'files') # to be deleted later
+        # self.add_class(File, 'files') # to be deleted later
         self.add_class(Aanvraag, 'aanvragen')
         self.add_class(Verslag, 'verslagen')
     def find_filename(self,filename: str):
@@ -31,18 +31,24 @@ class MijlpaalDirectoryAggregator(Aggregator):
         for mijlpaal2 in self.as_class_list(mijlpaal):
             if mijlpaal2.id == mijlpaal.id:
                 return mijlpaal2
-        return None        
-        
+        return None            
+    def get_files(self)->list[File]:
+        result = []
+        for class_type in self.class_types():
+            for mijlpaal in self.as_list(class_type):
+                result.extend(mijlpaal.files_list)
+        return result
+    
 class MijlpaalDirectory(MijlpaalBase):    
     def __init__(self, mijlpaal_type: MijlpaalType, directory: str, datum: datetime.datetime, kans=0, id=EMPTY_ID):
         super().__init__(mijlpaal_type=mijlpaal_type, datum=datum, kans=kans, id=id)
         self.directory = directory
         self.mijlpalen = MijlpaalDirectoryAggregator(self)
+    def get_files(self)->list[File]: 
+        return self.mijlpalen.get_files()
     @property
-    def files_list(self)->list[File]: return self.mijlpalen.as_list('files')
-    @property
-    def nr_files(self):
-        return self.mijlpalen.nr_items('files')
+    def nr_items(self):
+        return self.mijlpalen.nr_items('aanvragen') + self.mijlpalen.nr_items('verslagen')
     def _find_file(self, file: File)->File:
         obsolete_exception('register_file in mijlpaaldirectory')        
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
@@ -72,7 +78,7 @@ class MijlpaalDirectory(MijlpaalBase):
         s = self.summary()
         if self.kans > 0:
             s = f'{s} (kans: {self.kans})'
-        file_str = "\n\t\t".join([file.summary(name_only=True) for file in self.files_list])
+        file_str = "\n\t\t".join([file.summary(name_only=True) for file in self.get_files()])
         if file_str:
             s = s + "\n\t\t"+ file_str
         return s

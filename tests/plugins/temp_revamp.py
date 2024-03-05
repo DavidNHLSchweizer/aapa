@@ -41,7 +41,7 @@ class TestPlugin(PluginBase):
     def dump_mp_dir(self, mp_dir: MijlpaalDirectory):
         print('----------')
         print(f'Mijlpaal Directory: {mp_dir.summary()}')
-        print(f'\tFiles:\n{"\n\t\t".join([f'{file.id}: {File.display_file(file.filename)}' for file in mp_dir.files_list])}')
+        print(f'\tFiles:\n{"\n\t\t".join([f'{file.id}: {File.display_file(file.filename)}' for file in mp_dir.get_files()])}')
         print('----------')
     def _process_aanvraag(self, aanvraag: Aanvraag):
         try:

@@ -32,7 +32,7 @@ class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
         self.sql.delete('student_directory_directories', [mp_dir.id])
         self.sql.delete('mijlpaal_directories', [mp_dir.id])
     def _sql_update_mijlpaal_directory(self, mp_dir: MijlpaalDirectory):
-        for file in mp_dir.files_list:
+        for file in mp_dir.get_files():
             self.sql.insert('mijlpaal_directory_files', [mp_dir.id,file.id])
         self.sql.update('mijlpaal_directories', [mp_dir.mijlpaal_type,mp_dir.kans,
                                                  Roots.encode_path (mp_dir.directory), TSC.timestamp_to_sortable_str(mp_dir.datum), mp_dir.id])
@@ -78,7 +78,7 @@ class MijlpaalDirsReEngineeringProcessor(MigrationPlugin):
         def dump_info(msg: str, dir_list:list[MijlpaalDirectory]):
             self.log(f'\t--- {msg} ---')
             for dir in dir_list:
-                filestr = "\n\t\t".join([Path(file.filename).name for file in dir.files_list]) if dir.files_list else '<No files>'
+                filestr = "\n\t\t".join([Path(file.filename).name for file in dir.get_files()]) if dir.get_files() else '<No files>'
                 self.log(f'\t{dir.id}-{dir.datum}: {File.display_file(dir.directory)}\n\t\t{filestr}')
         double_entries = self._get_double_entries()
         for directory, ids in double_entries.items():

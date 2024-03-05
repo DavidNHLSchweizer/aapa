@@ -109,14 +109,14 @@ class StudentDirectorySQL:
                                                  Roots.encode_path(mp_dir.directory), 
                                                  TSC.timestamp_to_sortable_str(mp_dir.datum),mp_dir.id])
         self.sql.delete('mijlpaal_directory_files', [mp_dir.id])
-        for file in mp_dir.files_list:
+        for file in mp_dir.get_files():
             self.sql.insert('mijlpaal_directory_files', [mp_dir.id,file.id])
     def _handle_new_mijlpaal_directory(self, mp_dir: MijlpaalDirectory, owner_stud_dir: StudentDirectory):
         self.sql.insert('mijlpaal_directories', [mp_dir.id, mp_dir.mijlpaal_type, mp_dir.kans, 
                                                  Roots.encode_path(mp_dir.directory), 
                                                  TSC.timestamp_to_sortable_str(mp_dir.datum)])
         self.sql.insert('student_directory_directories', [owner_stud_dir.id, mp_dir.id])
-        for file in mp_dir.files_list:
+        for file in mp_dir.get_files():
             self.sql.insert('mijlpaal_directory_files', [mp_dir.id,file.id])
     def _handle_new_file(self, file: File, owner_mp_dir: MijlpaalDirectory):
         self.sql.insert('files', [file.id, Roots.encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
@@ -144,7 +144,7 @@ class StudentDirectoryCompareProcessor:
         queries: FilesQueries = self.storage.queries('files')
         return queries.find_values('filename', Roots.encode_path(file.filename)) != []
     def _add_new_files(self, actual_mp_dir: MijlpaalDirectory, store_in_dir: MijlpaalDirectory, handled: list[File] = []):
-        for actual_file in actual_mp_dir.files_list():
+        for actual_file in actual_mp_dir.get_files()():
             if actual_file in handled:
                 continue
             if self._file_is_already_known(actual_file):
@@ -197,7 +197,7 @@ class StudentDirectoryCompareProcessor:
     def compare_mp_dirs(self, stored_mp_dir: MijlpaalDirectory, actual_mp_dir: MijlpaalDirectory):
         assert str(stored_mp_dir.directory).lower() == str(actual_mp_dir.directory).lower()
         handled:list[File] = []
-        for stored_file in stored_mp_dir.files_list():
+        for stored_file in stored_mp_dir.get_files()():
             if (actual_file:=actual_mp_dir._find_file(stored_file)):
                 handled.append(actual_file)
                 actual_file.ensure_timestamp_and_digest()

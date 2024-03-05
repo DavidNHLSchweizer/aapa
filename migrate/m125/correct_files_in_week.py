@@ -42,10 +42,10 @@ class AanvragenFilesReEngineering2Processor(MigrationPlugin):
             # remove files that are also in the mp_dir list
             if self._aanvraag_file_in_week_directory(aanvraag, file):
                 filename = Path(file.filename).name
-                if filename in [Path(file.filename).name for file in mp_dir.files_list]:
+                if filename in [Path(file.filename).name for file in mp_dir.get_files()]:
                     self.sql.delete('aanvragen_details', [aanvraag.id, file.id, self.file_code])
         # link everythin in mp_dir to aanvraag
-        for file in mp_dir.files_list:
+        for file in mp_dir.get_files():
             if not file.id in aanvraag_files_ids:
                 self.sql.insert('aanvragen_details', [aanvraag.id, file.id, self.file_code])
     def _process_aanvraag(self, aanvraag: Aanvraag):

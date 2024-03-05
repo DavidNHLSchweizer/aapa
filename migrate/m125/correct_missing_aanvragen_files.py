@@ -31,7 +31,7 @@ class AanvragenFilesReEngineeringProcessor(MigrationPlugin):
         stud_dir = self.student_dir_queries.find_student_dir(aanvraag.student)
         mp_dir = stud_dir.get_directory(aanvraag.datum,MijlpaalType.AANVRAAG)
         # print(mp_dir)
-        for file in mp_dir.files_list:
+        for file in mp_dir.get_files():
             self.sql.insert('aanvragen_details', [aanvraag.id, file.id, self.file_code])
     def _get_problem_aanvragen(self)->dict:
         return self.storage.find_values('aanvragen', 'id', set(range(227,234)))

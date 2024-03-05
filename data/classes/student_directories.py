@@ -91,11 +91,11 @@ class StudentDirectory(AAPAclass):
     def get_files(self)->list[File]:
         result = []
         for directory in self.directories:
-            result.extend(directory.files_list)
+            result.extend(directory.get_files())
         return result
     def get_file_directory(self, file: File)->MijlpaalDirectory:
         for directory in self.directories:
-            if file in directory.files_list:
+            if file in directory.get_files():
                 return directory
         return None
     def get_filename_directory(self, filename: str)->MijlpaalDirectory:
