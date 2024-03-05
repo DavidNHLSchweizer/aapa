@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Tuple
 from data.classes.aanvragen import Aanvraag
 from data.classes.base_dirs import BaseDir
-from data.classes.mijlpaal_base import MijlpaalGradeable
+from data.classes.mijlpaal_base import MijlpaalDirectory
 from data.classes.verslagen import Verslag
 from data.general.const import MijlpaalType
 from data.classes.files import File
@@ -114,7 +114,7 @@ class StudentDirectoryBuilder:
         # mp_dir.register_file(filename,filetype,mijlpaal_type)
         # self.storage.update('student_directories', stud_dir)
         # return (stud_dir,mp_dir)
-    def _register_mijlpaal(self, mijlpaal: MijlpaalGradeable, filename: str = None):
+    def _register_mijlpaal(self, mijlpaal: MijlpaalDirectory, filename: str = None):
         self.storage.ensure_key(self.storage.module_name(mijlpaal), mijlpaal)
         if not filename:
             filename = mijlpaal.get_base_file()

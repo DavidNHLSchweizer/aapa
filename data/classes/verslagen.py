@@ -3,12 +3,12 @@ import datetime
 from enum import IntEnum
 from data.classes.bedrijven import Bedrijf
 from data.general.const import _UNKNOWN, MijlpaalBeoordeling, MijlpaalType, VerslagStatus
-from data.classes.mijlpaal_base import MijlpaalGradeable
+from data.classes.mijlpaal_base import MijlpaalDirectory
 from data.classes.studenten import Student
 from database.classes.dbConst import EMPTY_ID
 from general.timeutil import TSC
 
-class Verslag(MijlpaalGradeable):
+class Verslag(MijlpaalDirectory):
     Status = VerslagStatus            
 # def __init__(self, student: Student, bedrijf: Bedrijf = None, datum_str='', titel='', 
 #                  source_info: File = None, datum: datetime.datetime = None, 

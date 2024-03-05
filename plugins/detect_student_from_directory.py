@@ -151,7 +151,7 @@ class StudentDirectoryDetector(FileProcessor):
             student_directory = StudentDirectory(student, dirname, self.base_dir)
             new_dir = MijlpaalDirectory(mijlpaal_type=MijlpaalType.AANVRAAG, directory=dirname, datum=TSC.AUTOTIMESTAMP)
             self._collect_files(new_dir)
-            if new_dir.nr_files() > 0:
+            if new_dir.nr_items() > 0:
                 student_directory.add(new_dir)
             # if (aanvraag := self._get_aanvraag(student, storage)):
             #     student_directory.add(aanvraag)

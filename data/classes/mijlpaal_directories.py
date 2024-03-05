@@ -8,7 +8,7 @@ from data.general.aapa_class import AAPAclass
 from data.general.aggregator import Aggregator
 
 from data.general.const import MijlpaalType
-from data.classes.mijlpaal_base import MijlpaalBase, MijlpaalGradeable
+from data.classes.mijlpaal_base import MijlpaalBase, MijlpaalDirectory
 from database.classes.dbConst import EMPTY_ID
 from general.obsolete import obsolete_exception
 from general.timeutil import TSC
@@ -22,12 +22,12 @@ class MijlpaalDirectoryAggregator(Aggregator):
         self.add_class(Verslag, 'verslagen')
     def find_filename(self,filename: str):
         obsolete_exception('find_filename')
-    def find_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
+    def find_mijlpaal(self, mijlpaal: MijlpaalDirectory)->MijlpaalDirectory:
         for mijlpaal2 in self.as_class_list(mijlpaal):
             if mijlpaal2 == mijlpaal:
                 return mijlpaal2
         return None        
-    def find_mijlpaal_id(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
+    def find_mijlpaal_id(self, mijlpaal: MijlpaalDirectory)->MijlpaalDirectory:
         for mijlpaal2 in self.as_class_list(mijlpaal):
             if mijlpaal2.id == mijlpaal.id:
                 return mijlpaal2
@@ -39,15 +39,26 @@ class MijlpaalDirectory(MijlpaalBase):
         self.directory = directory
         self.mijlpalen = MijlpaalDirectoryAggregator(self)
     @property
-    def files_list(self)->list[File]: return self.mijlpalen.as_list('files')
+    def aanvragen(self)->list[Aanvraag]: return self.mijlpalen.as_list('aanvragen')
     @property
-    def nr_files(self):
-        return self.mijlpalen.nr_items('files')
+    def nr_aanvragen(self):
+        return self.mijlpalen.nr_items('aanvragen')
+    @property
+    def verslagen(self)->list[Verslag]: return self.mijlpalen.as_list('verslagen')
+    @property
+    def nr_verslagen(self):
+        return self.mijlpalen.nr_items('verslagen')
+    @property
+    def files_list(self)->list[File]: 
+        obsolete_exception('files_list in mijlpaaldirectory')
+    @property
+    def nr_items(self):
+        return self.nr_aanvragen + self.nr_verslagen
     def _find_file(self, file: File)->File:
         obsolete_exception('register_file in mijlpaaldirectory')        
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
         obsolete_exception('register_file in mijlpaaldirectory')
-    def register_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
+    def register_mijlpaal(self, mijlpaal: MijlpaalDirectory)->MijlpaalDirectory:
         if self.mijlpalen.contains_id(mijlpaal):
             return self.mijlpalen.find_mijlpaal_id(mijlpaal)
         elif self.mijlpalen.contains(mijlpaal):
