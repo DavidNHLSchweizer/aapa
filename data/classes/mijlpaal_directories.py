@@ -33,7 +33,7 @@ class MijlpaalDirectoryAggregator(Aggregator):
                 return mijlpaal2
         return None        
         
-class MijlpaalGradeable(MijlpaalBase):    
+class MijlpaalDirectory(MijlpaalBase):    
     def __init__(self, mijlpaal_type: MijlpaalType, directory: str, datum: datetime.datetime, kans=0, id=EMPTY_ID):
         super().__init__(mijlpaal_type=mijlpaal_type, datum=datum, kans=kans, id=id)
         self.directory = directory

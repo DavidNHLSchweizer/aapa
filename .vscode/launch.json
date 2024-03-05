@@ -206,10 +206,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "migrate.m125.correct_missing_aanvragen_files",
-                "migrate.m125.correct_files_doublures",
+                "tests.plugins.test_remover",
                 "--onedrive=d:\\onedrive0",
-                "-preview"
+                "-preview",
+                "--id=1",
+                "--remove=A",
                 
             ]
         },
