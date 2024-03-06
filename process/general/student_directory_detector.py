@@ -89,7 +89,7 @@ class StudentDirectoryDetector:
         storage.ensure_key('student_directories', student_directory)
         for mp_dir in student_directory.directories:
             storage.ensure_key('mijlpaal_directories', mp_dir)
-            for file in mp_dir.files_list:
+            for file in mp_dir.get_files():
                 storage.ensure_key('files', file)
     def __update_kansen(self, student_directory: StudentDirectory):
         cur_type = MijlpaalType.UNKNOWN

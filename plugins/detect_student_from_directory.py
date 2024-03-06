@@ -221,7 +221,7 @@ class MilestoneDetectorPipeline(FilePipeline):
             else:
                 self.sqls.insert('mijlpaal_directories', _get_values(mijlpaal_directory, True))
             self.sqls.insert('student_directory_directories', [stud_dir_id, mijlpaal_directory.id])
-            self.__get_sql_files(mijlpaal_directory.id, mijlpaal_directory.files_list, stored_files=stored_files) 
+            self.__get_sql_files(mijlpaal_directory.id, mijlpaal_directory.get_files(), stored_files=stored_files) 
     def __get_sql_files(self, mp_dir_id: int, files_list: list[File], stored_files: list[File]):
         def _get_values(file: File, id_first = True)->list[Any]:
             return self.__get_values([Roots.encode_path(file.filename),TSC.timestamp_to_sortable_str(file.timestamp),
@@ -256,7 +256,7 @@ class MilestoneDetectorPipeline(FilePipeline):
     def __get_stored_files(self, student_directory: StudentDirectory)->list[File]:
         stored_list = []
         for mijlpaal_directory in student_directory.directories:
-            files_list = mijlpaal_directory.files_list
+            files_list = mijlpaal_directory.get_files()
             stored_list.extend(self.storage.find_values('files', ['filename', 'digest'], 
                                                     [{file.filename for file in files_list},
                                                      {file.digest for file in files_list}],
