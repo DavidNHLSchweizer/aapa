@@ -206,10 +206,10 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "tests.plugins.test_remover",
+                "tests.plugins.test_trees",
                 "--onedrive=d:\\onedrive0",
                 "-preview",
-                "--id=1",
+                "--id=42",
                 "--remove=A",
                 
             ]

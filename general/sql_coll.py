@@ -41,6 +41,11 @@ class SQLValuesCollector:
         self.no_duplicates = True
     def as_dict(self)->dict[str,list[Any]]:
         return {'sql': self.sql_str, 'values': self.values_list, 'concatenate': self.concatenate}
+    def __str__(self):
+        result = f'{self.sql_str}'
+        if self.values_list:
+            result += f"\n\tvalues: {'\n\t'.join(self.get_values())}"
+        return result
     @classmethod
     def from_dict(cls, dump: dict)->SQLValuesCollector:
         result = cls(dump['sql'], concatenate=dump.get('concatenate', False))

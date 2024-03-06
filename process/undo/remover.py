@@ -16,7 +16,8 @@ from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.general.class_codes import ClassCodes
 from database.classes.database import Database
-from general.sql_coll import SQLcollector, SQLcollectors
+from general.classutil import classname
+from general.sql_coll import SQLcollType, SQLcollector, SQLcollectors
 from storage.aapa_storage import AAPAStorage
 from storage.general.storage_const import StoredClass
 
@@ -36,6 +37,12 @@ class RemoverClass:
         self.details_id = details_id
         self.sql = self.init_SQLcollectors()
         self._deleted = []
+        self._dump_sql()
+    def _dump_sql(self):
+        print(f'{classname(self)}:')
+        for ct in SQLcollType:
+            for collector in self.sql.collectors(ct):
+                    print(f'{ct}: {collector}')
     def _details_name(self)->str:
         return f'{self.table_name.lower()}_details'
     def _add_owned_details(self, sql: SQLcollectors):        
@@ -43,14 +50,14 @@ class RemoverClass:
     def _owner_details_name(self, owner: str)->str:
         return f'{owner.lower()}_details'
     def _add_owner_details(self, sql: SQLcollectors, owner: str):
-        sql.add(f'{self._owner_details_name(owner)}', SQLcollector({'delete':{'sql':f'delete from {self._owner_details_name(owner).upper()}_DETAILS where detail_id=? and class_code=?', 'concatenate': False}, }))
+        sql.add(f'{self._owner_details_name(owner)}', SQLcollector({'delete':{'sql':f'delete from {self._owner_details_name(owner).upper()} where detail_id=? and class_code=?', 'concatenate': False}, }))
     def init_SQLcollectors(self)->SQLcollectors:
         sql = SQLcollectors()
         sql.add(self.table_name.lower(), SQLcollector({'delete':{'sql':f'delete from {self.table_name.upper()} where id in (?)'}, }))
         for owner in self.owner_names:
             self._add_owner_details(sql, owner)
         if self.details_id:
-            self._add_owned_details(sql)
+            self._add_owned_details(sql)        
         return sql
     def _delete(self, owner: str, obj: StoredClass):
         self.sql.delete(self._owner_details_name(owner), obj.id, self.class_code)
