@@ -47,6 +47,11 @@ class MijlpaalDirectory(MijlpaalBase):
     def get_files(self)->list[File]: 
         return self.mijlpalen.get_files()
     @property
+    def items(self)->list[MijlpaalGradeable]:
+        result = self.mijlpalen.as_list('aanvragen')
+        result.extend(self.mijlpalen.as_list('verslagen'))
+        return result        
+    @property
     def nr_items(self):
         return self.mijlpalen.nr_items('aanvragen') + self.mijlpalen.nr_items('verslagen')
     def aanvragen(self)->list[Aanvraag]: return self.mijlpalen.as_list('aanvragen')
@@ -58,16 +63,16 @@ class MijlpaalDirectory(MijlpaalBase):
     @property
     def nr_verslagen(self):
         return self.mijlpalen.nr_items('verslagen')
-    @property
-    def files_list(self)->list[File]: 
-        obsolete_exception('files_list in mijlpaaldirectory')
+    # @property
+    # def files_list(self)->list[File]: 
+    #     obsolete_exception('files_list in mijlpaaldirectory')
     @property
     def nr_items(self):
         return self.nr_aanvragen + self.nr_verslagen
-    def _find_file(self, file: File)->File:
-        obsolete_exception('_find_file in mijlpaaldirectory')        
-    def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
-        obsolete_exception('register_file in mijlpaaldirectory')
+    # def _find_file(self, file: File)->File:
+    #     obsolete_exception('_find_file in mijlpaaldirectory')        
+    # def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
+    #     obsolete_exception('register_file in mijlpaaldirectory')
     def register_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
         if self.mijlpalen.contains_id(mijlpaal):
             return self.mijlpalen.find_mijlpaal_id(mijlpaal)
