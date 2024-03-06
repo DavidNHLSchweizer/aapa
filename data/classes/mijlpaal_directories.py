@@ -65,7 +65,7 @@ class MijlpaalDirectory(MijlpaalBase):
     def nr_items(self):
         return self.nr_aanvragen + self.nr_verslagen
     def _find_file(self, file: File)->File:
-        obsolete_exception('register_file in mijlpaaldirectory')        
+        obsolete_exception('_find_file in mijlpaaldirectory')        
     def register_file(self, filename: str, filetype: File.Type, mijlpaal_type: MijlpaalType)->File:
         obsolete_exception('register_file in mijlpaaldirectory')
     def register_mijlpaal(self, mijlpaal: MijlpaalGradeable)->MijlpaalGradeable:
