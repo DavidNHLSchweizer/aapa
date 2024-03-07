@@ -64,7 +64,7 @@ class AAPATreePrinter:
         self.top_level_type = type(node)
         self.print_tree(node)
     
-class TestPlugin(PluginBase):
+class StudentDataPrinter(PluginBase):
     def before_process(self, context: AAPARunnerContext, **kwdargs)->bool:
         self.storage = context.storage
         self.database = self.storage.database
@@ -99,7 +99,7 @@ class TestPlugin(PluginBase):
             print(f'Student wordt niet herkend: {kwdargs.get('student', '')}')
         else:
             for student in studenten:
-                print(f'STUDENT: {student}')
+                print(f'STUDENT ({student.id}): {student}')
                 for directory in self.storage.find_all('student_directories', where_attributes='student', where_values=student):
                     printer.print(directory)
                     print()
