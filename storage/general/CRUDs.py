@@ -287,16 +287,20 @@ class CRUDQueries:
         return result
     def find_values_where(self, attribute: str, where_attributes: str|list[str], 
                           where_values: Any|list[Any], 
-                          where_operators: list[Ops] = None)->list[Any]:
+                          where_operators: list[Ops] = None,
+                          map_values = False
+                          )->list[Any]:
         where_str = f'{where_operators=} ' if where_operators else 'nowhere'
         self.__db_log('FIND_VALUES_WHERE', f'attribute: {attribute}  where_attributes: {where_attributes} {where_str}where_values: {where_values} ')
         qb = self.query_builder
         wanted_attributes, wanted_values = self.__get_wanted_values(where_attributes, where_values)
-        log_debug(f'\tFVW: {wanted_attributes=} {wanted_values=}')        
+        flags = {QIF.ATTRIBUTES} if map_values else {QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}
+        log_debug(f'\tFVW: {wanted_attributes=} {wanted_values=} {flags=}')        
+
         return qb.find_all([attribute],
                     where=qb.build_where_from_values(
                         column_names=wanted_attributes, values=wanted_values, operators=where_operators,
-                            flags={QIF.ATTRIBUTES, QIF.NO_MAP_VALUES}))            
+                            flags=flags))            
     def find_values_where_explicit(self, where_str: str, where_values: list[Any], callback: CallBackFunc=None)->list[Any]:
         """ shortcut to do queries that don't fit the pattern, such as "LIKE" queries """
         self.__db_log('FIND_VALUES_WHERE_EXPLICIT', f'{where_str} where_values: {where_values} ')

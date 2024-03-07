@@ -1,9 +1,9 @@
-""" Student_print: Print student data in database.
+""" Print student data in database.
 
     Plugin to print a "pretty print tree" view of the student data as in the database.
 
     Syntax:
-        python run_plugin.py student_print --student="student name" [--width=value]
+        python run_plugin.py print_student_data --student="student name" [--width=value]
 
     "student name" can be either full name (first_name last_name) with or without 'tussenvoegsels'
     or first name(s) or last_name.
@@ -87,13 +87,14 @@ class TestPlugin(PluginBase):
     def get_parser(self) -> ArgumentParser:               
         parser = super().get_parser()
         parser.add_argument('--student', type=str, help='(gedeeltelijke) naam van de student. Verwacht wordt "Voornaam Achternaam".\nAlle studenten die deze (gedeeltelijke) naam hebben worden afgedrukt.')
-        parser.add_argument('-width, --width', type=int, help=f'Gebruik dit om de "breedte" van de boom in te stellen. Default is {DEFAULT_WIDTH}.')
+        parser.add_argument('-width', '--width', dest='width', type=int, help=f'Gebruik dit om de "breedte" van de boom in te stellen. Default is {DEFAULT_WIDTH}.')
         return parser   
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:   
         width = kwdargs.get('width', DEFAULT_WIDTH)
         if not width:
             width = DEFAULT_WIDTH
-        printer = AAPATreePrinter()
+        printer = AAPATreePrinter(width)
+
         if not (studenten := self.detect_studenten(kwdargs.get('student', ''))):
             print(f'Student wordt niet herkend: {kwdargs.get('student', '')}')
         else:

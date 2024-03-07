@@ -59,7 +59,7 @@ class AAPAStorage:
     def find_all(self, module: str, where_attributes: str|list[str]=None, where_values: Any|list[Any]=None, map_values=True, callback: CallBackFunc=None)->list[Any]:
         if where_attributes:
             if rows := self.queries(module).find_values_where(attribute='id', 
-                                                              where_attributes=where_attributes, where_values=where_values):
+                                                              where_attributes=where_attributes, where_values=where_values, map_values=map_values):
                 return self.read_many(module, {row['id'] for row in rows},callback=callback)
         else:
             return self.queries(module).find_all(map_values,callback=callback)

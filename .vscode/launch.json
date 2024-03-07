@@ -206,12 +206,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "tests.plugins.test_trees",
+                "plugins.print_student_data",
                 "--onedrive=d:\\onedrive0",
                 "-preview",
-                "--id=42",
-                "--remove=A",
-                
+                "--student=jasper",               
+                "--width=24",
             ]
         },
     ]
