@@ -12,13 +12,11 @@ from data.classes.files import File
 from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
-from data.classes.studenten import Student
 from data.classes.verslagen import Verslag
 from data.general.class_codes import ClassCodes
 from database.classes.database import Database
 from general.classutil import classname
 from general.sql_coll import SQLcollType, SQLcollector, SQLcollectors
-from storage.aapa_storage import AAPAStorage
 from storage.general.storage_const import StoredClass
 
 class RemoverException(Exception):pass
@@ -38,11 +36,11 @@ class RemoverClass:
         self.sql = self.init_SQLcollectors()
         self._deleted = []
         # self._dump_sql()
-    def _dump_sql(self):
-        print(f'{classname(self)}:')
-        for ct in SQLcollType:
-            for collector in self.sql.collectors(ct):
-                    print(f'{ct}: {collector}')
+    # def _dump_sql(self):
+    #     print(f'{classname(self)}:')
+    #     for ct in SQLcollType:
+    #         for collector in self.sql.collectors(ct):
+    #                 print(f'{ct}: {collector}')
     def _details_name(self)->str:
         return f'{self.table_name.lower()}_details'
     def _add_owned_details(self, sql: SQLcollectors):        
@@ -137,7 +135,9 @@ class StudentDirectoryRemover(RemoverClass):
             shutil.rmtree(student_directory.directory)
 
 # class StudentRemover(RemoverClass):
-            #NOTE: tricky, not clear. 
+            
+            #NOTE: tricky, not clear whether this is a good idea
+
 #     def __init__(self):
 #         self.stud_dir_remover = StudentDirectoryRemover()
 #         super().__init__(Student, table_name='studenten')
