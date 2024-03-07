@@ -54,6 +54,7 @@ class MijlpaalDirectory(MijlpaalBase):
     @property
     def nr_items(self):
         return self.mijlpalen.nr_items('aanvragen') + self.mijlpalen.nr_items('verslagen')
+    @property
     def aanvragen(self)->list[Aanvraag]: return self.mijlpalen.as_list('aanvragen')
     @property
     def nr_aanvragen(self):

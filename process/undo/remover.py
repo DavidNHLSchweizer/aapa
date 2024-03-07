@@ -37,7 +37,7 @@ class RemoverClass:
         self.details_id = details_id
         self.sql = self.init_SQLcollectors()
         self._deleted = []
-        self._dump_sql()
+        # self._dump_sql()
     def _dump_sql(self):
         print(f'{classname(self)}:')
         for ct in SQLcollType:
@@ -116,7 +116,7 @@ class MijlpaalDirectoryRemover(RemoverClass):
     def remove(self, database: Database, preview: bool, unlink: bool):
         self.aanvraag_remover.remove(database, preview, unlink)
         self.verslag_remover.remove(database, preview, unlink)
-        super().remove(database, preview)
+        super().remove(database, preview, unlink)
     def unlink(self, mijlpaal_directory: MijlpaalDirectory, preview: bool, unlink: bool):
         if not preview and unlink:
             shutil.rmtree(mijlpaal_directory.directory)
@@ -127,7 +127,7 @@ class StudentDirectoryRemover(RemoverClass):
         super().__init__(StudentDirectory, table_name='student_directories', details_id='stud_dir_id')
     def delete(self, student_directory: StudentDirectory):
         for directory in student_directory.directories:
-            self.mp_dir_remover.remove(directory)
+            self.mp_dir_remover.delete  (directory)
         super().delete(student_directory)
     def remove(self, database: Database, preview: bool, unlink: bool):
         self.mp_dir_remover.remove(database, preview, unlink)

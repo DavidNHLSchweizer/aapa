@@ -4,9 +4,8 @@ from enum import Enum, auto
 from data.general.const import MijlpaalType
 from data.classes.files import File
 from plugins.plugin import PluginBase
-from plugins.remove_verslag import VerslagRemover
 from process.main.aapa_processor import AAPARunnerContext
-from process.undo.remover import AanvraagRemover, FileRemover, MijlpaalDirectoryRemover, RemoverClass, StudentDirectoryRemover
+from process.undo.remover import AanvraagRemover, VerslagRemover, FileRemover, MijlpaalDirectoryRemover, RemoverClass, StudentDirectoryRemover
 from tests.random_data import RandomData
 
 class TestRemover(PluginBase):
@@ -40,6 +39,8 @@ class TestRemover(PluginBase):
     def remove(self, remover: RemoverClass, ids: list[int], preview = True, unlink=False):
         for id in ids:
             obj = self.storage.read(remover.table_name.lower(), id)
+            obj_str = obj.summary() if hasattr(obj,'summary') else str(obj)
+            print(f'Removing {obj_str}...')
             remover.delete(obj)
         remover.remove(self.database, preview, unlink)
     # def remove_verslagen(self, remover: RemoverClass,ids: list[int], preview = True, unlink=False):

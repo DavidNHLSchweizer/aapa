@@ -109,8 +109,10 @@ class StudentDirectory(AAPAclass):
             log_warning(f'Directory {mijlpaal} is al aanwezig. Wordt overgeslagen.')
             return
         self._data.add(mijlpaal)
+    def summary(self)->str:
+        return f'Student directory voor {str(self.student)}\n\t{File.display_file(self.directory)}'
     def __str__(self)->str:
-        result = f'Student directory voor {str(self.student)}\n\t{self.directory}'
+        result = self.summary()
         dir_str = "\n\t".join(str(directory) for directory in self.directories)
         if dir_str:
             result = result + '\n\t' + dir_str 
