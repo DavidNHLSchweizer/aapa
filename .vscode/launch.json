@@ -206,11 +206,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "tests.plugins.test_remover",
+                "plugins.print_student_data",
+                "--student=jan vlasman",
                 "--onedrive=d:\\onedrive",
                 "-preview",
-                "--remove=SD",
-                "--id=234",               
+                "-debug",
             ]
         },
     ]

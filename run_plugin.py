@@ -26,6 +26,9 @@ if __name__ == "__main__":
         if unknown_arguments[0] == STOP:
             unknown_arguments.remove(STOP)
         modules:list[str] = simple_args.__dict__.get('modules', [])
+        if modules and modules[-1][0] == '-':
+            unknown_arguments.insert(0,modules[-1])
+            modules.remove(modules[-1])
         if not modules:
             print('Geen modules ingevoerd.')
             exit(1)
