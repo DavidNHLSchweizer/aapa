@@ -206,8 +206,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "plugins.print_student_data",
-                "--student=jan vlasman",
+                "tests.plugins.temp_1",
                 "--onedrive=d:\\onedrive",
                 "-preview",
                 "-debug",

@@ -1,4 +1,5 @@
 from copy import deepcopy
+import inspect
 from data.general.aapa_class import AAPAclass
 from data.general.aggregator import Aggregator
 from data.general.class_codes import ClassCodes
@@ -44,20 +45,17 @@ class DetailsCRUD(CRUD):
         self.database = database
     def __db_log(self, function: str, params: str=''):
         log_debug(f'DRC({classname(self)}): {function}{(" - " + params) if params else ""}')        
-    def get_aggregator_name(self, aapa_obj: AAPAclass)->str:
+    def _get_aggregator_data(self, aapa_obj: AAPAclass)->tuple[str,Aggregator]:
         if self._aggregator_name:
-            return self._aggregator_name
-        else:
-            for attribute in dir(aapa_obj):
-                if attribute[0] == '_': continue
-                if isinstance(getattr(aapa_obj,attribute), Aggregator):
-                    self._aggregator_name = attribute
-                    break
-            if not self._aggregator_name:                
-                raise StorageException(f'Aggregator not found in object {aapa_obj}.')
-            return self._aggregator_name
+            return (self._aggregator_name,getattr(aapa_obj,self._aggregator_name))
+        for name,value in inspect.getmembers(object):
+            if name[0] != '_' and issubclass(type(value),Aggregator): 
+                self._aggregator_name = name
+                return(name, value)
+        raise StorageException(f'Aggregator not found in object {aapa_obj}.')
     def aggregator(self, aapa_obj: AAPAclass)->Aggregator:
-        return getattr(aapa_obj, self.get_aggregator_name(aapa_obj))       
+        _,value = self._get_aggregator_data(aapa_obj)
+        return value
     def _get_class_codes(self, aggregator: Aggregator)->list[str]:
         return [ClassCodes.classtype_to_code(class_type) for class_type in aggregator.class_types()]
     def create(self, owning_obj: StoredClass):

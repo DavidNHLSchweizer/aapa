@@ -1,0 +1,5 @@
+select A1.ID as "aanvraag_id(1)",A2.ID as "aanvraag_id(2)",F.ID as file_id,F.filename 
+from aanvragen A1,aanvragen A2 
+inner join AANVRAGEN_DETAILS AD on AD.aanvraag_id=A1.ID 
+inner join FILES F on AD.detail_id = F.id 
+where A1.ID < A2.ID and exists(select AD2.detail_id from AANVRAGEN_DETAILS AD2 where AD2.aanvraag_id=A2.id AND AD2.detail_id=F.ID) 
