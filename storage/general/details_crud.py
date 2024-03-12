@@ -48,7 +48,7 @@ class DetailsCRUD(CRUD):
     def _get_aggregator_data(self, aapa_obj: AAPAclass)->tuple[str,Aggregator]:
         if self._aggregator_name:
             return (self._aggregator_name,getattr(aapa_obj,self._aggregator_name))
-        for name,value in inspect.getmembers(object):
+        for name,value in inspect.getmembers(aapa_obj):
             if name[0] != '_' and issubclass(type(value),Aggregator): 
                 self._aggregator_name = name
                 return(name, value)
@@ -80,7 +80,6 @@ class DetailsCRUD(CRUD):
             # if the item was changed, make sure it is stored in the database
             details_crud.update(details_item)
         self.crud.create(self.details_record_type(main_id=owner_id, detail_id=details_item.id, class_code=class_code))
-
     def read(self, owning_obj: StoredClass):
         self.__db_log('START READ', f'({classname(owning_obj)}: {str(owning_obj)}) [{classname(self.details_record_type)}] ({owning_obj.id=})')
         aggregator = self.aggregator(owning_obj)

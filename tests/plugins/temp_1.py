@@ -24,9 +24,9 @@ class TestPlugin(PluginBase):
 
 
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
-        aanvraag = self.storage.read('verslagen', 98)
-        aggri,value = find_aggregator(aanvraag)
-        print(aggri, value)
-        # aggri2 = find_aggregator2(aanvraag)
+        aanvraag = self.storage.read('aanvragen', 98)
+        print(aanvraag)
+        for file in aanvraag.files_list:
+            print(file)
         return True
     
