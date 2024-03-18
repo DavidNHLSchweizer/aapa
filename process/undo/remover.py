@@ -22,7 +22,7 @@ from storage.general.storage_const import StoredClass
 class RemoverException(Exception):pass
 
 class RemoverClass:
-    def __init__(self, class_type: StoredClass, table_name: str, owner_names: str | list[str]=None, details_id: str = None):
+    def __init__(self, class_type: StoredClass, table_name: str, owner_names: tuple[str,str] | list[tuple[str,str]]=None, details_id: str = None):
         self.class_type = class_type
         self.table_name = table_name
         if not owner_names:
@@ -47,21 +47,27 @@ class RemoverClass:
         sql.add(self._details_name(), SQLcollector({'delete':{'sql':f'delete from {self._details_name().upper()} where {self.details_id} in (?)'}, }))
     def _owner_details_name(self, owner: str)->str:
         return f'{owner.lower()}_details'
-    def _add_owner_details(self, sql: SQLcollectors, owner: str):
-        sql.add(f'{self._owner_details_name(owner)}', SQLcollector({'delete':{'sql':f'delete from {self._owner_details_name(owner).upper()} where detail_id=? and class_code=?', 'concatenate': False}, }))
+    def _add_owner_details(self, sql: SQLcollectors, owner: str, owner_id: str=None):
+        if owner_id:    
+            sql.add(f'{self._owner_details_name(owner)}', SQLcollector({'delete':{'sql':f'delete from {self._owner_details_name(owner).upper()} where {owner_id}=? and detail_id=? and class_code=?', 'concatenate': False}, }))
+        else:
+            sql.add(f'{self._owner_details_name(owner)}', SQLcollector({'delete':{'sql':f'delete from {self._owner_details_name(owner).upper()} where detail_id=? and class_code=?', 'concatenate': False}, }))
     def init_SQLcollectors(self)->SQLcollectors:
         sql = SQLcollectors()
         sql.add(self.table_name.lower(), SQLcollector({'delete':{'sql':f'delete from {self.table_name.upper()} where id in (?)'}, }))
-        for owner in self.owner_names:
-            self._add_owner_details(sql, owner)
+        for owner,owner_id in self.owner_names:
+            self._add_owner_details(sql, owner, owner_id)
         if self.details_id:
             self._add_owned_details(sql)        
         return sql
     def _delete(self, owner: str, obj: StoredClass):
         self.sql.delete(self._owner_details_name(owner), obj.id, self.class_code)
-    def delete(self, obj: StoredClass): 
-        for owner in self.owner_names:
-            self.sql.delete(self._owner_details_name(owner), [obj.id,self.class_code])        
+    def delete(self, obj: StoredClass, owner_id = None): 
+        for owner,_ in self.owner_names:
+            if owner_id:
+                self.sql.delete(self._owner_details_name(owner), [owner_id, obj.id,self.class_code])
+            else:
+                self.sql.delete(self._owner_details_name(owner), [obj.id,self.class_code])        
         self.sql.delete(self.table_name.lower(), [obj.id])
         self._deleted.append(obj)
     def unlink(self, obj: StoredClass, preview: bool, unlink: bool):
@@ -74,19 +80,22 @@ class RemoverClass:
             self._deleted = []
 
 class FileRemover(RemoverClass):
-    def __init__(self):
-        super().__init__(File, 'FILES', owner_names=['aanvragen', 'verslagen', 'undologs'])
+    def __init__(self, include_owner=False):
+        if include_owner:
+            super().__init__(File, 'FILES', owner_names=[('aanvragen', 'aanvraag_id'), ('verslagen','verslag_id'), ('undologs', 'log_id')])
+        else:
+            super().__init__(File, 'FILES', owner_names=[('aanvragen', None), ('verslagen',None), ('undologs', None)])
     def unlink(self, file: File, preview: bool, unlink: bool):
         if not preview and unlink:
             Path(file.filename).unlink(missing_ok=True)
 
 class MijlpaalRemover(RemoverClass):
     def __init__(self, class_type: MijlpaalGradeable, table_name: str, details_id: str):
-        self.file_remover = FileRemover()
-        super().__init__(class_type, table_name=table_name, owner_names=['mijlpaal_directories', 'undologs'], details_id=details_id)
+        self.file_remover = FileRemover(include_owner=True)
+        super().__init__(class_type, table_name=table_name, owner_names=[('mijlpaal_directories', 'mp_dir_id'), ('undologs', 'log_id')], details_id=details_id)
     def delete(self, mijlpaal: MijlpaalGradeable):
         for file in mijlpaal.files_list:
-            self.file_remover.delete(file)
+            self.file_remover.delete(file, owner_id=mijlpaal.id)
         super().delete(mijlpaal)
     def remove(self, database: Database, preview: bool, unlink: bool):
         self.file_remover.remove(database, preview, unlink)
@@ -104,7 +113,7 @@ class MijlpaalDirectoryRemover(RemoverClass):
     def __init__(self):
         self.aanvraag_remover = AanvraagRemover()
         self.verslag_remover = VerslagRemover()
-        super().__init__(MijlpaalDirectory, table_name='mijlpaal_directories', owner_names='student_directories', details_id='mp_dir_id')
+        super().__init__(MijlpaalDirectory, table_name='mijlpaal_directories', owner_names=('student_directories','stud_dir_id'), details_id='mp_dir_id')
     def delete(self, mijlpaal_directory: MijlpaalDirectory):
         for aanvraag in mijlpaal_directory.aanvragen:
             self.aanvraag_remover.delete(aanvraag)
