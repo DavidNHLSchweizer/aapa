@@ -22,7 +22,7 @@ from storage.general.storage_const import StoredClass
 class RemoverException(Exception):pass
 
 class RemoverClass:
-    def __init__(self, class_type: StoredClass, table_name: str, owner_names: tuple[str,str] | list[tuple[str,str]]=None, details_id: str = None):
+    def __init__(self, class_type: StoredClass, table_name: str, owner_names: tuple[str,str] | list[tuple[str,str]]=None, details_id: str = None, include_owner_in_sql=True):
         self.class_type = class_type
         self.table_name = table_name
         if not owner_names:
@@ -33,7 +33,7 @@ class RemoverClass:
             self.owner_names = [owner_names]
         self.class_code = ClassCodes.classtype_to_code(class_type)
         self.details_id = details_id
-        self.sql = self.init_SQLcollectors()
+        self.sql = self.init_SQLcollectors(include_owner_in_sql=include_owner_in_sql)
         self._deleted = []
         # self._dump_sql()
     # def _dump_sql(self):
@@ -41,27 +41,41 @@ class RemoverClass:
     #     for ct in SQLcollType:
     #         for collector in self.sql.collectors(ct):
     #                 print(f'{ct}: {collector}')
+    def _get_table_references(self, database: Database, table: str, main_id: str, detail_id: int):
+        query = f'select distinct {main_id} from {table.upper()}_DETAILS where detail_id=?'
+        rows = database._execute_sql_command(query, [detail_id],True)
+        return [row[0] for row in rows]
+    def get_references(self, database: Database, detail_id: int)->tuple[str,list[int]]:
+        """ finds all references to the file in the details tables
+
+            in theory this is always 0 or 1, but the database contains many duplicate references
+            
+            returns
+            -------
+            tuple of three lists: (ids in AANVRAGEN_DETAILS, ids in VERSLAGEN_DETAILS, ids in UNDOLOGS_DETAILS)
+
+        """
+        return [(owner,self._get_table_references(database, owner, owner_id, detail_id)) for owner,owner_id in self.owner_names]
+        # return (get_table_refs('AANVRAGEN', 'aanvraag_id', file.id), get_table_refs('VERSLAGEN', 'verslag_id', file.id), get_table_refs('UNDOLOGS', 'log_id', file.id))       
     def _details_name(self)->str:
         return f'{self.table_name.lower()}_details'
     def _add_owned_details(self, sql: SQLcollectors):        
         sql.add(self._details_name(), SQLcollector({'delete':{'sql':f'delete from {self._details_name().upper()} where {self.details_id} in (?)'}, }))
     def _owner_details_name(self, owner: str)->str:
         return f'{owner.lower()}_details'
-    def _add_owner_details(self, sql: SQLcollectors, owner: str, owner_id: str=None):
-        if owner_id:    
+    def _add_owner_details(self, sql: SQLcollectors, owner: str, owner_id: str=None, include_owner_in_sql=True):
+        if owner_id and include_owner_in_sql:    
             sql.add(f'{self._owner_details_name(owner)}', SQLcollector({'delete':{'sql':f'delete from {self._owner_details_name(owner).upper()} where {owner_id}=? and detail_id=? and class_code=?', 'concatenate': False}, }))
         else:
             sql.add(f'{self._owner_details_name(owner)}', SQLcollector({'delete':{'sql':f'delete from {self._owner_details_name(owner).upper()} where detail_id=? and class_code=?', 'concatenate': False}, }))
-    def init_SQLcollectors(self)->SQLcollectors:
+    def init_SQLcollectors(self, include_owner_in_sql=True)->SQLcollectors:
         sql = SQLcollectors()
         sql.add(self.table_name.lower(), SQLcollector({'delete':{'sql':f'delete from {self.table_name.upper()} where id in (?)'}, }))
         for owner,owner_id in self.owner_names:
-            self._add_owner_details(sql, owner, owner_id)
+            self._add_owner_details(sql, owner, owner_id, include_owner_in_sql=include_owner_in_sql)
         if self.details_id:
             self._add_owned_details(sql)        
         return sql
-    def _delete(self, owner: str, obj: StoredClass):
-        self.sql.delete(self._owner_details_name(owner), obj.id, self.class_code)
     def delete(self, obj: StoredClass, owner_id = None): 
         for owner,_ in self.owner_names:
             if owner_id:
@@ -80,9 +94,9 @@ class RemoverClass:
             self._deleted = []
 
 class FileRemover(RemoverClass):
-    def __init__(self, include_owner=False):
+    def __init__(self, include_owner=True):
         if include_owner:
-            super().__init__(File, 'FILES', owner_names=[('aanvragen', 'aanvraag_id'), ('verslagen','verslag_id'), ('undologs', 'log_id')])
+            super().__init__(File, 'FILES', owner_names=[('aanvragen', 'aanvraag_id'), ('verslagen','verslag_id'), ('undologs', 'log_id')], include_owner_in_sql=include_owner)
         else:
             super().__init__(File, 'FILES', owner_names=[('aanvragen', None), ('verslagen',None), ('undologs', None)])
     def unlink(self, file: File, preview: bool, unlink: bool):
