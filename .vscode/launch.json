@@ -210,10 +210,8 @@
                 "--onedrive=d:\\onedrive",
                 "-preview",
                 "-debug",
-                "--id=374",
-                "--id=551",
-                "--id=560",
-                "--remove=F",
+                "--id=768",
+                "--remove=MD",
             ]
         },
     ]

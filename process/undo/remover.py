@@ -13,6 +13,7 @@ from data.classes.mijlpaal_base import MijlpaalGradeable
 from data.classes.mijlpaal_directories import MijlpaalDirectory
 from data.classes.student_directories import StudentDirectory
 from data.classes.verslagen import Verslag
+from data.general.aapa_class import AAPAclass
 from data.general.class_codes import ClassCodes
 from database.classes.database import Database
 from general.classutil import classname
@@ -41,11 +42,11 @@ class RemoverClass:
     #     for ct in SQLcollType:
     #         for collector in self.sql.collectors(ct):
     #                 print(f'{ct}: {collector}')
-    def _get_table_references(self, database: Database, table: str, main_id: str, detail_id: int):
-        query = f'select distinct {main_id} from {table.upper()}_DETAILS where detail_id=?'
-        rows = database._execute_sql_command(query, [detail_id],True)
+    def _get_table_references(self, database: Database, table: str, main_id: str, detail_obj: AAPAclass):
+        query = f'select distinct {main_id} from {table.upper()}_DETAILS where detail_id=? and class_code=?'
+        rows = database._execute_sql_command(query, [detail_obj.id,ClassCodes.classtype_to_code(type(detail_obj))],True)
         return [row[0] for row in rows]
-    def get_references(self, database: Database, detail_id: int)->tuple[str,list[int]]:
+    def get_references(self, database: Database, detail_obj: AAPAclass)->tuple[str,list[int]]:
         """ finds all references to the file in the details tables
 
             in theory this is always 0 or 1, but the database contains many duplicate references
@@ -55,10 +56,10 @@ class RemoverClass:
             tuple of three lists: (ids in AANVRAGEN_DETAILS, ids in VERSLAGEN_DETAILS, ids in UNDOLOGS_DETAILS)
 
         """
-        return [(owner,self._get_table_references(database, owner, owner_id, detail_id)) for owner,owner_id in self.owner_names]
+        return [(owner,self._get_table_references(database, owner, owner_id, detail_obj)) for owner,owner_id in self.owner_names]
         # return (get_table_refs('AANVRAGEN', 'aanvraag_id', file.id), get_table_refs('VERSLAGEN', 'verslag_id', file.id), get_table_refs('UNDOLOGS', 'log_id', file.id))       
-    def get_refcount(self,  database: Database, detail_id: int)->int:
-        return sum(len(refs) for _,refs in self.get_references(database, detail_id))
+    def get_refcount(self,  database: Database, detail_obj: AAPAclass)->int:
+        return sum(len(refs) for _,refs in self.get_references(database, detail_obj))
     def _details_name(self)->str:
         return f'{self.table_name.lower()}_details'
     def _add_owned_details(self, sql: SQLcollectors):        
@@ -108,7 +109,7 @@ class MijlpaalRemover(RemoverClass):
     def delete(self, mijlpaal: MijlpaalGradeable, owner_id: int=None):
         for file in mijlpaal.files_list:
             self.file_remover.delete(file, owner_id=mijlpaal.id)
-        super().delete(mijlpaal)
+        super().delete(mijlpaal,owner_id=owner_id)
     def remove(self, database: Database, preview: bool, unlink: bool):
         self.file_remover.remove(database, preview, unlink)
         super().remove(database, preview, unlink)
@@ -128,9 +129,9 @@ class MijlpaalDirectoryRemover(RemoverClass):
         super().__init__(MijlpaalDirectory, table_name='mijlpaal_directories', owner_names=('student_directories','stud_dir_id'), details_id='mp_dir_id', include_owner_in_sql=include_owner_in_sql)
     def delete(self, mijlpaal_directory: MijlpaalDirectory):
         for aanvraag in mijlpaal_directory.aanvragen:
-            self.aanvraag_remover.delete(aanvraag)
+            self.aanvraag_remover.delete(aanvraag,owner_id=mijlpaal_directory.id)
         for verslag in mijlpaal_directory.verslagen:
-            self.verslag_remover.delete(verslag)
+            self.verslag_remover.delete(verslag,owner_id=mijlpaal_directory.id)
         super().delete(mijlpaal_directory)
     def remove(self, database: Database, preview: bool, unlink: bool):
         self.aanvraag_remover.remove(database, preview, unlink)

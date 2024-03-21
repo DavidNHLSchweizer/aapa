@@ -59,11 +59,11 @@ class TestRemover(PluginBase):
     def _obj_str(obj: AAPAclass)->str:
         return obj.summary() if hasattr(obj,'summary') else str(obj)
     def check_refcount(self, remover: RemoverClass, obj: AAPAclass)->bool:
-        refcount = remover.get_refcount(self.database, obj.id)
+        refcount = remover.get_refcount(self.database, obj)
         if refcount <= 1:
             return True
         cls_name = classname(obj)
-        references = remover.get_references(self.database, obj.id)
+        references = remover.get_references(self.database, obj)
         owner_str = "en ".join([f'{len(_refs)} {_reftype} met ids {_refs}' for _reftype,_refs in references if len(_refs) > 0])       
         if (dialog_result:= tkinter.messagebox.askyesnocancel('Waarschuwing', f'{cls_name} {self._obj_str(obj)} ({obj.id}) wordt (nog) gebruikt door {owner_str}.\nVerwijderen kan leiden tot een inconsistente database.\nWeet je zeker dat je dit wilt doen?')) is None:
             return None
