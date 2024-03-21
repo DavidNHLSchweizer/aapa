@@ -57,6 +57,8 @@ class RemoverClass:
         """
         return [(owner,self._get_table_references(database, owner, owner_id, detail_id)) for owner,owner_id in self.owner_names]
         # return (get_table_refs('AANVRAGEN', 'aanvraag_id', file.id), get_table_refs('VERSLAGEN', 'verslag_id', file.id), get_table_refs('UNDOLOGS', 'log_id', file.id))       
+    def get_refcount(self,  database: Database, detail_id: int)->int:
+        return sum(len(refs) for _,refs in self.get_references(database, detail_id))
     def _details_name(self)->str:
         return f'{self.table_name.lower()}_details'
     def _add_owned_details(self, sql: SQLcollectors):        
@@ -94,20 +96,16 @@ class RemoverClass:
             self._deleted = []
 
 class FileRemover(RemoverClass):
-    def __init__(self, include_owner=True):
-        if include_owner:
-            super().__init__(File, 'FILES', owner_names=[('aanvragen', 'aanvraag_id'), ('verslagen','verslag_id'), ('undologs', 'log_id')], include_owner_in_sql=include_owner)
-        else:
-            super().__init__(File, 'FILES', owner_names=[('aanvragen', None), ('verslagen',None), ('undologs', None)])
+    def __init__(self, include_owner_in_sql=True):
+        super().__init__(File, 'FILES', owner_names=[('aanvragen', 'aanvraag_id'), ('verslagen','verslag_id'), ('undologs', 'log_id')], include_owner_in_sql=include_owner_in_sql)
     def unlink(self, file: File, preview: bool, unlink: bool):
         if not preview and unlink:
             Path(file.filename).unlink(missing_ok=True)
-
 class MijlpaalRemover(RemoverClass):
-    def __init__(self, class_type: MijlpaalGradeable, table_name: str, details_id: str):
-        self.file_remover = FileRemover(include_owner=True)
-        super().__init__(class_type, table_name=table_name, owner_names=[('mijlpaal_directories', 'mp_dir_id'), ('undologs', 'log_id')], details_id=details_id)
-    def delete(self, mijlpaal: MijlpaalGradeable):
+    def __init__(self, class_type: MijlpaalGradeable, table_name: str, details_id: str, include_owner_in_sql=True):
+        self.file_remover = FileRemover(include_owner_in_sql=True)
+        super().__init__(class_type, table_name=table_name, owner_names=[('mijlpaal_directories', 'mp_dir_id'), ('undologs', 'log_id')], details_id=details_id, include_owner_in_sql=include_owner_in_sql)
+    def delete(self, mijlpaal: MijlpaalGradeable, owner_id: int=None):
         for file in mijlpaal.files_list:
             self.file_remover.delete(file, owner_id=mijlpaal.id)
         super().delete(mijlpaal)
@@ -116,18 +114,18 @@ class MijlpaalRemover(RemoverClass):
         super().remove(database, preview, unlink)
 
 class AanvraagRemover(MijlpaalRemover):
-    def __init__(self):
-        super().__init__(Aanvraag, table_name='aanvragen', details_id='aanvraag_id')
+    def __init__(self, include_owner_in_sql=True):
+        super().__init__(Aanvraag, table_name='aanvragen', details_id='aanvraag_id', include_owner_in_sql=include_owner_in_sql)
     
 class VerslagRemover(MijlpaalRemover):
-    def __init__(self):
-        super().__init__(Verslag, table_name='verslagen', details_id='verslag_id')
+    def __init__(self, include_owner_in_sql=True):
+        super().__init__(Verslag, table_name='verslagen', details_id='verslag_id', include_owner_in_sql=include_owner_in_sql)
 
 class MijlpaalDirectoryRemover(RemoverClass):
-    def __init__(self):
+    def __init__(self, include_owner_in_sql=True):
         self.aanvraag_remover = AanvraagRemover()
         self.verslag_remover = VerslagRemover()
-        super().__init__(MijlpaalDirectory, table_name='mijlpaal_directories', owner_names=('student_directories','stud_dir_id'), details_id='mp_dir_id')
+        super().__init__(MijlpaalDirectory, table_name='mijlpaal_directories', owner_names=('student_directories','stud_dir_id'), details_id='mp_dir_id', include_owner_in_sql=include_owner_in_sql)
     def delete(self, mijlpaal_directory: MijlpaalDirectory):
         for aanvraag in mijlpaal_directory.aanvragen:
             self.aanvraag_remover.delete(aanvraag)
@@ -145,7 +143,7 @@ class MijlpaalDirectoryRemover(RemoverClass):
 class StudentDirectoryRemover(RemoverClass):
     def __init__(self):
         self.mp_dir_remover = MijlpaalDirectoryRemover()
-        super().__init__(StudentDirectory, table_name='student_directories', details_id='stud_dir_id')
+        super().__init__(StudentDirectory, table_name='student_directories', details_id='stud_dir_id', include_owner_in_sql=False)
     def delete(self, student_directory: StudentDirectory):
         for directory in student_directory.directories:
             self.mp_dir_remover.delete  (directory)

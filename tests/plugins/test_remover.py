@@ -2,8 +2,10 @@ from __future__ import annotations
 from argparse import ArgumentParser
 from enum import Enum, auto
 import tkinter
+from data.general.aapa_class import AAPAclass
 from data.general.const import MijlpaalType
 from data.classes.files import File
+from general.classutil import classname
 from general.singular_or_plural import sop
 from plugins.plugin import PluginBase
 from process.main.aapa_processor import AAPARunnerContext
@@ -53,26 +55,29 @@ class TestRemover(PluginBase):
     #         rows = self.database._execute_sql_command(query, [file_id],True)
     #         return [row[0] for row in rows]
     #     return (get_table_refs('AANVRAGEN', 'aanvraag_id', file.id), get_table_refs('VERSLAGEN', 'verslag_id', file.id), get_table_refs('UNDOLOGS', 'log_id', file.id))
-
+    @staticmethod
+    def _obj_str(obj: AAPAclass)->str:
+        return obj.summary() if hasattr(obj,'summary') else str(obj)
+    def check_refcount(self, remover: RemoverClass, obj: AAPAclass)->bool:
+        refcount = remover.get_refcount(self.database, obj.id)
+        if refcount <= 1:
+            return True
+        cls_name = classname(obj)
+        references = remover.get_references(self.database, obj.id)
+        owner_str = "en ".join([f'{len(_refs)} {_reftype} met ids {_refs}' for _reftype,_refs in references if len(_refs) > 0])       
+        if (dialog_result:= tkinter.messagebox.askyesnocancel('Waarschuwing', f'{cls_name} {self._obj_str(obj)} ({obj.id}) wordt (nog) gebruikt door {owner_str}.\nVerwijderen kan leiden tot een inconsistente database.\nWeet je zeker dat je dit wilt doen?')) is None:
+            return None
+        else:
+            return dialog_result
     def remove(self, remover: RemoverClass, ids: list[int], preview = True, unlink=False):
         for id in ids:
-            references = remover.get_references(self.database, id)
-            print(references)
             obj = self.storage.read(remover.table_name.lower(), id)
-            # aanvraag_references,verslag_references,undologs_references = self.get_file_references(obj)
-            # refcount = len(aanvraag_references)+len(verslag_references)+len(undologs_references)
-            # if isinstance(remover, FileRemover) and  refcount >= 0:
-            #     if (dialog_result:= tkinter.messagebox.askyesnocancel('Waarschuwing', f'Bestand {id} {File.display_file(obj.filename)} wordt (nog) gebruikt door {sop(refcount, 'object', 'objecten')}.\nVerwijderen kan leiden tot een inconsistente database.\nWeet je zeker dat je dit wilt doen?')) == False:                                        
-            #         continue
-            #     elif dialog_result is None:
-            #         break
-                
-            #TODO: dit ook voor mijlpaal_directories en aanvragen/verslagen doen
-                 
-            # print(f'refcheck: {obj.id}: ({File.display_file(obj.filename)}):')
-            # print(f'refcheck: aanvragen {aanvraag_references} verslagen {verslag_references} undologs {undologs_references}')
-            obj_str = obj.summary() if hasattr(obj,'summary') else str(obj)
-            print(f'Removing {obj_str}...')
+            chk_refcount = self.check_refcount(remover, obj)
+            if chk_refcount == False:
+                continue
+            elif chk_refcount is None:
+                break
+            print(f'Removing {self._obj_str(obj)}...')
             remover.delete(obj)
         remover.remove(self.database, preview, unlink)
     # def remove_verslagen(self, remover: RemoverClass,ids: list[int], preview = True, unlink=False):
@@ -90,7 +95,7 @@ class TestRemover(PluginBase):
                          self.RemoveType.STUDENT_DIRECTORY: StudentDirectoryRemover, 
                          self.RemoveType.FILE: FileRemover,
                         }
-        return remove_funcs.get(remove_type, None)()
+        return remove_funcs.get(remove_type, None)(include_owner_in_sql=False)
     def process(self, context: AAPARunnerContext, **kwdargs)->bool:
         if not (remove_type := self._get_remove_type(kwdargs.get('remove',None))):
             print(f'Geen type om te verwijderen ingevoerd (--remove).')
