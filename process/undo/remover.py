@@ -15,9 +15,13 @@ from data.classes.student_directories import StudentDirectory
 from data.classes.verslagen import Verslag
 from data.general.aapa_class import AAPAclass
 from data.general.class_codes import ClassCodes
+from data.general.const import MijlpaalType
 from database.classes.database import Database
 from general.classutil import classname
+from general.fileutil import file_exists, test_directory_exists
 from general.sql_coll import SQLcollType, SQLcollector, SQLcollectors
+from main.log import log_error, log_info, log_print, log_warning
+from process.general.preview import pva
 from storage.general.storage_const import StoredClass
 
 class RemoverException(Exception):pass
@@ -89,10 +93,20 @@ class RemoverClass:
         self._deleted.append(obj)
     def unlink(self, obj: StoredClass, preview: bool, unlink: bool):
         pass        
+    def unlink_directory(self, directory: str|Path, preview: bool, unlink: bool):
+        if unlink:
+            if not test_directory_exists(directory):
+                log_warning(f'Directory {File.display_file(directory)} bestaat niet.')
+            else:
+                if not preview:
+                    shutil.rmtree(directory)
+                log_print(f'Directory {File.display_file(directory)} met alle inhoud {pva(preview, 'te verwijderen', 'verwijderd')} van filesysteem.')
     def remove(self, database: Database, preview: bool, unlink: bool):
         for item in self._deleted:
             self.unlink(item, preview, unlink)
-        self.sql.execute_sql(database, preview)
+        if not self.sql.is_empty():
+            log_info(pva(preview, f"Gegenereerde SQL-commando's (wordt niet uitgevoerd op database):", f"Verwijderen uit database"), to_console=True)
+            self.sql.execute_sql(database, preview, initial_indent='   ', subsequent_indent='      ')
         if not preview:
             self._deleted = []
 
@@ -100,8 +114,14 @@ class FileRemover(RemoverClass):
     def __init__(self, include_owner_in_sql=True):
         super().__init__(File, 'FILES', owner_names=[('aanvragen', 'aanvraag_id'), ('verslagen','verslag_id'), ('undologs', 'log_id')], include_owner_in_sql=include_owner_in_sql)
     def unlink(self, file: File, preview: bool, unlink: bool):
-        if not preview and unlink:
-            Path(file.filename).unlink(missing_ok=True)
+        if unlink:
+            if not file_exists(file.filename):
+                log_warning(f'Bestand {File.display_file(file.filename)} bestaat niet (meer).')
+            else:
+                if not preview:
+                    Path(file.filename).unlink(missing_ok=True)
+                log_print(f'Bestand {File.display_file(file.filename)} {pva(preview, 'te verwijderen', 'verwijderd')} van filesysteem.')
+            
 class MijlpaalRemover(RemoverClass):
     def __init__(self, class_type: MijlpaalGradeable, table_name: str, details_id: str, include_owner_in_sql=True):
         self.file_remover = FileRemover(include_owner_in_sql=True)
@@ -127,34 +147,35 @@ class MijlpaalDirectoryRemover(RemoverClass):
         self.aanvraag_remover = AanvraagRemover()
         self.verslag_remover = VerslagRemover()
         super().__init__(MijlpaalDirectory, table_name='mijlpaal_directories', owner_names=('student_directories','stud_dir_id'), details_id='mp_dir_id', include_owner_in_sql=include_owner_in_sql)
-    def delete(self, mijlpaal_directory: MijlpaalDirectory):
+    def delete(self, mijlpaal_directory: MijlpaalDirectory, owner_id: int=None):
         for aanvraag in mijlpaal_directory.aanvragen:
             self.aanvraag_remover.delete(aanvraag,owner_id=mijlpaal_directory.id)
         for verslag in mijlpaal_directory.verslagen:
             self.verslag_remover.delete(verslag,owner_id=mijlpaal_directory.id)
-        super().delete(mijlpaal_directory)
+        super().delete(mijlpaal_directory, owner_id=owner_id)
     def remove(self, database: Database, preview: bool, unlink: bool):
         self.aanvraag_remover.remove(database, preview, unlink)
         self.verslag_remover.remove(database, preview, unlink)
         super().remove(database, preview, unlink)
     def unlink(self, mijlpaal_directory: MijlpaalDirectory, preview: bool, unlink: bool):
-        if not preview and unlink:
-            shutil.rmtree(mijlpaal_directory.directory)
+        if mijlpaal_directory.mijlpaal_type == MijlpaalType.AANVRAAG:
+            log_info(f'Directory {File.display_file(mijlpaal_directory.directory)} kan niet worden verwijderd.', to_console=True)
+        else:
+            self.unlink_directory(mijlpaal_directory.directory, preview, unlink)
 
 class StudentDirectoryRemover(RemoverClass):
-    def __init__(self):
+    def __init__(self, include_owner_in_sql=False):
         self.mp_dir_remover = MijlpaalDirectoryRemover()
-        super().__init__(StudentDirectory, table_name='student_directories', details_id='stud_dir_id', include_owner_in_sql=False)
+        super().__init__(StudentDirectory, table_name='student_directories', details_id='stud_dir_id', include_owner_in_sql=include_owner_in_sql)
     def delete(self, student_directory: StudentDirectory):
         for directory in student_directory.directories:
-            self.mp_dir_remover.delete  (directory)
+            self.mp_dir_remover.delete(directory, student_directory.id)
         super().delete(student_directory)
     def remove(self, database: Database, preview: bool, unlink: bool):
         self.mp_dir_remover.remove(database, preview, unlink)
         super().remove(database, preview, unlink)
     def unlink(self, student_directory: StudentDirectory, preview: bool, unlink):
-        if not preview and unlink:
-            shutil.rmtree(student_directory.directory)
+        self.unlink_directory(student_directory.directory, preview, unlink)
 
 # class StudentRemover(RemoverClass):
             

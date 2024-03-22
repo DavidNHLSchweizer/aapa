@@ -45,7 +45,7 @@ if "%phase2%" LSS "3" goto :phase42
 set phase=3
 call :migrate %phase%
 call :msgnext
-call :plugin %mxx%.move_files -v
+call :plugin  %mxx%.move_files -v
 if "%phase2%" LSS "4" goto :phase42
 
 :phase4

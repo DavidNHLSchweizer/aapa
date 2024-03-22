@@ -206,11 +206,11 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "tests.plugins.test_remover",
+                "plugins.remover",
                 "--onedrive=d:\\onedrive",
-                "-preview",
                 "-debug",
-                "--id=768",
+                "--id=809",
+                "-unlink",
                 "--remove=MD",
             ]
         },

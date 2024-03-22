@@ -7,6 +7,7 @@ from data.general.const import MijlpaalType
 from data.classes.files import File
 from general.classutil import classname
 from general.singular_or_plural import sop
+from main.log import log_error, log_info, log_print
 from plugins.plugin import PluginBase
 from process.main.aapa_processor import AAPARunnerContext
 from process.undo.remover import AanvraagRemover, VerslagRemover, FileRemover, MijlpaalDirectoryRemover, RemoverClass, StudentDirectoryRemover
@@ -55,15 +56,20 @@ class RemoverPlugin(PluginBase):
         else:
             return dialog_result
     def remove(self, remover: RemoverClass, ids: list[int], preview = True, unlink=False):
+        log_info(f'Verzamelen te verwijderen items...', to_console=True)
         for id in ids:
             obj = self.storage.read(remover.table_name.lower(), id)
+            if not obj:
+                log_error(f'{classname(remover.class_type)} met id {id} niet gevonden.')
+                continue
             chk_refcount = self.check_refcount(remover, obj)
             if chk_refcount == False:
                 continue
             elif chk_refcount is None:
                 break
-            print(f'Removing {self._obj_str(obj)}...')
+            log_print(f'\tte verwijderen: {self._obj_str(obj)}...')
             remover.delete(obj)
+        log_info(f'Verwijderen...')
         remover.remove(self.database, preview, unlink)
     def _get_remover(self, remove_type: RemoveType)->RemoverClass:
         remove_funcs = { self.RemoveType.AANVRAAG: AanvraagRemover, 

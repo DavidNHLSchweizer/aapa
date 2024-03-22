@@ -41,10 +41,13 @@ class SQLValuesCollector:
         self.no_duplicates = True
     def as_dict(self)->dict[str,list[Any]]:
         return {'sql': self.sql_str, 'values': self.values_list, 'concatenate': self.concatenate}
+    def is_empty(self)->bool:
+        return len(self.values_list) == 0
     def __str__(self):
         result = f'{self.sql_str}'
-        if self.values_list:
-            result += f"\n\tvalues: {'\n\t'.join(self.get_values())}"
+        if not self.is_empty():
+            values = [str(value) for value in self.get_values()]
+            result += f"\n\tvalues: {'\n\t'.join(values)}"
         return result
     @classmethod
     def from_dict(cls, dump: dict)->SQLValuesCollector:
@@ -141,6 +144,12 @@ class SQLcollector:
     def __try_add(self, sql_type: SQLcollType, values: list[Any]):
         if (collector := self.collectors(sql_type)):
             collector.add(values)
+    def is_empty(self)->bool:
+        for colltype in SQLcollType:
+            collector = self.collectors(colltype)
+            if collector and (not collector.is_empty()):                
+                return False
+        return True
     def delete(self,  values: list[Any]):
         self.__try_add(SQLcollType.DELETE, values)
     def insert(self,  values: list[Any]):
@@ -183,6 +192,12 @@ class SQLcollectors(dict):
         for description in self.keys():
             if not (collector := self._get(description)) or not (values_collector := collector.collectors(sql_type)): continue
             yield values_collector
+    def is_empty(self)->bool:
+        for description in self.keys():
+            collector = self._get(description)
+            if collector and not collector.is_empty():                
+                return False
+        return True
     def add(self, description: str, collector: SQLcollector):
         self[description] = collector
     def _get(self, description: str)->SQLcollector:
@@ -224,9 +239,9 @@ class SQLcollectors(dict):
                 print(line)
         else:
             database._execute_sql_command(sql_str,parameters=values)    
-    def execute_sql(self, database: Database, preview = False):
+    def execute_sql(self, database: Database, preview = False, initial_indent="", subsequent_indent="   "):
         with database.pause_foreign_keys():
-            wrapper = TextWrapper(width=80,subsequent_indent="   ") if preview else None
+            wrapper = TextWrapper(width=80,initial_indent=initial_indent if preview else None, subsequent_indent=subsequent_indent if preview else None)
             for sql_type in SQLcollType:
                 for collector in self.collectors(sql_type):
                     if collector is None or collector.get_values() == []:
